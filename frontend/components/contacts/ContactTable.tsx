@@ -23,6 +23,8 @@ interface Contact {
   notes: string
   created_at: string
   updated_at: string
+  job_title?: string
+  lead_score?: "hot" | "warm" | "cold"
 }
 
 interface ContactTableProps {
@@ -43,60 +45,81 @@ export function ContactTable({ contacts }: ContactTableProps) {
 
   if (contacts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-muted-foreground text-sm">
-          Aucun contact trouv&eacute;.
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
+          Aucun contact trouvé.
         </p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-lg border">
+    <div className="rounded-xl border border-border overflow-hidden bg-card">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Nom</TableHead>
-            <TableHead>Entreprise</TableHead>
-            <TableHead className="hidden md:table-cell">Email</TableHead>
-            <TableHead className="hidden lg:table-cell">T&eacute;l&eacute;phone</TableHead>
-            <TableHead className="hidden lg:table-cell">Cr&eacute;&eacute; le</TableHead>
+          <TableRow className="bg-secondary/30 hover:bg-secondary/30">
+            <TableHead className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Nom</TableHead>
+            <TableHead className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Entreprise</TableHead>
+            <TableHead className="hidden md:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Email</TableHead>
+            <TableHead className="hidden lg:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Téléphone</TableHead>
+            <TableHead className="hidden lg:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Créé le</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {contacts.map((contact) => (
             <TableRow
               key={contact.id}
-              className="cursor-pointer hover:bg-muted/50 transition-colors"
+              className="cursor-pointer hover:bg-secondary/30 transition-colors"
               onClick={() => router.push(`/contacts/${contact.id}`)}
             >
-              <TableCell className="font-medium">
-                {contact.first_name} {contact.last_name}
+              <TableCell>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium text-sm font-[family-name:var(--font-body)]">
+                    {contact.first_name} {contact.last_name}
+                  </span>
+                  {contact.lead_score && (
+                    <span
+                      className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${
+                        contact.lead_score === "hot"
+                          ? "bg-rose-500"
+                          : contact.lead_score === "warm"
+                            ? "bg-amber-500"
+                            : "bg-blue-500"
+                      }`}
+                      title={`Lead score: ${contact.lead_score}`}
+                    />
+                  )}
+                </div>
+                {contact.job_title && (
+                  <p className="text-xs text-muted-foreground mt-0.5 font-[family-name:var(--font-body)]">
+                    {contact.job_title}
+                  </p>
+                )}
                 {contact.tags && contact.tags.length > 0 && (
-                  <div className="flex gap-1 mt-1">
+                  <div className="flex gap-1 mt-1.5">
                     {contact.tags.slice(0, 2).map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
+                      <Badge key={tag} variant="secondary" className="text-[10px] font-normal px-1.5 py-0">
                         {tag}
                       </Badge>
                     ))}
                     {contact.tags.length > 2 && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-[10px] font-normal px-1.5 py-0">
                         +{contact.tags.length - 2}
                       </Badge>
                     )}
                   </div>
                 )}
               </TableCell>
-              <TableCell className="text-muted-foreground">
+              <TableCell className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
                 {contact.company || "\u2014"}
               </TableCell>
-              <TableCell className="hidden md:table-cell text-muted-foreground">
+              <TableCell className="hidden md:table-cell text-muted-foreground text-sm font-[family-name:var(--font-body)]">
                 {contact.email || "\u2014"}
               </TableCell>
-              <TableCell className="hidden lg:table-cell text-muted-foreground">
+              <TableCell className="hidden lg:table-cell text-muted-foreground text-sm font-[family-name:var(--font-body)]">
                 {contact.phone || "\u2014"}
               </TableCell>
-              <TableCell className="hidden lg:table-cell text-muted-foreground">
+              <TableCell className="hidden lg:table-cell text-muted-foreground text-sm font-[family-name:var(--font-body)]">
                 {formatDate(contact.created_at)}
               </TableCell>
             </TableRow>
