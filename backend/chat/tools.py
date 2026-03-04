@@ -82,10 +82,92 @@ def search_contacts(ctx: RunContext[ChatDeps], query: str) -> dict:
             "name": f"{c.first_name} {c.last_name}",
             "company": c.company,
             "email": c.email,
+            "job_title": c.job_title,
+            "lead_score": c.lead_score,
         }
         for c in contacts
     ]
     return {"action": "search_contacts", "count": len(results), "results": results}
+
+
+def update_contact(
+    ctx: RunContext[ChatDeps],
+    contact_id: str,
+    first_name: Optional[str] = None,
+    last_name: Optional[str] = None,
+    email: Optional[str] = None,
+    phone: Optional[str] = None,
+    company: Optional[str] = None,
+    job_title: Optional[str] = None,
+    linkedin_url: Optional[str] = None,
+    website: Optional[str] = None,
+    address: Optional[str] = None,
+    industry: Optional[str] = None,
+    lead_score: Optional[str] = None,
+    estimated_budget: Optional[float] = None,
+    identified_needs: Optional[str] = None,
+    decision_role: Optional[str] = None,
+    preferred_channel: Optional[str] = None,
+    timezone: Optional[str] = None,
+    language: Optional[str] = None,
+    interests: Optional[list[str]] = None,
+    birthday: Optional[str] = None,
+    notes: Optional[str] = None,
+    source: Optional[str] = None,
+) -> dict:
+    """Update an existing contact's fields. Only provided fields are updated."""
+    org_id = ctx.deps.organization_id
+    try:
+        contact = Contact.objects.get(id=contact_id, organization_id=org_id)
+    except Contact.DoesNotExist:
+        return {"action": "error", "message": f"Contact {contact_id} not found."}
+
+    updatable = {
+        "first_name": first_name, "last_name": last_name, "email": email,
+        "phone": phone, "company": company, "job_title": job_title,
+        "linkedin_url": linkedin_url, "website": website, "address": address,
+        "industry": industry, "lead_score": lead_score,
+        "identified_needs": identified_needs, "decision_role": decision_role,
+        "preferred_channel": preferred_channel, "timezone": timezone,
+        "language": language, "interests": interests, "notes": notes,
+        "source": source,
+    }
+    if estimated_budget is not None:
+        from decimal import Decimal
+        updatable["estimated_budget"] = Decimal(str(estimated_budget))
+    if birthday is not None:
+        from datetime import date
+        try:
+            updatable["birthday"] = date.fromisoformat(birthday)
+        except ValueError:
+            return {"action": "error", "message": f"Invalid birthday format: {birthday}. Use YYYY-MM-DD."}
+
+    changed = []
+    for field, value in updatable.items():
+        if value is not None:
+            setattr(contact, field, value)
+            changed.append(field)
+
+    if not changed:
+        return {"action": "error", "message": "No fields provided to update."}
+
+    contact.save()
+
+    TimelineEntry.objects.create(
+        organization_id=org_id,
+        created_by_id=ctx.deps.user_id,
+        contact=contact,
+        entry_type=TimelineEntry.EntryType.CONTACT_UPDATED,
+        content=f"Contact updated via chat: {', '.join(changed)}",
+        metadata={"changed_fields": changed},
+    )
+
+    return {
+        "action": "contact_updated",
+        "id": str(contact.id),
+        "name": f"{contact.first_name} {contact.last_name}",
+        "changed_fields": changed,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -348,6 +430,7 @@ def search_all(ctx: RunContext[ChatDeps], query: str) -> dict:
 ALL_TOOLS = [
     create_contact,
     search_contacts,
+    update_contact,
     create_deal,
     move_deal,
     create_task,

@@ -308,3 +308,73 @@ class ChatWithConversationTests(TestCase):
         resp1 = self.client.get(f"/api/chat/conversations/{conv1}/messages/")
         self.assertEqual(len(resp1.data), 1)
         self.assertEqual(resp1.data[0]["content"], "Message in conv1")
+
+
+class UpdateContactToolTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "email": "tooltest@example.com",
+                "password": "securepass123",
+                "first_name": "Tool",
+                "last_name": "Test",
+            },
+        )
+        self.token = response.data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+        # Create a contact to update
+        resp = self.client.post(
+            "/api/contacts/",
+            {"first_name": "Marie", "last_name": "Dupont"},
+        )
+        self.contact_id = resp.data["id"]
+
+        from accounts.models import User
+        from organizations.models import Membership
+        self.user = User.objects.get(email="tooltest@example.com")
+        self.org = Membership.objects.filter(user=self.user).first().organization
+
+    def test_update_contact_tool(self):
+        from chat.tools import update_contact, ChatDeps
+        from unittest.mock import MagicMock
+
+        ctx = MagicMock()
+        ctx.deps = ChatDeps(
+            organization_id=str(self.org.id),
+            user_id=str(self.user.id),
+        )
+        result = update_contact(
+            ctx,
+            contact_id=str(self.contact_id),
+            job_title="CEO",
+            lead_score="hot",
+            industry="Tech",
+        )
+        self.assertEqual(result["action"], "contact_updated")
+        self.assertIn("job_title", result["changed_fields"])
+        self.assertIn("lead_score", result["changed_fields"])
+
+        # Verify persisted
+        from contacts.models import Contact
+        contact = Contact.objects.get(id=self.contact_id)
+        self.assertEqual(contact.job_title, "CEO")
+        self.assertEqual(contact.lead_score, "hot")
+
+    def test_update_contact_tool_not_found(self):
+        from chat.tools import update_contact, ChatDeps
+        from unittest.mock import MagicMock
+
+        ctx = MagicMock()
+        ctx.deps = ChatDeps(
+            organization_id=str(self.org.id),
+            user_id=str(self.user.id),
+        )
+        result = update_contact(
+            ctx,
+            contact_id="00000000-0000-0000-0000-000000000000",
+            job_title="CEO",
+        )
+        self.assertEqual(result["action"], "error")
