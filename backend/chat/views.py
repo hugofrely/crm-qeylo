@@ -21,11 +21,11 @@ from pydantic_ai.messages import (
     ToolReturnPart,
     FunctionToolCallEvent,
     FunctionToolResultEvent,
+    PartStartEvent,
     PartDeltaEvent,
     TextPartDelta,
 )
 from pydantic_ai import Agent as PydanticAgent
-from pydantic_ai.run import AgentRunResultEvent
 
 from contacts.models import Contact
 from deals.models import Deal
@@ -68,7 +68,17 @@ def _build_context(org):
         for t in tasks
     ) or "Aucune tache"
 
-    return contacts_summary, deals_summary, tasks_summary
+    # Email account status
+    from emails.models import EmailAccount
+    email_account = EmailAccount.objects.filter(
+        organization=org, is_active=True,
+    ).first()
+    if email_account:
+        email_status = f"Compte {email_account.get_provider_display()} connecte ({email_account.email_address}). Tu peux envoyer des emails."
+    else:
+        email_status = "Aucun compte email connecte. Suggere a l'utilisateur de connecter son email dans Parametres."
+
+    return contacts_summary, deals_summary, tasks_summary, email_status
 
 
 def _build_message_history(conversation, system_prompt: str) -> list:
@@ -249,7 +259,7 @@ def send_message(request):
     )
 
     # Build context for the system prompt
-    contacts_summary, deals_summary, tasks_summary = _build_context(org)
+    contacts_summary, deals_summary, tasks_summary, email_status = _build_context(org)
     user_name = f"{request.user.first_name} {request.user.last_name}".strip()
     formatted_prompt = SYSTEM_PROMPT.format(
         user_name=user_name or request.user.email,
@@ -257,6 +267,7 @@ def send_message(request):
         contacts_summary=contacts_summary,
         deals_summary=deals_summary,
         tasks_summary=tasks_summary,
+        email_status=email_status,
     )
 
     # Build and run the agent
@@ -388,7 +399,7 @@ async def stream_message(request):
     )
 
     # Build context
-    contacts_summary, deals_summary, tasks_summary = await sync_to_async(_build_context)(org)
+    contacts_summary, deals_summary, tasks_summary, email_status = await sync_to_async(_build_context)(org)
     user_name = f"{user.first_name} {user.last_name}".strip()
     formatted_prompt = SYSTEM_PROMPT.format(
         user_name=user_name or user.email,
@@ -396,6 +407,7 @@ async def stream_message(request):
         contacts_summary=contacts_summary,
         deals_summary=deals_summary,
         tasks_summary=tasks_summary,
+        email_status=email_status,
     )
 
     agent = build_agent()
@@ -425,7 +437,15 @@ async def stream_message(request):
                 user_message,
                 **run_kwargs,
             ):
-                if isinstance(event, PartDeltaEvent):
+                if isinstance(event, PartStartEvent):
+                    # When a new text part starts (e.g. after tool calls),
+                    # it may contain initial text content
+                    if isinstance(event.part, TextPart) and event.part.content:
+                        delta = event.part.content
+                        full_text += delta
+                        yield _sse_event("text_delta", {"content": delta})
+
+                elif isinstance(event, PartDeltaEvent):
                     if isinstance(event.delta, TextPartDelta):
                         delta = event.delta.content_delta
                         full_text += delta
@@ -450,10 +470,6 @@ async def stream_message(request):
                         "tool_call_id": event.result.tool_call_id if isinstance(event.result, ToolReturnPart) else "",
                         "result": result_content if isinstance(result_content, dict) else {},
                     })
-
-                elif isinstance(event, AgentRunResultEvent):
-                    if not full_text and event.result.output:
-                        full_text = event.result.output
 
             # Save assistant message
             assistant_msg = await ChatMessage.objects.acreate(

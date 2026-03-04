@@ -19,6 +19,8 @@ from contacts.models import Contact
 from deals.models import Deal, PipelineStage
 from notes.models import TimelineEntry
 from tasks.models import Task
+from emails.models import EmailAccount
+from emails.service import send_email as service_send_email
 
 
 @dataclass
@@ -40,9 +42,26 @@ def create_contact(
     email: str = "",
     phone: str = "",
 ) -> dict:
-    """Create a new contact in the CRM."""
+    """Create a new contact in the CRM. Checks for duplicates first."""
+    org_id = ctx.deps.organization_id
+    # Check for existing contact with same name
+    existing = Contact.objects.filter(
+        organization_id=org_id,
+        first_name__iexact=first_name,
+        last_name__iexact=last_name,
+    ).first()
+    if existing:
+        return {
+            "action": "duplicate_found",
+            "id": str(existing.id),
+            "name": f"{existing.first_name} {existing.last_name}",
+            "company": existing.company,
+            "email": existing.email,
+            "message": f"Le contact {existing.first_name} {existing.last_name} existe deja.",
+        }
+
     contact = Contact.objects.create(
-        organization_id=ctx.deps.organization_id,
+        organization_id=org_id,
         created_by_id=ctx.deps.user_id,
         first_name=first_name,
         last_name=last_name,
@@ -51,7 +70,7 @@ def create_contact(
         phone=phone,
     )
     TimelineEntry.objects.create(
-        organization_id=ctx.deps.organization_id,
+        organization_id=org_id,
         created_by_id=ctx.deps.user_id,
         contact=contact,
         entry_type=TimelineEntry.EntryType.CONTACT_CREATED,
@@ -68,14 +87,17 @@ def create_contact(
 def search_contacts(ctx: RunContext[ChatDeps], query: str) -> dict:
     """Search contacts by name, company or email."""
     org_id = ctx.deps.organization_id
-    contacts = Contact.objects.filter(
-        organization_id=org_id,
-    ).filter(
-        Q(first_name__icontains=query)
-        | Q(last_name__icontains=query)
-        | Q(company__icontains=query)
-        | Q(email__icontains=query)
-    )[:10]
+    qs = Contact.objects.filter(organization_id=org_id)
+    # Split query into words so "hugo frely" matches first_name=hugo AND last_name=frely
+    words = query.strip().split()
+    for word in words:
+        qs = qs.filter(
+            Q(first_name__icontains=word)
+            | Q(last_name__icontains=word)
+            | Q(company__icontains=word)
+            | Q(email__icontains=word)
+        )
+    contacts = qs[:10]
     results = [
         {
             "id": str(c.id),
@@ -353,6 +375,63 @@ def add_note(
 
 
 # ---------------------------------------------------------------------------
+# Emails
+# ---------------------------------------------------------------------------
+
+def send_contact_email(
+    ctx: RunContext[ChatDeps],
+    contact_id: str,
+    subject: str,
+    body: str,
+) -> dict:
+    """Send an email to a contact using the user's connected email account.
+    Use when the user asks to email, send a message, or follow up with a contact.
+    The body should be plain text — it will be converted to HTML automatically.
+    """
+    from accounts.models import User
+    from organizations.models import Organization
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+
+    # Check email account exists
+    account = EmailAccount.objects.filter(
+        user_id=user_id, organization_id=org_id, is_active=True,
+    ).first()
+    if not account:
+        return {
+            "action": "error",
+            "message": "Aucun compte email connecté. Connectez votre Gmail ou Outlook dans Paramètres.",
+        }
+
+    # Convert plain text body to simple HTML
+    body_html = "".join(f"<p>{line}</p>" for line in body.split("\n") if line.strip())
+    if not body_html:
+        body_html = f"<p>{body}</p>"
+
+    try:
+        user = User.objects.get(id=user_id)
+        org = Organization.objects.get(id=org_id)
+        sent = service_send_email(
+            user=user,
+            organization=org,
+            contact_id=contact_id,
+            subject=subject,
+            body_html=body_html,
+        )
+    except (ValueError, PermissionError) as e:
+        return {"action": "error", "message": str(e)}
+    except Exception:
+        return {"action": "error", "message": "Erreur lors de l'envoi de l'email."}
+
+    return {
+        "action": "email_sent",
+        "to": sent.to_email,
+        "subject": subject,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Dashboard / Search
 # ---------------------------------------------------------------------------
 
@@ -397,14 +476,15 @@ def search_all(ctx: RunContext[ChatDeps], query: str) -> dict:
     """Search across contacts, deals, and notes."""
     org_id = ctx.deps.organization_id
 
-    contacts = Contact.objects.filter(
-        organization_id=org_id,
-    ).filter(
-        Q(first_name__icontains=query)
-        | Q(last_name__icontains=query)
-        | Q(company__icontains=query)
-        | Q(email__icontains=query)
-    )[:5]
+    contact_qs = Contact.objects.filter(organization_id=org_id)
+    for word in query.strip().split():
+        contact_qs = contact_qs.filter(
+            Q(first_name__icontains=word)
+            | Q(last_name__icontains=word)
+            | Q(company__icontains=word)
+            | Q(email__icontains=word)
+        )
+    contacts = contact_qs[:5]
 
     deals = Deal.objects.filter(
         organization_id=org_id,
@@ -442,6 +522,7 @@ ALL_TOOLS = [
     create_task,
     complete_task,
     add_note,
+    send_contact_email,
     get_dashboard_summary,
     search_all,
 ]
