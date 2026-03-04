@@ -4,6 +4,6 @@ django-cors-headers==4.6.0
 djangorestframework-simplejwt==5.4.0
 dj-database-url==2.3.0
 psycopg2-binary==2.9.10
-pydantic-ai==0.0.43
+pydantic-ai==1.65.0
 python-dotenv==1.0.1
 gunicorn==23.0.0
