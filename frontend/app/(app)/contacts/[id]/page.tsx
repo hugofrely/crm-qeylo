@@ -242,18 +242,18 @@ function getTimelineColor(entryType: string) {
 
 function getEntryTypeLabel(entryType: string): string {
   const labels: Record<string, string> = {
-    contact_created: "Contact cr\u00e9\u00e9",
-    deal_created: "Deal cr\u00e9\u00e9",
-    deal_moved: "Deal d\u00e9plac\u00e9",
+    contact_created: "Contact créé",
+    deal_created: "Deal créé",
+    deal_moved: "Deal déplacé",
     note_added: "Note",
-    task_created: "T\u00e2che cr\u00e9\u00e9e",
+    task_created: "Tâche créée",
     chat_action: "Action chat",
-    contact_updated: "Contact modifi\u00e9",
+    contact_updated: "Contact modifié",
     call: "Appel",
-    email_sent: "Email envoy\u00e9",
-    email_received: "Email re\u00e7u",
-    meeting: "R\u00e9union",
-    custom: "Activit\u00e9",
+    email_sent: "Email envoyé",
+    email_received: "Email reçu",
+    meeting: "Réunion",
+    custom: "Activité",
   }
   return labels[entryType] || entryType
 }
@@ -268,7 +268,7 @@ function ActivityMetadata({ entry }: { entry: TimelineEntry }) {
     case "call":
       if (meta.direction) badges.push(meta.direction === "inbound" ? "Entrant" : "Sortant")
       if (meta.outcome) {
-        const outcomes: Record<string, string> = { answered: "R\u00e9pondu", voicemail: "Messagerie", no_answer: "Pas de r\u00e9ponse", busy: "Occup\u00e9" }
+        const outcomes: Record<string, string> = { answered: "Répondu", voicemail: "Messagerie", no_answer: "Pas de réponse", busy: "Occupé" }
         badges.push(outcomes[meta.outcome as string] || String(meta.outcome))
       }
       if (meta.duration_minutes) badges.push(`${meta.duration_minutes} min`)
@@ -640,13 +640,13 @@ export default function ContactDetailPage() {
             className="gap-2"
           >
             <Phone className="h-3.5 w-3.5" />
-            Logger une activit\u00e9
+            Logger une activité
           </Button>
         </div>
         <div className="p-6">
           {timeline.length === 0 ? (
             <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
-              Aucune interaction enregistr\u00e9e.
+              Aucune interaction enregistrée.
             </p>
           ) : (
             <div className="space-y-0">
