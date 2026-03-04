@@ -1,15 +1,24 @@
 "use client"
 
+import { KanbanBoard } from "@/components/deals/KanbanBoard"
 import { Kanban } from "lucide-react"
 
 export default function DealsPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-8">
-      <Kanban className="h-12 w-12 text-muted-foreground mb-4" />
-      <h1 className="text-2xl font-bold mb-2">Pipeline</h1>
-      <p className="text-muted-foreground">
-        Le pipeline des deals sera disponible ici.
-      </p>
+    <div className="p-6 lg:p-8 space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <Kanban className="h-6 w-6" />
+          Pipeline
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          G&eacute;rez vos deals par &eacute;tape du pipeline
+        </p>
+      </div>
+
+      {/* Kanban Board */}
+      <KanbanBoard />
     </div>
   )
 }

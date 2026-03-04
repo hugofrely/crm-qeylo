@@ -1,0 +1,79 @@
+"use client"
+
+import { useSortable } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+import { Card, CardContent } from "@/components/ui/card"
+import { User, DollarSign } from "lucide-react"
+
+interface Deal {
+  id: number
+  name: string
+  amount: string | number
+  stage: number
+  stage_name: string
+  contact: number | null
+  contact_name?: string
+}
+
+interface DealCardProps {
+  deal: Deal
+}
+
+function formatAmount(amount: string | number): string {
+  const num = typeof amount === "string" ? parseFloat(amount) : amount
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(num)
+}
+
+export function DealCard({ deal }: DealCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `deal-${deal.id}`,
+    data: {
+      type: "deal",
+      deal,
+    },
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
+    >
+      <CardContent className="p-3 space-y-2">
+        <p className="font-medium text-sm leading-tight">{deal.name}</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1 text-sm font-semibold text-green-700">
+            <DollarSign className="h-3.5 w-3.5" />
+            {formatAmount(deal.amount)}
+          </div>
+          {deal.contact_name && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <User className="h-3 w-3" />
+              <span className="truncate max-w-[100px]">{deal.contact_name}</span>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
