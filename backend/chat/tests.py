@@ -156,3 +156,83 @@ class ChatTests(TestCase):
         self.assertEqual(len(response.data), 2)
         self.assertEqual(response.data[0]["content"], "Message 1")
         self.assertEqual(response.data[1]["content"], "Reply 1")
+
+
+class ConversationAPITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "email": "conv@example.com",
+                "password": "securepass123",
+                "first_name": "Conv",
+                "last_name": "User",
+            },
+        )
+        self.token = response.data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+    def test_list_conversations_empty(self):
+        response = self.client.get("/api/chat/conversations/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+    def test_create_conversation(self):
+        response = self.client.post("/api/chat/conversations/")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn("id", response.data)
+        self.assertEqual(response.data["title"], "Nouvelle conversation")
+
+    def test_delete_conversation(self):
+        create_resp = self.client.post("/api/chat/conversations/")
+        conv_id = create_resp.data["id"]
+        response = self.client.delete(f"/api/chat/conversations/{conv_id}/")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_rename_conversation(self):
+        create_resp = self.client.post("/api/chat/conversations/")
+        conv_id = create_resp.data["id"]
+        response = self.client.patch(
+            f"/api/chat/conversations/{conv_id}/",
+            {"title": "Mon nouveau titre"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["title"], "Mon nouveau titre")
+
+    def test_conversation_messages_empty(self):
+        create_resp = self.client.post("/api/chat/conversations/")
+        conv_id = create_resp.data["id"]
+        response = self.client.get(f"/api/chat/conversations/{conv_id}/messages/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+    def test_list_conversations_ordered_by_updated(self):
+        resp1 = self.client.post("/api/chat/conversations/")
+        resp2 = self.client.post("/api/chat/conversations/")
+        # Rename first to update its updated_at
+        self.client.patch(
+            f"/api/chat/conversations/{resp1.data['id']}/",
+            {"title": "Updated"},
+        )
+        response = self.client.get("/api/chat/conversations/")
+        self.assertEqual(response.data[0]["id"], resp1.data["id"])
+
+    def test_conversation_includes_last_message_preview(self):
+        create_resp = self.client.post("/api/chat/conversations/")
+        conv_id = create_resp.data["id"]
+
+        from accounts.models import User
+        from organizations.models import Membership
+        from chat.models import ChatMessage, Conversation
+
+        user = User.objects.get(email="conv@example.com")
+        org = Membership.objects.filter(user=user).first().organization
+        conv = Conversation.objects.get(id=conv_id)
+        ChatMessage.objects.create(
+            conversation=conv, organization=org, user=user,
+            role="user", content="Bonjour, aide-moi avec les contacts",
+        )
+
+        response = self.client.get("/api/chat/conversations/")
+        self.assertIn("last_message_preview", response.data[0])

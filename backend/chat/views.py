@@ -1,21 +1,35 @@
+import json
 import logging
 
 from django.conf import settings
+from django.http import StreamingHttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from pydantic_ai.messages import ModelResponse, ModelRequest, ToolCallPart, ToolReturnPart
+from asgiref.sync import sync_to_async
+from pydantic_ai.messages import (
+    ModelResponse,
+    ModelRequest,
+    ToolCallPart,
+    ToolReturnPart,
+    FunctionToolCallEvent,
+    FunctionToolResultEvent,
+    PartDeltaEvent,
+    TextPartDelta,
+)
+from pydantic_ai.run import AgentRunResultEvent
 
 from contacts.models import Contact
 from deals.models import Deal
 from tasks.models import Task
 
 from .agent import build_agent
-from .models import ChatMessage
+from .models import ChatMessage, Conversation
 from .prompts import SYSTEM_PROMPT
-from .serializers import ChatInputSerializer, ChatMessageSerializer
+from .serializers import ChatInputSerializer, ChatMessageSerializer, ConversationSerializer
 from .tools import ChatDeps
 
 logger = logging.getLogger(__name__)
@@ -156,3 +170,215 @@ def chat_history(request):
     )
     serializer = ChatMessageSerializer(messages, many=True)
     return Response(serializer.data)
+
+
+def _sse_event(event_type: str, data: dict) -> str:
+    return f"event: {event_type}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+@csrf_exempt
+async def stream_message(request):
+    """Stream an AI response as Server-Sent Events."""
+    if request.method != "POST":
+        return StreamingHttpResponse(status=405)
+
+    from rest_framework_simplejwt.authentication import JWTAuthentication
+    from rest_framework.exceptions import AuthenticationFailed
+
+    jwt_auth = JWTAuthentication()
+    try:
+        auth_result = await sync_to_async(jwt_auth.authenticate)(request)
+        if auth_result is None:
+            return StreamingHttpResponse(status=401)
+        user, _ = auth_result
+    except AuthenticationFailed:
+        return StreamingHttpResponse(status=401)
+
+    # Get organization
+    from organizations.models import Membership
+    membership = await Membership.objects.select_related("organization").filter(
+        user=user
+    ).afirst()
+    if not membership:
+        return StreamingHttpResponse(status=400)
+    org = membership.organization
+
+    # Parse body
+    try:
+        body = json.loads(request.body)
+        user_message = body.get("message", "").strip()
+    except (json.JSONDecodeError, AttributeError):
+        return StreamingHttpResponse(status=400)
+
+    if not user_message:
+        return StreamingHttpResponse(status=400)
+
+    # Save user message
+    await ChatMessage.objects.acreate(
+        organization=org,
+        user=user,
+        role=ChatMessage.Role.USER,
+        content=user_message,
+    )
+
+    # Build context
+    contacts_summary, deals_summary, tasks_summary = await sync_to_async(_build_context)(org)
+    user_name = f"{user.first_name} {user.last_name}".strip()
+    formatted_prompt = SYSTEM_PROMPT.format(
+        user_name=user_name or user.email,
+        contacts_summary=contacts_summary,
+        deals_summary=deals_summary,
+        tasks_summary=tasks_summary,
+    )
+
+    agent = build_agent()
+    deps = ChatDeps(
+        organization_id=str(org.id),
+        user_id=str(user.id),
+    )
+
+    async def event_generator():
+        full_text = ""
+        actions = []
+
+        try:
+            async for event in agent.run_stream_events(
+                user_message,
+                deps=deps,
+                model=settings.AI_MODEL,
+                instructions=formatted_prompt,
+            ):
+                if isinstance(event, PartDeltaEvent):
+                    if isinstance(event.delta, TextPartDelta):
+                        delta = event.delta.content_delta
+                        full_text += delta
+                        yield _sse_event("text_delta", {"content": delta})
+
+                elif isinstance(event, FunctionToolCallEvent):
+                    yield _sse_event("tool_call_start", {
+                        "tool_name": event.part.tool_name,
+                        "tool_call_id": event.part.tool_call_id,
+                        "args": event.part.args if isinstance(event.part.args, dict) else {},
+                    })
+
+                elif isinstance(event, FunctionToolResultEvent):
+                    result_content = event.result.content if isinstance(event.result, ToolReturnPart) else None
+                    if isinstance(result_content, dict):
+                        actions.append({
+                            "tool": event.result.tool_name,
+                            "args": {},
+                            "result": result_content,
+                        })
+                    yield _sse_event("tool_result", {
+                        "tool_call_id": event.result.tool_call_id if isinstance(event.result, ToolReturnPart) else "",
+                        "result": result_content if isinstance(result_content, dict) else {},
+                    })
+
+                elif isinstance(event, AgentRunResultEvent):
+                    if not full_text and event.result.output:
+                        full_text = event.result.output
+
+            # Save assistant message
+            assistant_msg = await ChatMessage.objects.acreate(
+                organization=org,
+                user=user,
+                role=ChatMessage.Role.ASSISTANT,
+                content=full_text,
+                actions=actions,
+            )
+
+            yield _sse_event("done", {
+                "message_id": str(assistant_msg.id),
+                "actions": actions,
+            })
+
+        except Exception:
+            logger.exception("Streaming AI agent error")
+            error_text = "Desole, une erreur est survenue. Veuillez reessayer."
+            yield _sse_event("error", {"message": error_text})
+            await ChatMessage.objects.acreate(
+                organization=org,
+                user=user,
+                role=ChatMessage.Role.ASSISTANT,
+                content=error_text,
+                actions=[],
+            )
+
+    response = StreamingHttpResponse(
+        event_generator(),
+        content_type="text/event-stream",
+    )
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+    return response
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def conversation_list(request):
+    """List or create conversations."""
+    org = request.organization
+    if not org:
+        return Response([], status=status.HTTP_200_OK)
+
+    if request.method == "GET":
+        conversations = Conversation.objects.filter(
+            organization=org, user=request.user,
+        )
+        serializer = ConversationSerializer(conversations, many=True)
+        return Response(serializer.data)
+
+    # POST: create a new conversation
+    conv = Conversation.objects.create(
+        organization=org, user=request.user,
+    )
+    return Response(
+        ConversationSerializer(conv).data,
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["PATCH", "DELETE"])
+@permission_classes([IsAuthenticated])
+def conversation_detail(request, conversation_id):
+    """Update or delete a conversation."""
+    org = request.organization
+    if not org:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        conv = Conversation.objects.get(
+            id=conversation_id, organization=org, user=request.user,
+        )
+    except Conversation.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "DELETE":
+        conv.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # PATCH: rename
+    serializer = ConversationSerializer(conv, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def conversation_messages(request, conversation_id):
+    """Return messages for a specific conversation."""
+    org = request.organization
+    if not org:
+        return Response([], status=status.HTTP_200_OK)
+
+    try:
+        conv = Conversation.objects.get(
+            id=conversation_id, organization=org, user=request.user,
+        )
+    except Conversation.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    messages = conv.messages.all()
+    return Response(ChatMessageSerializer(messages, many=True).data)
