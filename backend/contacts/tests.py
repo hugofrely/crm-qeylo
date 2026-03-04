@@ -100,6 +100,61 @@ class ContactTests(TestCase):
         response = client2.get("/api/contacts/")
         self.assertEqual(response.data["count"], 0)
 
+    def test_create_contact_with_enrichment_fields(self):
+        response = self.client.post(
+            "/api/contacts/",
+            {
+                "first_name": "Marie",
+                "last_name": "Dupont",
+                "company": "Decathlon",
+                "job_title": "Directrice commerciale",
+                "linkedin_url": "https://linkedin.com/in/mariedupont",
+                "industry": "Retail",
+                "lead_score": "hot",
+                "estimated_budget": "50000.00",
+                "decision_role": "decision_maker",
+                "preferred_channel": "email",
+                "language": "fr",
+                "interests": ["sport", "retail"],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["job_title"], "Directrice commerciale")
+        self.assertEqual(response.data["lead_score"], "hot")
+        self.assertEqual(response.data["decision_role"], "decision_maker")
+        self.assertEqual(response.data["interests"], ["sport", "retail"])
+
+    def test_update_contact_enrichment_fields(self):
+        create = self.client.post(
+            "/api/contacts/", {"first_name": "Marie", "last_name": "Dupont"}
+        )
+        response = self.client.patch(
+            f"/api/contacts/{create.data['id']}/",
+            {
+                "job_title": "CEO",
+                "lead_score": "hot",
+                "estimated_budget": "100000.00",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["job_title"], "CEO")
+        self.assertEqual(response.data["lead_score"], "hot")
+        self.assertEqual(response.data["estimated_budget"], "100000.00")
+
+    def test_ai_summary_updated_at_is_read_only(self):
+        create = self.client.post(
+            "/api/contacts/", {"first_name": "Marie", "last_name": "Dupont"}
+        )
+        response = self.client.patch(
+            f"/api/contacts/{create.data['id']}/",
+            {"ai_summary_updated_at": "2025-01-01T00:00:00Z"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(response.data["ai_summary_updated_at"])
+
 
 class CSVImportTests(TestCase):
     def setUp(self):
