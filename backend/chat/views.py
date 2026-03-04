@@ -20,6 +20,7 @@ from pydantic_ai.messages import (
     PartDeltaEvent,
     TextPartDelta,
 )
+from pydantic_ai import Agent as PydanticAgent
 from pydantic_ai.run import AgentRunResultEvent
 
 from contacts.models import Contact
@@ -86,6 +87,42 @@ def _extract_actions(messages) -> list[dict]:
                         action_info["result"] = result
                     actions.append(action_info)
     return actions
+
+
+async def _generate_title_async(user_message: str, assistant_message: str) -> str:
+    """Generate a short conversation title using the LLM."""
+    from .prompts import TITLE_GENERATION_PROMPT
+    try:
+        agent = PydanticAgent(model=settings.AI_MODEL)
+        result = await agent.run(
+            TITLE_GENERATION_PROMPT.format(
+                user_message=user_message[:200],
+                assistant_message=assistant_message[:200],
+            ),
+        )
+        title = result.output.strip()[:200]
+        return title if title else "Nouvelle conversation"
+    except Exception:
+        logger.exception("Title generation error")
+        return "Nouvelle conversation"
+
+
+def _generate_title_sync(user_message: str, assistant_message: str) -> str:
+    """Generate a short conversation title using the LLM (sync version)."""
+    from .prompts import TITLE_GENERATION_PROMPT
+    try:
+        agent = PydanticAgent(model=settings.AI_MODEL)
+        result = agent.run_sync(
+            TITLE_GENERATION_PROMPT.format(
+                user_message=user_message[:200],
+                assistant_message=assistant_message[:200],
+            ),
+        )
+        title = result.output.strip()[:200]
+        return title if title else "Nouvelle conversation"
+    except Exception:
+        logger.exception("Title generation error")
+        return "Nouvelle conversation"
 
 
 @api_view(["POST"])
@@ -171,6 +208,11 @@ def send_message(request):
         content=ai_text,
         actions=actions,
     )
+
+    # Generate title if this is the first exchange
+    if conv.messages.count() == 2:
+        conv.title = _generate_title_sync(user_message, ai_text)
+        conv.save(update_fields=["title"])
 
     return Response(ChatMessageSerializer(assistant_msg).data)
 
@@ -321,9 +363,17 @@ async def stream_message(request):
                 actions=actions,
             )
 
+            # Generate title if this is the first exchange
+            msg_count = await conv.messages.acount()
+            if msg_count == 2:
+                title = await _generate_title_async(user_message, full_text)
+                conv.title = title
+                await conv.asave(update_fields=["title"])
+
             yield _sse_event("done", {
                 "message_id": str(assistant_msg.id),
                 "conversation_id": str(conv.id),
+                "conversation_title": conv.title,
                 "actions": actions,
             })
 

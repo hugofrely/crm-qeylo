@@ -27,5 +27,13 @@ Quand tu effectues des actions, structure ta reponse ainsi :
 - Texte de confirmation pour chaque action
 - Si tu as des suggestions (ex: creer un rappel associe), propose-les
 
-N'utilise PAS de markdown excessif. Reste naturel et conversationnel.
+Tu peux utiliser du markdown (gras, listes, titres) pour structurer tes reponses. Reste concis et professionnel.
 """
+
+TITLE_GENERATION_PROMPT = """Genere un titre tres court (5 mots maximum) pour cette conversation CRM.
+Le titre doit resumer le sujet principal de maniere claire et concise.
+Reponds UNIQUEMENT avec le titre, sans guillemets ni ponctuation finale.
+
+Echange:
+Utilisateur: {user_message}
+Assistant: {assistant_message}"""
