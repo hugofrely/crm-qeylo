@@ -127,6 +127,7 @@ export function ActivityDialog({
 }: ActivityDialogProps) {
   const [activeTab, setActiveTab] = useState<EntryType>("call")
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const [callFields, setCallFields] = useState<CallFields>(getInitialCallFields(contactPhone))
   const [emailSentFields, setEmailSentFields] = useState<EmailSentFields>(getInitialEmailSentFields(contactEmail))
@@ -136,6 +137,7 @@ export function ActivityDialog({
 
   function resetForm() {
     setActiveTab("call")
+    setError(null)
     setCallFields(getInitialCallFields(contactPhone))
     setEmailSentFields(getInitialEmailSentFields(contactEmail))
     setEmailReceivedFields(getInitialEmailReceivedFields(contactEmail))
@@ -218,6 +220,7 @@ export function ActivityDialog({
 
   async function handleSubmit() {
     setSubmitting(true)
+    setError(null)
     try {
       const payload = buildPayload()
       await apiFetch("/activities/", { method: "POST", json: payload })
@@ -225,6 +228,7 @@ export function ActivityDialog({
       onCreated()
       onOpenChange(false)
     } catch (err) {
+      setError("Impossible d\u2019enregistrer l\u2019activit\u00e9. V\u00e9rifiez les champs requis.")
       console.error("Failed to create activity:", err)
     } finally {
       setSubmitting(false)
@@ -235,7 +239,7 @@ export function ActivityDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[560px]">
         <DialogHeader>
-          <DialogTitle>Logger une activite</DialogTitle>
+          <DialogTitle>Logger une activit\u00e9</DialogTitle>
         </DialogHeader>
         <div className="font-[family-name:var(--font-body)]">
           <Tabs
@@ -249,15 +253,15 @@ export function ActivityDialog({
               </TabsTrigger>
               <TabsTrigger value="email_sent" className="gap-1.5">
                 <Mail className="h-3.5 w-3.5" />
-                Email envoye
+                Email envoy\u00e9
               </TabsTrigger>
               <TabsTrigger value="email_received" className="gap-1.5">
                 <MailOpen className="h-3.5 w-3.5" />
-                Email recu
+                Email re\u00e7u
               </TabsTrigger>
               <TabsTrigger value="meeting" className="gap-1.5">
                 <Calendar className="h-3.5 w-3.5" />
-                Reunion
+                R\u00e9union
               </TabsTrigger>
               <TabsTrigger value="custom" className="gap-1.5">
                 <Tag className="h-3.5 w-3.5" />
@@ -280,22 +284,22 @@ export function ActivityDialog({
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label className={labelClass}>Resultat</Label>
+                  <Label className={labelClass}>R\u00e9sultat</Label>
                   <select
                     className={selectClass}
                     value={callFields.outcome}
                     onChange={(e) => setCallFields({ ...callFields, outcome: e.target.value })}
                   >
-                    <option value="answered">Repondu</option>
+                    <option value="answered">R\u00e9pondu</option>
                     <option value="voicemail">Messagerie</option>
-                    <option value="no_answer">Pas de reponse</option>
-                    <option value="busy">Occupe</option>
+                    <option value="no_answer">Pas de r\u00e9ponse</option>
+                    <option value="busy">Occup\u00e9</option>
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className={labelClass}>Duree (minutes)</Label>
+                  <Label className={labelClass}>Dur\u00e9e (minutes)</Label>
                   <Input
                     type="number"
                     value={callFields.duration_minutes}
@@ -305,7 +309,7 @@ export function ActivityDialog({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className={labelClass}>Numero</Label>
+                  <Label className={labelClass}>Num\u00e9ro</Label>
                   <Input
                     value={callFields.phone_number}
                     onChange={(e) => setCallFields({ ...callFields, phone_number: e.target.value })}
@@ -342,7 +346,7 @@ export function ActivityDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label className={labelClass}>Corps / Resume</Label>
+                <Label className={labelClass}>Corps / R\u00e9sum\u00e9</Label>
                 <textarea
                   className={textareaClass}
                   value={emailSentFields.body}
@@ -362,7 +366,7 @@ export function ActivityDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label className={labelClass}>Expediteur</Label>
+                <Label className={labelClass}>Exp\u00e9diteur</Label>
                 <Input
                   value={emailReceivedFields.sender}
                   onChange={(e) => setEmailReceivedFields({ ...emailReceivedFields, sender: e.target.value })}
@@ -370,7 +374,7 @@ export function ActivityDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label className={labelClass}>Corps / Resume</Label>
+                <Label className={labelClass}>Corps / R\u00e9sum\u00e9</Label>
                 <textarea
                   className={textareaClass}
                   value={emailReceivedFields.body}
@@ -391,7 +395,7 @@ export function ActivityDialog({
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className={labelClass}>Date et heure</Label>
+                  <Label className={labelClass}>Date et heure *</Label>
                   <Input
                     type="datetime-local"
                     value={meetingFields.scheduled_at}
@@ -400,7 +404,7 @@ export function ActivityDialog({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className={labelClass}>Duree (minutes)</Label>
+                  <Label className={labelClass}>Dur\u00e9e (minutes)</Label>
                   <Input
                     type="number"
                     value={meetingFields.duration_minutes}
@@ -445,7 +449,7 @@ export function ActivityDialog({
                 <Input
                   value={customFields.custom_type_label}
                   onChange={(e) => setCustomFields({ ...customFields, custom_type_label: e.target.value })}
-                  placeholder="Dejeuner, Salon, Demo..."
+                  placeholder="D\u00e9jeuner, Salon, D\u00e9mo..."
                   className={inputClass}
                 />
               </div>
@@ -459,6 +463,10 @@ export function ActivityDialog({
               </div>
             </TabsContent>
           </Tabs>
+
+          {error && (
+            <p className="text-sm text-destructive mt-4">{error}</p>
+          )}
 
           <div className="flex justify-end mt-6">
             <Button onClick={handleSubmit} disabled={submitting}>

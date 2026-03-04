@@ -15,7 +15,7 @@ class TimelineEntrySerializer(serializers.ModelSerializer):
             "metadata",
             "created_at",
         ]
-        read_only_fields = ["id", "entry_type", "created_at"]
+        read_only_fields = ["id", "entry_type", "subject", "created_at"]
 
 
 class NoteCreateSerializer(serializers.Serializer):

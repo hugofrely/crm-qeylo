@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from contacts.models import Contact
 from .models import TimelineEntry
 from .serializers import TimelineEntrySerializer, NoteCreateSerializer, ActivityCreateSerializer
 
@@ -47,6 +48,11 @@ def create_activity(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     data = serializer.validated_data
+    if not Contact.objects.filter(id=data["contact"], organization=request.organization).exists():
+        return Response(
+            {"contact": "Contact introuvable dans votre organisation."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
     entry = TimelineEntry.objects.create(
         organization=request.organization,
         created_by=request.user,
