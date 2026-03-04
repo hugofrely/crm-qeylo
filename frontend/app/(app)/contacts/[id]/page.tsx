@@ -363,9 +363,14 @@ export default function ContactDetailPage() {
   const handleSave = async () => {
     setSaving(true)
     try {
+      const payload = {
+        ...formData,
+        birthday: formData.birthday || null,
+        estimated_budget: formData.estimated_budget || null,
+      }
       const data = await apiFetch<Contact>(`/contacts/${id}/`, {
         method: "PATCH",
-        json: formData,
+        json: payload,
       })
       setContact(data)
       setEditing(false)
