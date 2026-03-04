@@ -13,7 +13,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Users, Plus, Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { Plus, Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog"
 
 interface Contact {
   id: number
@@ -27,6 +28,23 @@ interface Contact {
   notes: string
   created_at: string
   updated_at: string
+  // Enrichment fields
+  job_title: string
+  linkedin_url: string
+  website: string
+  address: string
+  industry: string
+  lead_score: string
+  estimated_budget: string
+  identified_needs: string
+  decision_role: string
+  preferred_channel: string
+  timezone: string
+  language: string
+  interests: string
+  birthday: string | null
+  ai_summary: string
+  ai_summary_updated_at: string | null
 }
 
 interface ContactsResponse {
@@ -53,6 +71,8 @@ export default function ContactsPage() {
     email: "",
     phone: "",
     company: "",
+    job_title: "",
+    lead_score: "",
   })
 
   const fetchContacts = useCallback(async () => {
@@ -97,7 +117,7 @@ export default function ContactsPage() {
     setCreating(true)
     try {
       await apiFetch("/contacts/", { method: "POST", json: formData })
-      setFormData({ first_name: "", last_name: "", email: "", phone: "", company: "" })
+      setFormData({ first_name: "", last_name: "", email: "", phone: "", company: "", job_title: "", lead_score: "" })
       setDialogOpen(false)
       fetchContacts()
     } catch (err) {
@@ -108,26 +128,25 @@ export default function ContactsPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Users className="h-6 w-6" />
-            Contacts
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <h1 className="text-3xl tracking-tight">Contacts</h1>
+          <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
             {totalCount} contact{totalCount !== 1 ? "s" : ""} au total
           </p>
         </div>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Ajouter
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <ImportCSVDialog onImported={fetchContacts} />
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Ajouter
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Nouveau contact</DialogTitle>
@@ -135,7 +154,7 @@ export default function ContactsPage() {
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="first_name">Pr&eacute;nom</Label>
+                  <Label htmlFor="first_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Prénom</Label>
                   <Input
                     id="first_name"
                     value={formData.first_name}
@@ -143,10 +162,11 @@ export default function ContactsPage() {
                       setFormData({ ...formData, first_name: e.target.value })
                     }
                     required
+                    className="h-11 bg-secondary/30 border-border/60"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="last_name">Nom</Label>
+                  <Label htmlFor="last_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Nom</Label>
                   <Input
                     id="last_name"
                     value={formData.last_name}
@@ -154,11 +174,12 @@ export default function ContactsPage() {
                       setFormData({ ...formData, last_name: e.target.value })
                     }
                     required
+                    className="h-11 bg-secondary/30 border-border/60"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -166,29 +187,59 @@ export default function ContactsPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
+                  className="h-11 bg-secondary/30 border-border/60"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">T&eacute;l&eacute;phone</Label>
+                <Label htmlFor="phone" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Téléphone</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
+                  className="h-11 bg-secondary/30 border-border/60"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="company">Entreprise</Label>
+                <Label htmlFor="company" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Entreprise</Label>
                 <Input
                   id="company"
                   value={formData.company}
                   onChange={(e) =>
                     setFormData({ ...formData, company: e.target.value })
                   }
+                  className="h-11 bg-secondary/30 border-border/60"
                 />
               </div>
-              <div className="flex justify-end gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="job_title" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Poste</Label>
+                <Input
+                  id="job_title"
+                  value={formData.job_title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, job_title: e.target.value })
+                  }
+                  className="h-11 bg-secondary/30 border-border/60"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lead_score" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Lead score</Label>
+                <select
+                  id="lead_score"
+                  value={formData.lead_score}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lead_score: e.target.value })
+                  }
+                  className="flex h-11 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">-- Aucun --</option>
+                  <option value="hot">Chaud</option>
+                  <option value="warm">Tiede</option>
+                  <option value="cold">Froid</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -198,28 +249,29 @@ export default function ContactsPage() {
                 </Button>
                 <Button type="submit" disabled={creating}>
                   {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Cr&eacute;er
+                  Créer
                 </Button>
               </div>
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Search */}
       <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Rechercher un contact..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
+          className="pl-10 h-11 bg-secondary/30 border-border/60"
         />
       </div>
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
+        <div className="flex items-center justify-center py-20">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : (
@@ -228,7 +280,7 @@ export default function ContactsPage() {
 
       {/* Pagination */}
       {!search && totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between font-[family-name:var(--font-body)]">
           <p className="text-sm text-muted-foreground">
             Page {page} sur {totalPages}
           </p>
@@ -238,18 +290,20 @@ export default function ContactsPage() {
               size="sm"
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
+              className="gap-1"
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Pr&eacute;c&eacute;dent
+              <ChevronLeft className="h-4 w-4" />
+              Précédent
             </Button>
             <Button
               variant="outline"
               size="sm"
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
+              className="gap-1"
             >
               Suivant
-              <ChevronRight className="h-4 w-4 ml-1" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
