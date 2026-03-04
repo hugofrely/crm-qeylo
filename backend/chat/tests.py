@@ -125,30 +125,19 @@ class ChatTests(TestCase):
 
     def test_chat_history_returns_ordered_messages(self):
         """History endpoint returns messages in chronological order."""
-        # We need an org for creating messages directly
         from organizations.models import Membership
-
-        user = self.client.post(
-            "/api/auth/register/",
-            {
-                "email": "hist@example.com",
-                "password": "securepass123",
-                "first_name": "Hist",
-                "last_name": "User",
-            },
-        )
-        # Use the original user's setup
         from accounts.models import User
-        from organizations.models import Organization
+        from chat.models import Conversation
 
         u = User.objects.get(email="hugo@example.com")
         org = Membership.objects.filter(user=u).first().organization
+        conv = Conversation.objects.create(organization=org, user=u)
 
         ChatMessage.objects.create(
-            organization=org, user=u, role="user", content="Message 1"
+            conversation=conv, organization=org, user=u, role="user", content="Message 1"
         )
         ChatMessage.objects.create(
-            organization=org, user=u, role="assistant", content="Reply 1"
+            conversation=conv, organization=org, user=u, role="assistant", content="Reply 1"
         )
 
         response = self.client.get("/api/chat/history/")
@@ -236,3 +225,86 @@ class ConversationAPITests(TestCase):
 
         response = self.client.get("/api/chat/conversations/")
         self.assertIn("last_message_preview", response.data[0])
+
+
+class ChatWithConversationTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "email": "chatconv@example.com",
+                "password": "securepass123",
+                "first_name": "Chat",
+                "last_name": "Conv",
+            },
+        )
+        self.token = response.data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+    @patch("chat.views.build_agent")
+    def test_send_message_with_conversation_id(self, mock_build):
+        mock_agent = MagicMock()
+        mock_result = MagicMock()
+        mock_result.output = "Bonjour!"
+        mock_result.all_messages.return_value = []
+        mock_agent.run_sync.return_value = mock_result
+        mock_build.return_value = mock_agent
+
+        # Create conversation first
+        conv_resp = self.client.post("/api/chat/conversations/")
+        conv_id = conv_resp.data["id"]
+
+        response = self.client.post(
+            "/api/chat/message/",
+            {"message": "Salut", "conversation_id": conv_id},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify messages are linked to conversation
+        msgs = ChatMessage.objects.filter(conversation_id=conv_id)
+        self.assertEqual(msgs.count(), 2)  # user + assistant
+
+    @patch("chat.views.build_agent")
+    def test_send_message_creates_conversation_if_missing(self, mock_build):
+        mock_agent = MagicMock()
+        mock_result = MagicMock()
+        mock_result.output = "Bonjour!"
+        mock_result.all_messages.return_value = []
+        mock_agent.run_sync.return_value = mock_result
+        mock_build.return_value = mock_agent
+
+        response = self.client.post(
+            "/api/chat/message/",
+            {"message": "Salut"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # A conversation should have been auto-created
+        from chat.models import Conversation
+        self.assertEqual(Conversation.objects.count(), 1)
+
+    def test_conversation_messages_only_returns_own(self):
+        """Messages from one conversation don't leak into another."""
+        conv1 = self.client.post("/api/chat/conversations/").data["id"]
+        conv2 = self.client.post("/api/chat/conversations/").data["id"]
+
+        from accounts.models import User
+        from organizations.models import Membership
+        from chat.models import Conversation
+
+        user = User.objects.get(email="chatconv@example.com")
+        org = Membership.objects.filter(user=user).first().organization
+
+        ChatMessage.objects.create(
+            conversation_id=conv1, organization=org, user=user,
+            role="user", content="Message in conv1",
+        )
+        ChatMessage.objects.create(
+            conversation_id=conv2, organization=org, user=user,
+            role="user", content="Message in conv2",
+        )
+
+        resp1 = self.client.get(f"/api/chat/conversations/{conv1}/messages/")
+        self.assertEqual(len(resp1.data), 1)
+        self.assertEqual(resp1.data[0]["content"], "Message in conv1")

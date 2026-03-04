@@ -104,9 +104,27 @@ def send_message(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     user_message = serializer.validated_data["message"]
+    conversation_id = serializer.validated_data.get("conversation_id")
+
+    # Get or create conversation
+    if conversation_id:
+        try:
+            conv = Conversation.objects.get(
+                id=conversation_id, organization=org, user=request.user,
+            )
+        except Conversation.DoesNotExist:
+            return Response(
+                {"detail": "Conversation not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+    else:
+        conv = Conversation.objects.create(
+            organization=org, user=request.user,
+        )
 
     # Save user message
     ChatMessage.objects.create(
+        conversation=conv,
         organization=org,
         user=request.user,
         role=ChatMessage.Role.USER,
@@ -146,6 +164,7 @@ def send_message(request):
 
     # Save assistant message
     assistant_msg = ChatMessage.objects.create(
+        conversation=conv,
         organization=org,
         user=request.user,
         role=ChatMessage.Role.ASSISTANT,
@@ -213,8 +232,22 @@ async def stream_message(request):
     if not user_message:
         return StreamingHttpResponse(status=400)
 
+    conversation_id = body.get("conversation_id")
+    if conversation_id:
+        try:
+            conv = await Conversation.objects.aget(
+                id=conversation_id, organization=org, user=user,
+            )
+        except Conversation.DoesNotExist:
+            return StreamingHttpResponse(status=404)
+    else:
+        conv = await Conversation.objects.acreate(
+            organization=org, user=user,
+        )
+
     # Save user message
     await ChatMessage.objects.acreate(
+        conversation=conv,
         organization=org,
         user=user,
         role=ChatMessage.Role.USER,
@@ -280,6 +313,7 @@ async def stream_message(request):
 
             # Save assistant message
             assistant_msg = await ChatMessage.objects.acreate(
+                conversation=conv,
                 organization=org,
                 user=user,
                 role=ChatMessage.Role.ASSISTANT,
@@ -289,6 +323,7 @@ async def stream_message(request):
 
             yield _sse_event("done", {
                 "message_id": str(assistant_msg.id),
+                "conversation_id": str(conv.id),
                 "actions": actions,
             })
 
@@ -297,6 +332,7 @@ async def stream_message(request):
             error_text = "Desole, une erreur est survenue. Veuillez reessayer."
             yield _sse_event("error", {"message": error_text})
             await ChatMessage.objects.acreate(
+                conversation=conv,
                 organization=org,
                 user=user,
                 role=ChatMessage.Role.ASSISTANT,
