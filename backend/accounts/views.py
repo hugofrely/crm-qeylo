@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, get_user_model
 
 from .serializers import RegisterSerializer, UserSerializer
 from organizations.models import Organization, Membership
+from deals.models import PipelineStage
 
 User = get_user_model()
 
@@ -36,6 +37,7 @@ def register(request):
         user=user,
         role="owner",
     )
+    PipelineStage.create_defaults(org)
 
     refresh = RefreshToken.for_user(user)
     return Response({
