@@ -5,6 +5,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/", include("accounts.urls")),
     path("api/organizations/", include("organizations.urls")),
+    path("api/contacts/import/", include("contacts.import_urls")),
     path("api/contacts/", include("contacts.urls")),
     path("api/deals/", include("deals.urls")),
     path("api/pipeline-stages/", include("deals.stage_urls")),
@@ -13,4 +14,6 @@ urlpatterns = [
     path("api/notes/", include("notes.note_urls")),
     path("api/chat/", include("chat.urls")),
     path("api/dashboard/", include("dashboard.urls")),
+    path("api/notifications/", include("notifications.urls")),
+    path("api/invite/accept/<uuid:token>/", include("organizations.invite_urls")),
 ]

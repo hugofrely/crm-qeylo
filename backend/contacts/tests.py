@@ -1,3 +1,5 @@
+import io
+
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
@@ -97,3 +99,88 @@ class ContactTests(TestCase):
         client2.credentials(HTTP_AUTHORIZATION=f"Bearer {reg2.data['access']}")
         response = client2.get("/api/contacts/")
         self.assertEqual(response.data["count"], 0)
+
+
+class CSVImportTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        reg = self.client.post("/api/auth/register/", {
+            "email": "test@example.com",
+            "password": "securepass123",
+            "first_name": "Test",
+            "last_name": "User",
+        })
+        self.token = reg.data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+    def _make_csv(self, content: str):
+        return io.BytesIO(content.encode("utf-8"))
+
+    def test_import_preview(self):
+        csv_content = "prénom,nom,email\nMarie,Dupont,marie@example.com\nJean,Martin,jean@example.com"
+        f = self._make_csv(csv_content)
+        f.name = "contacts.csv"
+        response = self.client.post(
+            "/api/contacts/import/preview/",
+            {"file": f},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("headers", response.data)
+        self.assertIn("suggested_mapping", response.data)
+        self.assertEqual(response.data["total_rows"], 2)
+        # Auto-detect mapping
+        self.assertEqual(response.data["suggested_mapping"]["prénom"], "first_name")
+
+    def test_import_contacts(self):
+        csv_content = "first_name,last_name,email\nMarie,Dupont,marie@example.com\nJean,Martin,jean@example.com"
+        f = self._make_csv(csv_content)
+        f.name = "contacts.csv"
+        import json
+        response = self.client.post(
+            "/api/contacts/import/",
+            {
+                "file": f,
+                "mapping": json.dumps({
+                    "first_name": "first_name",
+                    "last_name": "last_name",
+                    "email": "email",
+                }),
+            },
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["created"], 2)
+        self.assertEqual(response.data["skipped"], 0)
+
+    def test_import_skips_duplicates(self):
+        # Create existing contact
+        from contacts.models import Contact
+        from organizations.models import Organization
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.get(email="test@example.com")
+        org = Organization.objects.filter(memberships__user=user).first()
+        Contact.objects.create(
+            organization=org, created_by=user,
+            first_name="Marie", last_name="Dupont", email="marie@example.com",
+        )
+
+        csv_content = "first_name,last_name,email\nMarie,Dupont,marie@example.com\nJean,Martin,jean@example.com"
+        f = self._make_csv(csv_content)
+        f.name = "contacts.csv"
+        import json
+        response = self.client.post(
+            "/api/contacts/import/",
+            {
+                "file": f,
+                "mapping": json.dumps({
+                    "first_name": "first_name",
+                    "last_name": "last_name",
+                    "email": "email",
+                }),
+            },
+            format="multipart",
+        )
+        self.assertEqual(response.data["created"], 1)
+        self.assertEqual(response.data["skipped"], 1)
