@@ -4,9 +4,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, get_user_model
+from django.utils import timezone
 
 from .serializers import RegisterSerializer, UserSerializer
-from organizations.models import Organization, Membership
+from organizations.models import Organization, Membership, Invitation
 from deals.models import PipelineStage
 
 User = get_user_model()
@@ -39,6 +40,18 @@ def register(request):
     )
     PipelineStage.create_defaults(org)
 
+    # Auto-accept pending invitations for this email
+    pending = Invitation.objects.filter(email=user.email, status="pending")
+    for invitation in pending:
+        if invitation.expires_at >= timezone.now():
+            Membership.objects.create(
+                organization=invitation.organization,
+                user=user,
+                role=invitation.role,
+            )
+            invitation.status = "accepted"
+            invitation.save(update_fields=["status"])
+
     refresh = RefreshToken.for_user(user)
     return Response({
         "user": UserSerializer(user).data,
@@ -66,7 +79,13 @@ def login(request):
     })
 
 
-@api_view(["GET"])
+@api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def me(request):
+    if request.method == "PATCH":
+        user = request.user
+        if "email_notifications" in request.data:
+            user.email_notifications = request.data["email_notifications"]
+            user.save(update_fields=["email_notifications"])
+        return Response(UserSerializer(user).data)
     return Response(UserSerializer(request.user).data)
