@@ -24,7 +24,7 @@ interface Contact {
   created_at: string
   updated_at: string
   job_title?: string
-  lead_score?: "hot" | "warm" | "cold"
+  lead_score?: string
 }
 
 interface ContactTableProps {
