@@ -45,6 +45,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { ActivityDialog } from "@/components/activities/ActivityDialog"
+import { ComposeEmailDialog } from "@/components/emails/ComposeEmailDialog"
 
 interface Contact {
   id: string
@@ -356,6 +357,8 @@ export default function ContactDetailPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [activityDialogOpen, setActivityDialogOpen] = useState(false)
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+  const [hasEmailAccount, setHasEmailAccount] = useState(false)
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -431,6 +434,12 @@ export default function ContactDetailPage() {
       setLoading(false)
     )
   }, [fetchContact, fetchTimeline])
+
+  useEffect(() => {
+    apiFetch<{ id: string }[]>("/email/accounts/")
+      .then((data) => setHasEmailAccount(data.length > 0))
+      .catch(() => {})
+  }, [])
 
   const handleSave = async () => {
     setSaving(true)
@@ -527,6 +536,17 @@ export default function ContactDetailPage() {
           <div className="flex gap-2">
             {!editing ? (
               <>
+                {contact.email && hasEmailAccount && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEmailDialogOpen(true)}
+                    className="gap-2"
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    Email
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
@@ -694,6 +714,17 @@ export default function ContactDetailPage() {
         onOpenChange={setActivityDialogOpen}
         onCreated={() => fetchTimeline()}
       />
+
+      {contact && (
+        <ComposeEmailDialog
+          open={emailDialogOpen}
+          onOpenChange={setEmailDialogOpen}
+          contactId={id}
+          contactEmail={contact.email}
+          contactName={`${contact.first_name} ${contact.last_name}`}
+          onSent={() => fetchTimeline()}
+        />
+      )}
     </div>
   )
 }
