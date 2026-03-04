@@ -32,8 +32,6 @@ class ChatMessage(models.Model):
         Conversation,
         on_delete=models.CASCADE,
         related_name="messages",
-        null=True,
-        blank=True,
     )
     organization = models.ForeignKey(
         "organizations.Organization",
