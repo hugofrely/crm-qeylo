@@ -11,3 +11,4 @@ uvicorn>=0.34.0
 resend>=2.23.0
 cryptography>=44.0.0
 httpx>=0.28.0
+PyJWT>=2.9.0
