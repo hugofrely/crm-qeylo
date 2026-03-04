@@ -11,6 +11,12 @@ class TimelineEntry(models.Model):
         NOTE_ADDED = "note_added"
         TASK_CREATED = "task_created"
         CHAT_ACTION = "chat_action"
+        CONTACT_UPDATED = "contact_updated"
+        CALL = "call"
+        EMAIL_SENT = "email_sent"
+        EMAIL_RECEIVED = "email_received"
+        MEETING = "meeting"
+        CUSTOM = "custom"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organization = models.ForeignKey(
@@ -39,6 +45,7 @@ class TimelineEntry(models.Model):
         max_length=50, choices=EntryType.choices
     )
     content = models.TextField()
+    subject = models.CharField(max_length=255, blank=True, null=True)
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -12,6 +12,7 @@ urlpatterns = [
     path("api/tasks/", include("tasks.urls")),
     path("api/timeline/", include("notes.urls")),
     path("api/notes/", include("notes.note_urls")),
+    path("api/activities/", include("notes.activity_urls")),
     path("api/chat/", include("chat.urls")),
     path("api/dashboard/", include("dashboard.urls")),
     path("api/notifications/", include("notifications.urls")),

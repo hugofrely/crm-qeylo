@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import TimelineEntry
-from .serializers import TimelineEntrySerializer, NoteCreateSerializer
+from .serializers import TimelineEntrySerializer, NoteCreateSerializer, ActivityCreateSerializer
 
 
 @api_view(["GET"])
@@ -32,6 +32,30 @@ def create_note(request):
         deal_id=serializer.validated_data.get("deal"),
         entry_type=TimelineEntry.EntryType.NOTE_ADDED,
         content=serializer.validated_data["content"],
+    )
+    return Response(
+        TimelineEntrySerializer(entry).data,
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_activity(request):
+    serializer = ActivityCreateSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    data = serializer.validated_data
+    entry = TimelineEntry.objects.create(
+        organization=request.organization,
+        created_by=request.user,
+        contact_id=data["contact"],
+        deal_id=data.get("deal"),
+        entry_type=data["entry_type"],
+        subject=data.get("subject", ""),
+        content=data.get("content", ""),
+        metadata=data.get("metadata", {}),
     )
     return Response(
         TimelineEntrySerializer(entry).data,
