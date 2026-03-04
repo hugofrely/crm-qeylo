@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime
 
 from django.conf import settings
 from django.http import StreamingHttpResponse
@@ -13,6 +14,9 @@ from asgiref.sync import sync_to_async
 from pydantic_ai.messages import (
     ModelResponse,
     ModelRequest,
+    SystemPromptPart,
+    UserPromptPart,
+    TextPart,
     ToolCallPart,
     ToolReturnPart,
     FunctionToolCallEvent,
@@ -39,9 +43,15 @@ logger = logging.getLogger(__name__)
 def _build_context(org):
     """Build a summary of recent data for the system prompt."""
     contacts = Contact.objects.filter(organization=org).order_by("-created_at")[:5]
-    contacts_summary = ", ".join(
-        f"{c.first_name} {c.last_name}" for c in contacts
-    ) or "Aucun contact"
+    contact_parts = []
+    for c in contacts:
+        parts = [f"{c.first_name} {c.last_name}"]
+        if c.company:
+            parts.append(f"({c.company})")
+        if c.lead_score:
+            parts.append(f"[{c.get_lead_score_display()}]")
+        contact_parts.append(" ".join(parts))
+    contacts_summary = ", ".join(contact_parts) or "Aucun contact"
 
     deals = Deal.objects.filter(organization=org).exclude(
         stage__name__in=["Gagne", "Perdu"],
@@ -59,6 +69,76 @@ def _build_context(org):
     ) or "Aucune tache"
 
     return contacts_summary, deals_summary, tasks_summary
+
+
+def _build_message_history(conversation, system_prompt: str) -> list:
+    """Build pydantic-ai message history from conversation DB records.
+
+    Includes the system prompt as the first message so the LLM keeps
+    the same instructions across the whole conversation.
+    """
+    history = []
+
+    # First message: system prompt + first user message (or just system prompt)
+    previous_messages = list(
+        conversation.messages.order_by("created_at").values_list("role", "content")
+    )
+
+    # Exclude the last user message (it will be passed as the current prompt)
+    if previous_messages and previous_messages[-1][0] == ChatMessage.Role.USER:
+        previous_messages = previous_messages[:-1]
+
+    if not previous_messages:
+        return []
+
+    # Build history: system prompt attached to the first user message
+    first_user_done = False
+    for role, content in previous_messages:
+        if role == ChatMessage.Role.USER:
+            if not first_user_done:
+                history.append(ModelRequest(parts=[
+                    SystemPromptPart(content=system_prompt),
+                    UserPromptPart(content=content),
+                ]))
+                first_user_done = True
+            else:
+                history.append(ModelRequest(parts=[UserPromptPart(content=content)]))
+        elif role == ChatMessage.Role.ASSISTANT:
+            history.append(ModelResponse(parts=[TextPart(content=content)]))
+
+    return history
+
+
+async def _build_message_history_async(conversation, system_prompt: str) -> list:
+    """Async version of _build_message_history."""
+    history = []
+
+    previous_messages = []
+    async for msg in conversation.messages.order_by("created_at").values("role", "content"):
+        previous_messages.append((msg["role"], msg["content"]))
+
+    # Exclude the last user message (it will be passed as the current prompt)
+    if previous_messages and previous_messages[-1][0] == ChatMessage.Role.USER:
+        previous_messages = previous_messages[:-1]
+
+    if not previous_messages:
+        return []
+
+    first_user_done = False
+    for role, content in previous_messages:
+        if role == ChatMessage.Role.USER:
+            if not first_user_done:
+                history.append(ModelRequest(parts=[
+                    SystemPromptPart(content=system_prompt),
+                    UserPromptPart(content=content),
+                ]))
+                first_user_done = True
+            else:
+                history.append(ModelRequest(parts=[UserPromptPart(content=content)]))
+        elif role == ChatMessage.Role.ASSISTANT:
+            history.append(ModelResponse(parts=[TextPart(content=content)]))
+
+    return history
 
 
 def _extract_actions(messages) -> list[dict]:
@@ -173,6 +253,7 @@ def send_message(request):
     user_name = f"{request.user.first_name} {request.user.last_name}".strip()
     formatted_prompt = SYSTEM_PROMPT.format(
         user_name=user_name or request.user.email,
+        current_datetime=datetime.now().strftime("%d/%m/%Y %H:%M"),
         contacts_summary=contacts_summary,
         deals_summary=deals_summary,
         tasks_summary=tasks_summary,
@@ -185,12 +266,22 @@ def send_message(request):
         user_id=str(request.user.id),
     )
 
+    # Build conversation history for multi-turn context
+    message_history = _build_message_history(conv, formatted_prompt)
+
     try:
-        result = agent.run_sync(
-            user_message,
+        run_kwargs = dict(
             deps=deps,
             model=settings.AI_MODEL,
-            instructions=formatted_prompt,
+        )
+        if message_history:
+            run_kwargs["message_history"] = message_history
+        else:
+            run_kwargs["instructions"] = formatted_prompt
+
+        result = agent.run_sync(
+            user_message,
+            **run_kwargs,
         )
         ai_text = result.output
         actions = _extract_actions(result.all_messages())
@@ -301,6 +392,7 @@ async def stream_message(request):
     user_name = f"{user.first_name} {user.last_name}".strip()
     formatted_prompt = SYSTEM_PROMPT.format(
         user_name=user_name or user.email,
+        current_datetime=datetime.now().strftime("%d/%m/%Y %H:%M"),
         contacts_summary=contacts_summary,
         deals_summary=deals_summary,
         tasks_summary=tasks_summary,
@@ -312,16 +404,26 @@ async def stream_message(request):
         user_id=str(user.id),
     )
 
+    # Build conversation history for multi-turn context
+    message_history = await _build_message_history_async(conv, formatted_prompt)
+
     async def event_generator():
         full_text = ""
         actions = []
 
+        run_kwargs = dict(
+            deps=deps,
+            model=settings.AI_MODEL,
+        )
+        if message_history:
+            run_kwargs["message_history"] = message_history
+        else:
+            run_kwargs["instructions"] = formatted_prompt
+
         try:
             async for event in agent.run_stream_events(
                 user_message,
-                deps=deps,
-                model=settings.AI_MODEL,
-                instructions=formatted_prompt,
+                **run_kwargs,
             ):
                 if isinstance(event, PartDeltaEvent):
                     if isinstance(event.delta, TextPartDelta):

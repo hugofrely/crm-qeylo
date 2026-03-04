@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.db.models import Q
 from .models import Contact
 from .serializers import ContactSerializer
+from notes.models import TimelineEntry
 
 
 class ContactViewSet(viewsets.ModelViewSet):
@@ -19,6 +20,18 @@ class ContactViewSet(viewsets.ModelViewSet):
             organization=self.request.organization,
             created_by=self.request.user,
         )
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        TimelineEntry.objects.create(
+            organization=self.request.organization,
+            created_by=self.request.user,
+            contact=instance,
+            entry_type=TimelineEntry.EntryType.CONTACT_UPDATED,
+            content="Contact modifié",
+        )
+        from .ai_summary import trigger_summary_generation
+        trigger_summary_generation(str(instance.id))
 
 
 @api_view(["GET"])

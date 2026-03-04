@@ -162,6 +162,9 @@ def update_contact(
         metadata={"changed_fields": changed},
     )
 
+    from contacts.ai_summary import trigger_summary_generation
+    trigger_summary_generation(str(contact.id))
+
     return {
         "action": "contact_updated",
         "id": str(contact.id),
@@ -339,6 +342,9 @@ def add_note(
         entry_type=TimelineEntry.EntryType.NOTE_ADDED,
         content=content,
     )
+    if contact_id:
+        from contacts.ai_summary import trigger_summary_generation
+        trigger_summary_generation(contact_id)
     return {
         "action": "note_added",
         "id": str(entry.id),
