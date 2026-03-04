@@ -35,6 +35,8 @@ INSTALLED_APPS = [
     "notes",
     "chat",
     "dashboard",
+    "notifications",
+    "emails",
 ]
 
 # ---------------------------------------------------------------------------
@@ -159,3 +161,20 @@ SIMPLE_JWT = {
 # ---------------------------------------------------------------------------
 AI_MODEL = os.environ.get("AI_MODEL", "claude-sonnet-4-20250514")
 AI_FALLBACK_MODEL = os.environ.get("AI_FALLBACK_MODEL", "openai:gpt-4o")
+
+# ---------------------------------------------------------------------------
+# Resend (Email)
+# ---------------------------------------------------------------------------
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+EMAIL_FROM = os.environ.get("EMAIL_FROM", "Qeylo <noreply@qeylo.com>")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+
+# ---------------------------------------------------------------------------
+# OAuth (Email Integration)
+# ---------------------------------------------------------------------------
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+MICROSOFT_CLIENT_ID = os.environ.get("MICROSOFT_CLIENT_ID", "")
+MICROSOFT_CLIENT_SECRET = os.environ.get("MICROSOFT_CLIENT_SECRET", "")
+EMAIL_ENCRYPTION_KEY = os.environ.get("EMAIL_ENCRYPTION_KEY", "")
+BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
