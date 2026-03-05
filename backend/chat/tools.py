@@ -7,6 +7,7 @@ because we use Django's sync ORM.
 """
 from __future__ import annotations
 
+import uuid as _uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Optional
@@ -15,7 +16,7 @@ from django.db.models import Q, Sum
 from django.utils import timezone
 from pydantic_ai import RunContext
 
-from contacts.models import Contact
+from contacts.models import Contact, ContactCategory, CustomFieldDefinition
 from deals.models import Deal, PipelineStage
 from notes.models import TimelineEntry
 from tasks.models import Task
@@ -30,6 +31,45 @@ class ChatDeps:
     user_id: str
 
 
+def _is_valid_uuid(value: str | None) -> bool:
+    """Return True if *value* is a valid UUID string."""
+    if not value:
+        return False
+    try:
+        _uuid.UUID(value)
+        return True
+    except (ValueError, AttributeError):
+        return False
+
+
+def _resolve_contact_id(org_id: str, raw_id: str | None) -> str | None:
+    """Return a valid contact UUID or None.
+
+    If *raw_id* is already a valid UUID that exists, return it.
+    Otherwise try to find the most recently created contact in the org
+    (the LLM likely meant the contact it just created).
+    """
+    if not raw_id:
+        return None
+    if _is_valid_uuid(raw_id):
+        if Contact.objects.filter(id=raw_id, organization_id=org_id).exists():
+            return raw_id
+    # Fallback: most recently created contact in the org
+    latest = Contact.objects.filter(organization_id=org_id).order_by("-created_at").first()
+    return str(latest.id) if latest else None
+
+
+def _resolve_deal_id(org_id: str, raw_id: str | None) -> str | None:
+    """Return a valid deal UUID or None."""
+    if not raw_id:
+        return None
+    if _is_valid_uuid(raw_id):
+        if Deal.objects.filter(id=raw_id, organization_id=org_id).exists():
+            return raw_id
+    latest = Deal.objects.filter(organization_id=org_id).order_by("-created_at").first()
+    return str(latest.id) if latest else None
+
+
 # ---------------------------------------------------------------------------
 # Contacts
 # ---------------------------------------------------------------------------
@@ -41,6 +81,7 @@ def create_contact(
     company: str = "",
     email: str = "",
     phone: str = "",
+    categories: str = "",
 ) -> dict:
     """Create a new contact in the CRM. Checks for duplicates first."""
     org_id = ctx.deps.organization_id
@@ -76,6 +117,16 @@ def create_contact(
         entry_type=TimelineEntry.EntryType.CONTACT_CREATED,
         content=f"Contact {first_name} {last_name} created via chat",
     )
+
+    # Set categories if provided (comma-separated names)
+    if categories:
+        cat_names = [n.strip() for n in categories.split(",") if n.strip()]
+        cats = ContactCategory.objects.filter(
+            organization_id=org_id,
+            name__in=cat_names,
+        )
+        contact.categories.set(cats)
+
     return {
         "action": "contact_created",
         "id": str(contact.id),
@@ -84,8 +135,8 @@ def create_contact(
     }
 
 
-def search_contacts(ctx: RunContext[ChatDeps], query: str) -> dict:
-    """Search contacts by name, company or email."""
+def search_contacts(ctx: RunContext[ChatDeps], query: str, category: str = "") -> dict:
+    """Search contacts by name, company or email. Optionally filter by category name."""
     org_id = ctx.deps.organization_id
     qs = Contact.objects.filter(organization_id=org_id)
     # Split query into words so "hugo frely" matches first_name=hugo AND last_name=frely
@@ -97,6 +148,8 @@ def search_contacts(ctx: RunContext[ChatDeps], query: str) -> dict:
             | Q(company__icontains=word)
             | Q(email__icontains=word)
         )
+    if category:
+        qs = qs.filter(categories__name__iexact=category)
     contacts = qs[:10]
     results = [
         {
@@ -106,6 +159,7 @@ def search_contacts(ctx: RunContext[ChatDeps], query: str) -> dict:
             "email": c.email,
             "job_title": c.job_title,
             "lead_score": c.lead_score,
+            "categories": list(c.categories.values_list("name", flat=True)),
         }
         for c in contacts
     ]
@@ -195,6 +249,103 @@ def update_contact(
     }
 
 
+def update_contact_categories(
+    ctx: RunContext[ChatDeps],
+    contact_id: str,
+    category_names: list[str],
+) -> dict:
+    """Met a jour les categories d'un contact. Remplace toutes les categories actuelles par celles fournies."""
+    org_id = ctx.deps.organization_id
+    resolved_id = _resolve_contact_id(org_id, contact_id)
+    if not resolved_id:
+        return {"error": "Contact introuvable."}
+
+    contact = Contact.objects.get(id=resolved_id, organization_id=org_id)
+
+    categories = ContactCategory.objects.filter(
+        organization_id=org_id,
+        name__in=category_names,
+    )
+    found_names = set(categories.values_list("name", flat=True))
+    not_found = [n for n in category_names if n not in found_names]
+
+    contact.categories.set(categories)
+
+    TimelineEntry.objects.create(
+        organization_id=org_id,
+        created_by_id=ctx.deps.user_id,
+        contact=contact,
+        entry_type=TimelineEntry.EntryType.CONTACT_UPDATED,
+        content=f"Categories mises a jour: {', '.join(found_names)}",
+        metadata={"changed_fields": ["categories"]},
+    )
+
+    result = {
+        "action": "categories_updated",
+        "contact": f"{contact.first_name} {contact.last_name}",
+        "categories": list(found_names),
+    }
+    if not_found:
+        result["warning"] = f"Categories introuvables: {', '.join(not_found)}"
+    return result
+
+
+def update_custom_field(
+    ctx: RunContext[ChatDeps],
+    contact_id: str,
+    field_label: str,
+    value: str,
+) -> dict:
+    """Met a jour un champ personnalise d'un contact. Utilise le label du champ (ex: 'SIRET', 'TVA')."""
+    org_id = ctx.deps.organization_id
+    resolved_id = _resolve_contact_id(org_id, contact_id)
+    if not resolved_id:
+        return {"error": "Contact introuvable."}
+
+    contact = Contact.objects.get(id=resolved_id, organization_id=org_id)
+
+    try:
+        field_def = CustomFieldDefinition.objects.get(
+            organization_id=org_id,
+            label__iexact=field_label,
+        )
+    except CustomFieldDefinition.DoesNotExist:
+        return {"error": f"Champ personnalise '{field_label}' introuvable."}
+
+    # Type conversion
+    if field_def.field_type == "number":
+        try:
+            value = float(value)
+        except ValueError:
+            return {"error": f"Le champ '{field_label}' attend un nombre."}
+    elif field_def.field_type == "checkbox":
+        value = value.lower() in ("true", "oui", "1", "yes")
+    elif field_def.field_type == "select":
+        if value not in field_def.options:
+            return {"error": f"Valeur invalide. Options: {field_def.options}"}
+
+    if not contact.custom_fields:
+        contact.custom_fields = {}
+    contact.custom_fields[str(field_def.id)] = value
+    contact.save(update_fields=["custom_fields"])
+
+    TimelineEntry.objects.create(
+        organization_id=org_id,
+        created_by_id=ctx.deps.user_id,
+        contact=contact,
+        entry_type=TimelineEntry.EntryType.CONTACT_UPDATED,
+        content=f"Champ '{field_def.label}' mis a jour",
+        metadata={"changed_fields": [f"custom:{field_def.label}"]},
+    )
+
+    return {
+        "action": "custom_field_updated",
+        "contact": f"{contact.first_name} {contact.last_name}",
+        "field": field_def.label,
+        "value": value,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Deals
 # ---------------------------------------------------------------------------
@@ -216,19 +367,21 @@ def create_deal(
     if not stage:
         return {"action": "error", "message": "No pipeline stages found. Please create stages first."}
 
+    resolved_contact = _resolve_contact_id(org_id, contact_id)
+
     deal = Deal.objects.create(
         organization_id=org_id,
         created_by_id=ctx.deps.user_id,
         name=name,
         amount=amount,
         stage=stage,
-        contact_id=contact_id,
+        contact_id=resolved_contact,
     )
     TimelineEntry.objects.create(
         organization_id=org_id,
         created_by_id=ctx.deps.user_id,
         deal=deal,
-        contact_id=contact_id,
+        contact_id=resolved_contact,
         entry_type=TimelineEntry.EntryType.DEAL_CREATED,
         content=f"Deal '{name}' created via chat ({amount} EUR)",
     )
@@ -302,20 +455,23 @@ def create_task(
     except (ValueError, TypeError):
         parsed_date = timezone.now() + timedelta(days=1)
 
+    resolved_contact = _resolve_contact_id(org_id, contact_id)
+    resolved_deal = _resolve_deal_id(org_id, deal_id)
+
     task = Task.objects.create(
         organization_id=org_id,
         created_by_id=ctx.deps.user_id,
         description=description,
         due_date=parsed_date,
-        contact_id=contact_id,
-        deal_id=deal_id,
+        contact_id=resolved_contact,
+        deal_id=resolved_deal,
         priority=priority,
     )
     TimelineEntry.objects.create(
         organization_id=org_id,
         created_by_id=ctx.deps.user_id,
-        contact_id=contact_id,
-        deal_id=deal_id,
+        contact_id=resolved_contact,
+        deal_id=resolved_deal,
         entry_type=TimelineEntry.EntryType.TASK_CREATED,
         content=f"Task created via chat: {description}",
     )
@@ -356,17 +512,21 @@ def add_note(
     deal_id: Optional[str] = None,
 ) -> dict:
     """Add a note to a contact or deal (or standalone)."""
+    org_id = ctx.deps.organization_id
+    resolved_contact = _resolve_contact_id(org_id, contact_id)
+    resolved_deal = _resolve_deal_id(org_id, deal_id)
+
     entry = TimelineEntry.objects.create(
-        organization_id=ctx.deps.organization_id,
+        organization_id=org_id,
         created_by_id=ctx.deps.user_id,
-        contact_id=contact_id,
-        deal_id=deal_id,
+        contact_id=resolved_contact,
+        deal_id=resolved_deal,
         entry_type=TimelineEntry.EntryType.NOTE_ADDED,
         content=content,
     )
-    if contact_id:
+    if resolved_contact:
         from contacts.ai_summary import trigger_summary_generation
-        trigger_summary_generation(contact_id)
+        trigger_summary_generation(resolved_contact)
     return {
         "action": "note_added",
         "id": str(entry.id),
@@ -428,6 +588,73 @@ def send_contact_email(
         "action": "email_sent",
         "to": sent.to_email,
         "subject": subject,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Interactions (timeline activities)
+# ---------------------------------------------------------------------------
+
+INTERACTION_TYPES = {"call", "meeting", "custom"}
+
+
+def log_interaction(
+    ctx: RunContext[ChatDeps],
+    contact_id: str,
+    interaction_type: str,
+    subject: str,
+    content: str = "",
+    deal_id: Optional[str] = None,
+    occurred_at: Optional[str] = None,
+) -> dict:
+    """Log a past interaction (call, meeting, or custom activity) on a contact's timeline.
+
+    Use this when the user mentions they had a call, meeting, or any interaction
+    with a contact. Examples: "J'ai eu Amelie au telephone", "Reunion avec X hier".
+
+    interaction_type must be one of: call, meeting, custom.
+    occurred_at should be ISO format (YYYY-MM-DDTHH:MM) if the user specifies when it happened.
+    """
+    org_id = ctx.deps.organization_id
+
+    if interaction_type not in INTERACTION_TYPES:
+        interaction_type = "custom"
+
+    resolved_contact = _resolve_contact_id(org_id, contact_id)
+    if not resolved_contact:
+        return {"action": "error", "message": "Contact introuvable."}
+
+    resolved_deal = _resolve_deal_id(org_id, deal_id)
+
+    metadata = {}
+    if occurred_at:
+        try:
+            parsed = datetime.fromisoformat(occurred_at)
+            metadata["occurred_at"] = parsed.isoformat()
+        except (ValueError, TypeError):
+            pass
+
+    entry = TimelineEntry.objects.create(
+        organization_id=org_id,
+        created_by_id=ctx.deps.user_id,
+        contact_id=resolved_contact,
+        deal_id=resolved_deal,
+        entry_type=interaction_type,
+        subject=subject,
+        content=content,
+        metadata=metadata,
+    )
+
+    # Refresh AI summary for the contact
+    from contacts.ai_summary import trigger_summary_generation
+    trigger_summary_generation(resolved_contact)
+
+    return {
+        "action": "interaction_logged",
+        "id": str(entry.id),
+        "type": interaction_type,
+        "subject": subject,
+        "contact_id": resolved_contact,
     }
 
 
@@ -517,11 +744,14 @@ ALL_TOOLS = [
     create_contact,
     search_contacts,
     update_contact,
+    update_contact_categories,
+    update_custom_field,
     create_deal,
     move_deal,
     create_task,
     complete_task,
     add_note,
+    log_interaction,
     send_contact_email,
     get_dashboard_summary,
     search_all,

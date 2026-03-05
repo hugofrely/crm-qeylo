@@ -27,7 +27,7 @@ from pydantic_ai.messages import (
 )
 from pydantic_ai import Agent as PydanticAgent
 
-from contacts.models import Contact
+from contacts.models import Contact, ContactCategory, CustomFieldDefinition
 from deals.models import Deal
 from tasks.models import Task
 
@@ -78,7 +78,17 @@ def _build_context(org):
     else:
         email_status = "Aucun compte email connecte. Suggere a l'utilisateur de connecter son email dans Parametres."
 
-    return contacts_summary, deals_summary, tasks_summary, email_status
+    # Categories
+    categories = ContactCategory.objects.filter(organization=org)
+    categories_list = ", ".join(c.name for c in categories) if categories else "Aucune"
+
+    # Custom fields
+    custom_fields = CustomFieldDefinition.objects.filter(organization=org)
+    custom_fields_list = ", ".join(
+        f"{cf.label} ({cf.get_field_type_display()})" for cf in custom_fields
+    ) if custom_fields else "Aucun"
+
+    return contacts_summary, deals_summary, tasks_summary, email_status, categories_list, custom_fields_list
 
 
 def _build_message_history(conversation, system_prompt: str) -> list:
@@ -86,12 +96,13 @@ def _build_message_history(conversation, system_prompt: str) -> list:
 
     Includes the system prompt as the first message so the LLM keeps
     the same instructions across the whole conversation.
+    Reconstructs tool calls and tool results from the ``actions`` JSON
+    field so the LLM can see returned IDs in subsequent turns.
     """
     history = []
 
-    # First message: system prompt + first user message (or just system prompt)
     previous_messages = list(
-        conversation.messages.order_by("created_at").values_list("role", "content")
+        conversation.messages.order_by("created_at").values_list("role", "content", "actions")
     )
 
     # Exclude the last user message (it will be passed as the current prompt)
@@ -101,9 +112,8 @@ def _build_message_history(conversation, system_prompt: str) -> list:
     if not previous_messages:
         return []
 
-    # Build history: system prompt attached to the first user message
     first_user_done = False
-    for role, content in previous_messages:
+    for role, content, actions in previous_messages:
         if role == ChatMessage.Role.USER:
             if not first_user_done:
                 history.append(ModelRequest(parts=[
@@ -114,6 +124,28 @@ def _build_message_history(conversation, system_prompt: str) -> list:
             else:
                 history.append(ModelRequest(parts=[UserPromptPart(content=content)]))
         elif role == ChatMessage.Role.ASSISTANT:
+            if actions:
+                # Rebuild tool-call / tool-result pairs so the LLM sees
+                # the IDs returned by previous tool invocations.
+                for idx, action in enumerate(actions):
+                    tool_call_id = f"hist_{id(action)}_{idx}"
+                    # ModelResponse with ToolCallPart
+                    history.append(ModelResponse(parts=[
+                        ToolCallPart(
+                            tool_name=action["tool"],
+                            args=action.get("args", {}),
+                            tool_call_id=tool_call_id,
+                        ),
+                    ]))
+                    # ModelRequest with ToolReturnPart
+                    history.append(ModelRequest(parts=[
+                        ToolReturnPart(
+                            tool_name=action["tool"],
+                            content=action.get("result", {}),
+                            tool_call_id=tool_call_id,
+                        ),
+                    ]))
+            # Final text response
             history.append(ModelResponse(parts=[TextPart(content=content)]))
 
     return history
@@ -124,8 +156,8 @@ async def _build_message_history_async(conversation, system_prompt: str) -> list
     history = []
 
     previous_messages = []
-    async for msg in conversation.messages.order_by("created_at").values("role", "content"):
-        previous_messages.append((msg["role"], msg["content"]))
+    async for msg in conversation.messages.order_by("created_at").values("role", "content", "actions"):
+        previous_messages.append((msg["role"], msg["content"], msg.get("actions", [])))
 
     # Exclude the last user message (it will be passed as the current prompt)
     if previous_messages and previous_messages[-1][0] == ChatMessage.Role.USER:
@@ -135,7 +167,7 @@ async def _build_message_history_async(conversation, system_prompt: str) -> list
         return []
 
     first_user_done = False
-    for role, content in previous_messages:
+    for role, content, actions in previous_messages:
         if role == ChatMessage.Role.USER:
             if not first_user_done:
                 history.append(ModelRequest(parts=[
@@ -146,6 +178,23 @@ async def _build_message_history_async(conversation, system_prompt: str) -> list
             else:
                 history.append(ModelRequest(parts=[UserPromptPart(content=content)]))
         elif role == ChatMessage.Role.ASSISTANT:
+            if actions:
+                for idx, action in enumerate(actions):
+                    tool_call_id = f"hist_{id(action)}_{idx}"
+                    history.append(ModelResponse(parts=[
+                        ToolCallPart(
+                            tool_name=action["tool"],
+                            args=action.get("args", {}),
+                            tool_call_id=tool_call_id,
+                        ),
+                    ]))
+                    history.append(ModelRequest(parts=[
+                        ToolReturnPart(
+                            tool_name=action["tool"],
+                            content=action.get("result", {}),
+                            tool_call_id=tool_call_id,
+                        ),
+                    ]))
             history.append(ModelResponse(parts=[TextPart(content=content)]))
 
     return history
@@ -259,7 +308,7 @@ def send_message(request):
     )
 
     # Build context for the system prompt
-    contacts_summary, deals_summary, tasks_summary, email_status = _build_context(org)
+    contacts_summary, deals_summary, tasks_summary, email_status, categories_list, custom_fields_list = _build_context(org)
     user_name = f"{request.user.first_name} {request.user.last_name}".strip()
     formatted_prompt = SYSTEM_PROMPT.format(
         user_name=user_name or request.user.email,
@@ -268,6 +317,8 @@ def send_message(request):
         deals_summary=deals_summary,
         tasks_summary=tasks_summary,
         email_status=email_status,
+        categories_list=categories_list,
+        custom_fields_list=custom_fields_list,
     )
 
     # Build and run the agent
@@ -399,7 +450,7 @@ async def stream_message(request):
     )
 
     # Build context
-    contacts_summary, deals_summary, tasks_summary, email_status = await sync_to_async(_build_context)(org)
+    contacts_summary, deals_summary, tasks_summary, email_status, categories_list, custom_fields_list = await sync_to_async(_build_context)(org)
     user_name = f"{user.first_name} {user.last_name}".strip()
     formatted_prompt = SYSTEM_PROMPT.format(
         user_name=user_name or user.email,
@@ -408,6 +459,8 @@ async def stream_message(request):
         deals_summary=deals_summary,
         tasks_summary=tasks_summary,
         email_status=email_status,
+        categories_list=categories_list,
+        custom_fields_list=custom_fields_list,
     )
 
     agent = build_agent()
@@ -422,6 +475,7 @@ async def stream_message(request):
     async def event_generator():
         full_text = ""
         actions = []
+        pending_tool_calls = {}  # tool_call_id -> args
 
         run_kwargs = dict(
             deps=deps,
@@ -452,22 +506,25 @@ async def stream_message(request):
                         yield _sse_event("text_delta", {"content": delta})
 
                 elif isinstance(event, FunctionToolCallEvent):
+                    call_args = event.part.args if isinstance(event.part.args, dict) else {}
+                    pending_tool_calls[event.part.tool_call_id] = call_args
                     yield _sse_event("tool_call_start", {
                         "tool_name": event.part.tool_name,
                         "tool_call_id": event.part.tool_call_id,
-                        "args": event.part.args if isinstance(event.part.args, dict) else {},
+                        "args": call_args,
                     })
 
                 elif isinstance(event, FunctionToolResultEvent):
                     result_content = event.result.content if isinstance(event.result, ToolReturnPart) else None
+                    tool_call_id = event.result.tool_call_id if isinstance(event.result, ToolReturnPart) else ""
                     if isinstance(result_content, dict):
                         actions.append({
                             "tool": event.result.tool_name,
-                            "args": {},
+                            "args": pending_tool_calls.pop(tool_call_id, {}),
                             "result": result_content,
                         })
                     yield _sse_event("tool_result", {
-                        "tool_call_id": event.result.tool_call_id if isinstance(event.result, ToolReturnPart) else "",
+                        "tool_call_id": tool_call_id,
                         "result": result_content if isinstance(result_content, dict) else {},
                     })
 
