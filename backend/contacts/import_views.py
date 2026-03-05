@@ -4,6 +4,8 @@ import json
 import re
 from datetime import datetime
 
+from django.db import transaction
+
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.parsers import MultiPartParser
@@ -191,11 +193,15 @@ def import_contacts(request):
         return Response({"detail": "Invalid CSV file"}, status=status.HTTP_400_BAD_REQUEST)
 
     org = request.organization
-    existing_emails = set(
-        Contact.objects.filter(organization=org)
+    if not org:
+        return Response({"detail": "No organization"}, status=status.HTTP_403_FORBIDDEN)
+
+    existing_emails = {
+        e.lower()
+        for e in Contact.objects.filter(organization=org)
         .exclude(email="")
         .values_list("email", flat=True)
-    )
+    }
 
     # Load custom field definitions for validation
     custom_field_ids = {
@@ -243,7 +249,7 @@ def import_contacts(request):
 
         # Check duplicate by email
         email = native_data.get("email", "")
-        if email and email.lower() in {e.lower() for e in existing_emails}:
+        if email and email.lower() in existing_emails:
             skipped += 1
             continue
 
@@ -261,9 +267,10 @@ def import_contacts(request):
 
         contacts_to_create.append(contact)
         if email:
-            existing_emails.add(email)
+            existing_emails.add(email.lower())
 
-    created = Contact.objects.bulk_create(contacts_to_create)
+    with transaction.atomic():
+        created = Contact.objects.bulk_create(contacts_to_create)
 
     # Notification
     create_notification(
