@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { font-family: Arial, sans-serif; font-size: 12px; color: #333; margin: 40px; }
+  h1 { font-size: 24px; color: #111; margin-bottom: 5px; }
+  .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+  .header-left { max-width: 50%; }
+  .header-right { text-align: right; }
+  .meta { color: #666; font-size: 11px; margin-bottom: 20px; }
+  .addresses { display: flex; justify-content: space-between; margin-bottom: 30px; }
+  .address-block { width: 45%; }
+  .address-block h3 { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 5px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+  th { background: #f8f8f8; border-bottom: 2px solid #ddd; padding: 8px 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: #666; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+  .text-right { text-align: right; }
+  .totals { width: 300px; margin-left: auto; }
+  .totals td { padding: 6px 12px; }
+  .totals .total-row { font-weight: bold; font-size: 14px; border-top: 2px solid #333; }
+  .notes { margin-top: 30px; padding: 15px; background: #f9f9f9; border-radius: 4px; font-size: 11px; color: #666; }
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+  .status-draft { background: #e5e7eb; color: #374151; }
+  .status-sent { background: #dbeafe; color: #1d4ed8; }
+  .status-accepted { background: #d1fae5; color: #065f46; }
+  .status-refused { background: #fee2e2; color: #991b1b; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <h1>Devis {{ quote.number }}</h1>
+      <span class="status-badge status-{{ quote.status }}">{{ quote.get_status_display }}</span>
+    </div>
+    <div class="header-right">
+      <p class="meta">
+        Date : {{ quote.created_at|date:"d/m/Y" }}<br>
+        {% if quote.valid_until %}Valable jusqu'au : {{ quote.valid_until|date:"d/m/Y" }}{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div class="addresses">
+    <div class="address-block">
+      <h3>Emetteur</h3>
+      <strong>{{ org.name }}</strong><br>
+      {% if org.siret %}SIRET : {{ org.siret }}{% endif %}
+    </div>
+    <div class="address-block">
+      <h3>Client</h3>
+      {% if contact %}
+        <strong>{{ contact.first_name }} {{ contact.last_name }}</strong><br>
+        {% if contact.company %}{{ contact.company }}<br>{% endif %}
+        {% if contact.email %}{{ contact.email }}<br>{% endif %}
+        {% if contact.phone %}{{ contact.phone }}{% endif %}
+      {% else %}
+        <em>Aucun contact associé</em>
+      {% endif %}
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th class="text-right">Qté</th>
+        <th>Unité</th>
+        <th class="text-right">Prix unit. HT</th>
+        <th class="text-right">TVA</th>
+        <th class="text-right">Remise</th>
+        <th class="text-right">Total HT</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for line in lines %}
+      <tr>
+        <td>{{ line.description }}</td>
+        <td class="text-right">{{ line.quantity }}</td>
+        <td>{{ line.unit }}</td>
+        <td class="text-right">{{ line.unit_price|floatformat:2 }} €</td>
+        <td class="text-right">{{ line.tax_rate }}%</td>
+        <td class="text-right">
+          {% if line.discount_percent %}{{ line.discount_percent }}%{% elif line.discount_amount %}-{{ line.discount_amount|floatformat:2 }} €{% else %}-{% endif %}
+        </td>
+        <td class="text-right">{{ line.line_ht|floatformat:2 }} €</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <table class="totals">
+    <tr>
+      <td>Sous-total HT</td>
+      <td class="text-right">{{ subtotal_ht|floatformat:2 }} €</td>
+    </tr>
+    {% if total_discount %}
+    <tr>
+      <td>Remise</td>
+      <td class="text-right">-{{ total_discount|floatformat:2 }} €</td>
+    </tr>
+    {% endif %}
+    <tr>
+      <td>Total HT</td>
+      <td class="text-right">{{ total_ht|floatformat:2 }} €</td>
+    </tr>
+    <tr>
+      <td>TVA</td>
+      <td class="text-right">{{ total_tax|floatformat:2 }} €</td>
+    </tr>
+    <tr class="total-row">
+      <td>Total TTC</td>
+      <td class="text-right">{{ total_ttc|floatformat:2 }} €</td>
+    </tr>
+  </table>
+
+  {% if quote.notes %}
+  <div class="notes">
+    <strong>Conditions :</strong><br>
+    {{ quote.notes|linebreaksbr }}
+  </div>
+  {% endif %}
+</body>
+</html>
