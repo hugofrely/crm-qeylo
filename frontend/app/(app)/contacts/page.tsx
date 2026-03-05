@@ -54,6 +54,16 @@ interface ContactsResponse {
   results: Contact[]
 }
 
+interface ContactCategory {
+  id: string
+  name: string
+  color: string
+  icon: string
+  order: number
+  is_default: boolean
+  contact_count: number
+}
+
 const PAGE_SIZE = 20
 
 export default function ContactsPage() {
@@ -64,15 +74,22 @@ export default function ContactsPage() {
   const [totalCount, setTotalCount] = useState(0)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [categories, setCategories] = useState<ContactCategory[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
     email: "",
     phone: "",
+    mobile_phone: "",
     company: "",
     job_title: "",
     lead_score: "",
+    city: "",
+    postal_code: "",
+    country: "",
+    category_ids: [] as string[],
   })
 
   const fetchContacts = useCallback(async () => {
@@ -117,7 +134,7 @@ export default function ContactsPage() {
     setCreating(true)
     try {
       await apiFetch("/contacts/", { method: "POST", json: formData })
-      setFormData({ first_name: "", last_name: "", email: "", phone: "", company: "", job_title: "", lead_score: "" })
+      setFormData({ first_name: "", last_name: "", email: "", phone: "", mobile_phone: "", company: "", job_title: "", lead_score: "", city: "", postal_code: "", country: "", category_ids: [] })
       setDialogOpen(false)
       fetchContacts()
     } catch (err) {
