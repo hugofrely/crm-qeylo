@@ -79,3 +79,23 @@ export interface ContactSearchResult {
   company?: string
   email?: string
 }
+
+export interface DuplicateMatch {
+  contact: Contact
+  score: number
+  matched_on: string[]
+}
+
+export interface CheckDuplicatesResponse {
+  duplicates: DuplicateMatch[]
+}
+
+export interface DuplicateDetectionSettings {
+  enabled: boolean
+  match_email: boolean
+  match_name: boolean
+  match_phone: boolean
+  match_siret: boolean
+  match_company: boolean
+  similarity_threshold: number
+}

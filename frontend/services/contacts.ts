@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/api"
-import type { Contact, ContactCategory, CustomFieldDefinition, TimelineEntry, ContactSearchResult } from "@/types"
+import type { Contact, ContactCategory, CustomFieldDefinition, TimelineEntry, ContactSearchResult, CheckDuplicatesResponse, DuplicateDetectionSettings } from "@/types"
 import type { Task } from "@/types"
 import type { Deal } from "@/types"
 
@@ -66,6 +66,37 @@ export async function fetchContactTasks(contactId: string): Promise<Task[]> {
 
 export async function fetchContactDeals(contactId: string): Promise<Deal[]> {
   return apiFetch<Deal[]>(`/deals/?contact=${contactId}`)
+}
+
+export async function checkDuplicates(data: Record<string, unknown>): Promise<CheckDuplicatesResponse> {
+  return apiFetch<CheckDuplicatesResponse>("/contacts/check-duplicates/", {
+    method: "POST",
+    json: data,
+  })
+}
+
+export async function mergeContacts(
+  primaryId: string,
+  duplicateId: string,
+  fieldOverrides: Record<string, unknown>
+): Promise<Contact> {
+  return apiFetch<Contact>(`/contacts/${primaryId}/merge/`, {
+    method: "POST",
+    json: { duplicate_id: duplicateId, field_overrides: fieldOverrides },
+  })
+}
+
+export async function fetchDuplicateSettings(): Promise<DuplicateDetectionSettings> {
+  return apiFetch<DuplicateDetectionSettings>("/contacts/duplicate-settings/")
+}
+
+export async function updateDuplicateSettings(
+  data: Partial<DuplicateDetectionSettings>
+): Promise<DuplicateDetectionSettings> {
+  return apiFetch<DuplicateDetectionSettings>("/contacts/duplicate-settings/", {
+    method: "PATCH",
+    json: data,
+  })
 }
 
 export async function checkEmailAccount(): Promise<boolean> {
