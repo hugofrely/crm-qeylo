@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { apiFetch } from "@/lib/api"
-import { fetchContactCategories } from "@/services/contacts"
+import { fetchContactCategories, checkDuplicates } from "@/services/contacts"
+import { DuplicateDetectionDialog } from "@/components/contacts/DuplicateDetectionDialog"
+import type { DuplicateMatch } from "@/types"
 import { ContactTable } from "@/components/contacts/ContactTable"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -50,6 +52,8 @@ export default function ContactsPage() {
   const [creating, setCreating] = useState(false)
   const [categories, setCategories] = useState<ContactCategory[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [duplicates, setDuplicates] = useState<DuplicateMatch[]>([])
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -119,18 +123,57 @@ export default function ContactsPage() {
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setCreating(true)
+  const createContact = async () => {
     try {
       await apiFetch("/contacts/", { method: "POST", json: formData })
       setFormData({ first_name: "", last_name: "", email: "", phone: "", mobile_phone: "", company: "", job_title: "", lead_score: "", city: "", postal_code: "", country: "", category_ids: [] })
       setDialogOpen(false)
+      setShowDuplicateDialog(false)
+      setDuplicates([])
       fetchContacts()
     } catch (err) {
       console.error("Failed to create contact:", err)
     } finally {
       setCreating(false)
+    }
+  }
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCreating(true)
+    try {
+      // Check for duplicates first
+      const result = await checkDuplicates(formData)
+      if (result.duplicates.length > 0) {
+        setDuplicates(result.duplicates)
+        setShowDuplicateDialog(true)
+        setCreating(false)
+        return
+      }
+      // No duplicates — create normally
+      await createContact()
+    } catch (err) {
+      console.error("Failed to check duplicates:", err)
+      // On error, proceed with creation
+      await createContact()
+    }
+  }
+
+  const handleCreateAnyway = async () => {
+    setCreating(true)
+    await createContact()
+  }
+
+  const handleMerge = async (primaryId: string, fieldOverrides: Record<string, unknown>) => {
+    try {
+      await apiFetch(`/contacts/${primaryId}/`, { method: "PATCH", json: fieldOverrides })
+      setFormData({ first_name: "", last_name: "", email: "", phone: "", mobile_phone: "", company: "", job_title: "", lead_score: "", city: "", postal_code: "", country: "", category_ids: [] })
+      setDialogOpen(false)
+      setShowDuplicateDialog(false)
+      setDuplicates([])
+      fetchContacts()
+    } catch (err) {
+      console.error("Failed to merge:", err)
     }
   }
 
@@ -264,6 +307,19 @@ export default function ContactsPage() {
         </Dialog>
         </div>
       </div>
+
+      <DuplicateDetectionDialog
+        open={showDuplicateDialog}
+        onOpenChange={setShowDuplicateDialog}
+        duplicates={duplicates}
+        newContactData={formData}
+        onCreateAnyway={handleCreateAnyway}
+        onMerge={handleMerge}
+        onCancel={() => {
+          setShowDuplicateDialog(false)
+          setDuplicates([])
+        }}
+      />
 
       {/* Search */}
       <div className="relative max-w-md">
