@@ -17,6 +17,7 @@ class TimelineEntry(models.Model):
         EMAIL_RECEIVED = "email_received"
         MEETING = "meeting"
         CUSTOM = "custom"
+        CONTACT_MERGED = "contact_merged"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organization = models.ForeignKey(

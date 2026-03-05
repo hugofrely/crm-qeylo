@@ -161,3 +161,21 @@ class CustomFieldDefinition(models.Model):
 
     def __str__(self):
         return f"{self.label} ({self.field_type})"
+
+
+class DuplicateDetectionSettings(models.Model):
+    organization = models.OneToOneField(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="duplicate_detection_settings",
+    )
+    enabled = models.BooleanField(default=True)
+    match_email = models.BooleanField(default=True)
+    match_name = models.BooleanField(default=True)
+    match_phone = models.BooleanField(default=False)
+    match_siret = models.BooleanField(default=False)
+    match_company = models.BooleanField(default=False)
+    similarity_threshold = models.FloatField(default=0.6)
+
+    def __str__(self):
+        return f"DuplicateDetectionSettings({self.organization})"

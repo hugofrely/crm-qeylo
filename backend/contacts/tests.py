@@ -376,3 +376,36 @@ class CSVImportTests(TestCase):
         self.assertEqual(response.data["suggested_mapping"]["prénom"], "first_name")
         self.assertEqual(response.data["suggested_mapping"]["poste"], "job_title")
         self.assertEqual(response.data["suggested_mapping"]["ville"], "city")
+
+
+class DuplicateDetectionSettingsTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "email": "dup@example.com",
+                "password": "securepass123",
+                "first_name": "Dup",
+                "last_name": "Test",
+                "organization_name": "Dup Test Org",
+            },
+        )
+        self.token = response.data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+    def test_default_settings_created_with_org(self):
+        from organizations.models import Organization
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.get(email="dup@example.com")
+        org = Organization.objects.filter(memberships__user=user).first()
+        from contacts.models import DuplicateDetectionSettings
+        settings, created = DuplicateDetectionSettings.objects.get_or_create(organization=org)
+        self.assertTrue(settings.enabled)
+        self.assertTrue(settings.match_email)
+        self.assertTrue(settings.match_name)
+        self.assertFalse(settings.match_phone)
+        self.assertFalse(settings.match_siret)
+        self.assertFalse(settings.match_company)
+        self.assertAlmostEqual(settings.similarity_threshold, 0.6)
