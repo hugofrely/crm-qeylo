@@ -409,3 +409,81 @@ class DuplicateDetectionSettingsTests(TestCase):
         self.assertFalse(settings.match_siret)
         self.assertFalse(settings.match_company)
         self.assertAlmostEqual(settings.similarity_threshold, 0.6)
+
+
+class CheckDuplicatesTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "email": "dupcheck@example.com",
+                "password": "securepass123",
+                "first_name": "Test",
+                "last_name": "User",
+                "organization_name": "DupCheck Org",
+            },
+        )
+        self.token = response.data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+        # Create existing contacts
+        self.client.post("/api/contacts/", {
+            "first_name": "Marie",
+            "last_name": "Dupont",
+            "email": "marie@decathlon.com",
+            "phone": "0612345678",
+            "company": "Decathlon",
+        })
+        self.client.post("/api/contacts/", {
+            "first_name": "Pierre",
+            "last_name": "Martin",
+            "email": "pierre@nike.com",
+        })
+
+    def test_exact_email_match(self):
+        response = self.client.post(
+            "/api/contacts/check-duplicates/",
+            {"first_name": "Different", "last_name": "Name", "email": "marie@decathlon.com"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["duplicates"]), 1)
+        self.assertEqual(response.data["duplicates"][0]["contact"]["email"], "marie@decathlon.com")
+        self.assertIn("email", response.data["duplicates"][0]["matched_on"])
+
+    def test_fuzzy_name_match(self):
+        response = self.client.post(
+            "/api/contacts/check-duplicates/",
+            {"first_name": "Marie", "last_name": "Dupont"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(len(response.data["duplicates"]), 1)
+
+    def test_no_duplicates(self):
+        response = self.client.post(
+            "/api/contacts/check-duplicates/",
+            {"first_name": "Completely", "last_name": "Different"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["duplicates"]), 0)
+
+    def test_disabled_detection(self):
+        from contacts.models import DuplicateDetectionSettings
+        from organizations.models import Organization
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.get(email="dupcheck@example.com")
+        org = Organization.objects.filter(memberships__user=user).first()
+        settings, _ = DuplicateDetectionSettings.objects.get_or_create(organization=org)
+        settings.enabled = False
+        settings.save()
+
+        response = self.client.post(
+            "/api/contacts/check-duplicates/",
+            {"first_name": "Marie", "last_name": "Dupont", "email": "marie@decathlon.com"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["duplicates"]), 0)
