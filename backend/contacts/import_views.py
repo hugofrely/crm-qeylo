@@ -12,7 +12,8 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import Contact, CustomFieldDefinition
+from .models import Contact, CustomFieldDefinition, DuplicateDetectionSettings
+from .duplicates import _find_duplicates
 from notifications.helpers import create_notification
 
 # Map common CSV column names to Contact fields
@@ -196,6 +197,8 @@ def import_contacts(request):
     if not org:
         return Response({"detail": "No organization"}, status=status.HTTP_403_FORBIDDEN)
 
+    dup_settings, _ = DuplicateDetectionSettings.objects.get_or_create(organization=org)
+
     existing_emails = {
         e.lower()
         for e in Contact.objects.filter(organization=org)
@@ -247,11 +250,27 @@ def import_contacts(request):
             errors.append(f"Ligne {i + 2}: prénom manquant")
             continue
 
-        # Check duplicate by email
+        # Check duplicate by email (fast path)
         email = native_data.get("email", "")
         if email and email.lower() in existing_emails:
             skipped += 1
             continue
+
+        # Check duplicate by fuzzy matching (if no email match)
+        if dup_settings.enabled:
+            row_data = {
+                "first_name": native_data.get("first_name", ""),
+                "last_name": native_data.get("last_name", ""),
+                "email": email,
+                "phone": native_data.get("phone", ""),
+                "mobile_phone": native_data.get("mobile_phone", ""),
+                "siret": native_data.get("siret", ""),
+                "company": native_data.get("company", ""),
+            }
+            dups = _find_duplicates(org, row_data, dup_settings)
+            if dups:
+                skipped += 1
+                continue
 
         # Set default source if not mapped
         if "source" not in native_data:
