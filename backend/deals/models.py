@@ -141,3 +141,128 @@ class Deal(models.Model):
 
     def __str__(self):
         return self.name
+
+
+QUOTE_STATUS_CHOICES = [
+    ("draft", "Brouillon"),
+    ("sent", "Envoyé"),
+    ("accepted", "Accepté"),
+    ("refused", "Refusé"),
+]
+
+
+class Quote(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="quotes",
+    )
+    deal = models.ForeignKey(Deal, on_delete=models.CASCADE, related_name="quotes")
+    number = models.CharField(max_length=50)
+    status = models.CharField(max_length=10, choices=QUOTE_STATUS_CHOICES, default="draft")
+    global_discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    global_discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    notes = models.TextField(blank=True, default="")
+    valid_until = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.number} - {self.deal.name}"
+
+    def save(self, *args, **kwargs):
+        if not self.number:
+            self.number = self._generate_number()
+        super().save(*args, **kwargs)
+
+    def _generate_number(self):
+        from django.utils import timezone
+        year = timezone.now().year
+        count = Quote.objects.filter(
+            organization=self.organization,
+            number__startswith=f"DEV-{year}-",
+        ).count()
+        return f"DEV-{year}-{count + 1:03d}"
+
+    @property
+    def subtotal_ht(self):
+        return sum(line.line_ht for line in self.lines.all())
+
+    @property
+    def total_discount(self):
+        line_discounts = sum(line.line_discount for line in self.lines.all())
+        subtotal = self.subtotal_ht
+        global_disc = (
+            subtotal * self.global_discount_percent / 100
+            if self.global_discount_percent
+            else self.global_discount_amount
+        )
+        return line_discounts + global_disc
+
+    @property
+    def total_ht(self):
+        subtotal = self.subtotal_ht
+        global_disc = (
+            subtotal * self.global_discount_percent / 100
+            if self.global_discount_percent
+            else self.global_discount_amount
+        )
+        return subtotal - global_disc
+
+    @property
+    def total_tax(self):
+        return sum(line.line_tax for line in self.lines.all())
+
+    @property
+    def total_ttc(self):
+        return self.total_ht + self.total_tax
+
+
+class QuoteLine(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="lines")
+    product = models.ForeignKey(
+        "products.Product", on_delete=models.SET_NULL, null=True, blank=True,
+    )
+    description = models.TextField(blank=True, default="")
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    unit = models.CharField(
+        max_length=10,
+        choices=[("unit", "Unité"), ("hour", "Heure"), ("day", "Jour"), ("fixed", "Forfait")],
+        default="unit",
+    )
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=20)
+    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ["order"]
+
+    @property
+    def line_subtotal(self):
+        return self.quantity * self.unit_price
+
+    @property
+    def line_discount(self):
+        subtotal = self.line_subtotal
+        if self.discount_percent:
+            return subtotal * self.discount_percent / 100
+        return self.discount_amount
+
+    @property
+    def line_ht(self):
+        return self.line_subtotal - self.line_discount
+
+    @property
+    def line_tax(self):
+        return self.line_ht * self.tax_rate / 100
+
+    @property
+    def line_ttc(self):
+        return self.line_ht + self.line_tax

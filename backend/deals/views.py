@@ -223,3 +223,68 @@ def reorder_pipelines(request):
             id=pipeline_id, organization=request.organization
         ).update(order=index)
     return Response({"status": "ok"})
+
+
+from .models import Quote, QuoteLine
+from .serializers import QuoteSerializer, QuoteListSerializer
+
+
+class QuoteViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return QuoteListSerializer
+        return QuoteSerializer
+
+    def get_queryset(self):
+        qs = Quote.objects.filter(organization=self.request.organization)
+        deal_id = self.request.query_params.get("deal")
+        if deal_id:
+            qs = qs.filter(deal_id=deal_id)
+        if self.action == "list":
+            qs = qs.annotate(line_count=Count("lines"))
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(organization=self.request.organization)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def quote_duplicate(request, pk):
+    try:
+        quote = Quote.objects.get(pk=pk, organization=request.organization)
+    except Quote.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+    lines = list(quote.lines.all().values(
+        "product_id", "description", "quantity", "unit_price",
+        "unit", "tax_rate", "discount_percent", "discount_amount", "order",
+    ))
+    new_quote = Quote.objects.create(
+        organization=quote.organization, deal=quote.deal, status="draft",
+        global_discount_percent=quote.global_discount_percent,
+        global_discount_amount=quote.global_discount_amount,
+        notes=quote.notes, valid_until=quote.valid_until,
+    )
+    for line_data in lines:
+        QuoteLine.objects.create(quote=new_quote, **line_data)
+    return Response(QuoteSerializer(new_quote).data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def quote_status_change(request, pk, new_status):
+    if new_status not in ("sent", "accepted", "refused"):
+        return Response({"detail": "Invalid status."}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        quote = Quote.objects.get(pk=pk, organization=request.organization)
+    except Quote.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+    quote.status = new_status
+    quote.save(update_fields=["status", "updated_at"])
+    if new_status == "accepted":
+        quote.deal.amount = quote.total_ttc
+        quote.deal.save(update_fields=["amount", "updated_at"])
+    return Response(QuoteSerializer(quote).data)
