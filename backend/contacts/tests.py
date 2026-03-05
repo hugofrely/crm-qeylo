@@ -1,4 +1,5 @@
 import io
+import json
 
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -239,3 +240,139 @@ class CSVImportTests(TestCase):
         )
         self.assertEqual(response.data["created"], 1)
         self.assertEqual(response.data["skipped"], 1)
+
+    def test_import_with_extended_fields(self):
+        """Import CSV with job_title, city, country etc."""
+        csv_content = "first_name,last_name,email,poste,ville,pays\nMarie,Dupont,marie@example.com,CEO,Paris,France"
+        f = self._make_csv(csv_content)
+        f.name = "contacts.csv"
+        response = self.client.post(
+            "/api/contacts/import/",
+            {
+                "file": f,
+                "mapping": json.dumps({
+                    "first_name": "first_name",
+                    "last_name": "last_name",
+                    "email": "email",
+                    "poste": "job_title",
+                    "ville": "city",
+                    "pays": "country",
+                }),
+            },
+            format="multipart",
+        )
+        self.assertEqual(response.data["created"], 1)
+        from contacts.models import Contact
+        contact = Contact.objects.get(email="marie@example.com")
+        self.assertEqual(contact.job_title, "CEO")
+        self.assertEqual(contact.city, "Paris")
+        self.assertEqual(contact.country, "France")
+
+    def test_import_with_custom_fields(self):
+        """Import CSV with custom field mapping."""
+        from contacts.models import Contact, CustomFieldDefinition
+        from organizations.models import Organization
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.get(email="test@example.com")
+        org = Organization.objects.filter(memberships__user=user).first()
+
+        cf = CustomFieldDefinition.objects.create(
+            organization=org,
+            label="Secteur activité",
+            field_type="text",
+        )
+
+        csv_content = "first_name,secteur\nMarie,Tech"
+        f = self._make_csv(csv_content)
+        f.name = "contacts.csv"
+        response = self.client.post(
+            "/api/contacts/import/",
+            {
+                "file": f,
+                "mapping": json.dumps({
+                    "first_name": "first_name",
+                    "secteur": f"custom::{cf.id}",
+                }),
+            },
+            format="multipart",
+        )
+        self.assertEqual(response.data["created"], 1)
+        contact = Contact.objects.get(first_name="Marie")
+        self.assertEqual(contact.custom_fields[str(cf.id)], "Tech")
+
+    def test_import_custom_field_soft_validation(self):
+        """Invalid custom field values produce warnings, not errors."""
+        from contacts.models import CustomFieldDefinition
+        from organizations.models import Organization
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.get(email="test@example.com")
+        org = Organization.objects.filter(memberships__user=user).first()
+
+        cf = CustomFieldDefinition.objects.create(
+            organization=org,
+            label="Budget",
+            field_type="number",
+        )
+
+        csv_content = "first_name,budget\nMarie,not_a_number"
+        f = self._make_csv(csv_content)
+        f.name = "contacts.csv"
+        response = self.client.post(
+            "/api/contacts/import/",
+            {
+                "file": f,
+                "mapping": json.dumps({
+                    "first_name": "first_name",
+                    "budget": f"custom::{cf.id}",
+                }),
+            },
+            format="multipart",
+        )
+        self.assertEqual(response.data["created"], 1)
+        self.assertTrue(len(response.data["warnings"]) > 0)
+        self.assertIn("nombre invalide", response.data["warnings"][0])
+
+    def test_preview_returns_custom_field_definitions(self):
+        """Preview endpoint returns custom field definitions."""
+        from contacts.models import CustomFieldDefinition
+        from organizations.models import Organization
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.get(email="test@example.com")
+        org = Organization.objects.filter(memberships__user=user).first()
+
+        CustomFieldDefinition.objects.create(
+            organization=org,
+            label="NDA signé",
+            field_type="checkbox",
+        )
+
+        csv_content = "first_name,email\nMarie,marie@example.com"
+        f = self._make_csv(csv_content)
+        f.name = "contacts.csv"
+        response = self.client.post(
+            "/api/contacts/import/preview/",
+            {"file": f},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("custom_field_definitions", response.data)
+        self.assertEqual(len(response.data["custom_field_definitions"]), 1)
+        self.assertEqual(response.data["custom_field_definitions"][0]["label"], "NDA signé")
+
+    def test_preview_extended_aliases(self):
+        """Auto-detection works for extended aliases like 'poste' -> job_title."""
+        csv_content = "prénom,poste,ville\nMarie,CEO,Paris"
+        f = self._make_csv(csv_content)
+        f.name = "contacts.csv"
+        response = self.client.post(
+            "/api/contacts/import/preview/",
+            {"file": f},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["suggested_mapping"]["prénom"], "first_name")
+        self.assertEqual(response.data["suggested_mapping"]["poste"], "job_title")
+        self.assertEqual(response.data["suggested_mapping"]["ville"], "city")
