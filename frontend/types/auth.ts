@@ -15,6 +15,7 @@ export interface AuthContextType {
     password: string
     first_name: string
     last_name: string
+    organization_name: string
   }) => Promise<void>
   logout: () => void
 }

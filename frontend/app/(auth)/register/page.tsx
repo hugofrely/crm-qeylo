@@ -12,6 +12,7 @@ import { Loader2 } from "lucide-react"
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
+  const [organizationName, setOrganizationName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -30,6 +31,7 @@ export default function RegisterPage() {
         password,
         first_name: firstName,
         last_name: lastName,
+        organization_name: organizationName,
       })
       router.push("/chat")
     } catch (err) {
@@ -40,6 +42,8 @@ export default function RegisterPage() {
           if (parsed.email) messages.push(`Email: ${parsed.email.join(", ")}`)
           if (parsed.password)
             messages.push(`Mot de passe: ${parsed.password.join(", ")}`)
+          if (parsed.organization_name)
+            messages.push(`Organisation: ${parsed.organization_name.join(", ")}`)
           if (parsed.detail) messages.push(parsed.detail)
           if (parsed.non_field_errors)
             messages.push(parsed.non_field_errors.join(", "))
@@ -111,6 +115,22 @@ export default function RegisterPage() {
               className="h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors"
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="organizationName" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+            Nom de votre organisation
+          </Label>
+          <Input
+            id="organizationName"
+            type="text"
+            placeholder="Mon entreprise"
+            value={organizationName}
+            onChange={(e) => setOrganizationName(e.target.value)}
+            required
+            disabled={isLoading}
+            className="h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors"
+          />
         </div>
 
         <div className="space-y-2">
