@@ -350,7 +350,8 @@ export default function ContactDetailPage() {
   const id = params.id as string
 
   const [contact, setContact] = useState<Contact | null>(null)
-  const [timeline, setTimeline] = useState<TimelineEntry[]>([])
+  const [interactions, setInteractions] = useState<TimelineEntry[]>([])
+  const [journal, setJournal] = useState<TimelineEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -422,8 +423,12 @@ export default function ContactDetailPage() {
 
   const fetchTimeline = useCallback(async () => {
     try {
-      const data = await apiFetch<TimelineEntry[]>(`/timeline/?contact=${id}`)
-      setTimeline(data)
+      const [interactionsData, journalData] = await Promise.all([
+        apiFetch<TimelineEntry[]>(`/timeline/?contact=${id}&type=interactions`),
+        apiFetch<TimelineEntry[]>(`/timeline/?contact=${id}&type=journal`),
+      ])
+      setInteractions(interactionsData)
+      setJournal(journalData)
     } catch (err) {
       console.error("Failed to fetch timeline:", err)
     }
@@ -649,60 +654,115 @@ export default function ContactDetailPage() {
         </div>
       )}
 
-      {/* Timeline */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="px-6 py-5 border-b border-border flex items-center justify-between">
-          <h2 className="text-xl tracking-tight">Historique</h2>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setActivityDialogOpen(true)}
-            className="gap-2"
-          >
-            <Phone className="h-3.5 w-3.5" />
-            Logger une activité
-          </Button>
+      {/* Timeline - Two columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left: Interactions */}
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="px-6 py-5 border-b border-border flex items-center justify-between">
+            <h2 className="text-lg tracking-tight">Interactions</h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActivityDialogOpen(true)}
+              className="gap-2"
+            >
+              <Phone className="h-3.5 w-3.5" />
+              Logger
+            </Button>
+          </div>
+          <div className="p-6">
+            {interactions.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
+                Aucune interaction enregistrée.
+              </p>
+            ) : (
+              <div className="space-y-0">
+                {interactions.map((entry, index) => (
+                  <div key={entry.id} className="flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`flex items-center justify-center h-7 w-7 rounded-full shrink-0 ${getTimelineColor(entry.entry_type)}`}
+                      >
+                        {getTimelineIcon(entry.entry_type)}
+                      </div>
+                      {index < interactions.length - 1 && (
+                        <div className="w-px flex-1 bg-border min-h-[20px]" />
+                      )}
+                    </div>
+                    <div className="pb-6 flex-1 min-w-0 font-[family-name:var(--font-body)]">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <Badge variant="outline" className="text-[10px] capitalize font-normal">
+                          {getEntryTypeLabel(entry.entry_type)}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                          {formatDateTime(entry.created_at)}
+                        </span>
+                      </div>
+                      {entry.subject && (
+                        <p className="text-sm font-medium mt-1">{entry.subject}</p>
+                      )}
+                      {entry.content && (
+                        <p className="text-sm mt-1.5 whitespace-pre-wrap break-words leading-relaxed">
+                          {entry.content}
+                        </p>
+                      )}
+                      <ActivityMetadata entry={entry} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="p-6">
-          {timeline.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
-              Aucune interaction enregistrée.
-            </p>
-          ) : (
-            <div className="space-y-0">
-              {timeline.map((entry, index) => (
-                <div key={entry.id} className="flex gap-4">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`flex items-center justify-center h-7 w-7 rounded-full shrink-0 ${getTimelineColor(entry.entry_type)}`}
-                    >
-                      {getTimelineIcon(entry.entry_type)}
+
+        {/* Right: Journal */}
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="px-6 py-5 border-b border-border">
+            <h2 className="text-lg tracking-tight">Journal</h2>
+          </div>
+          <div className="p-6">
+            {journal.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
+                Aucune entrée dans le journal.
+              </p>
+            ) : (
+              <div className="space-y-0">
+                {journal.map((entry, index) => (
+                  <div key={entry.id} className="flex gap-4">
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`flex items-center justify-center h-7 w-7 rounded-full shrink-0 ${getTimelineColor(entry.entry_type)}`}
+                      >
+                        {getTimelineIcon(entry.entry_type)}
+                      </div>
+                      {index < journal.length - 1 && (
+                        <div className="w-px flex-1 bg-border min-h-[20px]" />
+                      )}
                     </div>
-                    {index < timeline.length - 1 && (
-                      <div className="w-px flex-1 bg-border min-h-[20px]" />
-                    )}
-                  </div>
-                  <div className="pb-6 flex-1 min-w-0 font-[family-name:var(--font-body)]">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <Badge variant="outline" className="text-[10px] capitalize font-normal">
-                        {getEntryTypeLabel(entry.entry_type)}
-                      </Badge>
-                      <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                        {formatDateTime(entry.created_at)}
-                      </span>
+                    <div className="pb-6 flex-1 min-w-0 font-[family-name:var(--font-body)]">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <Badge variant="outline" className="text-[10px] capitalize font-normal">
+                          {getEntryTypeLabel(entry.entry_type)}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                          {formatDateTime(entry.created_at)}
+                        </span>
+                      </div>
+                      {entry.subject && (
+                        <p className="text-sm font-medium mt-1">{entry.subject}</p>
+                      )}
+                      {entry.content && (
+                        <p className="text-sm mt-1.5 whitespace-pre-wrap break-words leading-relaxed">
+                          {entry.content}
+                        </p>
+                      )}
+                      <ActivityMetadata entry={entry} />
                     </div>
-                    {entry.subject && (
-                      <p className="text-sm font-medium mt-1">{entry.subject}</p>
-                    )}
-                    <p className="text-sm mt-1.5 whitespace-pre-wrap break-words leading-relaxed">
-                      {entry.content}
-                    </p>
-                    <ActivityMetadata entry={entry} />
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
