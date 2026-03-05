@@ -103,8 +103,9 @@ export default function ContactsPage() {
         setTotalCount(results.length)
       } else {
         const offset = (page - 1) * PAGE_SIZE
+        const categoryParam = selectedCategory ? `&category=${selectedCategory}` : ""
         const data = await apiFetch<ContactsResponse>(
-          `/contacts/?limit=${PAGE_SIZE}&offset=${offset}`
+          `/contacts/?limit=${PAGE_SIZE}&offset=${offset}${categoryParam}`
         )
         setContacts(data.results)
         setTotalCount(data.count)
@@ -114,7 +115,7 @@ export default function ContactsPage() {
     } finally {
       setLoading(false)
     }
-  }, [search, page])
+  }, [search, page, selectedCategory])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -126,6 +127,22 @@ export default function ContactsPage() {
   useEffect(() => {
     setPage(1)
   }, [search])
+
+  useEffect(() => {
+    setPage(1)
+  }, [selectedCategory])
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await apiFetch<ContactCategory[]>("/contacts/categories/")
+        setCategories(data)
+      } catch (err) {
+        console.error("Failed to fetch categories:", err)
+      }
+    }
+    fetchCategories()
+  }, [])
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
 
@@ -285,6 +302,42 @@ export default function ContactsPage() {
           className="pl-10 h-11 bg-secondary/30 border-border/60"
         />
       </div>
+
+      {/* Category tabs */}
+      {categories.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
+              selectedCategory === null
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+            }`}
+          >
+            Tous
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 font-[family-name:var(--font-body)] ${
+                selectedCategory === cat.id
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+              }`}
+            >
+              <span
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: cat.color }}
+              />
+              {cat.name}
+              {cat.contact_count > 0 && (
+                <span className="text-[10px] opacity-70">({cat.contact_count})</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Table */}
       {loading ? (
