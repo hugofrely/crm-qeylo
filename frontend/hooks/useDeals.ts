@@ -1,20 +1,20 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import type { PipelineStage, Stage } from "@/types"
-import { fetchPipeline, fetchPipelineStages } from "@/services/deals"
+import type { Pipeline, PipelineStage, Stage } from "@/types"
+import { fetchPipeline, fetchPipelineStages, fetchPipelines } from "@/services/deals"
 import { useOrganization } from "@/lib/organization"
 
-export function usePipeline() {
+export function usePipelines() {
   const { orgVersion } = useOrganization()
-  const [pipeline, setPipeline] = useState<PipelineStage[]>([])
+  const [pipelines, setPipelines] = useState<Pipeline[]>([])
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await fetchPipeline()
-      setPipeline(data)
+      const data = await fetchPipelines()
+      setPipelines(data)
     } catch {
       // silently fail
     } finally {
@@ -24,10 +24,32 @@ export function usePipeline() {
 
   useEffect(() => { refresh() }, [refresh])
 
+  return { pipelines, loading, refresh }
+}
+
+export function usePipeline(pipelineId?: string) {
+  const { orgVersion } = useOrganization()
+  const [pipeline, setPipeline] = useState<PipelineStage[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true)
+      const data = await fetchPipeline(pipelineId)
+      setPipeline(data)
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false)
+    }
+  }, [orgVersion, pipelineId])
+
+  useEffect(() => { refresh() }, [refresh])
+
   return { pipeline, setPipeline, loading, refresh }
 }
 
-export function usePipelineStages() {
+export function usePipelineStages(pipelineId?: string) {
   const { orgVersion } = useOrganization()
   const [stages, setStages] = useState<Stage[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,14 +57,14 @@ export function usePipelineStages() {
   const refresh = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await fetchPipelineStages()
+      const data = await fetchPipelineStages(pipelineId)
       setStages(data)
     } catch {
       // silently fail
     } finally {
       setLoading(false)
     }
-  }, [orgVersion])
+  }, [orgVersion, pipelineId])
 
   useEffect(() => { refresh() }, [refresh])
 

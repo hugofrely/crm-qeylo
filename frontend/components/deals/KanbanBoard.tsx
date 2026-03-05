@@ -24,12 +24,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import type { Deal } from "@/types"
 
 interface KanbanBoardProps {
+  pipelineId: string
   dialogOpen?: boolean
   onDialogOpenChange?: (open: boolean) => void
 }
 
-export function KanbanBoard({ dialogOpen, onDialogOpenChange }: KanbanBoardProps) {
-  const { pipeline, setPipeline, loading, refresh } = usePipeline()
+export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange }: KanbanBoardProps) {
+  const { pipeline, setPipeline, loading, refresh } = usePipeline(pipelineId)
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null)
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null)
   const [dealDialogOpen, setDealDialogOpen] = useState(false)

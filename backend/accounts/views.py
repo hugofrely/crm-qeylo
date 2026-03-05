@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from .serializers import RegisterSerializer, UserSerializer
 from organizations.models import Organization, Membership, Invitation
-from deals.models import PipelineStage
+from deals.models import Pipeline
 
 User = get_user_model()
 
@@ -38,7 +38,7 @@ def register(request):
         user=user,
         role="owner",
     )
-    PipelineStage.create_defaults(org)
+    Pipeline.create_defaults(org)
 
     # Auto-accept pending invitations for this email
     pending = Invitation.objects.filter(email=user.email, status="pending")

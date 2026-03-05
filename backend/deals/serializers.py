@@ -1,11 +1,21 @@
 from rest_framework import serializers
-from .models import PipelineStage, Deal
+from .models import Pipeline, PipelineStage, Deal
+
+
+class PipelineSerializer(serializers.ModelSerializer):
+    stage_count = serializers.IntegerField(read_only=True)
+    deal_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Pipeline
+        fields = ["id", "name", "order", "is_default", "stage_count", "deal_count", "created_at"]
+        read_only_fields = ["id", "created_at"]
 
 
 class PipelineStageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PipelineStage
-        fields = ["id", "name", "order", "color"]
+        fields = ["id", "name", "order", "color", "pipeline"]
         read_only_fields = ["id"]
 
 

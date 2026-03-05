@@ -9,7 +9,7 @@ from django.utils import timezone
 from accounts.models import User
 from organizations.models import Organization, Membership
 from contacts.models import Contact, ContactCategory
-from deals.models import Deal, PipelineStage
+from deals.models import Deal, Pipeline, PipelineStage
 from tasks.models import Task
 from notes.models import TimelineEntry
 
@@ -216,7 +216,7 @@ class Command(BaseCommand):
         stages = list(PipelineStage.objects.filter(organization=org))
 
         if not stages:
-            PipelineStage.create_defaults(org)
+            Pipeline.create_defaults(org)
             stages = list(PipelineStage.objects.filter(organization=org))
 
         now = timezone.now()
