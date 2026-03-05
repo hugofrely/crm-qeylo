@@ -20,6 +20,11 @@ export async function apiFetch<T = unknown>(
     headers.Authorization = `Bearer ${token}`
   }
 
+  const orgId = Cookies.get("organization_id")
+  if (orgId) {
+    headers["X-Organization"] = orgId
+  }
+
   if (json) {
     headers["Content-Type"] = "application/json"
   }

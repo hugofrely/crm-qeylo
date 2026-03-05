@@ -1,8 +1,16 @@
 import { apiFetch } from "@/lib/api"
 import type { MembersResponse } from "@/types"
+import type { Organization } from "@/types/organization"
 
-export async function fetchOrganizations(): Promise<Array<{ id: string; name: string }>> {
-  return apiFetch(`/organizations/`)
+export async function fetchOrganizations(): Promise<Organization[]> {
+  return apiFetch<Organization[]>("/organizations/")
+}
+
+export async function createOrganization(name: string): Promise<Organization> {
+  return apiFetch<Organization>("/organizations/", {
+    method: "POST",
+    json: { name },
+  })
 }
 
 export async function fetchMembers(orgId: string): Promise<MembersResponse> {
