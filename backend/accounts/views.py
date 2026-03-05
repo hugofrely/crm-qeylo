@@ -30,7 +30,7 @@ def register(request):
 
     # Create personal organization
     org = Organization.objects.create(
-        name=f"{user.first_name}'s Workspace",
+        name=data["organization_name"],
         slug=f"user-{user.id.hex[:8]}",
     )
     Membership.objects.create(

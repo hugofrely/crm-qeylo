@@ -13,6 +13,7 @@ class AuthTests(TestCase):
             "password": "securepass123",
             "first_name": "Hugo",
             "last_name": "Frely",
+            "organization_name": "Test Workspace",
         })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("access", response.data)
@@ -26,12 +27,14 @@ class AuthTests(TestCase):
             "password": "securepass123",
             "first_name": "Hugo",
             "last_name": "Frely",
+            "organization_name": "Test Workspace",
         })
         response = self.client.post("/api/auth/register/", {
             "email": "hugo@example.com",
             "password": "anotherpass123",
             "first_name": "Hugo",
             "last_name": "Frely",
+            "organization_name": "Test Workspace",
         })
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -41,6 +44,7 @@ class AuthTests(TestCase):
             "password": "securepass123",
             "first_name": "Hugo",
             "last_name": "Frely",
+            "organization_name": "Test Workspace",
         })
         response = self.client.post("/api/auth/login/", {
             "email": "hugo@example.com",
@@ -55,6 +59,7 @@ class AuthTests(TestCase):
             "password": "securepass123",
             "first_name": "Hugo",
             "last_name": "Frely",
+            "organization_name": "Test Workspace",
         })
         response = self.client.post("/api/auth/login/", {
             "email": "hugo@example.com",
@@ -68,6 +73,7 @@ class AuthTests(TestCase):
             "password": "securepass123",
             "first_name": "Hugo",
             "last_name": "Frely",
+            "organization_name": "Test Workspace",
         })
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {reg.data['access']}")
         response = self.client.get("/api/auth/me/")
@@ -77,3 +83,29 @@ class AuthTests(TestCase):
     def test_me_endpoint_unauthenticated_fails(self):
         response = self.client.get("/api/auth/me/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_register_uses_organization_name(self):
+        response = self.client.post("/api/auth/register/", {
+            "email": "org@example.com",
+            "password": "securepass123",
+            "first_name": "Hugo",
+            "last_name": "Frely",
+            "organization_name": "Acme Corp",
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        from organizations.models import Organization, Membership
+        org = Organization.objects.get(
+            memberships__user__email="org@example.com",
+            memberships__role="owner",
+        )
+        self.assertEqual(org.name, "Acme Corp")
+
+    def test_register_requires_organization_name(self):
+        response = self.client.post("/api/auth/register/", {
+            "email": "noorg@example.com",
+            "password": "securepass123",
+            "first_name": "Hugo",
+            "last_name": "Frely",
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("organization_name", response.data)
