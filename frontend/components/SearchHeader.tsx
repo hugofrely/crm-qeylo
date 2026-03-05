@@ -1,47 +1,16 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Users, Kanban, CheckSquare, X } from "lucide-react"
-import { globalSearch } from "@/services/search"
 import { NotificationBell } from "@/components/NotificationBell"
-import type { SearchResults } from "@/types"
+import { useSearch } from "@/hooks/useSearch"
 
 export function SearchHeader() {
   const router = useRouter()
-  const [query, setQuery] = useState("")
-  const [results, setResults] = useState<SearchResults | null>(null)
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const { query, results, loading, open, setOpen, search, close } = useSearch()
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
-
-  const search = useCallback(async (q: string) => {
-    if (q.trim().length < 2) {
-      setResults(null)
-      setOpen(false)
-      return
-    }
-    setLoading(true)
-    try {
-      const data = await globalSearch(q.trim())
-      setResults(data)
-      setOpen(true)
-    } catch {
-      setResults(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => search(query), 300)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [query, search])
 
   // Close on click outside
   useEffect(() => {
@@ -53,7 +22,7 @@ export function SearchHeader() {
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [open])
+  }, [open, setOpen])
 
   // Cmd+K shortcut
   useEffect(() => {
@@ -69,12 +38,10 @@ export function SearchHeader() {
     }
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [])
+  }, [setOpen])
 
   const navigate = (path: string) => {
-    setOpen(false)
-    setQuery("")
-    setResults(null)
+    close()
     router.push(path)
   }
 
@@ -93,7 +60,7 @@ export function SearchHeader() {
               ref={inputRef}
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => search(e.target.value)}
               onFocus={() => {
                 if (results && query.trim().length >= 2) setOpen(true)
               }}
@@ -102,11 +69,7 @@ export function SearchHeader() {
             />
             {query && (
               <button
-                onClick={() => {
-                  setQuery("")
-                  setResults(null)
-                  setOpen(false)
-                }}
+                onClick={close}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-3.5 w-3.5" />

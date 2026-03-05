@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import {
   DndContext,
   DragOverlay,
@@ -12,16 +12,16 @@ import {
   useSensors,
   closestCorners,
 } from "@dnd-kit/core"
-import { fetchPipeline as fetchPipelineApi, updateDeal } from "@/services/deals"
+import { updateDeal } from "@/services/deals"
+import { usePipeline } from "@/hooks/useDeals"
 import { KanbanColumn } from "./KanbanColumn"
 import { DealCard } from "./DealCard"
 import { Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import type { Deal, PipelineStage } from "@/types"
+import type { Deal } from "@/types"
 
 export function KanbanBoard() {
-  const [pipeline, setPipeline] = useState<PipelineStage[]>([])
-  const [loading, setLoading] = useState(true)
+  const { pipeline, setPipeline, loading, refresh } = usePipeline()
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null)
 
   const sensors = useSensors(
@@ -31,21 +31,6 @@ export function KanbanBoard() {
       },
     })
   )
-
-  const fetchPipeline = useCallback(async () => {
-    try {
-      const data = await fetchPipelineApi()
-      setPipeline(data)
-    } catch (err) {
-      console.error("Failed to fetch pipeline:", err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchPipeline()
-  }, [fetchPipeline])
 
   const findDealById = (dealId: string): Deal | undefined => {
     for (const stage of pipeline) {
@@ -129,7 +114,7 @@ export function KanbanBoard() {
     } catch (err) {
       console.error("Failed to update deal stage:", err)
       // Re-fetch to restore correct state
-      fetchPipeline()
+      refresh()
     }
   }
 

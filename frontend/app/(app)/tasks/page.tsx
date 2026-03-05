@@ -1,32 +1,16 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
-import { fetchTasks as fetchTasksApi, updateTask } from "@/services/tasks"
+import { useState } from "react"
+import { updateTask } from "@/services/tasks"
+import { useTasks } from "@/hooks/useTasks"
 import { TaskList } from "@/components/tasks/TaskList"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CheckSquare, Loader2 } from "lucide-react"
-import type { Task, TaskFilterTab } from "@/types"
+import type { TaskFilterTab } from "@/types"
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(true)
+  const { tasks, setTasks, loading } = useTasks()
   const [filter, setFilter] = useState<TaskFilterTab>("all")
-
-  const fetchTasks = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await fetchTasksApi()
-      setTasks(data.results)
-    } catch (err) {
-      console.error("Failed to fetch tasks:", err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchTasks()
-  }, [fetchTasks])
 
   const handleToggle = async (taskId: string, isDone: boolean) => {
     // Optimistic update
