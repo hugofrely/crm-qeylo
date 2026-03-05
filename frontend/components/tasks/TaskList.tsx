@@ -3,24 +3,11 @@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, User, Briefcase } from "lucide-react"
-
-interface Task {
-  id: string
-  description: string
-  due_date: string | null
-  contact: string | null
-  contact_name?: string
-  deal: string | null
-  deal_name?: string
-  priority: string
-  is_done: boolean
-  created_at: string
-}
+import type { Task } from "@/types"
 
 interface TaskListProps {
   tasks: Task[]
   onToggle: (taskId: string, isDone: boolean) => void
-  onEdit: (task: Task) => void
 }
 
 function formatDate(dateStr: string): string {
@@ -36,25 +23,25 @@ function getPriorityBadge(priority: string) {
   switch (priority) {
     case "high":
       return (
-        <Badge className="bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/10 text-[10px] font-medium">
+        <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
           Haute
         </Badge>
       )
     case "normal":
       return (
-        <Badge className="bg-primary/8 text-primary border-primary/20 hover:bg-primary/8 text-[10px] font-medium">
+        <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
           Normale
         </Badge>
       )
     case "low":
       return (
-        <Badge className="bg-secondary text-muted-foreground border-border hover:bg-secondary text-[10px] font-medium">
+        <Badge className="bg-gray-100 text-gray-600 hover:bg-gray-100">
           Basse
         </Badge>
       )
     default:
       return (
-        <Badge variant="secondary" className="text-[10px] font-medium">
+        <Badge variant="secondary">
           {priority}
         </Badge>
       )
@@ -69,12 +56,12 @@ function isOverdue(dueDateStr: string | null): boolean {
   return dueDate < today
 }
 
-export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
+export function TaskList({ tasks, onToggle }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-          Aucune tâche trouvée.
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <p className="text-muted-foreground text-sm">
+          Aucune t&acirc;che trouv&eacute;e.
         </p>
       </div>
     )
@@ -85,10 +72,9 @@ export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
       {tasks.map((task) => (
         <div
           key={task.id}
-          className={`flex items-start gap-3.5 p-4 rounded-xl border border-border bg-card transition-all hover:shadow-sm font-[family-name:var(--font-body)] cursor-pointer ${
-            task.is_done ? "opacity-50" : ""
+          className={`flex items-start gap-3 p-4 rounded-lg border transition-colors hover:bg-muted/50 ${
+            task.is_done ? "opacity-60" : ""
           }`}
-          onClick={() => onEdit(task)}
         >
           <Checkbox
             checked={task.is_done}
@@ -96,11 +82,10 @@ export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
               onToggle(task.id, checked === true)
             }
             className="mt-0.5"
-            onClick={(e) => e.stopPropagation()}
           />
-          <div className="flex-1 min-w-0 space-y-1.5">
+          <div className="flex-1 min-w-0 space-y-1">
             <p
-              className={`text-sm font-medium leading-relaxed ${
+              className={`text-sm font-medium ${
                 task.is_done ? "line-through text-muted-foreground" : ""
               }`}
             >
@@ -109,9 +94,9 @@ export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
             <div className="flex items-center gap-3 flex-wrap">
               {task.due_date && (
                 <div
-                  className={`flex items-center gap-1 text-[11px] ${
+                  className={`flex items-center gap-1 text-xs ${
                     !task.is_done && isOverdue(task.due_date)
-                      ? "text-destructive font-medium"
+                      ? "text-red-600 font-medium"
                       : "text-muted-foreground"
                   }`}
                 >
@@ -120,13 +105,13 @@ export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
                 </div>
               )}
               {task.contact_name && (
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <User className="h-3 w-3" />
                   {task.contact_name}
                 </div>
               )}
               {task.deal_name && (
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Briefcase className="h-3 w-3" />
                   {task.deal_name}
                 </div>

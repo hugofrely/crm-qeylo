@@ -4,11 +4,11 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { useAuth } from "@/lib/auth"
 import {
   streamChat,
-  type Conversation,
   fetchConversations,
   createConversation,
   fetchConversationMessages,
-} from "@/lib/api"
+} from "@/services/chat"
+import type { Conversation } from "@/types"
 import { ChatInput } from "@/components/chat/ChatInput"
 import {
   ChatMessage,

@@ -9,27 +9,7 @@ import {
   useCallback,
 } from "react"
 import { apiFetch, setTokens, clearTokens } from "./api"
-
-interface User {
-  id: string
-  email: string
-  first_name: string
-  last_name: string
-  email_notifications: boolean
-}
-
-interface AuthContextType {
-  user: User | null
-  loading: boolean
-  login: (email: string, password: string) => Promise<void>
-  register: (data: {
-    email: string
-    password: string
-    first_name: string
-    last_name: string
-  }) => Promise<void>
-  logout: () => void
-}
+import type { User, AuthContextType } from "@/types"
 
 const AuthContext = createContext<AuthContextType | null>(null)
 

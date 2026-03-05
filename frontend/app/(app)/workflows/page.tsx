@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { apiFetch } from "@/lib/api"
+import { fetchWorkflows as fetchWorkflowsApi, fetchWorkflowTemplates as fetchTemplatesApi, createWorkflow, toggleWorkflow, deleteWorkflow } from "@/services/workflows"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -24,26 +24,7 @@ import {
   LayoutTemplate,
 } from "lucide-react"
 import { toast } from "sonner"
-
-interface Workflow {
-  id: string
-  name: string
-  description: string
-  is_active: boolean
-  trigger_type: string | null
-  execution_count: number
-  last_execution_at: string | null
-  created_at: string
-}
-
-interface WorkflowTemplate {
-  id: string
-  name: string
-  description: string
-  trigger_type: string
-  nodes: Array<Record<string, unknown>>
-  edges: Array<Record<string, unknown>>
-}
+import type { Workflow, WorkflowTemplate } from "@/types"
 
 const TRIGGER_LABELS: Record<string, string> = {
   "deal.stage_changed": "Deal change de stage",
@@ -73,7 +54,7 @@ export default function WorkflowsPage() {
 
   const fetchWorkflows = useCallback(async () => {
     try {
-      const data = await apiFetch<Workflow[]>("/workflows/")
+      const data = await fetchWorkflowsApi()
       setWorkflows(data)
     } catch {
       console.error("Failed to fetch workflows")
@@ -84,7 +65,7 @@ export default function WorkflowsPage() {
 
   const fetchTemplates = useCallback(async () => {
     try {
-      const data = await apiFetch<WorkflowTemplate[]>("/workflows/templates/")
+      const data = await fetchTemplatesApi()
       setTemplates(data)
     } catch {
       console.error("Failed to fetch templates")
@@ -100,13 +81,10 @@ export default function WorkflowsPage() {
     if (!newName.trim()) return
     setCreating(true)
     try {
-      const data = await apiFetch<Workflow>("/workflows/", {
-        method: "POST",
-        json: {
-          name: newName.trim(),
-          nodes: [],
-          edges: [],
-        },
+      const data = await createWorkflow({
+        name: newName.trim(),
+        nodes: [],
+        edges: [],
       })
       setCreateDialogOpen(false)
       setNewName("")
@@ -120,14 +98,11 @@ export default function WorkflowsPage() {
 
   const handleCreateFromTemplate = async (template: WorkflowTemplate) => {
     try {
-      const data = await apiFetch<Workflow>("/workflows/", {
-        method: "POST",
-        json: {
-          name: template.name,
-          description: template.description,
-          nodes: template.nodes,
-          edges: template.edges,
-        },
+      const data = await createWorkflow({
+        name: template.name,
+        description: template.description,
+        nodes: template.nodes,
+        edges: template.edges,
       })
       setTemplateDialogOpen(false)
       router.push(`/workflows/${data.id}`)
@@ -138,10 +113,7 @@ export default function WorkflowsPage() {
 
   const handleToggle = async (workflow: Workflow) => {
     try {
-      const data = await apiFetch<{ is_active: boolean }>(
-        `/workflows/${workflow.id}/toggle/`,
-        { method: "POST" }
-      )
+      const data = await toggleWorkflow(workflow.id)
       setWorkflows((prev) =>
         prev.map((w) =>
           w.id === workflow.id ? { ...w, is_active: data.is_active } : w
@@ -155,7 +127,7 @@ export default function WorkflowsPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      await apiFetch(`/workflows/${id}/`, { method: "DELETE" })
+      await deleteWorkflow(id)
       setWorkflows((prev) => prev.filter((w) => w.id !== id))
       toast.success("Workflow supprimé")
     } catch {

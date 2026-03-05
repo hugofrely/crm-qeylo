@@ -1,82 +1,32 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
-import { apiFetch } from "@/lib/api"
+import { useState } from "react"
+import { updateTask } from "@/services/tasks"
+import { useTasks } from "@/hooks/useTasks"
 import { TaskList } from "@/components/tasks/TaskList"
-import { TaskDialog } from "@/components/tasks/TaskDialog"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Loader2, Plus } from "lucide-react"
-
-interface Task {
-  id: string
-  description: string
-  due_date: string | null
-  contact: string | null
-  contact_name?: string
-  deal: string | null
-  deal_name?: string
-  priority: string
-  is_done: boolean
-  created_at: string
-}
-
-interface TasksResponse {
-  count: number
-  results: Task[]
-}
-
-type FilterTab = "all" | "todo" | "done"
+import { CheckSquare, Loader2 } from "lucide-react"
+import type { TaskFilterTab } from "@/types"
 
 export default function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<FilterTab>("all")
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingTask, setEditingTask] = useState<Task | null>(null)
-
-  const fetchTasks = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await apiFetch<TasksResponse>("/tasks/")
-      setTasks(data.results)
-    } catch (err) {
-      console.error("Failed to fetch tasks:", err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchTasks()
-  }, [fetchTasks])
+  const { tasks, setTasks, loading } = useTasks()
+  const [filter, setFilter] = useState<TaskFilterTab>("all")
 
   const handleToggle = async (taskId: string, isDone: boolean) => {
+    // Optimistic update
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, is_done: isDone } : t))
     )
 
     try {
-      await apiFetch(`/tasks/${taskId}/`, {
-        method: "PATCH",
-        json: { is_done: isDone },
-      })
+      await updateTask(taskId, { is_done: isDone })
     } catch (err) {
       console.error("Failed to update task:", err)
+      // Revert on error
       setTasks((prev) =>
         prev.map((t) => (t.id === taskId ? { ...t, is_done: !isDone } : t))
       )
     }
-  }
-
-  const handleEdit = (task: Task) => {
-    setEditingTask(task)
-    setDialogOpen(true)
-  }
-
-  const handleCreate = () => {
-    setEditingTask(null)
-    setDialogOpen(true)
   }
 
   const filteredTasks = tasks.filter((task) => {
@@ -89,52 +39,41 @@ export default function TasksPage() {
   const doneCount = tasks.filter((t) => t.is_done).length
 
   return (
-    <div className="p-8 lg:p-12 max-w-4xl mx-auto space-y-8 animate-fade-in-up">
+    <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl tracking-tight">Tâches</h1>
-          <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
-            {todoCount} à faire, {doneCount} terminée{doneCount !== 1 ? "s" : ""}
-          </p>
-        </div>
-        <Button onClick={handleCreate} size="sm">
-          <Plus className="h-4 w-4 mr-1.5" />
-          Nouvelle tâche
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <CheckSquare className="h-6 w-6" />
+          T&acirc;ches
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          {todoCount} &agrave; faire, {doneCount} termin&eacute;e{doneCount !== 1 ? "s" : ""}
+        </p>
       </div>
 
       {/* Filter tabs */}
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterTab)}>
-        <TabsList className="bg-secondary/50">
-          <TabsTrigger value="all" className="font-[family-name:var(--font-body)] text-xs">
+      <Tabs value={filter} onValueChange={(v) => setFilter(v as TaskFilterTab)}>
+        <TabsList>
+          <TabsTrigger value="all">
             Toutes ({tasks.length})
           </TabsTrigger>
-          <TabsTrigger value="todo" className="font-[family-name:var(--font-body)] text-xs">
-            À faire ({todoCount})
+          <TabsTrigger value="todo">
+            &Agrave; faire ({todoCount})
           </TabsTrigger>
-          <TabsTrigger value="done" className="font-[family-name:var(--font-body)] text-xs">
-            Terminées ({doneCount})
+          <TabsTrigger value="done">
+            Termin&eacute;es ({doneCount})
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
       {/* Task list */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
+        <div className="flex items-center justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <TaskList tasks={filteredTasks} onToggle={handleToggle} onEdit={handleEdit} />
+        <TaskList tasks={filteredTasks} onToggle={handleToggle} />
       )}
-
-      {/* Task dialog */}
-      <TaskDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        task={editingTask}
-        onSuccess={fetchTasks}
-      />
     </div>
   )
 }

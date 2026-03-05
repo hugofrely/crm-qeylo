@@ -1,23 +1,11 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Bell } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { apiFetch } from "@/lib/api"
-
-interface Notification {
-  id: number
-  title: string
-  message: string
-  link: string | null
-  is_read: boolean
-  created_at: string
-}
-
-interface UnreadCountResponse {
-  count: number
-}
+import type { Notification } from "@/types"
+import { useNotifications } from "@/hooks/useNotifications"
 
 function formatRelativeTime(dateStr: string): string {
   const now = new Date()
@@ -36,48 +24,17 @@ function formatRelativeTime(dateStr: string): string {
   return date.toLocaleDateString("fr-FR")
 }
 
-const POLL_INTERVAL = 30_000
-
 export function NotificationBell() {
   const router = useRouter()
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [notifications, setNotifications] = useState<Notification[]>([])
+  const { notifications, unreadCount, loading, loadNotifications, markRead, markAllRead } = useNotifications()
   const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const data = await apiFetch<UnreadCountResponse>("/notifications/unread-count/")
-      setUnreadCount(data.count)
-    } catch {
-      // silently ignore
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchUnreadCount()
-    const interval = setInterval(fetchUnreadCount, POLL_INTERVAL)
-    return () => clearInterval(interval)
-  }, [fetchUnreadCount])
-
-  const fetchNotifications = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await apiFetch<Notification[]>("/notifications/")
-      setNotifications(data)
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false)
-    }
-  }, [])
 
   const handleToggle = () => {
     const willOpen = !open
     setOpen(willOpen)
     if (willOpen) {
-      fetchNotifications()
+      loadNotifications()
     }
   }
 
@@ -100,16 +57,7 @@ export function NotificationBell() {
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.is_read) {
       try {
-        await apiFetch("/notifications/read/", {
-          method: "POST",
-          json: { ids: [notification.id] },
-        })
-        setNotifications((prev) =>
-          prev.map((n) =>
-            n.id === notification.id ? { ...n, is_read: true } : n
-          )
-        )
-        setUnreadCount((prev) => Math.max(0, prev - 1))
+        await markRead(notification.id)
       } catch {
         // ignore
       }
@@ -124,9 +72,7 @@ export function NotificationBell() {
 
   const handleMarkAllRead = async () => {
     try {
-      await apiFetch("/notifications/read-all/", { method: "POST" })
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
-      setUnreadCount(0)
+      await markAllRead()
     } catch {
       // ignore
     }

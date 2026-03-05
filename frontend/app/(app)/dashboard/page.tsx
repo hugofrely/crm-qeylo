@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { apiFetch } from "@/lib/api"
+import { fetchDashboardStats as fetchDashboardStatsApi } from "@/services/dashboard"
 import { StatCard } from "@/components/dashboard/StatCard"
 import {
   DollarSign,
@@ -10,21 +10,7 @@ import {
   ListTodo,
   Loader2,
 } from "lucide-react"
-
-interface DealsByStage {
-  stage_name: string
-  stage_color: string
-  count: number
-  total_amount: number
-}
-
-interface DashboardStats {
-  revenue_this_month: number
-  total_pipeline: number
-  deals_by_stage: DealsByStage[]
-  upcoming_tasks: number
-  active_deals_count: number
-}
+import type { DashboardStats } from "@/types"
 
 function formatAmount(amount: number): string {
   return new Intl.NumberFormat("fr-FR", {
@@ -41,7 +27,7 @@ export default function DashboardPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const data = await apiFetch<DashboardStats>("/dashboard/stats/")
+      const data = await fetchDashboardStatsApi()
       setStats(data)
     } catch (err) {
       console.error("Failed to fetch dashboard stats:", err)

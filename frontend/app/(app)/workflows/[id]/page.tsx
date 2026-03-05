@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter, useParams, useSearchParams } from "next/navigation"
-import { apiFetch } from "@/lib/api"
+import { fetchWorkflow, saveWorkflow, toggleWorkflow } from "@/services/workflows"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -18,33 +18,12 @@ import { toast } from "sonner"
 import type { Node, Edge } from "@xyflow/react"
 import dynamic from "next/dynamic"
 import ExecutionHistory from "@/components/workflows/ExecutionHistory"
+import type { WorkflowData } from "@/types"
 
 const WorkflowBuilder = dynamic(
   () => import("@/components/workflows/WorkflowBuilder"),
   { ssr: false }
 )
-
-interface WorkflowData {
-  id: string
-  name: string
-  description: string
-  is_active: boolean
-  nodes: Array<{
-    id: string
-    node_type: string
-    node_subtype: string
-    config: Record<string, unknown>
-    position_x: number
-    position_y: number
-  }>
-  edges: Array<{
-    id: string
-    source_node: string
-    target_node: string
-    source_handle: string
-    label: string
-  }>
-}
 
 export default function WorkflowBuilderPage() {
   const router = useRouter()
@@ -67,7 +46,7 @@ export default function WorkflowBuilderPage() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await apiFetch<WorkflowData>(`/workflows/${workflowId}/`)
+        const data = await fetchWorkflow(workflowId)
         setWorkflow(data)
         setName(data.name)
       } catch {
@@ -108,15 +87,12 @@ export default function WorkflowBuilderPage() {
     }))
 
     try {
-      await apiFetch(`/workflows/${workflowId}/`, {
-        method: "PUT",
-        json: {
-          name,
-          description: workflow.description,
-          is_active: workflow.is_active,
-          nodes: apiNodes,
-          edges: apiEdges,
-        },
+      await saveWorkflow(workflowId, {
+        name,
+        description: workflow.description,
+        is_active: workflow.is_active,
+        nodes: apiNodes,
+        edges: apiEdges,
       })
       toast.success("Workflow sauvegardé")
     } catch {
@@ -129,10 +105,7 @@ export default function WorkflowBuilderPage() {
   const handleToggle = async () => {
     if (!workflow) return
     try {
-      const data = await apiFetch<{ is_active: boolean }>(
-        `/workflows/${workflowId}/toggle/`,
-        { method: "POST" }
-      )
+      const data = await toggleWorkflow(workflowId)
       setWorkflow({ ...workflow, is_active: data.is_active })
       toast.success(data.is_active ? "Workflow activé" : "Workflow désactivé")
     } catch {

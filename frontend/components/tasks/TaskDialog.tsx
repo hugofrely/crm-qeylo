@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { Loader2, Trash2, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,30 +12,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { apiFetch } from "@/lib/api"
-
-interface Contact {
-  id: string
-  first_name: string
-  last_name: string
-}
-
-interface TaskData {
-  id: string
-  description: string
-  due_date: string | null
-  contact: string | null
-  contact_name?: string | null
-  deal: string | null
-  deal_name?: string | null
-  priority: string
-  is_done: boolean
-}
+import type { Task } from "@/types"
+import { createTask, updateTask, deleteTask } from "@/services/tasks"
+import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 
 interface TaskDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  task?: TaskData | null
+  task?: Task | null
   onSuccess: () => void
 }
 
@@ -52,47 +36,10 @@ export function TaskDialog({
   const [priority, setPriority] = useState("normal")
   const [contactId, setContactId] = useState("")
   const [contactLabel, setContactLabel] = useState("")
-  const [contactQuery, setContactQuery] = useState("")
-  const [contactResults, setContactResults] = useState<Contact[]>([])
-  const [contactSearching, setContactSearching] = useState(false)
-  const [contactDropdownOpen, setContactDropdownOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const contactWrapperRef = useRef<HTMLDivElement>(null)
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (contactWrapperRef.current && !contactWrapperRef.current.contains(e.target as Node)) {
-        setContactDropdownOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
-
-  // Debounced contact search
-  const searchContacts = useCallback((query: string) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (!query.trim()) {
-      setContactResults([])
-      setContactDropdownOpen(false)
-      return
-    }
-    debounceRef.current = setTimeout(async () => {
-      setContactSearching(true)
-      try {
-        const data = await apiFetch<Contact[]>(`/contacts/search/?q=${encodeURIComponent(query)}`)
-        setContactResults(Array.isArray(data) ? data : [])
-        setContactDropdownOpen(true)
-      } catch {
-        setContactResults([])
-      } finally {
-        setContactSearching(false)
-      }
-    }, 300)
-  }, [])
+  const contactAutocomplete = useContactAutocomplete()
 
   useEffect(() => {
     if (open) {
@@ -102,18 +49,16 @@ export function TaskDialog({
         setPriority(task.priority)
         setContactId(task.contact || "")
         setContactLabel(task.contact_name || "")
-        setContactQuery("")
       } else {
         setDescription("")
         setDueDate("")
         setPriority("normal")
         setContactId("")
         setContactLabel("")
-        setContactQuery("")
       }
-      setContactResults([])
-      setContactDropdownOpen(false)
+      contactAutocomplete.reset()
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, task])
 
   const handleSave = async () => {
@@ -128,15 +73,9 @@ export function TaskDialog({
       }
 
       if (isEditing) {
-        await apiFetch(`/tasks/${task!.id}/`, {
-          method: "PATCH",
-          json: payload,
-        })
+        await updateTask(task!.id, payload)
       } else {
-        await apiFetch("/tasks/", {
-          method: "POST",
-          json: payload,
-        })
+        await createTask(payload)
       }
 
       onOpenChange(false)
@@ -153,7 +92,7 @@ export function TaskDialog({
     if (!window.confirm("Supprimer cette tâche ? Cette action est irréversible.")) return
     setDeleting(true)
     try {
-      await apiFetch(`/tasks/${task.id}/`, { method: "DELETE" })
+      await deleteTask(task.id)
       onOpenChange(false)
       onSuccess()
     } catch (err) {
@@ -213,7 +152,7 @@ export function TaskDialog({
           {/* Contact autocomplete */}
           <div className="space-y-1.5">
             <Label>Contact associé</Label>
-            <div ref={contactWrapperRef} className="relative">
+            <div ref={contactAutocomplete.wrapperRef} className="relative">
               {contactId ? (
                 <div className="flex h-9 items-center justify-between rounded-md border border-input bg-transparent px-3 text-sm">
                   <span>{contactLabel}</span>
@@ -222,7 +161,7 @@ export function TaskDialog({
                     onClick={() => {
                       setContactId("")
                       setContactLabel("")
-                      setContactQuery("")
+                      contactAutocomplete.reset()
                     }}
                     className="ml-2 rounded-sm p-0.5 text-muted-foreground hover:text-foreground transition-colors"
                   >
@@ -233,33 +172,29 @@ export function TaskDialog({
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input
-                    value={contactQuery}
-                    onChange={(e) => {
-                      setContactQuery(e.target.value)
-                      searchContacts(e.target.value)
-                    }}
+                    value={contactAutocomplete.query}
+                    onChange={(e) => contactAutocomplete.search(e.target.value)}
                     onFocus={() => {
-                      if (contactResults.length > 0) setContactDropdownOpen(true)
+                      if (contactAutocomplete.results.length > 0) contactAutocomplete.setOpen(true)
                     }}
                     placeholder="Rechercher un contact…"
                     className="pl-8"
                   />
-                  {contactSearching && (
+                  {contactAutocomplete.searching && (
                     <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
                   )}
                 </div>
               )}
-              {contactDropdownOpen && contactResults.length > 0 && (
+              {contactAutocomplete.open && contactAutocomplete.results.length > 0 && (
                 <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg max-h-48 overflow-y-auto">
-                  {contactResults.map((c) => (
+                  {contactAutocomplete.results.map((c) => (
                     <button
                       key={c.id}
                       type="button"
                       onClick={() => {
                         setContactId(c.id)
                         setContactLabel(`${c.first_name} ${c.last_name}`)
-                        setContactQuery("")
-                        setContactDropdownOpen(false)
+                        contactAutocomplete.reset()
                       }}
                       className="flex w-full items-center px-3 py-2 text-sm hover:bg-secondary/50 transition-colors text-left"
                     >
@@ -268,7 +203,7 @@ export function TaskDialog({
                   ))}
                 </div>
               )}
-              {contactDropdownOpen && contactQuery && !contactSearching && contactResults.length === 0 && (
+              {contactAutocomplete.open && contactAutocomplete.query && !contactAutocomplete.searching && contactAutocomplete.results.length === 0 && (
                 <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg px-3 py-3 text-sm text-muted-foreground text-center">
                   Aucun contact trouvé
                 </div>

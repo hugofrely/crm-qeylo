@@ -14,15 +14,9 @@ import {
   Mail,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { ToolCallPart } from "@/types"
 
-export interface ToolCallPart {
-  type: "tool_call"
-  toolName: string
-  toolCallId: string
-  args: Record<string, unknown>
-  status: "running" | "completed" | "error"
-  result?: Record<string, unknown>
-}
+export type { ToolCallPart } from "@/types"
 
 const toolConfig: Record<
   string,

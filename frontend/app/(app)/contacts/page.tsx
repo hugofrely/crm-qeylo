@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { apiFetch } from "@/lib/api"
+import { fetchContactCategories } from "@/services/contacts"
 import { ContactTable } from "@/components/contacts/ContactTable"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -15,53 +16,13 @@ import {
 import { Label } from "@/components/ui/label"
 import { Plus, Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog"
-
-interface Contact {
-  id: number
-  first_name: string
-  last_name: string
-  email: string
-  phone: string
-  company: string
-  source: string
-  tags: string[]
-  notes: string
-  created_at: string
-  updated_at: string
-  // Enrichment fields
-  job_title: string
-  linkedin_url: string
-  website: string
-  address: string
-  industry: string
-  lead_score: string
-  estimated_budget: string
-  identified_needs: string
-  decision_role: string
-  preferred_channel: string
-  timezone: string
-  language: string
-  interests: string
-  birthday: string | null
-  ai_summary: string
-  ai_summary_updated_at: string | null
-}
+import type { Contact, ContactCategory } from "@/types"
 
 interface ContactsResponse {
   count: number
   next: string | null
   previous: string | null
   results: Contact[]
-}
-
-interface ContactCategory {
-  id: string
-  name: string
-  color: string
-  icon: string
-  order: number
-  is_default: boolean
-  contact_count: number
 }
 
 const PAGE_SIZE = 20
@@ -133,15 +94,15 @@ export default function ContactsPage() {
   }, [selectedCategory])
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const loadCategories = async () => {
       try {
-        const data = await apiFetch<ContactCategory[]>("/contacts/categories/")
+        const data = await fetchContactCategories()
         setCategories(data)
       } catch (err) {
         console.error("Failed to fetch categories:", err)
       }
     }
-    fetchCategories()
+    loadCategories()
   }, [])
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
@@ -331,7 +292,7 @@ export default function ContactsPage() {
                 style={{ backgroundColor: cat.color }}
               />
               {cat.name}
-              {cat.contact_count > 0 && (
+              {(cat.contact_count ?? 0) > 0 && (
                 <span className="text-[10px] opacity-70">({cat.contact_count})</span>
               )}
             </button>

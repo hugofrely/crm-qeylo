@@ -4,11 +4,8 @@ import { useState } from "react"
 import { Plus, Trash2, Pencil, MessageSquare, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  type Conversation,
-  deleteConversation,
-  renameConversation,
-} from "@/lib/api"
+import { deleteConversation, renameConversation } from "@/services/chat"
+import type { Conversation } from "@/types"
 
 interface ConversationSidebarProps {
   conversations: Conversation[]
