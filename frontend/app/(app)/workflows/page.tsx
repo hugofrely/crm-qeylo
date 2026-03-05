@@ -191,7 +191,7 @@ export default function WorkflowsPage() {
           {workflows.map((workflow) => (
             <div
               key={workflow.id}
-              className="rounded-xl border border-border bg-card overflow-hidden hover:bg-secondary/10 transition-colors"
+              className="rounded-xl border border-border bg-card hover:bg-secondary/10 transition-colors"
             >
               <div className="p-4 flex items-center gap-4 font-[family-name:var(--font-body)]">
                 {/* Status indicator */}

@@ -30,10 +30,10 @@ export function Footer() {
           {/* Brand column */}
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F97316]">
-                <MessageSquare className="h-4.5 w-4.5 text-white" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
+                <MessageSquare className="h-4.5 w-4.5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-semibold tracking-tight">
+              <span className="text-xl tracking-tight">
                 Qeylo
               </span>
             </Link>

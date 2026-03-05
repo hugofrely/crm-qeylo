@@ -29,7 +29,7 @@ function getPageNumbers(current: number, total: number): (number | "...")[] {
 
 export default function TasksPage() {
   const [page, setPage] = useState(1)
-  const [tab, setTab] = useState<TaskFilterTab>("all")
+  const [tab, setTab] = useState<TaskFilterTab>("todo")
   const [priority, setPriority] = useState<string | null>(null)
   const [dueDate, setDueDate] = useState<string | null>(null)
   const [contactId, setContactId] = useState<string | null>(null)

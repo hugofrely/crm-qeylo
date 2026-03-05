@@ -177,7 +177,7 @@ export function ActivityDialog({
       onCreated()
       onOpenChange(false)
     } catch (err) {
-      setError("Impossible d'enregistrer l'activit\u00e9. V\u00e9rifiez les champs requis.")
+      setError("Impossible d'enregistrer l'activité. Vérifiez les champs requis.")
       console.error("Failed to create activity:", err)
     } finally {
       setSubmitting(false)

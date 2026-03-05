@@ -102,7 +102,7 @@ export default function PricingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <span className="text-sm font-medium uppercase tracking-widest text-[#F97316]">
+              <span className="text-sm font-medium uppercase tracking-widest text-primary">
                 Tarifs
               </span>
               <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
@@ -129,12 +129,12 @@ export default function PricingPage() {
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                   className={`relative flex flex-col rounded-2xl border p-8 transition-all ${
                     plan.highlight
-                      ? "border-[#F97316]/40 bg-gradient-to-b from-[#F97316]/[0.03] to-transparent shadow-xl shadow-[#F97316]/5 scale-[1.02]"
+                      ? "border-primary/30 bg-gradient-to-b from-teal-light/40 to-transparent shadow-xl shadow-primary/5 scale-[1.02]"
                       : "border-border/60 bg-card/50"
                   }`}
                 >
                   {plan.highlight && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#F97316] px-4 py-1 text-xs font-semibold text-white">
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground">
                       Populaire
                     </div>
                   )}
@@ -160,7 +160,7 @@ export default function PricingPage() {
                         key={feature}
                         className="flex items-start gap-3 text-sm"
                       >
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#F97316]" />
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -171,7 +171,7 @@ export default function PricingPage() {
                       asChild
                       className={`w-full rounded-full ${
                         plan.highlight
-                          ? "bg-[#F97316] text-white hover:bg-[#EA580C] shadow-lg shadow-[#F97316]/20"
+                          ? "shadow-lg shadow-primary/15"
                           : ""
                       }`}
                       variant={plan.highlight ? "default" : "outline"}
@@ -214,7 +214,7 @@ export default function PricingPage() {
                   className="rounded-xl border border-border/60 bg-card/50 p-6"
                 >
                   <h3 className="flex items-center gap-3 font-semibold">
-                    <HelpCircle className="h-4 w-4 text-[#F97316]" />
+                    <HelpCircle className="h-4 w-4 text-primary" />
                     {faq.question}
                   </h3>
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground pl-7">
@@ -229,7 +229,7 @@ export default function PricingPage() {
                 Une autre question ?{" "}
                 <a
                   href="mailto:hello@qeylo.com"
-                  className="text-[#F97316] underline-offset-4 hover:underline"
+                  className="text-primary underline-offset-4 hover:underline"
                 >
                   Contactez-nous
                 </a>

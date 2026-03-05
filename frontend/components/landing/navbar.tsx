@@ -19,10 +19,10 @@ export function Navbar() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F97316] transition-transform group-hover:scale-105">
-            <MessageSquare className="h-4.5 w-4.5 text-white" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary transition-transform group-hover:scale-105">
+            <MessageSquare className="h-4.5 w-4.5 text-primary-foreground" />
           </div>
-          <span className="text-xl font-semibold tracking-tight">Qeylo</span>
+          <span className="text-xl tracking-tight">Qeylo</span>
         </Link>
 
         {/* Desktop nav */}
@@ -46,7 +46,7 @@ export function Navbar() {
           <Button
             size="sm"
             asChild
-            className="bg-[#F97316] text-white hover:bg-[#EA580C] rounded-full px-5"
+            className="rounded-full px-5"
           >
             <Link href="/register">Commencer gratuitement</Link>
           </Button>
@@ -90,7 +90,7 @@ export function Navbar() {
                 <Button
                   size="sm"
                   asChild
-                  className="w-full bg-[#F97316] text-white hover:bg-[#EA580C]"
+                  className="w-full"
                 >
                   <Link href="/register">Commencer gratuitement</Link>
                 </Button>

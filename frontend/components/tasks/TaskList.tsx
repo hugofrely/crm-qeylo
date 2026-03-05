@@ -8,6 +8,7 @@ import type { Task } from "@/types"
 interface TaskListProps {
   tasks: Task[]
   onToggle: (taskId: string, isDone: boolean) => void
+  onEdit: (task: Task) => void
 }
 
 function formatDate(dateStr: string): string {
@@ -56,7 +57,7 @@ function isOverdue(dueDateStr: string | null): boolean {
   return dueDate < today
 }
 
-export function TaskList({ tasks, onToggle }: TaskListProps) {
+export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
   if (tasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -72,9 +73,10 @@ export function TaskList({ tasks, onToggle }: TaskListProps) {
       {tasks.map((task) => (
         <div
           key={task.id}
-          className={`flex items-start gap-3 p-4 rounded-lg border transition-colors hover:bg-muted/50 ${
+          className={`flex items-start gap-3 p-4 rounded-lg border transition-colors hover:bg-muted/50 cursor-pointer ${
             task.is_done ? "opacity-60" : ""
           }`}
+          onClick={() => onEdit(task)}
         >
           <Checkbox
             checked={task.is_done}
@@ -82,6 +84,7 @@ export function TaskList({ tasks, onToggle }: TaskListProps) {
               onToggle(task.id, checked === true)
             }
             className="mt-0.5"
+            onClick={(e) => e.stopPropagation()}
           />
           <div className="flex-1 min-w-0 space-y-1">
             <p

@@ -41,7 +41,7 @@ export function HowItWorks() {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <span className="text-sm font-medium uppercase tracking-widest text-[#F97316]">
+          <span className="text-sm font-medium uppercase tracking-widest text-primary">
             Comment ça marche
           </span>
           <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
@@ -61,7 +61,7 @@ export function HowItWorks() {
             >
               {/* Connector line on desktop */}
               {index < steps.length - 1 && (
-                <div className="absolute top-[88px] left-[calc(50%+60px)] hidden h-px w-[calc(100%-120px)] bg-gradient-to-r from-border via-[#F97316]/20 to-border md:block" />
+                <div className="absolute top-[88px] left-[calc(50%+60px)] hidden h-px w-[calc(100%-120px)] bg-gradient-to-r from-border via-primary/20 to-border md:block" />
               )}
 
               <div className="mx-auto w-fit">
@@ -69,7 +69,7 @@ export function HowItWorks() {
               </div>
 
               <div className="mt-6">
-                <span className="text-xs font-bold uppercase tracking-widest text-[#F97316]">
+                <span className="text-xs font-bold uppercase tracking-widest text-primary">
                   Étape {step.number}
                 </span>
                 <h3 className="mt-2 text-xl font-semibold">{step.title}</h3>

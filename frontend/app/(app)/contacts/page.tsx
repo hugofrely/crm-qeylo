@@ -27,6 +27,19 @@ interface ContactsResponse {
 
 const PAGE_SIZE = 20
 
+function getPageNumbers(current: number, total: number): (number | "...")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages: (number | "...")[] = []
+  pages.push(1)
+  if (current > 3) pages.push("...")
+  const start = Math.max(2, current - 1)
+  const end = Math.min(total - 1, current + 1)
+  for (let i = start; i <= end; i++) pages.push(i)
+  if (current < total - 2) pages.push("...")
+  pages.push(total)
+  return pages
+}
+
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
@@ -63,10 +76,9 @@ export default function ContactsPage() {
         setContacts(results)
         setTotalCount(results.length)
       } else {
-        const offset = (page - 1) * PAGE_SIZE
         const categoryParam = selectedCategory ? `&category=${selectedCategory}` : ""
         const data = await apiFetch<ContactsResponse>(
-          `/contacts/?limit=${PAGE_SIZE}&offset=${offset}${categoryParam}`
+          `/contacts/?page=${page}${categoryParam}`
         )
         setContacts(data.results)
         setTotalCount(data.count)
@@ -315,25 +327,38 @@ export default function ContactsPage() {
           <p className="text-sm text-muted-foreground">
             Page {page} sur {totalPages}
           </p>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-1">
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
+              className="h-8 w-8"
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
-              className="gap-1"
             >
               <ChevronLeft className="h-4 w-4" />
-              Précédent
             </Button>
+            {getPageNumbers(page, totalPages).map((p, i) =>
+              p === "..." ? (
+                <span key={`ellipsis-${i}`} className="px-1 text-sm text-muted-foreground">...</span>
+              ) : (
+                <Button
+                  key={p}
+                  variant={page === p ? "default" : "outline"}
+                  size="icon"
+                  className="h-8 w-8 text-xs"
+                  onClick={() => setPage(p as number)}
+                >
+                  {p}
+                </Button>
+              )
+            )}
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
+              className="h-8 w-8"
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
-              className="gap-1"
             >
-              Suivant
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

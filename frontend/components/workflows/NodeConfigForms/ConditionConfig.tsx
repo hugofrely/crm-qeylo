@@ -5,10 +5,10 @@ import { Label } from "@/components/ui/label"
 import type { Node } from "@xyflow/react"
 
 const OPERATOR_OPTIONS = [
-  { value: "equals", label: "\u00c9gal \u00e0" },
-  { value: "not_equals", label: "Diff\u00e9rent de" },
-  { value: "greater_than", label: "Sup\u00e9rieur \u00e0" },
-  { value: "less_than", label: "Inf\u00e9rieur \u00e0" },
+  { value: "equals", label: "Égal à" },
+  { value: "not_equals", label: "Différent de" },
+  { value: "greater_than", label: "Supérieur à" },
+  { value: "less_than", label: "Inférieur à" },
   { value: "contains", label: "Contient" },
   { value: "not_contains", label: "Ne contient pas" },
   { value: "is_empty", label: "Est vide" },
@@ -46,7 +46,7 @@ export default function ConditionConfig({ node, onUpdate }: NodeConfigFormProps)
       </div>
       <div className="space-y-2">
         <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Op\u00e9rateur
+          Opérateur
         </Label>
         <select
           value={(config.operator as string) || "equals"}

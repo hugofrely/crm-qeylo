@@ -88,16 +88,25 @@ export default function WorkflowBuilder({ initialNodes, initialEdges, onChange }
   const handleNodesChange: typeof onNodesChange = useCallback(
     (changes) => {
       onNodesChange(changes)
-      // Defer onChange to avoid stale state
-      setTimeout(() => {
-        setNodes((currentNodes) => {
-          setEdges((currentEdges) => {
-            onChange(currentNodes, currentEdges)
-            return currentEdges
-          })
-          return currentNodes
+
+      const removedIds = new Set(
+        changes.filter((c) => c.type === "remove").map((c) => c.id)
+      )
+
+      setNodes((currentNodes) => {
+        const finalNodes = removedIds.size > 0
+          ? currentNodes.filter((n) => !removedIds.has(n.id))
+          : currentNodes
+
+        setEdges((currentEdges) => {
+          const finalEdges = removedIds.size > 0
+            ? currentEdges.filter((e) => !removedIds.has(e.source) && !removedIds.has(e.target))
+            : currentEdges
+          onChange(finalNodes, finalEdges)
+          return currentEdges
         })
-      }, 0)
+        return currentNodes
+      })
     },
     [onNodesChange, setNodes, setEdges, onChange]
   )
@@ -105,15 +114,21 @@ export default function WorkflowBuilder({ initialNodes, initialEdges, onChange }
   const handleEdgesChange: typeof onEdgesChange = useCallback(
     (changes) => {
       onEdgesChange(changes)
-      setTimeout(() => {
-        setNodes((currentNodes) => {
-          setEdges((currentEdges) => {
-            onChange(currentNodes, currentEdges)
-            return currentEdges
-          })
-          return currentNodes
+
+      const removedIds = new Set(
+        changes.filter((c) => c.type === "remove").map((c) => c.id)
+      )
+
+      setNodes((currentNodes) => {
+        setEdges((currentEdges) => {
+          const finalEdges = removedIds.size > 0
+            ? currentEdges.filter((e) => !removedIds.has(e.id))
+            : currentEdges
+          onChange(currentNodes, finalEdges)
+          return currentEdges
         })
-      }, 0)
+        return currentNodes
+      })
     },
     [onEdgesChange, setNodes, setEdges, onChange]
   )

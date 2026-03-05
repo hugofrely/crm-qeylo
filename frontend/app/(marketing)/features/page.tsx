@@ -23,7 +23,7 @@ import { FeaturePageIllustration } from "@/components/landing/illustrations"
 const mainFeatures = [
   {
     icon: MessageSquare,
-    color: "#F97316",
+    color: "#0D4F4F",
     illustration: "chat" as const,
     title: "Chat IA — Votre assistant CRM",
     description:
@@ -37,7 +37,7 @@ const mainFeatures = [
   },
   {
     icon: Users,
-    color: "#3B82F6",
+    color: "#3D7A7A",
     illustration: "contacts" as const,
     title: "Gestion des contacts intelligente",
     description:
@@ -51,7 +51,7 @@ const mainFeatures = [
   },
   {
     icon: KanbanSquare,
-    color: "#10B981",
+    color: "#C9946E",
     illustration: "pipeline" as const,
     title: "Pipeline visuel et interactif",
     description:
@@ -65,7 +65,7 @@ const mainFeatures = [
   },
   {
     icon: CheckSquare,
-    color: "#8B5CF6",
+    color: "#0D4F4F",
     illustration: "tasks" as const,
     title: "Tâches et rappels automatiques",
     description:
@@ -79,7 +79,7 @@ const mainFeatures = [
   },
   {
     icon: BarChart3,
-    color: "#EC4899",
+    color: "#3D7A7A",
     illustration: "dashboard" as const,
     title: "Dashboard en temps réel",
     description:
@@ -93,7 +93,7 @@ const mainFeatures = [
   },
   {
     icon: Zap,
-    color: "#F59E0B",
+    color: "#C9946E",
     illustration: "ai" as const,
     title: "IA configurable et évolutive",
     description:
@@ -138,13 +138,13 @@ export default function FeaturesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <span className="text-sm font-medium uppercase tracking-widest text-[#F97316]">
+              <span className="text-sm font-medium uppercase tracking-widest text-primary">
                 Fonctionnalités
               </span>
               <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
                 Tout pour gérer vos clients.
                 <br />
-                <span className="bg-gradient-to-r from-[#F97316] to-[#FB923C] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary via-teal to-warm bg-clip-text text-transparent">
                   En parlant.
                 </span>
               </h1>
@@ -241,8 +241,8 @@ export default function FeaturesPage() {
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                     className="text-center"
                   >
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#F97316]/10">
-                      <Icon className="h-5 w-5 text-[#F97316]" />
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/8">
+                      <Icon className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="mt-4 font-semibold">{feature.title}</h3>
                     <p className="mt-2 text-sm text-muted-foreground">

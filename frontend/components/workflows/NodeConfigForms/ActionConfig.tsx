@@ -5,11 +5,11 @@ import { Label } from "@/components/ui/label"
 import type { Node } from "@xyflow/react"
 
 const ACTION_OPTIONS = [
-  { value: "create_task", label: "Cr\u00e9er une t\u00e2che" },
+  { value: "create_task", label: "Créer une tâche" },
   { value: "send_notification", label: "Envoyer une notification" },
-  { value: "create_note", label: "Cr\u00e9er une note" },
-  { value: "move_deal", label: "D\u00e9placer le deal" },
-  { value: "update_contact", label: "Mettre \u00e0 jour le contact" },
+  { value: "create_note", label: "Créer une note" },
+  { value: "move_deal", label: "Déplacer le deal" },
+  { value: "update_contact", label: "Mettre à jour le contact" },
   { value: "send_email", label: "Envoyer un email" },
   { value: "webhook", label: "Webhook" },
 ]
@@ -71,7 +71,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
           </div>
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              \u00c9ch\u00e9ance (offset)
+              Échéance (offset)
             </Label>
             <Input
               value={(config.due_date_offset as string) || "+1d"}
@@ -82,7 +82,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
           </div>
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Priorit\u00e9
+              Priorité
             </Label>
             <select
               value={(config.priority as string) || "normal"}
@@ -117,7 +117,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
             <textarea
               value={(config.message as string) || ""}
               onChange={(e) => updateConfig("message", e.target.value)}
-              placeholder={"{{deal.name}} \u2014 {{deal.amount}}\u20AC"}
+              placeholder={"{{deal.name}} — {{deal.amount}}€"}
               className="w-full rounded-md border border-border bg-secondary/30 px-3 py-2 text-sm min-h-[80px] resize-none"
             />
           </div>
@@ -146,7 +146,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
           <Input
             value={(config.stage_name as string) || ""}
             onChange={(e) => updateConfig("stage_name", e.target.value)}
-            placeholder="Ex: Gagn\u00e9"
+            placeholder="Ex: Gagné"
             className="h-9 bg-secondary/30 border-border/60"
           />
         </div>
@@ -194,7 +194,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
           </div>
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              M\u00e9thode
+              Méthode
             </Label>
             <select
               value={(config.method as string) || "POST"}

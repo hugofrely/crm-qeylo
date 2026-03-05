@@ -1,0 +1,16 @@
+first_name,last_name,email,phone,company,position,category,notes
+Marie,Dupont,marie.dupont@acme.fr,+33 6 12 34 56 78,Acme Corp,Directrice Marketing,client,Rencontrée au salon Tech Paris 2025
+Pierre,Laurent,pierre.laurent@techvision.io,+33 6 23 45 67 89,TechVision,CTO,prospect,Intéressé par notre offre Pro
+Sophie,Morel,sophie.morel@datasoft.com,+33 6 34 56 78 90,DataSoft,CEO,client,Contrat signé en janvier - renouvellement en juin
+Jean,Martin,jean.martin@betaflow.fr,+33 6 45 67 89 01,BetaFlow,Responsable Achats,prospect,A demandé un devis pour 5 licences
+Luc,Bernard,luc.bernard@cloudnet.eu,+33 6 56 78 90 12,CloudNet,Directeur Technique,lead,Premier contact via LinkedIn
+Camille,Roux,camille.roux@freelance.me,+33 6 67 89 01 23,,Designer Freelance,partenaire,Collaboration sur le projet Acme
+Antoine,Lefebvre,antoine.lefebvre@greentech.fr,+33 6 78 90 12 34,GreenTech Solutions,COO,prospect,Démo prévue la semaine prochaine
+Nadia,Benali,nadia.benali@startuplab.io,+33 6 89 01 23 45,StartupLab,Fondatrice,lead,Rencontrée au meetup IA Bordeaux
+Thomas,Garcia,thomas.garcia@logipro.com,+33 6 90 12 34 56,LogiPro,Chef de Projet,client,Utilise Qeylo depuis 3 mois
+Émilie,Fournier,emilie.fournier@mediapulse.fr,+33 6 01 23 45 67,MediaPulse,Directrice Commerciale,prospect,Relance prévue le 15 mars
+Hugo,Petit,hugo.petit@devcraft.io,+33 6 11 22 33 44,DevCraft,Lead Developer,lead,A testé la version gratuite
+Clara,Durand,clara.durand@finwise.eu,+33 6 22 33 44 55,FinWise,DAF,prospect,Budget validé pour Q2 2026
+Maxime,Robert,maxime.robert@urbanova.fr,+33 6 33 44 55 66,Urbanova,Urbaniste,lead,Besoin CRM pour gestion de contacts publics
+Léa,Simon,lea.simon@biozen.com,+33 6 44 55 66 77,BioZen,Responsable Partenariats,client,Renouvellement annuel en cours
+Julien,Moreau,julien.moreau@agencenova.fr,+33 6 55 66 77 88,Agence Nova,Directeur Créatif,partenaire,Sous-traitance design pour nos clients

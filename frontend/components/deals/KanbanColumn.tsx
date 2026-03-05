@@ -13,6 +13,7 @@ interface KanbanColumnProps {
   stage: Stage
   deals: Deal[]
   totalAmount: number | string
+  onDealClick?: (deal: Deal) => void
 }
 
 function formatAmount(amount: string | number): string {
@@ -25,7 +26,7 @@ function formatAmount(amount: string | number): string {
   }).format(num)
 }
 
-export function KanbanColumn({ stage, deals, totalAmount }: KanbanColumnProps) {
+export function KanbanColumn({ stage, deals, totalAmount, onDealClick }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `stage-${stage.id}`,
     data: {
@@ -68,7 +69,7 @@ export function KanbanColumn({ stage, deals, totalAmount }: KanbanColumnProps) {
           <ScrollArea className="h-full max-h-[calc(100vh-250px)]">
             <div className="space-y-2 pr-2">
               {deals.map((deal) => (
-                <DealCard key={deal.id} deal={deal} />
+                <DealCard key={deal.id} deal={deal} onClick={() => onDealClick?.(deal)} />
               ))}
               {deals.length === 0 && (
                 <p className="text-center text-xs text-muted-foreground py-8">

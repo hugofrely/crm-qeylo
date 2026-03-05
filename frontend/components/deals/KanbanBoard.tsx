@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
   DndContext,
   DragOverlay,
@@ -10,19 +10,55 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  closestCorners,
+  pointerWithin,
+  rectIntersection,
+  type CollisionDetection,
 } from "@dnd-kit/core"
 import { updateDeal } from "@/services/deals"
 import { usePipeline } from "@/hooks/useDeals"
 import { KanbanColumn } from "./KanbanColumn"
 import { DealCard } from "./DealCard"
+import { DealDialog } from "./DealDialog"
 import { Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Deal } from "@/types"
 
-export function KanbanBoard() {
+interface KanbanBoardProps {
+  dialogOpen?: boolean
+  onDialogOpenChange?: (open: boolean) => void
+}
+
+export function KanbanBoard({ dialogOpen, onDialogOpenChange }: KanbanBoardProps) {
   const { pipeline, setPipeline, loading, refresh } = usePipeline()
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null)
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null)
+  const [dealDialogOpen, setDealDialogOpen] = useState(false)
+
+  // Sync external dialog control (for the "+ Nouveau deal" button in the page header)
+  useEffect(() => {
+    if (dialogOpen) {
+      setSelectedDeal(null)
+      setDealDialogOpen(true)
+    }
+  }, [dialogOpen])
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDealDialogOpen(open)
+    if (!open) {
+      setSelectedDeal(null)
+      onDialogOpenChange?.(false)
+    }
+  }
+
+  const handleDealClick = (deal: Deal) => {
+    setSelectedDeal(deal)
+    setDealDialogOpen(true)
+  }
+
+  const allStages = useMemo(
+    () => pipeline.map((p) => p.stage),
+    [pipeline]
+  )
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -31,6 +67,22 @@ export function KanbanBoard() {
       },
     })
   )
+
+  // Custom collision: prioritize stage droppables (columns) over deal sortables
+  const collisionDetection: CollisionDetection = (args) => {
+    // First check if pointer is within a stage droppable
+    const pointerCollisions = pointerWithin(args)
+    const stageCollision = pointerCollisions.find((c) =>
+      String(c.id).startsWith("stage-")
+    )
+    if (stageCollision) return [stageCollision]
+
+    // Fallback to rect intersection
+    const rectCollisions = rectIntersection(args)
+    if (rectCollisions.length > 0) return rectCollisions
+
+    return pointerCollisions
+  }
 
   const findDealById = (dealId: string): Deal | undefined => {
     for (const stage of pipeline) {
@@ -142,7 +194,7 @@ export function KanbanBoard() {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={collisionDetection}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
@@ -154,6 +206,7 @@ export function KanbanBoard() {
             stage={stageData.stage}
             deals={stageData.deals}
             totalAmount={stageData.total_amount}
+            onDealClick={handleDealClick}
           />
         ))}
       </div>
@@ -165,6 +218,14 @@ export function KanbanBoard() {
           </div>
         ) : null}
       </DragOverlay>
+
+      <DealDialog
+        open={dealDialogOpen}
+        onOpenChange={handleDialogOpenChange}
+        deal={selectedDeal}
+        stages={allStages}
+        onSuccess={refresh}
+      />
     </DndContext>
   )
 }

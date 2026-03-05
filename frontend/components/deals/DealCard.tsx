@@ -8,6 +8,7 @@ import type { Deal } from "@/types"
 
 interface DealCardProps {
   deal: Deal
+  onClick?: () => void
 }
 
 function formatAmount(amount: string | number): string {
@@ -20,7 +21,7 @@ function formatAmount(amount: string | number): string {
   }).format(num)
 }
 
-export function DealCard({ deal }: DealCardProps) {
+export function DealCard({ deal, onClick }: DealCardProps) {
   const {
     attributes,
     listeners,
@@ -48,6 +49,7 @@ export function DealCard({ deal }: DealCardProps) {
       style={style}
       {...attributes}
       {...listeners}
+      onClick={() => { if (!isDragging) onClick?.() }}
       className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
     >
       <CardContent className="p-3 space-y-2">

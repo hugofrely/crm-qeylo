@@ -17,7 +17,7 @@ export type { ChatAction } from "@/types"
 
 function formatCurrency(amount: unknown): string {
   const num = Number(amount)
-  if (isNaN(num)) return "0 \u20AC"
+  if (isNaN(num)) return "0 €"
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: "EUR",
@@ -54,49 +54,49 @@ const actionConfig: Record<
     borderColor: "border-l-blue-500",
     iconColor: "text-blue-600",
     bgColor: "bg-blue-50 dark:bg-blue-950/30",
-    label: "Contact cr\u00e9\u00e9",
+    label: "Contact créé",
   },
   deal_created: {
     icon: Briefcase,
     borderColor: "border-l-emerald-500",
     iconColor: "text-emerald-600",
     bgColor: "bg-emerald-50 dark:bg-emerald-950/30",
-    label: "Deal cr\u00e9\u00e9",
+    label: "Deal créé",
   },
   deal_moved: {
     icon: ArrowRight,
     borderColor: "border-l-amber-500",
     iconColor: "text-amber-600",
     bgColor: "bg-amber-50 dark:bg-amber-950/30",
-    label: "Deal d\u00e9plac\u00e9",
+    label: "Deal déplacé",
   },
   task_created: {
     icon: Clock,
     borderColor: "border-l-purple-500",
     iconColor: "text-purple-600",
     bgColor: "bg-purple-50 dark:bg-purple-950/30",
-    label: "T\u00e2che cr\u00e9\u00e9e",
+    label: "Tâche créée",
   },
   task_completed: {
     icon: CheckCircle,
     borderColor: "border-l-green-500",
     iconColor: "text-green-600",
     bgColor: "bg-green-50 dark:bg-green-950/30",
-    label: "T\u00e2che termin\u00e9e",
+    label: "Tâche terminée",
   },
   note_added: {
     icon: StickyNote,
     borderColor: "border-l-orange-500",
     iconColor: "text-orange-600",
     bgColor: "bg-orange-50 dark:bg-orange-950/30",
-    label: "Note ajout\u00e9e",
+    label: "Note ajoutée",
   },
   dashboard_summary: {
     icon: BarChart3,
     borderColor: "border-l-indigo-500",
     iconColor: "text-indigo-600",
     bgColor: "bg-indigo-50 dark:bg-indigo-950/30",
-    label: "R\u00e9sum\u00e9",
+    label: "Résumé",
   },
 }
 
@@ -162,7 +162,7 @@ function TaskCreatedContent({ action }: { action: ChatAction }) {
       </p>
       {dueDate && (
         <p className="mt-0.5 text-xs text-muted-foreground">
-          {"\u00C9ch\u00e9ance"} : {formatDate(dueDate)}
+          {"Échéance"} : {formatDate(dueDate)}
         </p>
       )}
     </div>
@@ -181,7 +181,7 @@ function TaskCompletedContent({ action }: { action: ChatAction }) {
 
 function NoteAddedContent({ action }: { action: ChatAction }) {
   const content = String(action.content ?? "")
-  const excerpt = content.length > 100 ? content.slice(0, 100) + "\u2026" : content
+  const excerpt = content.length > 100 ? content.slice(0, 100) + "…" : content
   return (
     <div className="min-w-0">
       <p className="text-sm text-muted-foreground line-clamp-2">{excerpt}</p>
@@ -207,7 +207,7 @@ function DashboardSummaryContent({ action }: { action: ChatAction }) {
       <div>
         <p className="text-lg font-semibold">{String(action.pending_tasks ?? 0)}</p>
         <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-          T\u00e2ches
+          Tâches
         </p>
       </div>
     </div>

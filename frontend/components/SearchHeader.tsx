@@ -150,8 +150,8 @@ export function SearchHeader() {
                               {d.name}
                             </p>
                             <p className="text-[11px] text-muted-foreground truncate font-[family-name:var(--font-body)]">
-                              {d.stage_name}{d.contact_name ? ` \u00b7 ${d.contact_name}` : ""}
-                              {Number(d.amount) > 0 ? ` \u00b7 ${Number(d.amount).toLocaleString("fr-FR")} \u20ac` : ""}
+                              {d.stage_name}{d.contact_name ? ` · ${d.contact_name}` : ""}
+                              {Number(d.amount) > 0 ? ` · ${Number(d.amount).toLocaleString("fr-FR")} €` : ""}
                             </p>
                           </div>
                         </button>
@@ -178,7 +178,7 @@ export function SearchHeader() {
                             </p>
                             <p className="text-[11px] text-muted-foreground truncate font-[family-name:var(--font-body)]">
                               {t.priority === "high" ? "Haute" : t.priority === "low" ? "Basse" : "Normale"}
-                              {t.contact_name ? ` \u00b7 ${t.contact_name}` : ""}
+                              {t.contact_name ? ` · ${t.contact_name}` : ""}
                             </p>
                           </div>
                         </button>

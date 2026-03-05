@@ -23,7 +23,7 @@ export default function DelayConfig({ node, onUpdate }: NodeConfigFormProps) {
   return (
     <div className="space-y-2">
       <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        Dur\u00e9e (en secondes)
+        Durée (en secondes)
       </Label>
       <Input
         type="number"

@@ -263,7 +263,7 @@ export function ActivityForm({
           <Input
             value={customFields.custom_type_label}
             onChange={(e) => onCustomFieldsChange({ ...customFields, custom_type_label: e.target.value })}
-            placeholder="D\u00e9jeuner, Salon, D\u00e9mo..."
+            placeholder="Déjeuner, Salon, Démo..."
             className={inputClass}
           />
         </div>
