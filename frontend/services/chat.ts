@@ -10,11 +10,14 @@ export async function streamChat(
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
   const token = Cookies.get("access_token")
 
+  const orgId = Cookies.get("organization_id")
+
   const response = await fetch(`${API_URL}/chat/stream/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(orgId ? { "X-Organization": orgId } : {}),
     },
     body: JSON.stringify({ message, ...(conversationId ? { conversation_id: conversationId } : {}) }),
   })
