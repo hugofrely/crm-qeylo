@@ -6,8 +6,6 @@ import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   MessageSquare,
   Users,
@@ -26,7 +24,6 @@ const navigation = [
   { name: "Pipeline", href: "/deals", icon: Kanban },
   { name: "Tâches", href: "/tasks", icon: CheckSquare },
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
-  { name: "Paramètres", href: "/settings", icon: Settings },
 ]
 
 export function Sidebar() {
@@ -48,7 +45,7 @@ export function Sidebar() {
       <Button
         variant="ghost"
         size="icon"
-        className="fixed top-4 left-4 z-50 lg:hidden"
+        className="fixed top-4 left-4 z-50 lg:hidden bg-background/80 backdrop-blur-sm border border-border shadow-sm"
         onClick={() => setMobileOpen(!mobileOpen)}
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -57,7 +54,7 @@ export function Sidebar() {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -65,20 +62,30 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-card border-r border-border transition-transform duration-200 ease-in-out lg:relative lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col transition-transform duration-300 ease-out lg:relative lg:translate-x-0",
+          "bg-[var(--sidebar)] text-[var(--sidebar-foreground)]",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Logo */}
-        <div className="flex h-16 items-center gap-2 px-6">
-          <MessageSquare className="h-7 w-7 text-primary" />
-          <span className="text-xl font-bold tracking-tight">Qeylo</span>
+        {/* Logo area */}
+        <div className="flex h-[72px] items-center px-6">
+          <Link href="/chat" className="flex items-center gap-2.5 group">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--sidebar-primary)] transition-transform group-hover:scale-105">
+              <span className="text-[var(--sidebar-primary-foreground)] text-sm font-bold font-[family-name:var(--font-body)]">
+                Q
+              </span>
+            </div>
+            <span className="text-xl tracking-tight text-[var(--sidebar-foreground)]">
+              Qeylo
+            </span>
+          </Link>
         </div>
 
-        <Separator />
+        {/* Thin separator */}
+        <div className="mx-5 h-px bg-[var(--sidebar-border)]" />
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-3 py-4">
+        <nav className="flex-1 px-3 py-5 space-y-0.5">
           {navigation.map((item) => {
             const isActive = pathname.startsWith(item.href)
             return (
@@ -87,44 +94,60 @@ export function Sidebar() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200 font-[family-name:var(--font-body)]",
                   isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-[var(--sidebar-accent)] text-[var(--sidebar-primary)] shadow-sm"
+                    : "text-[var(--sidebar-foreground)]/60 hover:text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]/50"
                 )}
               >
-                <item.icon className="h-5 w-5 shrink-0" />
+                <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive && "text-[var(--sidebar-primary)]")} />
                 {item.name}
               </Link>
             )
           })}
         </nav>
 
-        <Separator />
+        {/* Bottom section */}
+        <div className="mx-5 h-px bg-[var(--sidebar-border)]" />
+
+        {/* Settings link */}
+        <div className="px-3 py-2">
+          <Link
+            href="/settings"
+            onClick={() => setMobileOpen(false)}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200 font-[family-name:var(--font-body)]",
+              pathname.startsWith("/settings")
+                ? "bg-[var(--sidebar-accent)] text-[var(--sidebar-primary)]"
+                : "text-[var(--sidebar-foreground)]/60 hover:text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]/50"
+            )}
+          >
+            <Settings className="h-[18px] w-[18px] shrink-0" />
+            Paramètres
+          </Link>
+        </div>
 
         {/* User section */}
         <div className="p-4">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+          <div className="flex items-center gap-3 rounded-lg bg-[var(--sidebar-accent)]/30 px-3 py-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--sidebar-primary)]/15 text-[var(--sidebar-primary)] text-xs font-semibold shrink-0 font-[family-name:var(--font-body)]">
+              {initials}
+            </div>
             <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-medium">{fullName}</p>
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="truncate text-sm font-medium text-[var(--sidebar-foreground)] font-[family-name:var(--font-body)]">
+                {fullName}
+              </p>
+              <p className="truncate text-[11px] text-[var(--sidebar-foreground)]/40 font-[family-name:var(--font-body)]">
                 {user?.email}
               </p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={logout}
-              className="shrink-0 text-muted-foreground hover:text-destructive"
+              className="shrink-0 rounded-md p-1.5 text-[var(--sidebar-foreground)]/40 hover:text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)] transition-colors"
               title="Se déconnecter"
             >
               <LogOut className="h-4 w-4" />
-            </Button>
+            </button>
           </div>
         </div>
       </aside>
