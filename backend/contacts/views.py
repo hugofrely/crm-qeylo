@@ -93,6 +93,8 @@ def search_contacts(request):
             | Q(last_name__icontains=word)
             | Q(company__icontains=word)
             | Q(email__icontains=word)
+            | Q(city__icontains=word)
+            | Q(siret__icontains=word)
         )
     contacts = qs
     return Response(ContactSerializer(contacts, many=True).data)
