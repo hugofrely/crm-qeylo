@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { Upload, FileSpreadsheet, Loader2, CheckCircle } from "lucide-react"
+import { useState, useRef, useMemo } from "react"
+import { Upload, FileSpreadsheet, Loader2, CheckCircle, ChevronsUpDown, Check, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -10,28 +10,210 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 
-const CONTACT_FIELDS = [
-  { value: "", label: "— Ignorer —" },
-  { value: "first_name", label: "Prénom" },
-  { value: "last_name", label: "Nom" },
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Téléphone" },
-  { value: "company", label: "Entreprise" },
-  { value: "source", label: "Source" },
+interface FieldOption {
+  value: string
+  label: string
+}
+
+interface FieldGroup {
+  label: string
+  fields: FieldOption[]
+}
+
+const NATIVE_FIELD_GROUPS: FieldGroup[] = [
+  {
+    label: "Identité",
+    fields: [
+      { value: "first_name", label: "Prénom" },
+      { value: "last_name", label: "Nom" },
+      { value: "email", label: "Email" },
+      { value: "phone", label: "Téléphone" },
+      { value: "mobile_phone", label: "Mobile" },
+      { value: "secondary_email", label: "Email secondaire" },
+      { value: "secondary_phone", label: "Tél. secondaire" },
+    ],
+  },
+  {
+    label: "Entreprise",
+    fields: [
+      { value: "company", label: "Entreprise" },
+      { value: "job_title", label: "Poste" },
+      { value: "industry", label: "Secteur" },
+      { value: "siret", label: "SIRET" },
+    ],
+  },
+  {
+    label: "Localisation",
+    fields: [
+      { value: "address", label: "Adresse" },
+      { value: "city", label: "Ville" },
+      { value: "postal_code", label: "Code postal" },
+      { value: "country", label: "Pays" },
+      { value: "state", label: "Région" },
+    ],
+  },
+  {
+    label: "Qualification",
+    fields: [
+      { value: "lead_score", label: "Score lead" },
+      { value: "estimated_budget", label: "Budget estimé" },
+      { value: "decision_role", label: "Rôle décision" },
+      { value: "identified_needs", label: "Besoins identifiés" },
+    ],
+  },
+  {
+    label: "Préférences",
+    fields: [
+      { value: "preferred_channel", label: "Canal préféré" },
+      { value: "timezone", label: "Fuseau horaire" },
+      { value: "language", label: "Langue" },
+      { value: "birthday", label: "Anniversaire" },
+    ],
+  },
+  {
+    label: "Réseaux",
+    fields: [
+      { value: "linkedin_url", label: "LinkedIn" },
+      { value: "twitter_url", label: "Twitter" },
+      { value: "website", label: "Site web" },
+    ],
+  },
+  {
+    label: "Divers",
+    fields: [
+      { value: "notes", label: "Notes" },
+      { value: "source", label: "Source" },
+    ],
+  },
 ]
+
+interface CustomFieldDef {
+  id: string
+  label: string
+  field_type: string
+  is_required: boolean
+  options: string[]
+}
 
 interface PreviewData {
   headers: string[]
   preview: Record<string, string>[]
   suggested_mapping: Record<string, string>
   total_rows: number
+  custom_field_definitions: CustomFieldDef[]
 }
 
 interface ImportResult {
   created: number
   skipped: number
   errors: string[]
+  warnings: string[]
+}
+
+function FieldMappingCombobox({
+  value,
+  onChange,
+  groups,
+  usedValues,
+}: {
+  value: string
+  onChange: (value: string) => void
+  groups: FieldGroup[]
+  usedValues: Set<string>
+}) {
+  const [open, setOpen] = useState(false)
+
+  const selectedLabel = useMemo(() => {
+    if (!value) return "— Ignorer —"
+    for (const group of groups) {
+      const field = group.fields.find((f) => f.value === value)
+      if (field) return field.label
+    }
+    return value
+  }, [value, groups])
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="flex-1 justify-between bg-secondary/30 font-normal"
+        >
+          <span className="truncate">{selectedLabel}</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Rechercher un champ..." />
+          <CommandList>
+            <CommandEmpty>Aucun champ trouvé.</CommandEmpty>
+            <CommandGroup>
+              <CommandItem
+                value="__ignore__"
+                onSelect={() => {
+                  onChange("")
+                  setOpen(false)
+                }}
+              >
+                <Check
+                  className={cn(
+                    "mr-2 h-4 w-4",
+                    !value ? "opacity-100" : "opacity-0"
+                  )}
+                />
+                — Ignorer —
+              </CommandItem>
+            </CommandGroup>
+            {groups.map((group) => (
+              <CommandGroup key={group.label} heading={group.label}>
+                {group.fields.map((field) => {
+                  const isUsed = usedValues.has(field.value) && field.value !== value
+                  return (
+                    <CommandItem
+                      key={field.value}
+                      value={field.value}
+                      keywords={[field.label]}
+                      disabled={isUsed}
+                      onSelect={() => {
+                        onChange(field.value)
+                        setOpen(false)
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value === field.value ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {field.label}
+                    </CommandItem>
+                  )
+                })}
+              </CommandGroup>
+            ))}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
@@ -109,6 +291,25 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
     }
   }
 
+  const fieldGroups = useMemo<FieldGroup[]>(() => {
+    const groups = [...NATIVE_FIELD_GROUPS]
+    if (preview?.custom_field_definitions?.length) {
+      groups.push({
+        label: "Champs personnalisés",
+        fields: preview.custom_field_definitions.map((cf) => ({
+          value: `custom::${cf.id}`,
+          label: cf.label,
+        })),
+      })
+    }
+    return groups
+  }, [preview?.custom_field_definitions])
+
+  const usedValues = useMemo(
+    () => new Set(Object.values(mapping).filter(Boolean)),
+    [mapping]
+  )
+
   const mappedFields = Object.values(mapping).filter(Boolean)
   const hasMandatoryField = mappedFields.includes("first_name")
 
@@ -126,7 +327,7 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
           Importer CSV
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
             Importer des contacts
@@ -184,7 +385,7 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
 
         {/* Step 2: Mapping */}
         {step === 2 && preview && (
-          <div className="space-y-4 font-[family-name:var(--font-body)]">
+          <div className="space-y-4 min-w-0 overflow-hidden font-[family-name:var(--font-body)]">
             <p className="text-sm text-muted-foreground">
               {preview.total_rows} lignes détectées. Associez les colonnes aux champs contact.
             </p>
@@ -196,19 +397,14 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
                     {header}
                   </span>
                   <span className="text-muted-foreground text-xs">→</span>
-                  <select
+                  <FieldMappingCombobox
                     value={mapping[header] || ""}
-                    onChange={(e) =>
-                      setMapping({ ...mapping, [header]: e.target.value })
+                    onChange={(value) =>
+                      setMapping({ ...mapping, [header]: value })
                     }
-                    className="flex-1 rounded-lg border border-input bg-secondary/30 px-3 py-1.5 text-sm"
-                  >
-                    {CONTACT_FIELDS.map((f) => (
-                      <option key={f.value} value={f.value}>
-                        {f.label}
-                      </option>
-                    ))}
-                  </select>
+                    groups={fieldGroups}
+                    usedValues={usedValues}
+                  />
                 </div>
               ))}
             </div>
@@ -278,6 +474,19 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
                 <p className="text-sm text-destructive mt-1">
                   {result.errors.length} erreurs
                 </p>
+              )}
+              {result.warnings && result.warnings.length > 0 && (
+                <div className="mt-3 text-left mx-auto max-w-md">
+                  <div className="flex items-center gap-2 text-sm text-amber-600 mb-1">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>{result.warnings.length} avertissements</span>
+                  </div>
+                  <ul className="text-xs text-muted-foreground space-y-0.5 max-h-32 overflow-y-auto">
+                    {result.warnings.map((w, i) => (
+                      <li key={i}>{w}</li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
             <Button onClick={() => { setOpen(false); reset() }}>
