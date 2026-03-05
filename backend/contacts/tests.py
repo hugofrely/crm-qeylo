@@ -16,6 +16,7 @@ class ContactTests(TestCase):
                 "password": "securepass123",
                 "first_name": "Hugo",
                 "last_name": "Frely",
+                "organization_name": "Hugo Test Org",
             },
         )
         self.token = response.data["access"]
@@ -95,6 +96,7 @@ class ContactTests(TestCase):
                 "password": "securepass123",
                 "first_name": "Other",
                 "last_name": "User",
+                "organization_name": "Other Test Org",
             },
         )
         client2.credentials(HTTP_AUTHORIZATION=f"Bearer {reg2.data['access']}")
@@ -165,6 +167,7 @@ class CSVImportTests(TestCase):
             "password": "securepass123",
             "first_name": "Test",
             "last_name": "User",
+            "organization_name": "CSV Test Org",
         })
         self.token = reg.data["access"]
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
