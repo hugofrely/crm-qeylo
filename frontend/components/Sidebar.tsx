@@ -4,8 +4,16 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth"
+import { useOrganization } from "@/lib/organization"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   MessageSquare,
   Users,
@@ -17,7 +25,11 @@ import {
   LogOut,
   Menu,
   X,
+  Check,
+  ChevronsUpDown,
+  Plus,
 } from "lucide-react"
+import { CreateOrgDialog } from "@/components/organizations/CreateOrgDialog"
 
 const navigation = [
   { name: "Chat", href: "/chat", icon: MessageSquare },
@@ -32,6 +44,8 @@ export function Sidebar() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { organizations, currentOrganization, switchOrganization } = useOrganization()
+  const [showCreateOrg, setShowCreateOrg] = useState(false)
 
   const initials = user
     ? `${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase()
@@ -69,18 +83,45 @@ export function Sidebar() {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Logo area */}
-        <div className="flex h-[72px] items-center px-6">
-          <Link href="/chat" className="flex items-center gap-2.5 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--sidebar-primary)] transition-transform group-hover:scale-105">
-              <span className="text-[var(--sidebar-primary-foreground)] text-sm font-bold font-[family-name:var(--font-body)]">
-                Q
-              </span>
-            </div>
-            <span className="text-xl tracking-tight text-[var(--sidebar-foreground)]">
-              Qeylo
-            </span>
-          </Link>
+        {/* Organization switcher */}
+        <div className="px-3 py-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-[var(--sidebar-accent)]/50 transition-colors">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--sidebar-primary)] shrink-0">
+                  <span className="text-[var(--sidebar-primary-foreground)] text-sm font-bold font-[family-name:var(--font-body)]">
+                    {currentOrganization?.name?.[0]?.toUpperCase() ?? "?"}
+                  </span>
+                </div>
+                <span className="flex-1 truncate text-sm font-medium text-[var(--sidebar-foreground)] font-[family-name:var(--font-body)]">
+                  {currentOrganization?.name ?? "Organisation"}
+                </span>
+                <ChevronsUpDown className="h-4 w-4 shrink-0 text-[var(--sidebar-foreground)]/40" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-[232px]">
+              {organizations.map((org) => (
+                <DropdownMenuItem
+                  key={org.id}
+                  onClick={() => switchOrganization(org.id)}
+                  className="flex items-center gap-2"
+                >
+                  <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 text-xs font-bold text-primary shrink-0">
+                    {org.name[0]?.toUpperCase()}
+                  </div>
+                  <span className="flex-1 truncate">{org.name}</span>
+                  {org.id === currentOrganization?.id && (
+                    <Check className="h-4 w-4 shrink-0 text-primary" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setShowCreateOrg(true)} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Créer une organisation
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Thin separator */}
@@ -153,6 +194,8 @@ export function Sidebar() {
           </div>
         </div>
       </aside>
+
+      <CreateOrgDialog open={showCreateOrg} onOpenChange={setShowCreateOrg} />
     </>
   )
 }
