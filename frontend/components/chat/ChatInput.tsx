@@ -2,7 +2,6 @@
 
 import { useRef, useEffect, useCallback, KeyboardEvent } from "react"
 import { SendHorizontal } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface ChatInputProps {
@@ -25,7 +24,6 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
     textareaRef.current?.focus()
   }, [])
 
-  // Re-focus after AI finishes responding
   useEffect(() => {
     if (!disabled) {
       textareaRef.current?.focus()
@@ -54,47 +52,47 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   )
 
   return (
-    <div className="border-t border-border bg-background px-4 py-3">
-      <div
-        className={cn(
-          "flex items-end gap-2 rounded-xl border border-border bg-muted/50 px-4 py-2 transition-colors",
-          "focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20"
-        )}
-      >
-        <textarea
-          ref={textareaRef}
-          placeholder="Décris ce que tu veux faire..."
-          disabled={disabled}
-          rows={1}
+    <div className="border-t border-border bg-background px-6 py-4">
+      <div className="mx-auto max-w-3xl">
+        <div
           className={cn(
-            "flex-1 resize-none bg-transparent text-sm leading-6 placeholder:text-muted-foreground",
-            "focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
-            "max-h-[200px] min-h-[24px]"
+            "flex items-end gap-3 rounded-2xl border border-border bg-card px-4 py-3 transition-all duration-200 shadow-sm",
+            "focus-within:border-primary/30 focus-within:shadow-md focus-within:shadow-primary/5"
           )}
-          onChange={(e) => {
-            value.current = e.target.value
-            resize()
-          }}
-          onKeyDown={handleKeyDown}
-        />
-        <Button
-          size="icon"
-          variant="ghost"
-          className={cn(
-            "h-8 w-8 shrink-0 rounded-lg text-muted-foreground transition-colors",
-            "hover:bg-primary hover:text-primary-foreground",
-            disabled && "pointer-events-none opacity-50"
-          )}
-          disabled={disabled}
-          onClick={handleSubmit}
-          aria-label="Envoyer le message"
         >
-          <SendHorizontal className="h-4 w-4" />
-        </Button>
+          <textarea
+            ref={textareaRef}
+            placeholder="Décris ce que tu veux faire..."
+            disabled={disabled}
+            rows={1}
+            className={cn(
+              "flex-1 resize-none bg-transparent text-sm leading-6 placeholder:text-muted-foreground font-[family-name:var(--font-body)]",
+              "focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+              "max-h-[200px] min-h-[24px]"
+            )}
+            onChange={(e) => {
+              value.current = e.target.value
+              resize()
+            }}
+            onKeyDown={handleKeyDown}
+          />
+          <button
+            className={cn(
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-all duration-200",
+              "hover:bg-primary/90 hover:scale-105",
+              disabled && "pointer-events-none opacity-40"
+            )}
+            disabled={disabled}
+            onClick={handleSubmit}
+            aria-label="Envoyer le message"
+          >
+            <SendHorizontal className="h-4 w-4" />
+          </button>
+        </div>
+        <p className="mt-2 text-center text-[10px] text-muted-foreground/50 font-[family-name:var(--font-body)]">
+          Entrée pour envoyer · Maj+Entrée pour un retour à la ligne
+        </p>
       </div>
-      <p className="mt-1.5 text-center text-[11px] text-muted-foreground/60">
-        Entrée pour envoyer &middot; Maj+Entrée pour un retour à la ligne
-      </p>
     </div>
   )
 }

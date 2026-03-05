@@ -30,6 +30,7 @@ class DealSerializer(serializers.ModelSerializer):
 
 class PipelineDealSerializer(serializers.ModelSerializer):
     stage_name = serializers.CharField(source="stage.name", read_only=True)
+    contact_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Deal
@@ -40,7 +41,14 @@ class PipelineDealSerializer(serializers.ModelSerializer):
             "stage",
             "stage_name",
             "contact",
+            "contact_name",
             "probability",
             "expected_close",
+            "notes",
             "created_at",
         ]
+
+    def get_contact_name(self, obj):
+        if obj.contact:
+            return f"{obj.contact.first_name} {obj.contact.last_name}".strip()
+        return None

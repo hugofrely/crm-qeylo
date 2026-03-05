@@ -1,24 +1,34 @@
 "use client"
 
+import { useState } from "react"
+import { Plus } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { KanbanBoard } from "@/components/deals/KanbanBoard"
-import { Kanban } from "lucide-react"
 
 export default function DealsPage() {
+  const [dialogOpen, setDialogOpen] = useState(false)
+
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-8 lg:p-12 space-y-8 animate-fade-in-up">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <Kanban className="h-6 w-6" />
-          Pipeline
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          G&eacute;rez vos deals par &eacute;tape du pipeline
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl tracking-tight">Pipeline</h1>
+          <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
+            Gérez vos deals par étape du pipeline
+          </p>
+        </div>
+        <Button onClick={() => setDialogOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Nouveau deal
+        </Button>
       </div>
 
       {/* Kanban Board */}
-      <KanbanBoard />
+      <KanbanBoard
+        dialogOpen={dialogOpen}
+        onDialogOpenChange={setDialogOpen}
+      />
     </div>
   )
 }

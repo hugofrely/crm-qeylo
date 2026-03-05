@@ -285,6 +285,32 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
               <>
                 <div className="space-y-2">
                   <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Destinataires
+                  </Label>
+                  <textarea
+                    value={(config.recipients as string) || ""}
+                    onChange={(e) => updateConfig("recipients", e.target.value)}
+                    placeholder="email@exemple.com, autre@exemple.com"
+                    className="w-full rounded-md border border-border bg-secondary/30 px-3 py-2 text-sm min-h-[60px] resize-none"
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Adresses email séparées par des virgules. Laissez vide pour envoyer uniquement au contact du trigger.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="send_to_contact"
+                    checked={config.send_to_contact !== false}
+                    onChange={(e) => updateConfig("send_to_contact", e.target.checked)}
+                    className="h-4 w-4 rounded border-border"
+                  />
+                  <label htmlFor="send_to_contact" className="text-xs text-muted-foreground">
+                    Envoyer aussi au contact du trigger
+                  </label>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Objet
                   </Label>
                   <Input

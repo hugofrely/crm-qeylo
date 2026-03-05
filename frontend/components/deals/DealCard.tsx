@@ -1,22 +1,21 @@
 "use client"
 
-import { useSortable } from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import { Card, CardContent } from "@/components/ui/card"
+import { useDraggable } from "@dnd-kit/core"
 import { User, DollarSign } from "lucide-react"
 
 interface Deal {
-  id: number
+  id: string
   name: string
   amount: string | number
-  stage: number
+  stage: string
   stage_name: string
-  contact: number | null
+  contact: string | null
   contact_name?: string
 }
 
 interface DealCardProps {
   deal: Deal
+  onClick?: () => void
 }
 
 function formatAmount(amount: string | number): string {
@@ -29,15 +28,14 @@ function formatAmount(amount: string | number): string {
   }).format(num)
 }
 
-export function DealCard({ deal }: DealCardProps) {
+export function DealCard({ deal, onClick }: DealCardProps) {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
-    transition,
     isDragging,
-  } = useSortable({
+  } = useDraggable({
     id: `deal-${deal.id}`,
     data: {
       type: "deal",
@@ -46,34 +44,34 @@ export function DealCard({ deal }: DealCardProps) {
   })
 
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: transform
+      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+      : undefined,
     opacity: isDragging ? 0.5 : 1,
   }
 
   return (
-    <Card
+    <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
+      onClick={() => { if (!isDragging) onClick?.() }}
+      className="group rounded-xl border border-border bg-card p-3.5 cursor-grab active:cursor-grabbing hover:shadow-md hover:border-border/80 transition-all duration-200 font-[family-name:var(--font-body)]"
     >
-      <CardContent className="p-3 space-y-2">
-        <p className="font-medium text-sm leading-tight">{deal.name}</p>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-sm font-semibold text-green-700">
-            <DollarSign className="h-3.5 w-3.5" />
-            {formatAmount(deal.amount)}
-          </div>
-          {deal.contact_name && (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <User className="h-3 w-3" />
-              <span className="truncate max-w-[100px]">{deal.contact_name}</span>
-            </div>
-          )}
+      <p className="font-medium text-sm leading-tight">{deal.name}</p>
+      <div className="flex items-center justify-between mt-2.5">
+        <div className="flex items-center gap-1 text-sm font-semibold text-primary">
+          <DollarSign className="h-3.5 w-3.5" />
+          {formatAmount(deal.amount)}
         </div>
-      </CardContent>
-    </Card>
+        {deal.contact_name && (
+          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+            <User className="h-3 w-3" />
+            <span className="truncate max-w-[90px]">{deal.contact_name}</span>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }

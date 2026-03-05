@@ -3,5 +3,9 @@
 import { ChatWindow } from "@/components/chat/ChatWindow"
 
 export default function ChatPage() {
-  return <ChatWindow />
+  return (
+    <div className="h-full overflow-hidden">
+      <ChatWindow />
+    </div>
+  )
 }

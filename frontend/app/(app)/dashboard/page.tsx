@@ -3,9 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { apiFetch } from "@/lib/api"
 import { StatCard } from "@/components/dashboard/StatCard"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  BarChart3,
   DollarSign,
   TrendingUp,
   Briefcase,
@@ -66,9 +64,9 @@ export default function DashboardPage() {
 
   if (!stats) {
     return (
-      <div className="p-6 lg:p-8 max-w-6xl mx-auto">
+      <div className="p-8 lg:p-12 max-w-6xl mx-auto">
         <div className="flex flex-col items-center justify-center py-16">
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
             Impossible de charger les statistiques.
           </p>
         </div>
@@ -82,15 +80,12 @@ export default function DashboardPage() {
   )
 
   return (
-    <div className="p-6 lg:p-8 max-w-6xl mx-auto space-y-8">
+    <div className="p-8 lg:p-12 max-w-6xl mx-auto space-y-10 animate-fade-in-up">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <BarChart3 className="h-6 w-6" />
-          Tableau de bord
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Vue d&apos;ensemble de votre activit&eacute;
+        <h1 className="text-3xl tracking-tight">Tableau de bord</h1>
+        <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
+          Vue d&apos;ensemble de votre activité
         </p>
       </div>
 
@@ -112,46 +107,46 @@ export default function DashboardPage() {
           icon={Briefcase}
         />
         <StatCard
-          title="T&acirc;ches &agrave; venir"
+          title="Tâches à venir"
           value={String(stats.upcoming_tasks)}
           icon={ListTodo}
         />
       </div>
 
       {/* Deals by stage */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Deals par &eacute;tape</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <h2 className="text-xl tracking-tight">Deals par étape</h2>
+        </div>
+        <div className="p-6">
           {stats.deals_by_stage.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-8">
+            <p className="text-muted-foreground text-sm text-center py-8 font-[family-name:var(--font-body)]">
               Aucun deal dans le pipeline.
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {stats.deals_by_stage.map((stage) => (
-                <div key={stage.stage_name} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
+                <div key={stage.stage_name} className="space-y-2.5">
+                  <div className="flex items-center justify-between text-sm font-[family-name:var(--font-body)]">
+                    <div className="flex items-center gap-2.5">
                       <div
-                        className="h-3 w-3 rounded-full shrink-0"
+                        className="h-2.5 w-2.5 rounded-full shrink-0"
                         style={{
                           backgroundColor: stage.stage_color || "#6b7280",
                         }}
                       />
-                      <span className="font-medium">{stage.stage_name}</span>
-                      <span className="text-muted-foreground">
-                        ({stage.count} deal{stage.count !== 1 ? "s" : ""})
+                      <span className="font-medium text-foreground">{stage.stage_name}</span>
+                      <span className="text-muted-foreground text-xs">
+                        {stage.count} deal{stage.count !== 1 ? "s" : ""}
                       </span>
                     </div>
-                    <span className="font-semibold">
+                    <span className="font-semibold tabular-nums">
                       {formatAmount(stage.total_amount)}
                     </span>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all duration-500"
+                      className="h-full rounded-full transition-all duration-700 ease-out"
                       style={{
                         width: `${(stage.total_amount / maxStageAmount) * 100}%`,
                         backgroundColor: stage.stage_color || "#6b7280",
@@ -162,8 +157,8 @@ export default function DashboardPage() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

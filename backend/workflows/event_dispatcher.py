@@ -44,13 +44,19 @@ def dispatch_event(event_type: str, organization_id: str, event_data: dict):
                 continue
             cache.set(cooldown_key, True, COOLDOWN_SECONDS)
 
-            from .tasks import execute_workflow
-            execute_workflow.delay(
-                str(workflow.id), str(trigger_node.id), event_type, event_data,
-            )
-            logger.info(
-                "Dispatched workflow '%s' for event %s", workflow.name, event_type,
-            )
+            try:
+                from .tasks import execute_workflow
+                execute_workflow.delay(
+                    str(workflow.id), str(trigger_node.id), event_type, event_data,
+                )
+                logger.info(
+                    "Dispatched workflow '%s' for event %s", workflow.name, event_type,
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to dispatch workflow '%s' for event %s (Celery/Redis unavailable?)",
+                    workflow.name, event_type,
+                )
 
 
 def _matches_filters(filters: dict, event_data: dict) -> bool:

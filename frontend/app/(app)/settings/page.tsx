@@ -1,19 +1,23 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
-  Settings,
   User,
+  Users,
   Mail,
+  Bell,
   ChevronRight,
-  Kanban,
+  Plug,
+  X,
 } from "lucide-react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Checkbox } from "@/components/ui/checkbox"
+import { apiFetch } from "@/lib/api"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -22,88 +26,213 @@ export default function SettingsPage() {
     ? `${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase()
     : "?"
 
+  interface EmailAccount {
+    id: string
+    provider: "gmail" | "outlook"
+    email_address: string
+    is_active: boolean
+    created_at: string
+  }
+
+  const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([])
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    apiFetch<EmailAccount[]>("/email/accounts/").then(setEmailAccounts).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    const connected = searchParams.get("email_connected")
+    const error = searchParams.get("email_error")
+    if (connected) {
+      toast.success(`Compte ${connected === "gmail" ? "Gmail" : "Outlook"} connecté`)
+      apiFetch<EmailAccount[]>("/email/accounts/").then(setEmailAccounts).catch(() => {})
+    }
+    if (error) {
+      toast.error("Erreur lors de la connexion du compte email")
+    }
+  }, [searchParams])
+
+  const disconnectAccount = async (id: string) => {
+    await apiFetch(`/email/accounts/${id}/`, { method: "DELETE" })
+    setEmailAccounts((prev) => prev.filter((a) => a.id !== id))
+    toast.success("Compte déconnecté")
+  }
+
   return (
-    <div className="p-6 lg:p-8 max-w-3xl mx-auto space-y-6">
+    <div className="p-8 lg:p-12 max-w-3xl mx-auto space-y-6 animate-fade-in-up">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <Settings className="h-6 w-6" />
-          Param&egrave;tres
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          G&eacute;rez votre profil et votre configuration
+        <h1 className="text-3xl tracking-tight">Paramètres</h1>
+        <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
+          Gérez votre profil et votre configuration
         </p>
       </div>
 
       {/* Profile card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Profil</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <h2 className="text-xl tracking-tight">Profil</h2>
+        </div>
+        <div className="p-6 space-y-5 font-[family-name:var(--font-body)]">
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/8 text-primary text-lg font-semibold">
+              {initials}
+            </div>
             <div>
-              <h2 className="text-lg font-semibold">
+              <h3 className="text-lg font-medium" style={{ fontFamily: 'var(--font-display), Georgia, serif' }}>
                 {user?.first_name} {user?.last_name}
-              </h2>
-              <Badge variant="secondary" className="mt-1">
+              </h3>
+              <Badge variant="secondary" className="mt-1 text-[10px] font-normal">
                 Utilisateur
               </Badge>
             </div>
           </div>
 
-          <Separator />
+          <div className="h-px bg-border" />
 
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <User className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-muted-foreground shrink-0">
+                <User className="h-3.5 w-3.5" />
+              </div>
               <div>
-                <p className="text-xs text-muted-foreground">Nom complet</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Nom complet</p>
                 <p className="text-sm font-medium">
                   {user?.first_name} {user?.last_name}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-muted-foreground shrink-0">
+                <Mail className="h-3.5 w-3.5" />
+              </div>
               <div>
-                <p className="text-xs text-muted-foreground">Adresse email</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Adresse email</p>
                 <p className="text-sm font-medium">{user?.email}</p>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Pipeline settings link */}
-      <Card>
-        <CardContent className="p-0">
-          <Link href="/settings/pipeline">
-            <Button
-              variant="ghost"
-              className="w-full justify-between h-auto py-4 px-6"
+      {/* Email notifications toggle */}
+      <div className="rounded-xl border border-border bg-card">
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary/8 text-primary">
+              <Bell className="h-5 w-5" />
+            </div>
+            <div className="font-[family-name:var(--font-body)]">
+              <p className="text-sm font-medium">Notifications email</p>
+              <p className="text-xs text-muted-foreground">
+                Recevoir les rappels et alertes par email
+              </p>
+            </div>
+          </div>
+          <Checkbox
+            checked={user?.email_notifications ?? true}
+            onCheckedChange={async (checked) => {
+              await apiFetch("/auth/me/", {
+                method: "PATCH",
+                json: { email_notifications: !!checked },
+              })
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Connected email accounts */}
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-6 py-5 border-b border-border">
+          <h2 className="text-xl tracking-tight">Comptes email connectés</h2>
+          <p className="text-xs text-muted-foreground mt-1 font-[family-name:var(--font-body)]">
+            Envoyez des emails directement depuis le CRM
+          </p>
+        </div>
+        <div className="p-6 space-y-4 font-[family-name:var(--font-body)]">
+          {emailAccounts.map((account) => (
+            <div
+              key={account.id}
+              className="flex items-center justify-between rounded-lg border border-border px-4 py-3"
             >
               <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary/10">
-                  <Kanban className="h-5 w-5 text-primary" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-medium">Pipeline</p>
-                  <p className="text-xs text-muted-foreground">
-                    Personnaliser les &eacute;tapes du pipeline
+                <div className={cn(
+                  "h-2 w-2 rounded-full",
+                  account.is_active ? "bg-green-500" : "bg-red-500"
+                )} />
+                <div>
+                  <p className="text-sm font-medium">
+                    {account.provider === "gmail" ? "Gmail" : "Outlook"}
                   </p>
+                  <p className="text-xs text-muted-foreground">{account.email_address}</p>
                 </div>
               </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
+              <button
+                onClick={() => disconnectAccount(account.id)}
+                className="text-muted-foreground hover:text-destructive transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+
+          <div className="flex gap-2">
+            {!emailAccounts.find((a) => a.provider === "gmail") && (
+              <button
+                onClick={async () => {
+                  try {
+                    const data = await apiFetch<{ url: string }>("/email/connect/gmail/")
+                    window.location.href = data.url
+                  } catch {
+                    toast.error("Impossible de lancer la connexion Gmail")
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium hover:bg-secondary/50 transition-colors"
+              >
+                <Plug className="h-4 w-4" />
+                Connecter Gmail
+              </button>
+            )}
+            {!emailAccounts.find((a) => a.provider === "outlook") && (
+              <button
+                onClick={async () => {
+                  try {
+                    const data = await apiFetch<{ url: string }>("/email/connect/outlook/")
+                    window.location.href = data.url
+                  } catch {
+                    toast.error("Impossible de lancer la connexion Outlook")
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium hover:bg-secondary/50 transition-colors"
+              >
+                <Plug className="h-4 w-4" />
+                Connecter Outlook
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Organization settings link */}
+      <Link href="/settings/organization" className="block">
+        <div className="rounded-xl border border-border bg-card hover:bg-secondary/20 transition-colors">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary/8 text-primary">
+                <Users className="h-5 w-5" />
+              </div>
+              <div className="font-[family-name:var(--font-body)]">
+                <p className="text-sm font-medium">Organisation</p>
+                <p className="text-xs text-muted-foreground">
+                  Gérer les membres et invitations
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </div>
+        </div>
+      </Link>
     </div>
   )
 }

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { MessageSquare } from "lucide-react"
 import { useAuth } from "@/lib/auth"
 import {
   streamChat,
@@ -42,7 +41,6 @@ export function ChatWindow() {
     })
   }, [])
 
-  // Load conversations on mount
   useEffect(() => {
     let cancelled = false
     async function load() {
@@ -63,7 +61,6 @@ export function ChatWindow() {
     return () => { cancelled = true }
   }, [])
 
-  // Load messages when active conversation changes
   useEffect(() => {
     if (!activeConversationId) {
       setMessages([])
@@ -96,7 +93,6 @@ export function ChatWindow() {
     return () => { cancelled = true }
   }, [activeConversationId])
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (isHistoryLoaded) scrollToBottom()
   }, [messages, isLoading, isHistoryLoaded, scrollToBottom])
@@ -145,7 +141,6 @@ export function ChatWindow() {
     async (text: string) => {
       let convId = activeConversationId
 
-      // Auto-create conversation if none active
       if (!convId) {
         try {
           const conv = await createConversation()
@@ -255,7 +250,6 @@ export function ChatWindow() {
                   }
                 })
               )
-              // Update conversation title if provided
               if (data.conversation_title) {
                 setConversations((prev) =>
                   prev.map((c) =>
@@ -265,7 +259,6 @@ export function ChatWindow() {
                   )
                 )
               }
-              // Move conversation to top and update preview
               setConversations((prev) => {
                 const conv = prev.find((c) => c.id === convId)
                 if (!conv) return prev
@@ -316,27 +309,27 @@ export function ChatWindow() {
   )
 
   return (
-    <div className="flex h-[calc(100vh-0px)]">
+    <div className="flex h-full min-h-0">
       {/* Chat area */}
-      <div className="flex flex-1 flex-col">
-        <ScrollArea className="flex-1" ref={scrollRef}>
-          <div className="mx-auto max-w-3xl px-4 py-6">
+      <div className="flex flex-1 flex-col min-h-0">
+        <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
+          <div className="mx-auto max-w-3xl px-6 py-8">
             {isHistoryLoaded && messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                  <MessageSquare className="h-8 w-8 text-primary" />
+              <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in-up">
+                <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/8">
+                  <span className="text-2xl text-primary" style={{ fontFamily: 'var(--font-display), Georgia, serif', fontStyle: 'italic' }}>Q</span>
                 </div>
-                <h2 className="mb-2 text-xl font-semibold">
-                  Bonjour {firstName} !
+                <h2 className="mb-2 text-2xl tracking-tight">
+                  Bonjour {firstName}
                 </h2>
-                <p className="max-w-md text-sm text-muted-foreground">
+                <p className="max-w-sm text-sm text-muted-foreground leading-relaxed font-[family-name:var(--font-body)]">
                   Dis-moi ce que tu veux faire. Je peux créer des contacts,
                   gérer tes deals, organiser tes tâches, et bien plus encore.
                 </p>
               </div>
             )}
 
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-6">
               {messages.map((message) => (
                 <ChatMessage
                   key={message.id}

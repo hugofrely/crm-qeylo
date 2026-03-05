@@ -78,7 +78,7 @@ class WorkflowListSerializer(serializers.ModelSerializer):
 
 class WorkflowSaveSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=200)
-    description = serializers.CharField(required=False, default="")
+    description = serializers.CharField(required=False, default="", allow_blank=True)
     is_active = serializers.BooleanField(required=False, default=False)
     nodes = serializers.ListField(child=serializers.DictField())
     edges = serializers.ListField(child=serializers.DictField())

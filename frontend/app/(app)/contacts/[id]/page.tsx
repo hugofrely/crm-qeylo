@@ -406,7 +406,29 @@ function ActivityMetadata({ entry }: { entry: TimelineEntry }) {
   )
 }
 
-function TimelineList({ entries, emptyMessage }: { entries: TimelineEntry[]; emptyMessage: string }) {
+function TimelineList({
+  entries,
+  emptyMessage,
+  onEdit,
+  onDelete,
+  editingId,
+  editContent,
+  onEditContentChange,
+  onEditSave,
+  onEditCancel,
+  editSaving,
+}: {
+  entries: TimelineEntry[]
+  emptyMessage: string
+  onEdit?: (entry: TimelineEntry) => void
+  onDelete?: (entry: TimelineEntry) => void
+  editingId?: number | null
+  editContent?: string
+  onEditContentChange?: (val: string) => void
+  onEditSave?: () => void
+  onEditCancel?: () => void
+  editSaving?: boolean
+}) {
   if (entries.length === 0) {
     return (
       <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
@@ -430,21 +452,63 @@ function TimelineList({ entries, emptyMessage }: { entries: TimelineEntry[]; emp
             )}
           </div>
           <div className="pb-6 flex-1 min-w-0 font-[family-name:var(--font-body)]">
-            <div className="flex items-baseline justify-between gap-2">
+            <div className="flex items-center justify-between gap-2">
               <Badge variant="outline" className="text-[10px] capitalize font-normal">
                 {getEntryTypeLabel(entry.entry_type)}
               </Badge>
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                {formatDateTime(entry.created_at)}
-              </span>
+              <div className="flex items-center gap-2">
+                {onEdit && editingId !== entry.id && (
+                  <button
+                    onClick={() => onEdit(entry)}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    title="Modifier"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                )}
+                {onDelete && editingId !== entry.id && (
+                  <button
+                    onClick={() => onDelete(entry)}
+                    className="text-muted-foreground hover:text-destructive transition-colors"
+                    title="Supprimer"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                )}
+                <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                  {formatDateTime(entry.created_at)}
+                </span>
+              </div>
             </div>
             {entry.subject && (
               <p className="text-sm font-medium mt-1">{entry.subject}</p>
             )}
-            {entry.content && (
-              <div className="mt-1.5 text-sm">
-                <MarkdownContent content={entry.content} />
+            {editingId === entry.id ? (
+              <div className="mt-2 space-y-2">
+                <RichTextEditor
+                  content={editContent || ""}
+                  onChange={onEditContentChange || (() => {})}
+                  placeholder="Modifier la note..."
+                  minHeight="80px"
+                  onImageUpload={apiUploadImage}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button size="sm" variant="ghost" onClick={onEditCancel} disabled={editSaving}>
+                    <X className="h-3.5 w-3.5 mr-1" />
+                    <span className="font-[family-name:var(--font-body)]">Annuler</span>
+                  </Button>
+                  <Button size="sm" onClick={onEditSave} disabled={editSaving || !(editContent || "").trim()}>
+                    {editSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Save className="h-3.5 w-3.5 mr-1" />}
+                    <span className="font-[family-name:var(--font-body)]">Enregistrer</span>
+                  </Button>
+                </div>
               </div>
+            ) : (
+              entry.content && (
+                <div className="mt-1.5 text-sm">
+                  <MarkdownContent content={entry.content} />
+                </div>
+              )
             )}
             <ActivityMetadata entry={entry} />
           </div>
@@ -496,6 +560,15 @@ export default function ContactDetailPage() {
   // Note adding
   const [newNote, setNewNote] = useState("")
   const [addingNote, setAddingNote] = useState(false)
+  const [noteKey, setNoteKey] = useState(0)
+
+  // Note editing
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null)
+  const [editNoteContent, setEditNoteContent] = useState("")
+  const [editNoteSaving, setEditNoteSaving] = useState(false)
+  const [deleteNoteDialogOpen, setDeleteNoteDialogOpen] = useState(false)
+  const [noteToDelete, setNoteToDelete] = useState<TimelineEntry | null>(null)
+  const [deletingNote, setDeletingNote] = useState(false)
 
   /* ── Fetch contact ── */
   const fetchContact = useCallback(async () => {
@@ -637,22 +710,70 @@ export default function ContactDetailPage() {
     if (!newNote.trim()) return
     setAddingNote(true)
     try {
-      await apiFetch("/activities/", {
+      await apiFetch("/notes/", {
         method: "POST",
         json: {
-          entry_type: "note_added",
           contact: id,
-          subject: "Note",
           content: newNote.trim(),
-          metadata: {},
         },
       })
       setNewNote("")
+      setNoteKey((k) => k + 1)
       fetchTabData()
     } catch (err) {
       console.error("Failed to add note:", err)
     } finally {
       setAddingNote(false)
+    }
+  }
+
+  /* ── Edit note ── */
+  const handleStartEditNote = (entry: TimelineEntry) => {
+    setEditingNoteId(entry.id)
+    setEditNoteContent(entry.content)
+  }
+
+  const handleCancelEditNote = () => {
+    setEditingNoteId(null)
+    setEditNoteContent("")
+  }
+
+  const handleSaveEditNote = async () => {
+    if (!editingNoteId || !editNoteContent.trim()) return
+    setEditNoteSaving(true)
+    try {
+      await apiFetch(`/notes/${editingNoteId}/`, {
+        method: "PATCH",
+        json: { content: editNoteContent.trim() },
+      })
+      setEditingNoteId(null)
+      setEditNoteContent("")
+      fetchTabData()
+    } catch (err) {
+      console.error("Failed to edit note:", err)
+    } finally {
+      setEditNoteSaving(false)
+    }
+  }
+
+  /* ── Delete note ── */
+  const handleRequestDeleteNote = (entry: TimelineEntry) => {
+    setNoteToDelete(entry)
+    setDeleteNoteDialogOpen(true)
+  }
+
+  const handleConfirmDeleteNote = async () => {
+    if (!noteToDelete) return
+    setDeletingNote(true)
+    try {
+      await apiFetch(`/notes/${noteToDelete.id}/`, { method: "DELETE" })
+      setDeleteNoteDialogOpen(false)
+      setNoteToDelete(null)
+      fetchTabData()
+    } catch (err) {
+      console.error("Failed to delete note:", err)
+    } finally {
+      setDeletingNote(false)
     }
   }
 
@@ -795,9 +916,9 @@ export default function ContactDetailPage() {
         <div className="w-[340px] shrink-0 space-y-4">
           {editing ? (
             /* ── EDIT MODE ── */
-            <div className="space-y-4">
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
               {/* Save / Cancel */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 p-5">
                 <Button size="sm" onClick={handleSave} disabled={saving} className="gap-1.5">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   <span className="font-[family-name:var(--font-body)]">Sauvegarder</span>
@@ -809,7 +930,8 @@ export default function ContactDetailPage() {
               </div>
 
               {/* Identity */}
-              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <Separator />
+              <div className="p-5 space-y-3">
                 <h3 className={labelClass}>Identite</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -832,7 +954,8 @@ export default function ContactDetailPage() {
               </div>
 
               {/* Coordonnees */}
-              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <Separator />
+              <div className="p-5 space-y-3">
                 <h3 className={labelClass}>Coordonnees</h3>
                 <div className="space-y-3">
                   <div className="space-y-1">
@@ -895,7 +1018,8 @@ export default function ContactDetailPage() {
               </div>
 
               {/* Qualification */}
-              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <Separator />
+              <div className="p-5 space-y-3">
                 <h3 className={labelClass}>Qualification</h3>
                 <div className="space-y-3">
                   <div className="space-y-1">
@@ -929,7 +1053,8 @@ export default function ContactDetailPage() {
               </div>
 
               {/* Preferences */}
-              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <Separator />
+              <div className="p-5 space-y-3">
                 <h3 className={labelClass}>Profil & Preferences</h3>
                 <div className="space-y-3">
                   <div className="space-y-1">
@@ -984,70 +1109,74 @@ export default function ContactDetailPage() {
               </div>
 
               {/* Notes */}
-              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <Separator />
+              <div className="p-5 space-y-3">
                 <h3 className={labelClass}>Notes</h3>
                 <textarea className={textareaClass} value={editForm.notes as string} onChange={(e) => updateForm("notes", e.target.value)} rows={4} />
               </div>
 
               {/* Custom fields */}
               {customFieldDefs.length > 0 && (
-                <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-                  <h3 className={labelClass}>Champs personnalises</h3>
-                  <div className="space-y-3">
-                    {customFieldDefs.map((def) => {
-                      const cfValues = (editForm.custom_fields as Record<string, unknown>) || {}
-                      const value = cfValues[def.id] ?? ""
+                <>
+                  <Separator />
+                  <div className="p-5 space-y-3">
+                    <h3 className={labelClass}>Champs personnalises</h3>
+                    <div className="space-y-3">
+                      {customFieldDefs.map((def) => {
+                        const cfValues = (editForm.custom_fields as Record<string, unknown>) || {}
+                        const value = cfValues[def.id] ?? ""
 
-                      return (
-                        <div key={def.id} className="space-y-1">
-                          <Label className="text-xs font-[family-name:var(--font-body)]">
-                            {def.label}{def.is_required ? " *" : ""}
-                          </Label>
-                          {def.field_type === "long_text" ? (
-                            <textarea
-                              className={textareaClass}
-                              value={value as string}
-                              onChange={(e) => updateCustomField(def.id, e.target.value)}
-                            />
-                          ) : def.field_type === "select" ? (
-                            <select
-                              className={selectClass}
-                              value={value as string}
-                              onChange={(e) => updateCustomField(def.id, e.target.value)}
-                            >
-                              <option value="">-- Choisir --</option>
-                              {(def.options || []).map((opt) => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
-                          ) : def.field_type === "checkbox" ? (
-                            <div className="flex items-center gap-2 pt-1">
-                              <Checkbox
-                                checked={value === true || value === "true"}
-                                onCheckedChange={(checked) => updateCustomField(def.id, checked)}
+                        return (
+                          <div key={def.id} className="space-y-1">
+                            <Label className="text-xs font-[family-name:var(--font-body)]">
+                              {def.label}{def.is_required ? " *" : ""}
+                            </Label>
+                            {def.field_type === "long_text" ? (
+                              <textarea
+                                className={textareaClass}
+                                value={value as string}
+                                onChange={(e) => updateCustomField(def.id, e.target.value)}
                               />
-                              <span className="text-sm font-[family-name:var(--font-body)]">{def.label}</span>
-                            </div>
-                          ) : (
-                            <Input
-                              type={
-                                def.field_type === "number" ? "number" :
-                                def.field_type === "date" ? "date" :
-                                def.field_type === "email" ? "email" :
-                                def.field_type === "phone" ? "tel" :
-                                def.field_type === "url" ? "url" :
-                                "text"
-                              }
-                              value={value as string}
-                              onChange={(e) => updateCustomField(def.id, e.target.value)}
-                              className={inputClass}
-                            />
-                          )}
-                        </div>
-                      )
-                    })}
+                            ) : def.field_type === "select" ? (
+                              <select
+                                className={selectClass}
+                                value={value as string}
+                                onChange={(e) => updateCustomField(def.id, e.target.value)}
+                              >
+                                <option value="">-- Choisir --</option>
+                                {(def.options || []).map((opt) => (
+                                  <option key={opt} value={opt}>{opt}</option>
+                                ))}
+                              </select>
+                            ) : def.field_type === "checkbox" ? (
+                              <div className="flex items-center gap-2 pt-1">
+                                <Checkbox
+                                  checked={value === true || value === "true"}
+                                  onCheckedChange={(checked) => updateCustomField(def.id, checked)}
+                                />
+                                <span className="text-sm font-[family-name:var(--font-body)]">{def.label}</span>
+                              </div>
+                            ) : (
+                              <Input
+                                type={
+                                  def.field_type === "number" ? "number" :
+                                  def.field_type === "date" ? "date" :
+                                  def.field_type === "email" ? "email" :
+                                  def.field_type === "phone" ? "tel" :
+                                  def.field_type === "url" ? "url" :
+                                  "text"
+                                }
+                                value={value as string}
+                                onChange={(e) => updateCustomField(def.id, e.target.value)}
+                                className={inputClass}
+                              />
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
           ) : (
@@ -1471,6 +1600,7 @@ export default function ContactDetailPage() {
                 {/* Add note input */}
                 <div className="mb-6 space-y-2">
                   <RichTextEditor
+                    key={noteKey}
                     content={newNote}
                     onChange={setNewNote}
                     placeholder="Ajouter une note..."
@@ -1484,7 +1614,18 @@ export default function ContactDetailPage() {
                     </Button>
                   </div>
                 </div>
-                <TimelineList entries={notes} emptyMessage="Aucune note pour ce contact." />
+                <TimelineList
+                  entries={notes}
+                  emptyMessage="Aucune note pour ce contact."
+                  onEdit={handleStartEditNote}
+                  onDelete={handleRequestDeleteNote}
+                  editingId={editingNoteId}
+                  editContent={editNoteContent}
+                  onEditContentChange={setEditNoteContent}
+                  onEditSave={handleSaveEditNote}
+                  onEditCancel={handleCancelEditNote}
+                  editSaving={editNoteSaving}
+                />
               </div>
             )}
 
@@ -1637,6 +1778,27 @@ export default function ContactDetailPage() {
         onOpenChange={setActivityDialogOpen}
         onCreated={() => fetchTabData()}
       />
+
+      {/* Delete note confirmation dialog */}
+      <Dialog open={deleteNoteDialogOpen} onOpenChange={setDeleteNoteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Supprimer la note</DialogTitle>
+          </DialogHeader>
+          <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
+            Etes-vous sur de vouloir supprimer cette note ? Cette action est irreversible.
+          </p>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setDeleteNoteDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDeleteNote} disabled={deletingNote}>
+              {deletingNote && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Supprimer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {contact && (
         <ComposeEmailDialog

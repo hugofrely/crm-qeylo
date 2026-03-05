@@ -7,15 +7,7 @@ import { useAuth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { MessageSquare } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -54,66 +46,85 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <div className="flex justify-center mb-2">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">Qeylo</span>
-          </div>
-        </div>
-        <CardTitle className="text-xl">Connexion</CardTitle>
-        <CardDescription>
+    <div className="animate-fade-in-up">
+      {/* Mobile logo */}
+      <div className="lg:hidden mb-8 text-center">
+        <h1 className="text-3xl tracking-tight">Qeylo</h1>
+      </div>
+
+      <div className="space-y-2 mb-8">
+        <h2 className="text-3xl tracking-tight">Connexion</h2>
+        <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
           Connectez-vous pour accéder à votre CRM
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="rounded-lg bg-destructive/8 border border-destructive/20 px-4 py-3 text-sm text-destructive font-[family-name:var(--font-body)]">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="vous@exemple.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isLoading}
+            className="h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+            Mot de passe
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Votre mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={isLoading}
+            className="h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors"
+          />
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full h-12 text-sm font-medium tracking-wide"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Connexion...
+            </>
+          ) : (
+            "Se connecter"
           )}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="vous@exemple.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Votre mot de passe"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoading}
-            />
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Connexion en cours..." : "Se connecter"}
-          </Button>
-          <p className="text-sm text-muted-foreground text-center">
-            Pas encore de compte ?{" "}
-            <Link
-              href="/register"
-              className="text-primary underline-offset-4 hover:underline"
-            >
-              Créer un compte
-            </Link>
-          </p>
-        </CardFooter>
+        </Button>
       </form>
-    </Card>
+
+      <div className="mt-8 text-center">
+        <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">
+          Pas encore de compte ?{" "}
+          <Link
+            href="/register"
+            className="text-foreground font-medium underline underline-offset-4 decoration-primary/40 hover:decoration-primary transition-colors"
+          >
+            Créer un compte
+          </Link>
+        </p>
+      </div>
+    </div>
   )
 }

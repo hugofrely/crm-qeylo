@@ -166,44 +166,63 @@ def _action_update_contact(config, context, organization_id, user_id):
 
 
 def _action_send_email(config, context, organization_id, user_id):
-    """Send an email using the workflow creator's email account."""
+    """Send an email using the workflow creator's email account.
+
+    Supports multiple recipients via ``config["recipients"]`` (comma-separated
+    emails) and/or the trigger contact's email when ``send_to_contact`` is true.
+    """
     if not user_id:
         return {"error": "No user for email sending"}
 
-    from emails.models import EmailAccount
     from emails.service import send_email as service_send_email
     from accounts.models import User
     from organizations.models import Organization
 
-    account = EmailAccount.objects.filter(
-        user_id=user_id, organization_id=organization_id, is_active=True
-    ).first()
-    if not account:
-        return {"error": "No connected email account"}
-
-    to_email = config.get("to") or context.get("contact", {}).get("email")
     subject = config.get("subject", "")
     body = config.get("body_template", config.get("body", ""))
-
-    if not to_email:
-        return {"error": "No recipient email"}
 
     body_html = "".join(f"<p>{line}</p>" for line in body.split("\n") if line.strip())
     if not body_html:
         body_html = f"<p>{body}</p>"
 
+    # Build recipient list
+    to_addresses: list[str] = []
+
+    # Explicit recipients (comma / semicolon / newline separated)
+    raw_recipients = config.get("recipients", "")
+    if raw_recipients:
+        for addr in raw_recipients.replace(";", ",").replace("\n", ",").split(","):
+            addr = addr.strip()
+            if addr and "@" in addr:
+                to_addresses.append(addr)
+
+    # Optionally include the trigger contact's email
+    send_to_contact = config.get("send_to_contact", not raw_recipients)
+    contact_email = context.get("contact", {}).get("email")
+    if send_to_contact and contact_email and contact_email not in to_addresses:
+        to_addresses.append(contact_email)
+
+    if not to_addresses:
+        return {"error": "No recipient email"}
+
     try:
         user = User.objects.get(id=user_id)
         org = Organization.objects.get(id=organization_id)
         contact_id = config.get("contact_id") or context.get("contact", {}).get("id")
-        sent = service_send_email(
-            user=user,
-            organization=org,
-            contact_id=contact_id,
-            subject=subject,
-            body_html=body_html,
-        )
-        return {"action": "email_sent", "to": sent.to_email, "subject": subject}
+
+        sent_to = []
+        for addr in to_addresses:
+            sent = service_send_email(
+                user=user,
+                organization=org,
+                contact_id=contact_id if addr == contact_email else None,
+                subject=subject,
+                body_html=body_html,
+                to_email=addr,
+            )
+            sent_to.append(sent.to_email)
+
+        return {"action": "email_sent", "to": sent_to, "subject": subject}
     except Exception as e:
         return {"error": f"Email failed: {str(e)}"}
 

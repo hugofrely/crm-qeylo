@@ -7,15 +7,7 @@ import { useAuth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { MessageSquare } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState("")
@@ -68,93 +60,119 @@ export default function RegisterPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <div className="flex justify-center mb-2">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">Qeylo</span>
+    <div className="animate-fade-in-up">
+      {/* Mobile logo */}
+      <div className="lg:hidden mb-8 text-center">
+        <h1 className="text-3xl tracking-tight">Qeylo</h1>
+      </div>
+
+      <div className="space-y-2 mb-8">
+        <h2 className="text-3xl tracking-tight">Créer un compte</h2>
+        <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
+          Inscrivez-vous pour commencer à utiliser Qeylo
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="rounded-lg bg-destructive/8 border border-destructive/20 px-4 py-3 text-sm text-destructive font-[family-name:var(--font-body)]">
+            {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="firstName" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+              Prénom
+            </Label>
+            <Input
+              id="firstName"
+              type="text"
+              placeholder="Jean"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+              disabled={isLoading}
+              className="h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+              Nom
+            </Label>
+            <Input
+              id="lastName"
+              type="text"
+              placeholder="Dupont"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+              disabled={isLoading}
+              className="h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors"
+            />
           </div>
         </div>
-        <CardTitle className="text-xl">Créer un compte</CardTitle>
-        <CardDescription>
-          Inscrivez-vous pour commencer à utiliser Qeylo
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="vous@exemple.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isLoading}
+            className="h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+            Mot de passe
+          </Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Minimum 8 caractères"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+            disabled={isLoading}
+            className="h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors"
+          />
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full h-12 text-sm font-medium tracking-wide"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Création...
+            </>
+          ) : (
+            "Créer un compte"
           )}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">Prénom</Label>
-              <Input
-                id="firstName"
-                type="text"
-                placeholder="Jean"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Nom</Label>
-              <Input
-                id="lastName"
-                type="text"
-                placeholder="Dupont"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="vous@exemple.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Minimum 8 caractères"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              disabled={isLoading}
-            />
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Création en cours..." : "Créer un compte"}
-          </Button>
-          <p className="text-sm text-muted-foreground text-center">
-            Déjà un compte ?{" "}
-            <Link
-              href="/login"
-              className="text-primary underline-offset-4 hover:underline"
-            >
-              Se connecter
-            </Link>
-          </p>
-        </CardFooter>
+        </Button>
       </form>
-    </Card>
+
+      <div className="mt-8 text-center">
+        <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">
+          Déjà un compte ?{" "}
+          <Link
+            href="/login"
+            className="text-foreground font-medium underline underline-offset-4 decoration-primary/40 hover:decoration-primary transition-colors"
+          >
+            Se connecter
+          </Link>
+        </p>
+      </div>
+    </div>
   )
 }

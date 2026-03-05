@@ -50,6 +50,33 @@ def create_note(request):
     )
 
 
+@api_view(["PATCH", "DELETE"])
+@permission_classes([IsAuthenticated])
+def update_or_delete_note(request, pk):
+    try:
+        entry = TimelineEntry.objects.get(
+            pk=pk,
+            organization=request.organization,
+            entry_type=TimelineEntry.EntryType.NOTE_ADDED,
+        )
+    except TimelineEntry.DoesNotExist:
+        return Response(
+            {"detail": "Note introuvable."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if request.method == "DELETE":
+        entry.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # PATCH
+    content = request.data.get("content")
+    if content is not None:
+        entry.content = content
+        entry.save(update_fields=["content"])
+    return Response(TimelineEntrySerializer(entry).data)
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_activity(request):

@@ -70,23 +70,23 @@ export function ConversationSidebar({
   }
 
   return (
-    <div className="flex h-full w-64 flex-col border-l bg-muted/30">
-      <div className="flex items-center justify-between border-b px-4 py-3">
-        <h3 className="text-sm font-semibold">Conversations</h3>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onNew}>
+    <div className="hidden lg:flex h-full w-[260px] shrink-0 flex-col overflow-hidden border-l border-border bg-secondary/20">
+      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <h3 className="text-sm font-medium font-[family-name:var(--font-body)]">Conversations</h3>
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={onNew}>
           <Plus className="h-4 w-4" />
         </Button>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="min-h-0 flex-1 [&>div>div]:!block">
         <div className="flex flex-col gap-0.5 p-2">
           {conversations.map((conv) => (
             <div
               key={conv.id}
-              className={`group flex items-start gap-2 rounded-lg px-3 py-2 text-sm cursor-pointer transition-colors ${
+              className={`group flex items-start gap-2 rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-all duration-150 font-[family-name:var(--font-body)] ${
                 activeConversationId === conv.id
-                  ? "bg-primary/10 text-primary"
-                  : "hover:bg-muted"
+                  ? "bg-primary/8 text-primary"
+                  : "hover:bg-secondary"
               }`}
               onClick={() => {
                 if (editingId !== conv.id && deletingId !== conv.id) {
@@ -94,7 +94,7 @@ export function ConversationSidebar({
                 }
               }}
             >
-              <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 opacity-50" />
+              <MessageSquare className="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-40" />
               <div className="min-w-0 flex-1">
                 {editingId === conv.id ? (
                   <div className="flex items-center gap-1">
@@ -106,67 +106,67 @@ export function ConversationSidebar({
                         if (e.key === "Enter") handleRename(conv.id)
                         if (e.key === "Escape") setEditingId(null)
                       }}
-                      className="w-full rounded border bg-background px-1 py-0.5 text-sm"
+                      className="w-full rounded-md border border-border bg-card px-2 py-0.5 text-xs"
                       autoFocus
                       onClick={(e) => e.stopPropagation()}
                     />
                     <button onClick={(e) => { e.stopPropagation(); handleRename(conv.id) }}>
-                      <Check className="h-3.5 w-3.5 text-green-600" />
+                      <Check className="h-3 w-3 text-primary" />
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); setEditingId(null) }}>
-                      <X className="h-3.5 w-3.5 text-muted-foreground" />
+                      <X className="h-3 w-3 text-muted-foreground" />
                     </button>
                   </div>
                 ) : deletingId === conv.id ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-destructive">Supprimer ?</span>
+                    <span className="text-[11px] text-destructive">Supprimer ?</span>
                     <button onClick={(e) => { e.stopPropagation(); handleDelete(conv.id) }}>
-                      <Check className="h-3.5 w-3.5 text-destructive" />
+                      <Check className="h-3 w-3 text-destructive" />
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); setDeletingId(null) }}>
-                      <X className="h-3.5 w-3.5 text-muted-foreground" />
+                      <X className="h-3 w-3 text-muted-foreground" />
                     </button>
                   </div>
                 ) : (
                   <>
-                    <p className="truncate font-medium">{conv.title}</p>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <p className="min-w-0 flex-1 truncate text-[13px] font-medium">{conv.title}</p>
+                      <div className="hidden shrink-0 gap-0.5 group-hover:flex">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setEditTitle(conv.title)
+                            setEditingId(conv.id)
+                          }}
+                          className="rounded p-0.5 hover:bg-muted-foreground/10"
+                        >
+                          <Pencil className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setDeletingId(conv.id)
+                          }}
+                          className="rounded p-0.5 hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-3 w-3 text-muted-foreground" />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="truncate text-[11px] text-muted-foreground mt-0.5">
                       {conv.last_message_preview || "Nouvelle conversation"}
                     </p>
-                    <p className="text-xs text-muted-foreground/60">
+                    <p className="text-[10px] text-muted-foreground/50 mt-0.5">
                       {formatRelativeDate(conv.updated_at)}
                     </p>
                   </>
                 )}
               </div>
-              {editingId !== conv.id && deletingId !== conv.id && (
-                <div className="hidden shrink-0 gap-0.5 group-hover:flex">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setEditTitle(conv.title)
-                      setEditingId(conv.id)
-                    }}
-                    className="rounded p-1 hover:bg-muted-foreground/10"
-                  >
-                    <Pencil className="h-3 w-3 text-muted-foreground" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setDeletingId(conv.id)
-                    }}
-                    className="rounded p-1 hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-3 w-3 text-muted-foreground" />
-                  </button>
-                </div>
-              )}
             </div>
           ))}
 
           {conversations.length === 0 && (
-            <p className="px-3 py-8 text-center text-xs text-muted-foreground">
+            <p className="px-3 py-10 text-center text-[11px] text-muted-foreground font-[family-name:var(--font-body)]">
               Aucune conversation
             </p>
           )}

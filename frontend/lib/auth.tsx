@@ -15,6 +15,7 @@ interface User {
   email: string
   first_name: string
   last_name: string
+  email_notifications: boolean
 }
 
 interface AuthContextType {

@@ -26,12 +26,12 @@ logger = logging.getLogger(__name__)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def connect_gmail(request):
-    """Redirect the user to Google OAuth consent screen."""
+    """Return the Google OAuth consent URL."""
     org = request.organization
     if not org:
         return Response({"detail": "No organization."}, status=status.HTTP_400_BAD_REQUEST)
     url = get_gmail_auth_url(str(request.user.id), str(org.id))
-    return HttpResponseRedirect(url)
+    return Response({"url": url})
 
 
 @api_view(["GET"])
@@ -58,12 +58,12 @@ def callback_gmail(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def connect_outlook(request):
-    """Redirect the user to Microsoft OAuth consent screen."""
+    """Return the Microsoft OAuth consent URL."""
     org = request.organization
     if not org:
         return Response({"detail": "No organization."}, status=status.HTTP_400_BAD_REQUEST)
     url = get_outlook_auth_url(str(request.user.id), str(org.id))
-    return HttpResponseRedirect(url)
+    return Response({"url": url})
 
 
 @api_view(["GET"])

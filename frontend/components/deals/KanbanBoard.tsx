@@ -1,35 +1,37 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import {
   DndContext,
   DragOverlay,
   DragStartEvent,
   DragEndEvent,
-  DragOverEvent,
   PointerSensor,
   useSensor,
   useSensors,
-  closestCorners,
+  closestCenter,
 } from "@dnd-kit/core"
 import { apiFetch } from "@/lib/api"
 import { KanbanColumn } from "./KanbanColumn"
 import { DealCard } from "./DealCard"
+import { DealDialog } from "./DealDialog"
 import { Loader2 } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
 
 interface Deal {
-  id: number
+  id: string
   name: string
   amount: string | number
-  stage: number
+  stage: string
   stage_name: string
-  contact: number | null
+  contact: string | null
   contact_name?: string
+  probability?: number | null
+  expected_close?: string | null
+  notes?: string
 }
 
 interface Stage {
-  id: number
+  id: string
   name: string
   order: number
   color: string
@@ -41,10 +43,43 @@ interface PipelineStage {
   total_amount: number | string
 }
 
-export function KanbanBoard() {
+interface KanbanBoardProps {
+  dialogOpen?: boolean
+  onDialogOpenChange?: (open: boolean) => void
+}
+
+export function KanbanBoard({ dialogOpen, onDialogOpenChange }: KanbanBoardProps) {
   const [pipeline, setPipeline] = useState<PipelineStage[]>([])
   const [loading, setLoading] = useState(true)
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null)
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null)
+  const [dealDialogOpen, setDealDialogOpen] = useState(false)
+
+  // Sync external dialog control (for the "+ Nouveau deal" button in the page header)
+  useEffect(() => {
+    if (dialogOpen) {
+      setSelectedDeal(null)
+      setDealDialogOpen(true)
+    }
+  }, [dialogOpen])
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDealDialogOpen(open)
+    if (!open) {
+      setSelectedDeal(null)
+      onDialogOpenChange?.(false)
+    }
+  }
+
+  const handleDealClick = (deal: Deal) => {
+    setSelectedDeal(deal)
+    setDealDialogOpen(true)
+  }
+
+  const allStages = useMemo(
+    () => pipeline.map((p) => p.stage),
+    [pipeline]
+  )
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -69,7 +104,7 @@ export function KanbanBoard() {
     fetchPipeline()
   }, [fetchPipeline])
 
-  const findDealById = (dealId: number): Deal | undefined => {
+  const findDealById = (dealId: string): Deal | undefined => {
     for (const stage of pipeline) {
       const deal = stage.deals.find((d) => d.id === dealId)
       if (deal) return deal
@@ -77,7 +112,7 @@ export function KanbanBoard() {
     return undefined
   }
 
-  const findStageByDealId = (dealId: number): number | undefined => {
+  const findStageByDealId = (dealId: string): string | undefined => {
     for (const stage of pipeline) {
       if (stage.deals.some((d) => d.id === dealId)) {
         return stage.stage.id
@@ -88,79 +123,68 @@ export function KanbanBoard() {
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
-    const dealId = parseInt(String(active.id).replace("deal-", ""))
+    const dealId = String(active.id).replace("deal-", "")
     const deal = findDealById(dealId)
     if (deal) setActiveDeal(deal)
   }
 
-  const handleDragOver = (event: DragOverEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
+    setActiveDeal(null)
+
     if (!over) return
 
-    const activeDealId = parseInt(String(active.id).replace("deal-", ""))
-    const activeStageId = findStageByDealId(activeDealId)
+    const dealId = String(active.id).replace("deal-", "")
 
-    let overStageId: number | undefined
-
-    // Check if over a stage droppable
+    let targetStageId: string | undefined
     if (String(over.id).startsWith("stage-")) {
-      overStageId = parseInt(String(over.id).replace("stage-", ""))
+      targetStageId = String(over.id).replace("stage-", "")
     } else if (String(over.id).startsWith("deal-")) {
-      // Over another deal — find which stage it's in
-      const overDealId = parseInt(String(over.id).replace("deal-", ""))
-      overStageId = findStageByDealId(overDealId)
+      const overDealId = String(over.id).replace("deal-", "")
+      targetStageId = findStageByDealId(overDealId)
     }
 
-    if (!activeStageId || !overStageId || activeStageId === overStageId) return
+    if (!targetStageId) return
 
-    // Move the deal between stages in local state
+    const currentStageId = findStageByDealId(dealId)
+    if (!currentStageId || currentStageId === targetStageId) return
+
+    // Optimistic update
     setPipeline((prev) => {
       const newPipeline = prev.map((stage) => ({
         ...stage,
         deals: [...stage.deals],
       }))
 
-      const sourceStage = newPipeline.find((s) => s.stage.id === activeStageId)
-      const targetStage = newPipeline.find((s) => s.stage.id === overStageId)
+      const sourceStage = newPipeline.find((s) => s.stage.id === currentStageId)
+      const targetStage = newPipeline.find((s) => s.stage.id === targetStageId)
       if (!sourceStage || !targetStage) return prev
 
-      const dealIndex = sourceStage.deals.findIndex((d) => d.id === activeDealId)
+      const dealIndex = sourceStage.deals.findIndex((d) => d.id === dealId)
       if (dealIndex === -1) return prev
 
       const [deal] = sourceStage.deals.splice(dealIndex, 1)
-      deal.stage = overStageId!
+      deal.stage = targetStageId!
       deal.stage_name = targetStage.stage.name
       targetStage.deals.push(deal)
 
       return newPipeline
     })
-  }
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active } = event
-    setActiveDeal(null)
-
-    const dealId = parseInt(String(active.id).replace("deal-", ""))
-    const newStageId = findStageByDealId(dealId)
-
-    if (!newStageId) return
-
-    // Persist the change
     try {
       await apiFetch(`/deals/${dealId}/`, {
         method: "PATCH",
-        json: { stage: newStageId },
+        json: { stage: targetStageId },
       })
     } catch (err) {
       console.error("Failed to update deal stage:", err)
-      // Re-fetch to restore correct state
       fetchPipeline()
     }
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16">
+      <div className="flex items-center justify-center py-20">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     )
@@ -168,23 +192,19 @@ export function KanbanBoard() {
 
   if (pipeline.length === 0) {
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-16">
-          <p className="text-muted-foreground text-sm">
-            Aucune &eacute;tape de pipeline configur&eacute;e. Cr&eacute;ez des &eacute;tapes dans
-            les param&egrave;tres.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border border-border bg-card flex flex-col items-center justify-center py-20">
+        <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
+          Aucune étape de pipeline configurée. Créez des étapes dans les paramètres.
+        </p>
+      </div>
     )
   }
 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={closestCenter}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <div className="flex gap-4 overflow-x-auto pb-4 min-h-[400px]">
@@ -194,6 +214,7 @@ export function KanbanBoard() {
             stage={stageData.stage}
             deals={stageData.deals}
             totalAmount={stageData.total_amount}
+            onDealClick={handleDealClick}
           />
         ))}
       </div>
@@ -205,6 +226,14 @@ export function KanbanBoard() {
           </div>
         ) : null}
       </DragOverlay>
+
+      <DealDialog
+        open={dealDialogOpen}
+        onOpenChange={handleDialogOpenChange}
+        deal={selectedDeal}
+        stages={allStages}
+        onSuccess={fetchPipeline}
+      />
     </DndContext>
   )
 }
