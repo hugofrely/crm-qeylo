@@ -69,6 +69,27 @@ class Contact(models.Model):
     interests = models.JSONField(default=list, blank=True)
     birthday = models.DateField(null=True, blank=True)
 
+    # Categories & custom fields
+    categories = models.ManyToManyField(
+        "contacts.ContactCategory",
+        blank=True,
+        related_name="contacts",
+    )
+    custom_fields = models.JSONField(default=dict, blank=True)
+
+    # Address fields
+    city = models.CharField(max_length=100, blank=True, default="")
+    postal_code = models.CharField(max_length=20, blank=True, default="")
+    country = models.CharField(max_length=100, blank=True, default="")
+    state = models.CharField(max_length=100, blank=True, default="")
+
+    # Additional contact fields
+    secondary_email = models.EmailField(blank=True, default="")
+    secondary_phone = models.CharField(max_length=20, blank=True, default="")
+    mobile_phone = models.CharField(max_length=20, blank=True, default="")
+    twitter_url = models.URLField(blank=True, default="")
+    siret = models.CharField(max_length=14, blank=True, default="")
+
     # AI Summary
     ai_summary = models.TextField(blank=True, default="")
     ai_summary_updated_at = models.DateTimeField(null=True, blank=True)
@@ -81,3 +102,62 @@ class Contact(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class ContactCategory(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="contact_categories",
+    )
+    name = models.CharField(max_length=100)
+    color = models.CharField(max_length=7, default="#3b82f6")
+    icon = models.CharField(max_length=50, blank=True, default="")
+    order = models.IntegerField(default=0)
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("organization", "name")
+        ordering = ["order", "name"]
+
+    def __str__(self):
+        return self.name
+
+
+class CustomFieldDefinition(models.Model):
+    class FieldType(models.TextChoices):
+        TEXT = "text", "Texte"
+        LONG_TEXT = "long_text", "Texte long"
+        NUMBER = "number", "Nombre"
+        DATE = "date", "Date"
+        SELECT = "select", "Sélection"
+        EMAIL = "email", "Email"
+        PHONE = "phone", "Téléphone"
+        URL = "url", "URL"
+        CHECKBOX = "checkbox", "Case à cocher"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="custom_field_definitions",
+    )
+    label = models.CharField(max_length=150)
+    field_type = models.CharField(
+        max_length=20,
+        choices=FieldType.choices,
+        default=FieldType.TEXT,
+    )
+    is_required = models.BooleanField(default=False)
+    options = models.JSONField(default=list, blank=True)
+    order = models.IntegerField(default=0)
+    section = models.CharField(max_length=50, default="custom")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["order", "label"]
+
+    def __str__(self):
+        return f"{self.label} ({self.field_type})"
