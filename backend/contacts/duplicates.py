@@ -1,10 +1,16 @@
 from django.contrib.postgres.search import TrigramSimilarity
+from django.db import transaction
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
 
+from rest_framework import status as http_status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from deals.models import Deal
+from notes.models import TimelineEntry
+from tasks.models import Task
 
 from .models import Contact, DuplicateDetectionSettings
 from .serializers import ContactSerializer
@@ -139,3 +145,70 @@ def check_duplicates(request):
             for contact, score, matched_on in duplicates
         ]
     })
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def merge_contacts(request, pk):
+    """Merge a duplicate contact into the primary contact."""
+    org = request.organization
+    try:
+        primary = Contact.objects.get(id=pk, organization=org)
+    except Contact.DoesNotExist:
+        return Response({"detail": "Contact principal introuvable."}, status=http_status.HTTP_404_NOT_FOUND)
+
+    duplicate_id = request.data.get("duplicate_id")
+    try:
+        duplicate = Contact.objects.get(id=duplicate_id, organization=org)
+    except Contact.DoesNotExist:
+        return Response({"detail": "Contact doublon introuvable."}, status=http_status.HTTP_404_NOT_FOUND)
+
+    field_overrides = request.data.get("field_overrides", {})
+
+    with transaction.atomic():
+        # Apply field overrides
+        for field, value in field_overrides.items():
+            if hasattr(primary, field) and field not in ("id", "organization", "created_by", "created_at", "updated_at"):
+                setattr(primary, field, value)
+
+        # Merge tags (union)
+        primary.tags = list(set(primary.tags + duplicate.tags))
+
+        # Merge interests (union)
+        primary.interests = list(set(primary.interests + duplicate.interests))
+
+        # Merge custom_fields (fill gaps)
+        for key, value in duplicate.custom_fields.items():
+            if key not in primary.custom_fields or not primary.custom_fields[key]:
+                primary.custom_fields[key] = value
+
+        primary.save()
+
+        # Transfer categories (union)
+        for cat in duplicate.categories.all():
+            primary.categories.add(cat)
+
+        # Transfer linked data
+        Deal.objects.filter(contact=duplicate).update(contact=primary)
+        Task.objects.filter(contact=duplicate).update(contact=primary)
+        TimelineEntry.objects.filter(contact=duplicate).update(contact=primary)
+
+        # Create merge timeline entry
+        TimelineEntry.objects.create(
+            organization=org,
+            created_by=request.user,
+            contact=primary,
+            entry_type=TimelineEntry.EntryType.CONTACT_MERGED,
+            content=f"Contact fusionné avec {duplicate.first_name} {duplicate.last_name}",
+            metadata={
+                "merged_contact_name": f"{duplicate.first_name} {duplicate.last_name}",
+                "merged_contact_email": duplicate.email,
+            },
+        )
+
+        # Delete duplicate
+        duplicate.delete()
+
+    # Refresh and return
+    primary.refresh_from_db()
+    return Response(ContactSerializer(primary).data)
