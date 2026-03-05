@@ -17,6 +17,16 @@ def timeline_list(request):
         entries = entries.filter(contact_id=contact_id)
     if deal_id:
         entries = entries.filter(deal_id=deal_id)
+    type_filter = request.query_params.get("type")
+    if type_filter == "interactions":
+        entries = entries.filter(entry_type__in=[
+            "call", "email_sent", "email_received", "meeting", "custom",
+        ])
+    elif type_filter == "journal":
+        entries = entries.filter(entry_type__in=[
+            "contact_created", "deal_created", "deal_moved",
+            "note_added", "task_created", "chat_action", "contact_updated",
+        ])
     return Response(TimelineEntrySerializer(entries, many=True).data)
 
 
