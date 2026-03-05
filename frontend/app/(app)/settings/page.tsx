@@ -13,9 +13,12 @@ import {
   ChevronRight,
   Plug,
   X,
+  GitMerge,
 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { apiFetch } from "@/lib/api"
+import { fetchDuplicateSettings, updateDuplicateSettings } from "@/services/contacts"
+import type { DuplicateDetectionSettings } from "@/types"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -35,10 +38,15 @@ export default function SettingsPage() {
   }
 
   const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([])
+  const [dupSettings, setDupSettings] = useState<DuplicateDetectionSettings | null>(null)
   const searchParams = useSearchParams()
 
   useEffect(() => {
     apiFetch<EmailAccount[]>("/email/accounts/").then(setEmailAccounts).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetchDuplicateSettings().then(setDupSettings).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -57,6 +65,19 @@ export default function SettingsPage() {
     await apiFetch(`/email/accounts/${id}/`, { method: "DELETE" })
     setEmailAccounts((prev) => prev.filter((a) => a.id !== id))
     toast.success("Compte déconnecté")
+  }
+
+  const handleDupSettingChange = async (field: string, value: boolean | number) => {
+    if (!dupSettings) return
+    const updated = { ...dupSettings, [field]: value }
+    setDupSettings(updated)
+    try {
+      await updateDuplicateSettings({ [field]: value })
+    } catch {
+      toast.error("Erreur lors de la mise à jour")
+      // Revert
+      fetchDuplicateSettings().then(setDupSettings).catch(() => {})
+    }
   }
 
   return (
@@ -213,6 +234,98 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Duplicate detection settings */}
+      {dupSettings && (
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="px-6 py-5 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary/8 text-primary">
+                <GitMerge className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-xl tracking-tight">Détection de doublons</h2>
+                <p className="text-xs text-muted-foreground mt-1 font-[family-name:var(--font-body)]">
+                  Configurer la détection automatique de contacts en double
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="p-6 space-y-4 font-[family-name:var(--font-body)]">
+            {/* Global toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Détection activée</p>
+                <p className="text-xs text-muted-foreground">
+                  Vérifier les doublons avant chaque création de contact
+                </p>
+              </div>
+              <Checkbox
+                checked={dupSettings.enabled}
+                onCheckedChange={(checked) => handleDupSettingChange("enabled", !!checked)}
+              />
+            </div>
+
+            {dupSettings.enabled && (
+              <>
+                <div className="h-px bg-border" />
+
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">
+                    Critères de correspondance
+                  </p>
+                  <div className="space-y-3">
+                    {[
+                      { key: "match_email", label: "Email", desc: "Correspondance exacte de l'adresse email" },
+                      { key: "match_name", label: "Nom et prénom", desc: "Correspondance approximative (tolère les fautes)" },
+                      { key: "match_phone", label: "Téléphone", desc: "Correspondance exacte du numéro" },
+                      { key: "match_siret", label: "SIRET", desc: "Correspondance exacte du numéro SIRET" },
+                      { key: "match_company", label: "Entreprise", desc: "Correspondance approximative du nom" },
+                    ].map(({ key, label, desc }) => (
+                      <div key={key} className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm">{label}</p>
+                          <p className="text-xs text-muted-foreground">{desc}</p>
+                        </div>
+                        <Checkbox
+                          checked={dupSettings[key as keyof DuplicateDetectionSettings] as boolean}
+                          onCheckedChange={(checked) => handleDupSettingChange(key, !!checked)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="h-px bg-border" />
+
+                {/* Similarity threshold */}
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
+                    Seuil de similarité
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Plus le seuil est bas, plus la détection est sensible (plus de faux positifs)
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="0.4"
+                      max="0.9"
+                      step="0.1"
+                      value={dupSettings.similarity_threshold}
+                      onChange={(e) => handleDupSettingChange("similarity_threshold", parseFloat(e.target.value))}
+                      className="flex-1 h-2 rounded-full appearance-none bg-secondary cursor-pointer accent-primary"
+                    />
+                    <span className="text-sm font-medium w-10 text-right">
+                      {dupSettings.similarity_threshold.toFixed(1)}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Organization settings link */}
       <Link href="/settings/organization" className="block">
