@@ -739,6 +739,171 @@ def search_all(ctx: RunContext[ChatDeps], query: str) -> dict:
     }
 
 
+# ---------------------------------------------------------------------------
+# Workflows
+# ---------------------------------------------------------------------------
+
+def create_workflow(
+    ctx: RunContext[ChatDeps],
+    name: str,
+    trigger_type: str,
+    trigger_filters: Optional[dict] = None,
+    conditions: Optional[list] = None,
+    actions: Optional[list] = None,
+) -> dict:
+    """Create an automated workflow. trigger_type can be: deal.stage_changed, deal.created, deal.won, deal.lost, contact.created, contact.updated, contact.lead_score_changed, task.created, task.completed, task.overdue, email.sent, note.added.
+
+    trigger_filters: optional dict to filter the trigger (e.g. {"new_stage_name": "Négociation"}).
+    conditions: optional list of conditions (e.g. [{"field": "deal.amount", "operator": "greater_than", "value": 5000}]).
+    actions: required list of actions (e.g. [{"type": "create_task", "description": "Follow up", "due_date_offset": "+3d", "priority": "high"}]).
+    Action types: create_task, send_notification, create_note, move_deal, update_contact, send_email, webhook.
+    """
+    from workflows.models import Workflow, WorkflowNode, WorkflowEdge
+
+    org_id = ctx.deps.organization_id
+    if not actions:
+        return {"action": "error", "message": "At least one action is required."}
+
+    workflow = Workflow.objects.create(
+        organization_id=org_id,
+        created_by_id=ctx.deps.user_id,
+        name=name,
+        is_active=True,
+    )
+
+    # Create trigger node
+    y = 50
+    trigger_node = WorkflowNode.objects.create(
+        workflow=workflow,
+        node_type="trigger",
+        node_subtype=trigger_type,
+        config={"filters": trigger_filters or {}},
+        position_x=250,
+        position_y=y,
+    )
+
+    prev_node = trigger_node
+
+    # Create condition nodes if any
+    if conditions:
+        for cond in conditions:
+            y += 150
+            cond_node = WorkflowNode.objects.create(
+                workflow=workflow,
+                node_type="condition",
+                node_subtype="condition",
+                config=cond,
+                position_x=250,
+                position_y=y,
+            )
+            WorkflowEdge.objects.create(
+                workflow=workflow,
+                source_node=prev_node,
+                target_node=cond_node,
+                source_handle="yes" if prev_node.node_type == "condition" else "",
+            )
+            prev_node = cond_node
+
+    # Create action nodes
+    for act in actions:
+        y += 150
+        action_node = WorkflowNode.objects.create(
+            workflow=workflow,
+            node_type="action",
+            node_subtype=act.get("type", "create_task"),
+            config={k: v for k, v in act.items() if k != "type"},
+            position_x=250,
+            position_y=y,
+        )
+        WorkflowEdge.objects.create(
+            workflow=workflow,
+            source_node=prev_node,
+            target_node=action_node,
+            source_handle="yes" if prev_node.node_type == "condition" else "",
+        )
+        prev_node = action_node
+
+    return {
+        "action": "workflow_created",
+        "id": str(workflow.id),
+        "name": name,
+        "trigger": trigger_type,
+        "action_count": len(actions),
+        "is_active": True,
+    }
+
+
+def list_workflows(ctx: RunContext[ChatDeps]) -> dict:
+    """List all workflows for the current organization with their status."""
+    from workflows.models import Workflow
+
+    org_id = ctx.deps.organization_id
+    workflows = Workflow.objects.filter(organization_id=org_id)
+    results = [
+        {
+            "id": str(w.id),
+            "name": w.name,
+            "is_active": w.is_active,
+            "description": w.description,
+            "execution_count": w.executions.count(),
+        }
+        for w in workflows[:20]
+    ]
+    return {"action": "list_workflows", "count": len(results), "workflows": results}
+
+
+def toggle_workflow(ctx: RunContext[ChatDeps], workflow_id: str, active: bool) -> dict:
+    """Activate or deactivate a workflow."""
+    from workflows.models import Workflow
+
+    org_id = ctx.deps.organization_id
+    try:
+        workflow = Workflow.objects.get(id=workflow_id, organization_id=org_id)
+    except Workflow.DoesNotExist:
+        return {"action": "error", "message": f"Workflow {workflow_id} not found."}
+
+    workflow.is_active = active
+    workflow.save(update_fields=["is_active"])
+    status_text = "activé" if active else "désactivé"
+    return {
+        "action": "workflow_toggled",
+        "id": str(workflow.id),
+        "name": workflow.name,
+        "is_active": active,
+        "message": f"Workflow '{workflow.name}' {status_text}.",
+    }
+
+
+def get_workflow_executions(ctx: RunContext[ChatDeps], workflow_id: str, limit: int = 5) -> dict:
+    """Get recent executions of a workflow to see its history."""
+    from workflows.models import Workflow, WorkflowExecution
+
+    org_id = ctx.deps.organization_id
+    try:
+        workflow = Workflow.objects.get(id=workflow_id, organization_id=org_id)
+    except Workflow.DoesNotExist:
+        return {"action": "error", "message": f"Workflow {workflow_id} not found."}
+
+    executions = WorkflowExecution.objects.filter(workflow=workflow)[:limit]
+    results = [
+        {
+            "id": str(e.id),
+            "status": e.status,
+            "trigger_event": e.trigger_event,
+            "started_at": str(e.started_at),
+            "completed_at": str(e.completed_at) if e.completed_at else None,
+            "error": e.error if e.error else None,
+        }
+        for e in executions
+    ]
+    return {
+        "action": "workflow_executions",
+        "workflow": workflow.name,
+        "count": len(results),
+        "executions": results,
+    }
+
+
 # All tools to register on the agent
 ALL_TOOLS = [
     create_contact,
@@ -755,4 +920,9 @@ ALL_TOOLS = [
     send_contact_email,
     get_dashboard_summary,
     search_all,
+    # Workflows
+    create_workflow,
+    list_workflows,
+    toggle_workflow,
+    get_workflow_executions,
 ]

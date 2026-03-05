@@ -12,6 +12,7 @@ import {
   Kanban,
   CheckSquare,
   BarChart3,
+  Workflow,
   Settings,
   LogOut,
   Menu,
@@ -23,6 +24,7 @@ const navigation = [
   { name: "Contacts", href: "/contacts", icon: Users },
   { name: "Pipeline", href: "/deals", icon: Kanban },
   { name: "Tâches", href: "/tasks", icon: CheckSquare },
+  { name: "Workflows", href: "/workflows", icon: Workflow },
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
 ]
 
