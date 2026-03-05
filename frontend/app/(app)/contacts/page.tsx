@@ -5,6 +5,8 @@ import { apiFetch } from "@/lib/api"
 import { fetchContactCategories, checkDuplicates } from "@/services/contacts"
 import { DuplicateDetectionDialog } from "@/components/contacts/DuplicateDetectionDialog"
 import type { DuplicateMatch } from "@/types"
+import { SegmentSelector } from "@/components/segments/SegmentSelector"
+import { fetchSegmentContacts } from "@/services/segments"
 import { ContactTable } from "@/components/contacts/ContactTable"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -54,6 +56,7 @@ export default function ContactsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [duplicates, setDuplicates] = useState<DuplicateMatch[]>([])
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
+  const [selectedSegment, setSelectedSegment] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -73,7 +76,11 @@ export default function ContactsPage() {
   const fetchContacts = useCallback(async () => {
     setLoading(true)
     try {
-      if (search.trim()) {
+      if (selectedSegment) {
+        const data = await fetchSegmentContacts(selectedSegment, page)
+        setContacts(data.results)
+        setTotalCount(data.count)
+      } else if (search.trim()) {
         const results = await apiFetch<Contact[]>(
           `/contacts/search/?q=${encodeURIComponent(search.trim())}`
         )
@@ -92,7 +99,7 @@ export default function ContactsPage() {
     } finally {
       setLoading(false)
     }
-  }, [search, page, selectedCategory])
+  }, [search, page, selectedCategory, selectedSegment])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -108,6 +115,10 @@ export default function ContactsPage() {
   useEffect(() => {
     setPage(1)
   }, [selectedCategory])
+
+  useEffect(() => {
+    setPage(1)
+  }, [selectedSegment])
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -332,11 +343,23 @@ export default function ContactsPage() {
         />
       </div>
 
+      {/* Segment selector */}
+      <div className="flex items-center gap-3">
+        <SegmentSelector
+          selectedSegmentId={selectedSegment}
+          onSelect={(id) => {
+            setSelectedSegment(id)
+            setSelectedCategory(null)
+            setSearch("")
+          }}
+        />
+      </div>
+
       {/* Category tabs */}
       {categories.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-2">
           <button
-            onClick={() => setSelectedCategory(null)}
+            onClick={() => { setSelectedCategory(null); setSelectedSegment(null) }}
             className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
               selectedCategory === null
                 ? "bg-primary text-primary-foreground"
@@ -348,7 +371,7 @@ export default function ContactsPage() {
           {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => { setSelectedCategory(cat.id); setSelectedSegment(null) }}
               className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 font-[family-name:var(--font-body)] ${
                 selectedCategory === cat.id
                   ? "bg-primary text-primary-foreground"
