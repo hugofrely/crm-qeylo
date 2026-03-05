@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "contacts",
     "segments",
     "deals",
+    "products",
     "tasks",
     "notes",
     "chat",
