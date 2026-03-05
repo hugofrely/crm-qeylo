@@ -35,3 +35,52 @@ export interface PipelineStage {
   deals: Deal[]
   total_amount: number | string
 }
+
+export interface QuoteLine {
+  id?: string
+  product?: string | null
+  product_name?: string | null
+  description: string
+  quantity: string | number
+  unit_price: string | number
+  unit: "unit" | "hour" | "day" | "fixed"
+  tax_rate: string | number
+  discount_percent: string | number
+  discount_amount: string | number
+  order: number
+  line_subtotal?: string
+  line_discount?: string
+  line_ht?: string
+  line_tax?: string
+  line_ttc?: string
+}
+
+export interface Quote {
+  id: string
+  deal: string
+  number: string
+  status: "draft" | "sent" | "accepted" | "refused"
+  global_discount_percent: string | number
+  global_discount_amount: string | number
+  notes: string
+  valid_until: string | null
+  lines: QuoteLine[]
+  subtotal_ht?: string
+  total_discount?: string
+  total_ht?: string
+  total_tax?: string
+  total_ttc?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface QuoteListItem {
+  id: string
+  deal: string
+  number: string
+  status: "draft" | "sent" | "accepted" | "refused"
+  total_ttc: string
+  line_count: number
+  valid_until: string | null
+  created_at: string
+}
