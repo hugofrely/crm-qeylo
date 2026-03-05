@@ -49,7 +49,7 @@ interface DuplicateDetectionDialogProps {
   onCancel: () => void
 }
 
-export default function DuplicateDetectionDialog({
+export function DuplicateDetectionDialog({
   open,
   onOpenChange,
   duplicates,
@@ -64,7 +64,7 @@ export default function DuplicateDetectionDialog({
 
   const differingFields = useMemo(() => {
     if (!selectedDuplicate) return []
-    const existing = selectedDuplicate.contact as Record<string, unknown>
+    const existing = selectedDuplicate.contact as unknown as Record<string, unknown>
     return MERGE_FIELDS.filter(({ key }) => {
       const existingVal = existing[key]
       const newVal = newContactData[key]
@@ -80,7 +80,7 @@ export default function DuplicateDetectionDialog({
   >({})
 
   const initializeSelectedValues = (duplicate: DuplicateMatch) => {
-    const existing = duplicate.contact as Record<string, unknown>
+    const existing = duplicate.contact as unknown as Record<string, unknown>
     const initial: Record<string, "existing" | "new"> = {}
     MERGE_FIELDS.forEach(({ key }) => {
       const existingVal = existing[key]
@@ -194,7 +194,7 @@ export default function DuplicateDetectionDialog({
                         {contact.email && (
                           <span
                             className={
-                              duplicate.matched_fields?.includes("email")
+                              duplicate.matched_on?.includes("email")
                                 ? "rounded bg-yellow-500/10 px-1"
                                 : ""
                             }
@@ -205,7 +205,7 @@ export default function DuplicateDetectionDialog({
                         {contact.company && (
                           <span
                             className={
-                              duplicate.matched_fields?.includes("company")
+                              duplicate.matched_on?.includes("company")
                                 ? "rounded bg-yellow-500/10 px-1"
                                 : ""
                             }
@@ -216,7 +216,7 @@ export default function DuplicateDetectionDialog({
                         {contact.phone && (
                           <span
                             className={
-                              duplicate.matched_fields?.includes("phone")
+                              duplicate.matched_on?.includes("phone")
                                 ? "rounded bg-yellow-500/10 px-1"
                                 : ""
                             }
@@ -266,7 +266,7 @@ export default function DuplicateDetectionDialog({
               <div className="divide-y divide-border/60">
                 {differingFields.map(({ key, label }) => {
                   const existingVal = (
-                    selectedDuplicate.contact as Record<string, unknown>
+                    selectedDuplicate.contact as unknown as Record<string, unknown>
                   )[key]
                   const newVal = newContactData[key]
                   return (
