@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from "react"
 import type { Task, TaskFilters } from "@/types"
 import { fetchTasks } from "@/services/tasks"
+import { useOrganization } from "@/lib/organization"
 
 export function useTasks(filters: TaskFilters = {}) {
+  const { orgVersion } = useOrganization()
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [totalCount, setTotalCount] = useState(0)
@@ -24,7 +26,7 @@ export function useTasks(filters: TaskFilters = {}) {
     } finally {
       setLoading(false)
     }
-  }, [JSON.stringify(filters)])
+  }, [JSON.stringify(filters), orgVersion])
 
   useEffect(() => { refresh() }, [refresh])
 

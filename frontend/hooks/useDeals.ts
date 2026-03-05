@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from "react"
 import type { PipelineStage, Stage } from "@/types"
 import { fetchPipeline, fetchPipelineStages } from "@/services/deals"
+import { useOrganization } from "@/lib/organization"
 
 export function usePipeline() {
+  const { orgVersion } = useOrganization()
   const [pipeline, setPipeline] = useState<PipelineStage[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -18,7 +20,7 @@ export function usePipeline() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [orgVersion])
 
   useEffect(() => { refresh() }, [refresh])
 
@@ -26,6 +28,7 @@ export function usePipeline() {
 }
 
 export function usePipelineStages() {
+  const { orgVersion } = useOrganization()
   const [stages, setStages] = useState<Stage[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -39,7 +42,7 @@ export function usePipelineStages() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [orgVersion])
 
   useEffect(() => { refresh() }, [refresh])
 

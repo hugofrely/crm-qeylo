@@ -3,10 +3,12 @@
 import { useState, useEffect, useCallback } from "react"
 import type { Notification } from "@/types"
 import { fetchNotifications, fetchUnreadCount, markAsRead, markAllAsRead } from "@/services/notifications"
+import { useOrganization } from "@/lib/organization"
 
 const POLL_INTERVAL = 30_000
 
 export function useNotifications() {
+  const { orgVersion } = useOrganization()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -18,7 +20,7 @@ export function useNotifications() {
     } catch {
       // silently fail
     }
-  }, [])
+  }, [orgVersion])
 
   const loadNotifications = useCallback(async () => {
     setLoading(true)
@@ -30,7 +32,7 @@ export function useNotifications() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [orgVersion])
 
   const markRead = useCallback(async (id: number) => {
     await markAsRead([id])

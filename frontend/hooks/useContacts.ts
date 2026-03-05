@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import type { Contact, ContactCategory, CustomFieldDefinition } from "@/types"
 import { fetchContact, fetchContactCategories, fetchCustomFieldDefinitions } from "@/services/contacts"
+import { useOrganization } from "@/lib/organization"
 
 export function useContact(id: string) {
   const [contact, setContact] = useState<Contact | null>(null)
@@ -28,6 +29,7 @@ export function useContact(id: string) {
 }
 
 export function useContactCategories() {
+  const { orgVersion } = useOrganization()
   const [categories, setCategories] = useState<ContactCategory[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -41,7 +43,7 @@ export function useContactCategories() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [orgVersion])
 
   useEffect(() => { refresh() }, [refresh])
 
@@ -49,6 +51,7 @@ export function useContactCategories() {
 }
 
 export function useCustomFieldDefinitions() {
+  const { orgVersion } = useOrganization()
   const [definitions, setDefinitions] = useState<CustomFieldDefinition[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -62,7 +65,7 @@ export function useCustomFieldDefinitions() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [orgVersion])
 
   useEffect(() => { refresh() }, [refresh])
 
