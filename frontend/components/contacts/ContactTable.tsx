@@ -11,6 +11,12 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 
+interface ContactCategory {
+  id: string
+  name: string
+  color: string
+}
+
 interface Contact {
   id: number
   first_name: string
@@ -25,6 +31,7 @@ interface Contact {
   updated_at: string
   job_title?: string
   lead_score?: string
+  categories?: ContactCategory[]
 }
 
 interface ContactTableProps {
@@ -94,6 +101,27 @@ export function ContactTable({ contacts }: ContactTableProps) {
                   <p className="text-xs text-muted-foreground mt-0.5 font-[family-name:var(--font-body)]">
                     {contact.job_title}
                   </p>
+                )}
+                {contact.categories && contact.categories.length > 0 && (
+                  <div className="flex items-center gap-1 mt-1">
+                    {contact.categories.slice(0, 3).map((cat) => (
+                      <span
+                        key={cat.id}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium"
+                        style={{
+                          backgroundColor: cat.color + "20",
+                          color: cat.color,
+                        }}
+                      >
+                        {cat.name}
+                      </span>
+                    ))}
+                    {contact.categories.length > 3 && (
+                      <span className="text-[10px] text-muted-foreground">
+                        +{contact.categories.length - 3}
+                      </span>
+                    )}
+                  </div>
                 )}
                 {contact.tags && contact.tags.length > 0 && (
                   <div className="flex gap-1 mt-1.5">
