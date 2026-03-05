@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { apiFetch } from "@/lib/api"
+import { fetchOrganizations, fetchMembers as fetchMembersApi, inviteMember, removeMember } from "@/services/organizations"
+import { fetchContactCategories, createContactCategory, updateContactCategory, deleteContactCategory, fetchCustomFieldDefinitions, createCustomFieldDefinition, updateCustomFieldDefinition, deleteCustomFieldDefinition } from "@/services/contacts"
 import { useAuth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,51 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Building2, UserPlus, Trash2, Loader2, Plus, Pencil } from "lucide-react"
-
-interface Member {
-  user_id: string
-  email: string
-  first_name: string
-  last_name: string
-  role: string
-  joined_at: string
-}
-
-interface PendingInvitation {
-  id: string
-  email: string
-  role: string
-  status: string
-  created_at: string
-  expires_at: string
-}
-
-interface MembersResponse {
-  members: Member[]
-  invitations: PendingInvitation[]
-}
-
-interface ContactCategory {
-  id: string
-  name: string
-  color: string
-  icon: string
-  order: number
-  is_default: boolean
-  contact_count: number
-  created_at: string
-}
-
-interface CustomFieldDefinition {
-  id: string
-  label: string
-  field_type: string
-  is_required: boolean
-  options: string[]
-  order: number
-  section: string
-  created_at: string
-}
+import type { MembersResponse, ContactCategory, CustomFieldDefinition } from "@/types"
 
 const FIELD_TYPE_LABELS: Record<string, string> = {
   text: "Texte",
@@ -106,7 +63,7 @@ export default function OrganizationSettingsPage() {
   useEffect(() => {
     async function fetchOrg() {
       try {
-        const orgs = await apiFetch<{ id: string; name: string }[]>("/organizations/")
+        const orgs = await fetchOrganizations()
         if (orgs.length > 0) setOrgId(orgs[0].id)
       } catch {
         // silently fail
@@ -119,7 +76,7 @@ export default function OrganizationSettingsPage() {
     if (!orgId) return
     setLoading(true)
     try {
-      const res = await apiFetch<MembersResponse>(`/organizations/${orgId}/members/`)
+      const res = await fetchMembersApi(orgId)
       setData(res)
     } catch {
       // silently fail
@@ -136,7 +93,7 @@ export default function OrganizationSettingsPage() {
   const fetchCategories = useCallback(async () => {
     setCategoriesLoading(true)
     try {
-      const res = await apiFetch<ContactCategory[]>("/contacts/categories/")
+      const res = await fetchContactCategories()
       setCategories(res)
     } catch {
       // silently fail
@@ -153,7 +110,7 @@ export default function OrganizationSettingsPage() {
   const fetchCustomFields = useCallback(async () => {
     setCustomFieldsLoading(true)
     try {
-      const res = await apiFetch<CustomFieldDefinition[]>("/contacts/custom-fields/")
+      const res = await fetchCustomFieldDefinitions()
       setCustomFields(res)
     } catch {
       // silently fail
@@ -171,10 +128,7 @@ export default function OrganizationSettingsPage() {
     if (!orgId) return
     setInviting(true)
     try {
-      await apiFetch(`/organizations/${orgId}/invite/`, {
-        method: "POST",
-        json: { email: inviteEmail, role: inviteRole },
-      })
+      await inviteMember(orgId, { email: inviteEmail, role: inviteRole })
       setInviteEmail("")
       setDialogOpen(false)
       fetchMembers()
@@ -189,9 +143,7 @@ export default function OrganizationSettingsPage() {
     if (!orgId) return
     if (!confirm("Retirer ce membre de l'organisation ?")) return
     try {
-      await apiFetch(`/organizations/${orgId}/members/${userId}/remove/`, {
-        method: "DELETE",
-      })
+      await removeMember(orgId, userId)
       fetchMembers()
     } catch (err) {
       console.error("Failed to remove:", err)
@@ -217,15 +169,9 @@ export default function OrganizationSettingsPage() {
     setSavingCategory(true)
     try {
       if (editingCategory) {
-        await apiFetch(`/contacts/categories/${editingCategory.id}/`, {
-          method: "PATCH",
-          json: { name: categoryName, color: categoryColor },
-        })
+        await updateContactCategory(editingCategory.id, { name: categoryName, color: categoryColor })
       } else {
-        await apiFetch("/contacts/categories/", {
-          method: "POST",
-          json: { name: categoryName, color: categoryColor },
-        })
+        await createContactCategory({ name: categoryName, color: categoryColor })
       }
       setCategoryDialogOpen(false)
       fetchCategories()
@@ -240,9 +186,7 @@ export default function OrganizationSettingsPage() {
     if (category.is_default) return
     if (!confirm(`Supprimer la catégorie "${category.name}" ?`)) return
     try {
-      await apiFetch(`/contacts/categories/${category.id}/`, {
-        method: "DELETE",
-      })
+      await deleteContactCategory(category.id)
       fetchCategories()
     } catch (err) {
       console.error("Failed to delete category:", err)
@@ -283,15 +227,9 @@ export default function OrganizationSettingsPage() {
           .filter(Boolean)
       }
       if (editingField) {
-        await apiFetch(`/contacts/custom-fields/${editingField.id}/`, {
-          method: "PATCH",
-          json: payload,
-        })
+        await updateCustomFieldDefinition(editingField.id, payload)
       } else {
-        await apiFetch("/contacts/custom-fields/", {
-          method: "POST",
-          json: payload,
-        })
+        await createCustomFieldDefinition(payload)
       }
       setFieldDialogOpen(false)
       fetchCustomFields()
@@ -305,9 +243,7 @@ export default function OrganizationSettingsPage() {
   const handleDeleteField = async (field: CustomFieldDefinition) => {
     if (!confirm(`Supprimer le champ "${field.label}" ?`)) return
     try {
-      await apiFetch(`/contacts/custom-fields/${field.id}/`, {
-        method: "DELETE",
-      })
+      await deleteCustomFieldDefinition(field.id)
       fetchCustomFields()
     } catch (err) {
       console.error("Failed to delete custom field:", err)

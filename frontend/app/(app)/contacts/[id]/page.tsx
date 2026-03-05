@@ -3,7 +3,11 @@
 import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { apiFetch } from "@/lib/api"
+import { fetchContact as fetchContactApi, updateContact, deleteContact as deleteContactApi, fetchContactCategories, fetchCustomFieldDefinitions, checkEmailAccount, fetchContactTimeline, fetchContactTasks, fetchContactDeals } from "@/services/contacts"
+import { fetchPipelineStages } from "@/services/deals"
+import { createActivity } from "@/services/activities"
+import { updateTask as updateTaskApi } from "@/services/tasks"
+import type { Contact, ContactCategory, CustomFieldDefinition, TimelineEntry, Task, Deal, Stage } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -56,114 +60,6 @@ import { ComposeEmailDialog } from "@/components/emails/ComposeEmailDialog"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
 import { apiUploadImage } from "@/lib/api"
 import { MarkdownContent } from "@/components/chat/MarkdownContent"
-
-/* ──────────────────────────────────────────────────────────────
-   INTERFACES
-   ────────────────────────────────────────────────────────────── */
-
-interface Contact {
-  id: string
-  first_name: string
-  last_name: string
-  email: string
-  phone: string
-  company: string
-  source: string
-  tags: string[]
-  notes: string
-  // Profile
-  job_title: string
-  linkedin_url: string
-  website: string
-  address: string
-  industry: string
-  // Qualification
-  lead_score: string
-  estimated_budget: string | null
-  identified_needs: string
-  decision_role: string
-  // Preferences
-  preferred_channel: string
-  timezone: string
-  language: string
-  interests: string[]
-  birthday: string | null
-  // Categories & custom fields
-  categories: ContactCategory[]
-  custom_fields: Record<string, unknown>
-  // Address fields
-  city: string
-  postal_code: string
-  country: string
-  state: string
-  // Additional contact fields
-  secondary_email: string
-  secondary_phone: string
-  mobile_phone: string
-  twitter_url: string
-  siret: string
-  // AI Summary
-  ai_summary: string
-  ai_summary_updated_at: string | null
-  // Timestamps
-  created_at: string
-  updated_at: string
-}
-
-interface ContactCategory {
-  id: string
-  name: string
-  color: string
-  icon: string
-  order: number
-  is_default: boolean
-}
-
-interface CustomFieldDefinition {
-  id: string
-  label: string
-  field_type: string
-  is_required: boolean
-  options: string[]
-  order: number
-  section: string
-}
-
-interface TimelineEntry {
-  id: number
-  contact: number
-  deal: number | null
-  entry_type: string
-  subject: string | null
-  content: string
-  metadata: Record<string, unknown>
-  created_at: string
-}
-
-interface Task {
-  id: string
-  description: string
-  is_done: boolean
-  priority: string
-  due_date: string | null
-  contact_name: string
-  contact: string
-}
-
-interface Deal {
-  id: string
-  name: string
-  amount: string
-  stage: string
-  created_at: string
-}
-
-interface PipelineStage {
-  id: string
-  name: string
-  order: number
-  color: string
-}
 
 /* ──────────────────────────────────────────────────────────────
    HELPERS
@@ -483,7 +379,7 @@ export default function ContactDetailPage() {
   const [emails, setEmails] = useState<TimelineEntry[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [deals, setDeals] = useState<Deal[]>([])
-  const [stages, setStages] = useState<PipelineStage[]>([])
+  const [stages, setStages] = useState<Stage[]>([])
   const [history, setHistory] = useState<TimelineEntry[]>([])
 
   // Dialogs
@@ -500,7 +396,7 @@ export default function ContactDetailPage() {
   /* ── Fetch contact ── */
   const fetchContact = useCallback(async () => {
     try {
-      const data = await apiFetch<Contact>(`/contacts/${id}/`)
+      const data = await fetchContactApi(id)
       setContact(data)
     } catch (err) {
       console.error("Failed to fetch contact:", err)
@@ -509,16 +405,16 @@ export default function ContactDetailPage() {
 
   /* ── Fetch categories + custom field defs (once) ── */
   useEffect(() => {
-    apiFetch<ContactCategory[]>("/contacts/categories/")
+    fetchContactCategories()
       .then(setAvailableCategories)
       .catch(() => {})
-    apiFetch<CustomFieldDefinition[]>("/contacts/custom-fields/")
+    fetchCustomFieldDefinitions()
       .then(setCustomFieldDefs)
       .catch(() => {})
-    apiFetch<{ id: string }[]>("/email/accounts/")
-      .then((data) => setHasEmailAccount(data.length > 0))
+    checkEmailAccount()
+      .then(setHasEmailAccount)
       .catch(() => {})
-    apiFetch<PipelineStage[]>("/pipeline-stages/")
+    fetchPipelineStages()
       .then(setStages)
       .catch(() => {})
   }, [])
@@ -533,41 +429,38 @@ export default function ContactDetailPage() {
     if (!contact) return
     switch (activeTab) {
       case "activities":
-        apiFetch<TimelineEntry[] | { results: TimelineEntry[] }>(`/timeline/?contact=${id}&type=interactions`)
-          .then(data => setActivities(Array.isArray(data) ? data : data.results || []))
+        fetchContactTimeline(id, "interactions")
+          .then(data => setActivities(data))
           .catch(() => {})
         break
       case "notes":
-        apiFetch<TimelineEntry[] | { results: TimelineEntry[] }>(`/timeline/?contact=${id}&type=journal`)
+        fetchContactTimeline(id, "journal")
           .then(data => {
-            const all = Array.isArray(data) ? data : data.results || []
-            setNotes(all.filter(e => e.entry_type === "note_added"))
+            setNotes(data.filter(e => e.entry_type === "note_added"))
           })
           .catch(() => {})
         break
       case "emails":
-        apiFetch<TimelineEntry[] | { results: TimelineEntry[] }>(`/timeline/?contact=${id}&type=interactions`)
+        fetchContactTimeline(id, "interactions")
           .then(data => {
-            const all = Array.isArray(data) ? data : data.results || []
-            setEmails(all.filter(e => e.entry_type === "email_sent" || e.entry_type === "email_received"))
+            setEmails(data.filter(e => e.entry_type === "email_sent" || e.entry_type === "email_received"))
           })
           .catch(() => {})
         break
       case "tasks":
-        apiFetch<Task[] | { results: Task[] }>(`/tasks/?contact=${id}`)
-          .then(data => setTasks(Array.isArray(data) ? data : data.results || []))
+        fetchContactTasks(id)
+          .then(data => setTasks(data))
           .catch(() => {})
         break
       case "deals":
-        apiFetch<Deal[] | { results: Deal[] }>(`/deals/?contact=${id}`)
-          .then(data => setDeals(Array.isArray(data) ? data : data.results || []))
+        fetchContactDeals(id)
+          .then(data => setDeals(data))
           .catch(() => {})
         break
       case "history":
-        apiFetch<TimelineEntry[] | { results: TimelineEntry[] }>(`/timeline/?contact=${id}&type=journal`)
+        fetchContactTimeline(id, "journal")
           .then(data => {
-            const all = Array.isArray(data) ? data : data.results || []
-            setHistory(all.filter(e => e.entry_type === "contact_updated" || e.entry_type === "contact_created"))
+            setHistory(data.filter(e => e.entry_type === "contact_updated" || e.entry_type === "contact_created"))
           })
           .catch(() => {})
         break
@@ -586,10 +479,7 @@ export default function ContactDetailPage() {
       ? currentIds.filter((cid) => cid !== categoryId)
       : [...currentIds, categoryId]
     try {
-      await apiFetch(`/contacts/${contact.id}/`, {
-        method: "PATCH",
-        json: { category_ids: newIds },
-      })
+      await updateContact(contact.id, { category_ids: newIds })
       fetchContact()
     } catch (err) {
       console.error("Failed to toggle category:", err)
@@ -602,13 +492,10 @@ export default function ContactDetailPage() {
     setSaving(true)
     try {
       const { categories, ...rest } = editForm
-      await apiFetch(`/contacts/${contact.id}/`, {
-        method: "PATCH",
-        json: {
-          ...rest,
-          birthday: (rest.birthday as string) || null,
-          estimated_budget: (rest.estimated_budget as string) || null,
-        },
+      await updateContact(contact.id, {
+        ...rest,
+        birthday: (rest.birthday as string) || null,
+        estimated_budget: (rest.estimated_budget as string) || null,
       })
       setEditing(false)
       fetchContact()
@@ -623,7 +510,7 @@ export default function ContactDetailPage() {
   const handleDelete = async () => {
     setDeleting(true)
     try {
-      await apiFetch(`/contacts/${id}/`, { method: "DELETE" })
+      await deleteContactApi(id as string)
       router.push("/contacts")
     } catch (err) {
       console.error("Failed to delete contact:", err)
@@ -637,15 +524,12 @@ export default function ContactDetailPage() {
     if (!newNote.trim()) return
     setAddingNote(true)
     try {
-      await apiFetch("/activities/", {
-        method: "POST",
-        json: {
-          entry_type: "note_added",
-          contact: id,
-          subject: "Note",
-          content: newNote.trim(),
-          metadata: {},
-        },
+      await createActivity({
+        entry_type: "note_added",
+        contact: id,
+        subject: "Note",
+        content: newNote.trim(),
+        metadata: {},
       })
       setNewNote("")
       fetchTabData()
@@ -659,10 +543,7 @@ export default function ContactDetailPage() {
   /* ── Toggle task done ── */
   const toggleTaskDone = async (task: Task) => {
     try {
-      await apiFetch(`/tasks/${task.id}/`, {
-        method: "PATCH",
-        json: { is_done: !task.is_done },
-      })
+      await updateTaskApi(String(task.id), { is_done: !task.is_done })
       fetchTabData()
     } catch (err) {
       console.error("Failed to toggle task:", err)
@@ -1597,13 +1478,13 @@ export default function ContactDetailPage() {
                               {getStageName(deal.stage)}
                             </Badge>
                             <span className="text-[11px] text-muted-foreground font-[family-name:var(--font-body)]">
-                              {formatDate(deal.created_at)}
+                              {deal.created_at ? formatDate(deal.created_at) : "\u2014"}
                             </span>
                           </div>
                         </div>
                         {deal.amount && (
                           <span className="text-sm font-semibold font-[family-name:var(--font-body)] ml-4 shrink-0">
-                            {formatCurrency(deal.amount)}
+                            {formatCurrency(String(deal.amount))}
                           </span>
                         )}
                       </Link>

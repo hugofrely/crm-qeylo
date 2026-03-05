@@ -1,31 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { apiFetch } from "@/lib/api"
+import { fetchWorkflowExecutions } from "@/services/workflows"
 import { Loader2, ChevronDown, ChevronRight } from "lucide-react"
-
-interface ExecutionStep {
-  id: string
-  node_type: string
-  node_subtype: string
-  status: string
-  output_data: Record<string, unknown>
-  error: string
-  started_at: string
-  completed_at: string | null
-}
-
-interface Execution {
-  id: string
-  workflow_name: string
-  trigger_event: string
-  trigger_data: Record<string, unknown>
-  status: string
-  started_at: string
-  completed_at: string | null
-  error: string
-  steps: ExecutionStep[]
-}
+import type { Execution } from "@/types"
 
 const STATUS_COLORS: Record<string, string> = {
   completed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
@@ -70,7 +48,7 @@ export default function ExecutionHistory({ workflowId }: ExecutionHistoryProps) 
   useEffect(() => {
     async function load() {
       try {
-        const data = await apiFetch<Execution[]>(`/workflows/${workflowId}/executions/`)
+        const data = await fetchWorkflowExecutions(workflowId)
         setExecutions(data)
       } catch {
         console.error("Failed to fetch executions")

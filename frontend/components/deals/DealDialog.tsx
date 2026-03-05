@@ -12,38 +12,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { apiFetch, apiUploadImage } from "@/lib/api"
+import { apiUploadImage } from "@/lib/api"
+import { createDeal, updateDeal, deleteDeal } from "@/services/deals"
+import { searchContacts as searchContactsApi } from "@/services/contacts"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
-
-interface Stage {
-  id: string
-  name: string
-  order: number
-  color: string
-}
-
-interface Contact {
-  id: string
-  first_name: string
-  last_name: string
-}
-
-interface DealData {
-  id: string
-  name: string
-  amount: string | number
-  stage: string
-  contact: string | null
-  contact_name?: string
-  probability?: number | null
-  expected_close?: string | null
-  notes?: string
-}
+import type { Deal, Stage, ContactSearchResult } from "@/types"
 
 interface DealDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  deal?: DealData | null
+  deal?: Deal | null
   stages: Stage[]
   defaultStageId?: string
   onSuccess: () => void
@@ -65,7 +43,7 @@ export function DealDialog({
   const [contactId, setContactId] = useState("")
   const [contactLabel, setContactLabel] = useState("")
   const [contactQuery, setContactQuery] = useState("")
-  const [contactResults, setContactResults] = useState<Contact[]>([])
+  const [contactResults, setContactResults] = useState<ContactSearchResult[]>([])
   const [contactSearching, setContactSearching] = useState(false)
   const [contactDropdownOpen, setContactDropdownOpen] = useState(false)
   const [probability, setProbability] = useState("")
@@ -98,7 +76,7 @@ export function DealDialog({
     debounceRef.current = setTimeout(async () => {
       setContactSearching(true)
       try {
-        const data = await apiFetch<Contact[]>(`/contacts/search/?q=${encodeURIComponent(query)}`)
+        const data = await searchContactsApi(query)
         setContactResults(Array.isArray(data) ? data : [])
         setContactDropdownOpen(true)
       } catch {
@@ -152,15 +130,9 @@ export function DealDialog({
       }
 
       if (isEditing) {
-        await apiFetch(`/deals/${deal!.id}/`, {
-          method: "PATCH",
-          json: payload,
-        })
+        await updateDeal(deal!.id, payload)
       } else {
-        await apiFetch("/deals/", {
-          method: "POST",
-          json: payload,
-        })
+        await createDeal(payload)
       }
 
       onOpenChange(false)
@@ -177,7 +149,7 @@ export function DealDialog({
     if (!window.confirm("Supprimer ce deal ? Cette action est irréversible.")) return
     setDeleting(true)
     try {
-      await apiFetch(`/deals/${deal.id}/`, { method: "DELETE" })
+      await deleteDeal(deal.id)
       onOpenChange(false)
       onSuccess()
     } catch (err) {

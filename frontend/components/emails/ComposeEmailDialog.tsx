@@ -18,16 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { apiFetch } from "@/lib/api"
+import { fetchEmailAccounts, sendEmail } from "@/services/emails"
 import { toast } from "sonner"
 import { Send, Loader2 } from "lucide-react"
-
-interface EmailAccount {
-  id: string
-  provider: "gmail" | "outlook"
-  email_address: string
-  is_active: boolean
-}
+import type { EmailAccount } from "@/types"
 
 interface ComposeEmailDialogProps {
   open: boolean
@@ -54,7 +48,7 @@ export function ComposeEmailDialog({
 
   useEffect(() => {
     if (open) {
-      apiFetch<EmailAccount[]>("/email/accounts/")
+      fetchEmailAccounts()
         .then((data) => {
           setAccounts(data.filter((a) => a.is_active))
           if (data.length === 1) {
@@ -79,14 +73,11 @@ export function ComposeEmailDialog({
         .map((line) => `<p>${line}</p>`)
         .join("")
 
-      await apiFetch("/email/send/", {
-        method: "POST",
-        json: {
-          contact_id: contactId,
-          subject,
-          body_html: bodyHtml,
-          ...(selectedProvider && { provider: selectedProvider }),
-        },
+      await sendEmail({
+        contact_id: contactId,
+        subject,
+        body_html: bodyHtml,
+        ...(selectedProvider && { provider: selectedProvider }),
       })
 
       toast.success(`Email envoye a ${contactName}`)

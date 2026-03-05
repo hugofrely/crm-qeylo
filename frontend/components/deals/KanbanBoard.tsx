@@ -12,34 +12,12 @@ import {
   useSensors,
   closestCorners,
 } from "@dnd-kit/core"
-import { apiFetch } from "@/lib/api"
+import { fetchPipeline as fetchPipelineApi, updateDeal } from "@/services/deals"
 import { KanbanColumn } from "./KanbanColumn"
 import { DealCard } from "./DealCard"
 import { Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-
-interface Deal {
-  id: number
-  name: string
-  amount: string | number
-  stage: number
-  stage_name: string
-  contact: number | null
-  contact_name?: string
-}
-
-interface Stage {
-  id: number
-  name: string
-  order: number
-  color: string
-}
-
-interface PipelineStage {
-  stage: Stage
-  deals: Deal[]
-  total_amount: number | string
-}
+import type { Deal, PipelineStage } from "@/types"
 
 export function KanbanBoard() {
   const [pipeline, setPipeline] = useState<PipelineStage[]>([])
@@ -56,7 +34,7 @@ export function KanbanBoard() {
 
   const fetchPipeline = useCallback(async () => {
     try {
-      const data = await apiFetch<PipelineStage[]>("/deals/pipeline/")
+      const data = await fetchPipelineApi()
       setPipeline(data)
     } catch (err) {
       console.error("Failed to fetch pipeline:", err)
@@ -69,7 +47,7 @@ export function KanbanBoard() {
     fetchPipeline()
   }, [fetchPipeline])
 
-  const findDealById = (dealId: number): Deal | undefined => {
+  const findDealById = (dealId: string): Deal | undefined => {
     for (const stage of pipeline) {
       const deal = stage.deals.find((d) => d.id === dealId)
       if (deal) return deal
@@ -77,7 +55,7 @@ export function KanbanBoard() {
     return undefined
   }
 
-  const findStageByDealId = (dealId: number): number | undefined => {
+  const findStageByDealId = (dealId: string): string | undefined => {
     for (const stage of pipeline) {
       if (stage.deals.some((d) => d.id === dealId)) {
         return stage.stage.id
@@ -88,7 +66,7 @@ export function KanbanBoard() {
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
-    const dealId = parseInt(String(active.id).replace("deal-", ""))
+    const dealId = String(active.id).replace("deal-", "")
     const deal = findDealById(dealId)
     if (deal) setActiveDeal(deal)
   }
@@ -97,17 +75,17 @@ export function KanbanBoard() {
     const { active, over } = event
     if (!over) return
 
-    const activeDealId = parseInt(String(active.id).replace("deal-", ""))
+    const activeDealId = String(active.id).replace("deal-", "")
     const activeStageId = findStageByDealId(activeDealId)
 
-    let overStageId: number | undefined
+    let overStageId: string | undefined
 
     // Check if over a stage droppable
     if (String(over.id).startsWith("stage-")) {
-      overStageId = parseInt(String(over.id).replace("stage-", ""))
+      overStageId = String(over.id).replace("stage-", "")
     } else if (String(over.id).startsWith("deal-")) {
       // Over another deal — find which stage it's in
-      const overDealId = parseInt(String(over.id).replace("deal-", ""))
+      const overDealId = String(over.id).replace("deal-", "")
       overStageId = findStageByDealId(overDealId)
     }
 
@@ -140,17 +118,14 @@ export function KanbanBoard() {
     const { active } = event
     setActiveDeal(null)
 
-    const dealId = parseInt(String(active.id).replace("deal-", ""))
+    const dealId = String(active.id).replace("deal-", "")
     const newStageId = findStageByDealId(dealId)
 
     if (!newStageId) return
 
     // Persist the change
     try {
-      await apiFetch(`/deals/${dealId}/`, {
-        method: "PATCH",
-        json: { stage: newStageId },
-      })
+      await updateDeal(dealId, { stage: newStageId })
     } catch (err) {
       console.error("Failed to update deal stage:", err)
       // Re-fetch to restore correct state

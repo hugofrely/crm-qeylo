@@ -3,24 +3,11 @@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, User, Briefcase } from "lucide-react"
-
-interface Task {
-  id: number
-  description: string
-  due_date: string | null
-  contact: number | null
-  contact_name?: string
-  deal: number | null
-  deal_name?: string
-  priority: string
-  is_done: boolean
-  created_at: string
-  updated_at: string
-}
+import type { Task } from "@/types"
 
 interface TaskListProps {
   tasks: Task[]
-  onToggle: (taskId: number, isDone: boolean) => void
+  onToggle: (taskId: string, isDone: boolean) => void
 }
 
 function formatDate(dateStr: string): string {

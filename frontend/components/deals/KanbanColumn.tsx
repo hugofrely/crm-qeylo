@@ -7,23 +7,7 @@ import {
 } from "@dnd-kit/sortable"
 import { DealCard } from "./DealCard"
 import { ScrollArea } from "@/components/ui/scroll-area"
-
-interface Deal {
-  id: number
-  name: string
-  amount: string | number
-  stage: number
-  stage_name: string
-  contact: number | null
-  contact_name?: string
-}
-
-interface Stage {
-  id: number
-  name: string
-  order: number
-  color: string
-}
+import type { Deal, Stage } from "@/types"
 
 interface KanbanColumnProps {
   stage: Stage

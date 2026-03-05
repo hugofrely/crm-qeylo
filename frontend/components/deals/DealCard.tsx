@@ -4,16 +4,7 @@ import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { Card, CardContent } from "@/components/ui/card"
 import { User, DollarSign } from "lucide-react"
-
-interface Deal {
-  id: number
-  name: string
-  amount: string | number
-  stage: number
-  stage_name: string
-  contact: number | null
-  contact_name?: string
-}
+import type { Deal } from "@/types"
 
 interface DealCardProps {
   deal: Deal

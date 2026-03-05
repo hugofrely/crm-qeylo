@@ -10,29 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-
-interface ContactCategory {
-  id: string
-  name: string
-  color: string
-}
-
-interface Contact {
-  id: number
-  first_name: string
-  last_name: string
-  email: string
-  phone: string
-  company: string
-  source: string
-  tags: string[]
-  notes: string
-  created_at: string
-  updated_at: string
-  job_title?: string
-  lead_score?: string
-  categories?: ContactCategory[]
-}
+import type { Contact } from "@/types"
 
 interface ContactTableProps {
   contacts: Contact[]

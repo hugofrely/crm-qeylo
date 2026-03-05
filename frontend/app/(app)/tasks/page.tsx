@@ -1,41 +1,21 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { apiFetch } from "@/lib/api"
+import { fetchTasks as fetchTasksApi, updateTask } from "@/services/tasks"
 import { TaskList } from "@/components/tasks/TaskList"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CheckSquare, Loader2 } from "lucide-react"
-
-interface Task {
-  id: number
-  description: string
-  due_date: string | null
-  contact: number | null
-  contact_name?: string
-  deal: number | null
-  deal_name?: string
-  priority: string
-  is_done: boolean
-  created_at: string
-  updated_at: string
-}
-
-interface TasksResponse {
-  count: number
-  results: Task[]
-}
-
-type FilterTab = "all" | "todo" | "done"
+import type { Task, TaskFilterTab } from "@/types"
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<FilterTab>("all")
+  const [filter, setFilter] = useState<TaskFilterTab>("all")
 
   const fetchTasks = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await apiFetch<TasksResponse>("/tasks/")
+      const data = await fetchTasksApi()
       setTasks(data.results)
     } catch (err) {
       console.error("Failed to fetch tasks:", err)
@@ -48,17 +28,14 @@ export default function TasksPage() {
     fetchTasks()
   }, [fetchTasks])
 
-  const handleToggle = async (taskId: number, isDone: boolean) => {
+  const handleToggle = async (taskId: string, isDone: boolean) => {
     // Optimistic update
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, is_done: isDone } : t))
     )
 
     try {
-      await apiFetch(`/tasks/${taskId}/`, {
-        method: "PATCH",
-        json: { is_done: isDone },
-      })
+      await updateTask(taskId, { is_done: isDone })
     } catch (err) {
       console.error("Failed to update task:", err)
       // Revert on error
@@ -91,7 +68,7 @@ export default function TasksPage() {
       </div>
 
       {/* Filter tabs */}
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterTab)}>
+      <Tabs value={filter} onValueChange={(v) => setFilter(v as TaskFilterTab)}>
         <TabsList>
           <TabsTrigger value="all">
             Toutes ({tasks.length})

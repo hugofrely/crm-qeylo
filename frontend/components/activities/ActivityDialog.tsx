@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { apiFetch } from "@/lib/api"
+import { createActivity } from "@/services/activities"
 import {
   Dialog,
   DialogContent,
@@ -37,41 +37,11 @@ const textareaClass =
   "flex min-h-[80px] w-full rounded-lg border border-border/60 bg-secondary/30 px-3 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 const labelClass = "text-xs font-medium uppercase tracking-wider text-muted-foreground"
 
-type EntryType = "call" | "email_sent" | "email_received" | "meeting" | "custom"
+import type { ActivityEntryType, CallFields, EmailSentFields, EmailReceivedFields, MeetingFields, CustomActivityFields } from "@/types"
 
-interface CallFields {
-  direction: string
-  duration_minutes: string
-  outcome: string
-  phone_number: string
-  notes: string
-}
+type EntryType = ActivityEntryType
 
-interface EmailSentFields {
-  subject: string
-  recipients: string
-  body: string
-}
-
-interface EmailReceivedFields {
-  subject: string
-  sender: string
-  body: string
-}
-
-interface MeetingFields {
-  title: string
-  scheduled_at: string
-  duration_minutes: string
-  location: string
-  participants: string
-  notes: string
-}
-
-interface CustomFields {
-  custom_type_label: string
-  description: string
-}
+type CustomFields = CustomActivityFields
 
 function getInitialCallFields(contactPhone?: string): CallFields {
   return {
@@ -223,7 +193,7 @@ export function ActivityDialog({
     setError(null)
     try {
       const payload = buildPayload()
-      await apiFetch("/activities/", { method: "POST", json: payload })
+      await createActivity(payload)
       resetForm()
       onCreated()
       onOpenChange(false)

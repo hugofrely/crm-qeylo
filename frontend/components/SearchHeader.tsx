@@ -3,39 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Search, Users, Kanban, CheckSquare, X } from "lucide-react"
-import { apiFetch } from "@/lib/api"
+import { globalSearch } from "@/services/search"
 import { NotificationBell } from "@/components/NotificationBell"
-
-interface ContactResult {
-  id: string
-  first_name: string
-  last_name: string
-  company: string
-  email: string
-}
-
-interface DealResult {
-  id: string
-  name: string
-  amount: string
-  stage_name: string
-  contact_name: string
-}
-
-interface TaskResult {
-  id: string
-  description: string
-  priority: string
-  due_date: string | null
-  is_done: boolean
-  contact_name: string
-}
-
-interface SearchResults {
-  contacts: ContactResult[]
-  deals: DealResult[]
-  tasks: TaskResult[]
-}
+import type { SearchResults } from "@/types"
 
 export function SearchHeader() {
   const router = useRouter()
@@ -55,7 +25,7 @@ export function SearchHeader() {
     }
     setLoading(true)
     try {
-      const data = await apiFetch<SearchResults>(`/search/?q=${encodeURIComponent(q.trim())}`)
+      const data = await globalSearch(q.trim())
       setResults(data)
       setOpen(true)
     } catch {

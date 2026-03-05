@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { apiFetch } from "@/lib/api"
+import { fetchPipelineStages, createPipelineStage, updatePipelineStage, deletePipelineStage } from "@/services/deals"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -26,30 +26,24 @@ import {
   X,
   GripVertical,
 } from "lucide-react"
-
-interface Stage {
-  id: number
-  name: string
-  order: number
-  color: string
-}
+import type { Stage } from "@/types"
 
 export default function PipelineSettingsPage() {
   const router = useRouter()
   const [stages, setStages] = useState<Stage[]>([])
   const [loading, setLoading] = useState(true)
-  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState({ name: "", color: "#6b7280" })
   const [saving, setSaving] = useState(false)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [newStage, setNewStage] = useState({ name: "", color: "#3b82f6" })
   const [creating, setCreating] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   const fetchStages = useCallback(async () => {
     try {
-      const data = await apiFetch<Stage[]>("/pipeline-stages/")
+      const data = await fetchPipelineStages()
       setStages(data.sort((a, b) => a.order - b.order))
     } catch (err) {
       console.error("Failed to fetch stages:", err)
@@ -69,10 +63,7 @@ export default function PipelineSettingsPage() {
       const maxOrder = stages.length > 0
         ? Math.max(...stages.map((s) => s.order))
         : 0
-      await apiFetch("/pipeline-stages/", {
-        method: "POST",
-        json: { ...newStage, order: maxOrder + 1 },
-      })
+      await createPipelineStage({ ...newStage, order: maxOrder + 1 })
       setNewStage({ name: "", color: "#3b82f6" })
       setAddDialogOpen(false)
       fetchStages()
@@ -92,10 +83,7 @@ export default function PipelineSettingsPage() {
     if (!editingId || !editForm.name.trim()) return
     setSaving(true)
     try {
-      await apiFetch(`/pipeline-stages/${editingId}/`, {
-        method: "PATCH",
-        json: editForm,
-      })
+      await updatePipelineStage(editingId, editForm)
       setEditingId(null)
       fetchStages()
     } catch (err) {
@@ -105,10 +93,10 @@ export default function PipelineSettingsPage() {
     }
   }
 
-  const handleDelete = async (stageId: number) => {
+  const handleDelete = async (stageId: string) => {
     setDeleting(true)
     try {
-      await apiFetch(`/pipeline-stages/${stageId}/`, { method: "DELETE" })
+      await deletePipelineStage(stageId)
       setDeleteDialogOpen(null)
       fetchStages()
     } catch (err) {
@@ -118,7 +106,7 @@ export default function PipelineSettingsPage() {
     }
   }
 
-  const handleReorder = async (stageId: number, direction: "up" | "down") => {
+  const handleReorder = async (stageId: string, direction: "up" | "down") => {
     const sortedStages = [...stages].sort((a, b) => a.order - b.order)
     const index = sortedStages.findIndex((s) => s.id === stageId)
     if (index === -1) return
@@ -131,14 +119,8 @@ export default function PipelineSettingsPage() {
 
     try {
       await Promise.all([
-        apiFetch(`/pipeline-stages/${sortedStages[index].id}/`, {
-          method: "PATCH",
-          json: { order: swapOrder },
-        }),
-        apiFetch(`/pipeline-stages/${sortedStages[swapIndex].id}/`, {
-          method: "PATCH",
-          json: { order: currentOrder },
-        }),
+        updatePipelineStage(sortedStages[index].id, { order: swapOrder }),
+        updatePipelineStage(sortedStages[swapIndex].id, { order: currentOrder }),
       ])
       fetchStages()
     } catch (err) {

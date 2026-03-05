@@ -11,12 +11,9 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import type { ChatAction } from "@/types"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface ChatAction {
-  action: string
-  [key: string]: unknown
-}
+export type { ChatAction } from "@/types"
 
 function formatCurrency(amount: unknown): string {
   const num = Number(amount)
