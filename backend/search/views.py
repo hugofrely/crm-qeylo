@@ -2,6 +2,7 @@ from django.db.models import Q
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
 
 from contacts.models import Contact
 from deals.models import Deal
@@ -18,6 +19,9 @@ def global_search(request):
         return Response({"contacts": [], "deals": [], "tasks": []})
 
     org = request.organization
+    if not org:
+        return Response({"detail": "No organization."}, status=status.HTTP_400_BAD_REQUEST)
+
     words = q.split()
 
     # --- Contacts ---
