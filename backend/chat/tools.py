@@ -16,8 +16,10 @@ from django.db.models import Q, Sum
 from django.utils import timezone
 from pydantic_ai import RunContext
 
-from contacts.models import Contact, ContactCategory, CustomFieldDefinition
+from contacts.duplicates import _find_duplicates
+from contacts.models import Contact, ContactCategory, CustomFieldDefinition, DuplicateDetectionSettings
 from deals.models import Deal, PipelineStage
+from organizations.models import Organization
 from notes.models import TimelineEntry
 from tasks.models import Task
 from emails.models import EmailAccount
@@ -85,20 +87,25 @@ def create_contact(
 ) -> dict:
     """Create a new contact in the CRM. Checks for duplicates first."""
     org_id = ctx.deps.organization_id
-    # Check for existing contact with same name
-    existing = Contact.objects.filter(
-        organization_id=org_id,
-        first_name__iexact=first_name,
-        last_name__iexact=last_name,
-    ).first()
-    if existing:
+    # Check for duplicates using shared detection logic
+    org = Organization.objects.get(id=org_id)
+    dup_settings, _ = DuplicateDetectionSettings.objects.get_or_create(organization=org)
+    duplicates = _find_duplicates(
+        org,
+        {"first_name": first_name, "last_name": last_name, "email": email, "phone": phone},
+        dup_settings,
+    )
+    if duplicates:
+        contact, score, matched_on = duplicates[0]
         return {
             "action": "duplicate_found",
-            "id": str(existing.id),
-            "name": f"{existing.first_name} {existing.last_name}",
-            "company": existing.company,
-            "email": existing.email,
-            "message": f"Le contact {existing.first_name} {existing.last_name} existe deja.",
+            "id": str(contact.id),
+            "name": f"{contact.first_name} {contact.last_name}",
+            "company": contact.company,
+            "email": contact.email,
+            "score": round(score, 2),
+            "matched_on": matched_on,
+            "message": f"Un contact similaire existe déjà: {contact.first_name} {contact.last_name} (score: {round(score, 2)}).",
         }
 
     contact = Contact.objects.create(
