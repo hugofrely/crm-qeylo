@@ -164,7 +164,7 @@ export function SearchHeader() {
               {!loading && noResults && (
                 <div className="flex items-center justify-center py-6">
                   <span className="text-xs text-muted-foreground font-[family-name:var(--font-body)]">
-                    Aucun resultat pour &quot;{query.trim()}&quot;
+                    Aucun résultat pour &quot;{query.trim()}&quot;
                   </span>
                 </div>
               )}
