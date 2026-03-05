@@ -21,6 +21,7 @@ import {
   CheckSquare,
   BarChart3,
   Workflow,
+  ListFilter,
   Settings,
   LogOut,
   Menu,
@@ -34,6 +35,7 @@ import { CreateOrgDialog } from "@/components/organizations/CreateOrgDialog"
 const navigation = [
   { name: "Chat", href: "/chat", icon: MessageSquare },
   { name: "Contacts", href: "/contacts", icon: Users },
+  { name: "Segments", href: "/segments", icon: ListFilter },
   { name: "Pipeline", href: "/deals", icon: Kanban },
   { name: "Tâches", href: "/tasks", icon: CheckSquare },
   { name: "Workflows", href: "/workflows", icon: Workflow },
