@@ -17,5 +17,6 @@ urlpatterns = [
     path("api/dashboard/", include("dashboard.urls")),
     path("api/notifications/", include("notifications.urls")),
     path("api/email/", include("emails.urls")),
+    path("api/search/", include("search.urls")),
     path("api/invite/accept/<uuid:token>/", include("organizations.invite_urls")),
 ]
