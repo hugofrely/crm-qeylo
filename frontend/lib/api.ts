@@ -84,6 +84,44 @@ export function clearTokens() {
   Cookies.remove("refresh_token")
 }
 
+export async function apiUploadImage(file: File): Promise<string> {
+  const formData = new FormData()
+  formData.append("file", file)
+
+  const token = Cookies.get("access_token")
+  const res = await fetch(`${API_URL}/upload/image/`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  })
+
+  if (res.status === 401) {
+    const refreshed = await refreshToken()
+    if (refreshed) {
+      const retryRes = await fetch(`${API_URL}/upload/image/`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${Cookies.get("access_token")}` },
+        body: formData,
+      })
+      if (!retryRes.ok) {
+        const err = await retryRes.json().catch(() => ({}))
+        throw new Error(err.detail || "Upload failed")
+      }
+      const data = await retryRes.json()
+      return data.url
+    }
+    throw new Error("Unauthorized")
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || "Upload failed")
+  }
+
+  const data = await res.json()
+  return data.url
+}
+
 export interface SSECallbacks {
   onTextDelta: (content: string) => void
   onToolCallStart: (data: {

@@ -50,8 +50,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
 import { ActivityDialog } from "@/components/activities/ActivityDialog"
 import { ComposeEmailDialog } from "@/components/emails/ComposeEmailDialog"
+import { RichTextEditor } from "@/components/ui/RichTextEditor"
+import { apiUploadImage } from "@/lib/api"
+import { MarkdownContent } from "@/components/chat/MarkdownContent"
 
 /* ──────────────────────────────────────────────────────────────
    INTERFACES
@@ -438,9 +442,9 @@ function TimelineList({ entries, emptyMessage }: { entries: TimelineEntry[]; emp
               <p className="text-sm font-medium mt-1">{entry.subject}</p>
             )}
             {entry.content && (
-              <p className="text-sm mt-1.5 whitespace-pre-wrap break-words leading-relaxed">
-                {entry.content}
-              </p>
+              <div className="mt-1.5 text-sm">
+                <MarkdownContent content={entry.content} />
+              </div>
             )}
             <ActivityMetadata entry={entry} />
           </div>
@@ -1048,9 +1052,9 @@ export default function ContactDetailPage() {
             </div>
           ) : (
             /* ── VIEW MODE ── */
-            <div className="space-y-4">
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
               {/* Avatar + Name */}
-              <div className="text-center space-y-3">
+              <div className="text-center space-y-3 p-5 pb-4">
                 <div className="w-20 h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center text-2xl font-semibold mx-auto font-[family-name:var(--font-body)]">
                   {contact.first_name?.[0]}{contact.last_name?.[0]}
                 </div>
@@ -1067,57 +1071,58 @@ export default function ContactDetailPage() {
                     Cree le {formatDate(contact.created_at)}
                   </p>
                 </div>
-              </div>
 
-              {/* Action buttons */}
-              <div className="flex items-center justify-center gap-2">
-                {contact.email && hasEmailAccount && (
-                  <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)} className="gap-1.5">
-                    <Mail className="h-4 w-4" />
-                    <span className="font-[family-name:var(--font-body)]">Email</span>
-                  </Button>
-                )}
-                {contact.phone && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={`tel:${contact.phone}`} className="gap-1.5">
-                      <Phone className="h-4 w-4" />
-                      <span className="font-[family-name:var(--font-body)]">Appeler</span>
-                    </a>
-                  </Button>
-                )}
-                <Button variant="outline" size="sm" onClick={startEditing}>
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                      <Trash2 className="h-4 w-4" />
+                {/* Action buttons */}
+                <div className="flex items-center justify-center gap-2 pt-1">
+                  {contact.email && hasEmailAccount && (
+                    <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)} className="gap-1.5">
+                      <Mail className="h-4 w-4" />
+                      <span className="font-[family-name:var(--font-body)]">Email</span>
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Supprimer le contact</DialogTitle>
-                    </DialogHeader>
-                    <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-                      Etes-vous sur de vouloir supprimer{" "}
-                      <strong>{contact.first_name} {contact.last_name}</strong> ?
-                      Cette action est irreversible.
-                    </p>
-                    <div className="flex justify-end gap-2 mt-4">
-                      <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                        Annuler
+                  )}
+                  {contact.phone && (
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={`tel:${contact.phone}`} className="gap-1.5">
+                        <Phone className="h-4 w-4" />
+                        <span className="font-[family-name:var(--font-body)]">Appeler</span>
+                      </a>
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" onClick={startEditing}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
                       </Button>
-                      <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
-                        {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        Supprimer
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Supprimer le contact</DialogTitle>
+                      </DialogHeader>
+                      <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
+                        Etes-vous sur de vouloir supprimer{" "}
+                        <strong>{contact.first_name} {contact.last_name}</strong> ?
+                        Cette action est irreversible.
+                      </p>
+                      <div className="flex justify-end gap-2 mt-4">
+                        <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                          Annuler
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+                          {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                          Supprimer
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
 
               {/* Coordonnees */}
-              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+              <Separator />
+              <div className="p-5 space-y-3">
                 <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
                   Coordonnees
                 </h3>
@@ -1184,145 +1189,154 @@ export default function ContactDetailPage() {
 
               {/* Categories */}
               {availableCategories.length > 0 && (
-                <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-                  <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                    Categories
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {availableCategories.map((cat) => {
-                      const isSelected = contactCategoryIds.includes(cat.id)
-                      return (
-                        <button
-                          key={cat.id}
-                          onClick={() => toggleCategory(cat.id)}
-                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors border font-[family-name:var(--font-body)] ${
-                            isSelected
-                              ? "border-transparent text-white"
-                              : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
-                          }`}
-                          style={isSelected ? { backgroundColor: cat.color } : undefined}
-                        >
-                          {isSelected && <Check className="h-3 w-3" />}
-                          {cat.name}
-                        </button>
-                      )
-                    })}
+                <>
+                  <Separator />
+                  <div className="p-5 space-y-3">
+                    <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+                      Categories
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {availableCategories.map((cat) => {
+                        const isSelected = contactCategoryIds.includes(cat.id)
+                        return (
+                          <button
+                            key={cat.id}
+                            onClick={() => toggleCategory(cat.id)}
+                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors border font-[family-name:var(--font-body)] ${
+                              isSelected
+                                ? "border-transparent text-white"
+                                : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
+                            }`}
+                            style={isSelected ? { backgroundColor: cat.color } : undefined}
+                          >
+                            {isSelected && <Check className="h-3 w-3" />}
+                            {cat.name}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Qualification */}
               {(contact.lead_score || contact.estimated_budget || contact.decision_role || contact.identified_needs) && (
-                <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-                  <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                    Qualification
-                  </h3>
-                  <div className="space-y-2">
-                    {contact.lead_score && (
-                      <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                        <Thermometer className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${getLeadScoreStyle(contact.lead_score)}`}>
-                          {getLeadScoreLabel(contact.lead_score)}
-                        </span>
-                      </div>
-                    )}
-                    {contact.estimated_budget && (
-                      <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                        <Wallet className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">{formatCurrency(contact.estimated_budget)}</span>
-                      </div>
-                    )}
-                    {contact.decision_role && (
-                      <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                        <Target className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">{getDecisionRoleLabel(contact.decision_role)}</span>
-                      </div>
-                    )}
-                    {contact.identified_needs && (
-                      <div className="flex items-start gap-2 text-sm font-[family-name:var(--font-body)]">
-                        <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                        <span className="whitespace-pre-wrap leading-relaxed">{contact.identified_needs}</span>
-                      </div>
-                    )}
+                <>
+                  <Separator />
+                  <div className="p-5 space-y-3">
+                    <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+                      Qualification
+                    </h3>
+                    <div className="space-y-2">
+                      {contact.lead_score && (
+                        <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                          <Thermometer className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${getLeadScoreStyle(contact.lead_score)}`}>
+                            {getLeadScoreLabel(contact.lead_score)}
+                          </span>
+                        </div>
+                      )}
+                      {contact.estimated_budget && (
+                        <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                          <Wallet className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate">{formatCurrency(contact.estimated_budget)}</span>
+                        </div>
+                      )}
+                      {contact.decision_role && (
+                        <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                          <Target className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate">{getDecisionRoleLabel(contact.decision_role)}</span>
+                        </div>
+                      )}
+                      {contact.identified_needs && (
+                        <div className="flex items-start gap-2 text-sm font-[family-name:var(--font-body)]">
+                          <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                          <span className="whitespace-pre-wrap leading-relaxed">{contact.identified_needs}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Profil info */}
               {(contact.industry || contact.source || (contact.tags && contact.tags.length > 0) || contact.preferred_channel || contact.language || contact.timezone || contact.birthday || (contact.interests && contact.interests.length > 0) || contact.siret) && (
-                <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-                  <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                    Profil
-                  </h3>
-                  <div className="space-y-2">
-                    {contact.industry && (
-                      <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">{contact.industry}</span>
-                      </div>
-                    )}
-                    {contact.source && (
-                      <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                        <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">{contact.source}</span>
-                      </div>
-                    )}
-                    {contact.preferred_channel && (
-                      <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                        <MessageCircle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <Badge variant="secondary" className="font-normal text-xs">{getChannelLabel(contact.preferred_channel)}</Badge>
-                      </div>
-                    )}
-                    {contact.language && (
-                      <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                        <Languages className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">{contact.language}</span>
-                      </div>
-                    )}
-                    {contact.timezone && (
-                      <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                        <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">{contact.timezone}</span>
-                      </div>
-                    )}
-                    {contact.birthday && (
-                      <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                        <Cake className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">{formatBirthday(contact.birthday)}</span>
-                      </div>
-                    )}
-                    {contact.siret && (
-                      <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="truncate">SIRET: {contact.siret}</span>
-                      </div>
-                    )}
-                    {contact.tags && contact.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {contact.tags.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="font-normal text-xs font-[family-name:var(--font-body)]">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
-                    {contact.interests && contact.interests.length > 0 && (
-                      <div className="pt-1">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <Heart className="h-3 w-3 text-muted-foreground" />
-                          <p className="text-[11px] text-muted-foreground font-[family-name:var(--font-body)]">Centres d&apos;interet</p>
+                <>
+                  <Separator />
+                  <div className="p-5 space-y-3">
+                    <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+                      Profil
+                    </h3>
+                    <div className="space-y-2">
+                      {contact.industry && (
+                        <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                          <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate">{contact.industry}</span>
                         </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {contact.interests.map((interest) => (
-                            <Badge key={interest} variant="secondary" className="font-normal text-xs font-[family-name:var(--font-body)]">
-                              {interest}
+                      )}
+                      {contact.source && (
+                        <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                          <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate">{contact.source}</span>
+                        </div>
+                      )}
+                      {contact.preferred_channel && (
+                        <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                          <MessageCircle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <Badge variant="secondary" className="font-normal text-xs">{getChannelLabel(contact.preferred_channel)}</Badge>
+                        </div>
+                      )}
+                      {contact.language && (
+                        <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                          <Languages className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate">{contact.language}</span>
+                        </div>
+                      )}
+                      {contact.timezone && (
+                        <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate">{contact.timezone}</span>
+                        </div>
+                      )}
+                      {contact.birthday && (
+                        <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                          <Cake className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate">{formatBirthday(contact.birthday)}</span>
+                        </div>
+                      )}
+                      {contact.siret && (
+                        <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                          <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                          <span className="truncate">SIRET: {contact.siret}</span>
+                        </div>
+                      )}
+                      {contact.tags && contact.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {contact.tags.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="font-normal text-xs font-[family-name:var(--font-body)]">
+                              {tag}
                             </Badge>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {contact.interests && contact.interests.length > 0 && (
+                        <div className="pt-1">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <Heart className="h-3 w-3 text-muted-foreground" />
+                            <p className="text-[11px] text-muted-foreground font-[family-name:var(--font-body)]">Centres d&apos;interet</p>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {contact.interests.map((interest) => (
+                              <Badge key={interest} variant="secondary" className="font-normal text-xs font-[family-name:var(--font-body)]">
+                                {interest}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {/* Custom fields */}
@@ -1334,62 +1348,71 @@ export default function ContactDetailPage() {
                 })
                 if (filledFields.length === 0) return null
                 return (
-                  <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-                    <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                      Champs personnalises
-                    </h3>
-                    <div className="space-y-2">
-                      {filledFields.map((def) => {
-                        const val = cf[def.id]
-                        let displayVal = String(val)
-                        if (def.field_type === "checkbox") {
-                          displayVal = val === true || val === "true" ? "Oui" : "Non"
-                        } else if (def.field_type === "date" && val) {
-                          displayVal = formatDate(String(val))
-                        }
-                        return (
-                          <div key={def.id} className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                            <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                            <span className="text-muted-foreground text-xs">{def.label}:</span>
-                            <span className="truncate">{displayVal}</span>
-                          </div>
-                        )
-                      })}
+                  <>
+                    <Separator />
+                    <div className="p-5 space-y-3">
+                      <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+                        Champs personnalises
+                      </h3>
+                      <div className="space-y-2">
+                        {filledFields.map((def) => {
+                          const val = cf[def.id]
+                          let displayVal = String(val)
+                          if (def.field_type === "checkbox") {
+                            displayVal = val === true || val === "true" ? "Oui" : "Non"
+                          } else if (def.field_type === "date" && val) {
+                            displayVal = formatDate(String(val))
+                          }
+                          return (
+                            <div key={def.id} className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                              <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                              <span className="text-muted-foreground text-xs">{def.label}:</span>
+                              <span className="truncate">{displayVal}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )
               })()}
 
               {/* Notes */}
               {contact.notes && (
-                <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-                  <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                    Notes
-                  </h3>
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed font-[family-name:var(--font-body)]">
-                    {contact.notes}
-                  </p>
-                </div>
+                <>
+                  <Separator />
+                  <div className="p-5 space-y-3">
+                    <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+                      Notes
+                    </h3>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed font-[family-name:var(--font-body)]">
+                      {contact.notes}
+                    </p>
+                  </div>
+                </>
               )}
 
               {/* AI Summary */}
               {contact.ai_summary && (
-                <div className="bg-primary/5 rounded-xl p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                      Resume IA
-                    </h3>
-                  </div>
-                  <p className="text-sm font-[family-name:var(--font-body)] whitespace-pre-wrap leading-relaxed">
-                    {contact.ai_summary}
-                  </p>
-                  {contact.ai_summary_updated_at && (
-                    <p className="text-xs text-muted-foreground font-[family-name:var(--font-body)]">
-                      Derniere mise a jour : {formatDateTime(contact.ai_summary_updated_at)}
+                <>
+                  <Separator />
+                  <div className="bg-primary/5 p-5 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+                        Resume IA
+                      </h3>
+                    </div>
+                    <p className="text-sm font-[family-name:var(--font-body)] whitespace-pre-wrap leading-relaxed">
+                      {contact.ai_summary}
                     </p>
-                  )}
-                </div>
+                    {contact.ai_summary_updated_at && (
+                      <p className="text-xs text-muted-foreground font-[family-name:var(--font-body)]">
+                        Derniere mise a jour : {formatDateTime(contact.ai_summary_updated_at)}
+                      </p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -1446,23 +1469,20 @@ export default function ContactDetailPage() {
                   </h2>
                 </div>
                 {/* Add note input */}
-                <div className="flex gap-2 mb-6">
-                  <Input
+                <div className="mb-6 space-y-2">
+                  <RichTextEditor
+                    content={newNote}
+                    onChange={setNewNote}
                     placeholder="Ajouter une note..."
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault()
-                        handleAddNote()
-                      }
-                    }}
-                    className="h-9 bg-secondary/30 border-border/60 font-[family-name:var(--font-body)]"
+                    minHeight="100px"
+                    onImageUpload={apiUploadImage}
                   />
-                  <Button size="sm" onClick={handleAddNote} disabled={addingNote || !newNote.trim()} className="gap-1.5 shrink-0">
-                    {addingNote ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-                    <span className="font-[family-name:var(--font-body)]">Ajouter</span>
-                  </Button>
+                  <div className="flex justify-end">
+                    <Button size="sm" onClick={handleAddNote} disabled={addingNote || !newNote.trim()} className="gap-1.5">
+                      {addingNote ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                      <span className="font-[family-name:var(--font-body)]">Ajouter</span>
+                    </Button>
+                  </div>
                 </div>
                 <TimelineList entries={notes} emptyMessage="Aucune note pour ce contact." />
               </div>
