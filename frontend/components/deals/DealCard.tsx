@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { Card, CardContent } from "@/components/ui/card"
@@ -22,6 +23,7 @@ function formatAmount(amount: string | number): string {
 }
 
 export function DealCard({ deal, onClick }: DealCardProps) {
+  const router = useRouter()
   const {
     attributes,
     listeners,
@@ -43,13 +45,22 @@ export function DealCard({ deal, onClick }: DealCardProps) {
     opacity: isDragging ? 0.5 : 1,
   }
 
+  const handleClick = () => {
+    if (isDragging) return
+    if (onClick) {
+      onClick()
+    } else {
+      router.push(`/deals/${deal.id}`)
+    }
+  }
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      onClick={() => { if (!isDragging) onClick?.() }}
+      onClick={handleClick}
       className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow"
     >
       <CardContent className="p-3 space-y-2">

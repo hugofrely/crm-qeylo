@@ -14,6 +14,7 @@ import {
   rectIntersection,
   type CollisionDetection,
 } from "@dnd-kit/core"
+import { useRouter } from "next/navigation"
 import { updateDeal } from "@/services/deals"
 import { usePipeline } from "@/hooks/useDeals"
 import { KanbanColumn } from "./KanbanColumn"
@@ -30,15 +31,14 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange }: KanbanBoardProps) {
+  const router = useRouter()
   const { pipeline, setPipeline, loading, refresh } = usePipeline(pipelineId)
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null)
-  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null)
   const [dealDialogOpen, setDealDialogOpen] = useState(false)
 
   // Sync external dialog control (for the "+ Nouveau deal" button in the page header)
   useEffect(() => {
     if (dialogOpen) {
-      setSelectedDeal(null)
       setDealDialogOpen(true)
     }
   }, [dialogOpen])
@@ -46,14 +46,12 @@ export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange }: Kanb
   const handleDialogOpenChange = (open: boolean) => {
     setDealDialogOpen(open)
     if (!open) {
-      setSelectedDeal(null)
       onDialogOpenChange?.(false)
     }
   }
 
   const handleDealClick = (deal: Deal) => {
-    setSelectedDeal(deal)
-    setDealDialogOpen(true)
+    router.push(`/deals/${deal.id}`)
   }
 
   const allStages = useMemo(
@@ -223,7 +221,7 @@ export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange }: Kanb
       <DealDialog
         open={dealDialogOpen}
         onOpenChange={handleDialogOpenChange}
-        deal={selectedDeal}
+        deal={null}
         stages={allStages}
         onSuccess={refresh}
       />

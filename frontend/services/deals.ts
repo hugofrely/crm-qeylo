@@ -32,6 +32,10 @@ export async function fetchPipeline(pipelineId?: string): Promise<PipelineStage[
 }
 
 // Deal CRUD
+export async function fetchDeal(id: string): Promise<Deal> {
+  return apiFetch<Deal>(`/deals/${id}/`)
+}
+
 export async function createDeal(data: Record<string, unknown>): Promise<Deal> {
   return apiFetch<Deal>(`/deals/`, { method: "POST", json: data })
 }
