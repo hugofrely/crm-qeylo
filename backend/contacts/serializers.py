@@ -97,3 +97,15 @@ class ContactSerializer(serializers.ModelSerializer):
         if category_ids is not None:
             instance.categories.set(category_ids)
         return instance
+
+
+from .models import DuplicateDetectionSettings
+
+
+class DuplicateDetectionSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DuplicateDetectionSettings
+        fields = [
+            "enabled", "match_email", "match_name", "match_phone",
+            "match_siret", "match_company", "similarity_threshold",
+        ]

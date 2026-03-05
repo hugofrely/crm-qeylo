@@ -13,7 +13,7 @@ from notes.models import TimelineEntry
 from tasks.models import Task
 
 from .models import Contact, DuplicateDetectionSettings
-from .serializers import ContactSerializer
+from .serializers import ContactSerializer, DuplicateDetectionSettingsSerializer
 
 
 def _find_duplicates(organization, data, settings):
@@ -212,3 +212,19 @@ def merge_contacts(request, pk):
     # Refresh and return
     primary.refresh_from_db()
     return Response(ContactSerializer(primary).data)
+
+
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated])
+def duplicate_settings(request):
+    """Get or update duplicate detection settings for the organization."""
+    settings, _ = DuplicateDetectionSettings.objects.get_or_create(
+        organization=request.organization
+    )
+    if request.method == "GET":
+        return Response(DuplicateDetectionSettingsSerializer(settings).data)
+
+    serializer = DuplicateDetectionSettingsSerializer(settings, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data)

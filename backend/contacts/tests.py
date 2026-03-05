@@ -617,3 +617,37 @@ class MergeContactsTests(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 404)
+
+
+class DuplicateSettingsAPITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "email": "settings@example.com",
+                "password": "securepass123",
+                "first_name": "Settings",
+                "last_name": "Test",
+                "organization_name": "Settings Test Org",
+            },
+        )
+        self.token = response.data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+    def test_get_settings(self):
+        response = self.client.get("/api/contacts/duplicate-settings/")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["enabled"])
+        self.assertTrue(response.data["match_email"])
+        self.assertTrue(response.data["match_name"])
+
+    def test_update_settings(self):
+        response = self.client.patch(
+            "/api/contacts/duplicate-settings/",
+            {"match_phone": True, "similarity_threshold": 0.7},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.data["match_phone"])
+        self.assertAlmostEqual(response.data["similarity_threshold"], 0.7)

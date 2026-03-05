@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
-from .duplicates import check_duplicates, merge_contacts
+from .duplicates import check_duplicates, merge_contacts, duplicate_settings
 
 router = DefaultRouter()
 router.register("", views.ContactViewSet, basename="contact")
@@ -13,6 +13,7 @@ custom_field_router = DefaultRouter()
 custom_field_router.register("", views.CustomFieldDefinitionViewSet, basename="custom-field")
 
 urlpatterns = [
+    path("duplicate-settings/", duplicate_settings),
     path("check-duplicates/", check_duplicates),
     path("search/", views.search_contacts),
     path("categories/reorder/", views.reorder_categories),
