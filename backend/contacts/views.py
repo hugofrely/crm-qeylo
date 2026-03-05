@@ -41,6 +41,7 @@ class ContactViewSet(viewsets.ModelViewSet):
 class ContactCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = ContactCategorySerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = None
 
     def get_queryset(self):
         return (
@@ -61,6 +62,7 @@ class ContactCategoryViewSet(viewsets.ModelViewSet):
 class CustomFieldDefinitionViewSet(viewsets.ModelViewSet):
     serializer_class = CustomFieldDefinitionSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = None
 
     def get_queryset(self):
         return CustomFieldDefinition.objects.filter(
