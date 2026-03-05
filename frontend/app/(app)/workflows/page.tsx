@@ -47,17 +47,17 @@ interface WorkflowTemplate {
 
 const TRIGGER_LABELS: Record<string, string> = {
   "deal.stage_changed": "Deal change de stage",
-  "deal.created": "Deal cr\u00e9\u00e9",
-  "deal.won": "Deal gagn\u00e9",
+  "deal.created": "Deal créé",
+  "deal.won": "Deal gagné",
   "deal.lost": "Deal perdu",
-  "contact.created": "Contact cr\u00e9\u00e9",
-  "contact.updated": "Contact mis \u00e0 jour",
-  "contact.lead_score_changed": "Lead score chang\u00e9",
-  "task.created": "T\u00e2che cr\u00e9\u00e9e",
-  "task.completed": "T\u00e2che compl\u00e9t\u00e9e",
-  "task.overdue": "T\u00e2che en retard",
-  "email.sent": "Email envoy\u00e9",
-  "note.added": "Note ajout\u00e9e",
+  "contact.created": "Contact créé",
+  "contact.updated": "Contact mis à jour",
+  "contact.lead_score_changed": "Lead score changé",
+  "task.created": "Tâche créée",
+  "task.completed": "Tâche complétée",
+  "task.overdue": "Tâche en retard",
+  "email.sent": "Email envoyé",
+  "note.added": "Note ajoutée",
 }
 
 export default function WorkflowsPage() {
@@ -112,7 +112,7 @@ export default function WorkflowsPage() {
       setNewName("")
       router.push(`/workflows/${data.id}`)
     } catch {
-      toast.error("Erreur lors de la cr\u00e9ation")
+      toast.error("Erreur lors de la création")
     } finally {
       setCreating(false)
     }
@@ -132,7 +132,7 @@ export default function WorkflowsPage() {
       setTemplateDialogOpen(false)
       router.push(`/workflows/${data.id}`)
     } catch {
-      toast.error("Erreur lors de la cr\u00e9ation")
+      toast.error("Erreur lors de la création")
     }
   }
 
@@ -147,7 +147,7 @@ export default function WorkflowsPage() {
           w.id === workflow.id ? { ...w, is_active: data.is_active } : w
         )
       )
-      toast.success(data.is_active ? "Workflow activ\u00e9" : "Workflow d\u00e9sactiv\u00e9")
+      toast.success(data.is_active ? "Workflow activé" : "Workflow désactivé")
     } catch {
       toast.error("Erreur")
     }
@@ -157,7 +157,7 @@ export default function WorkflowsPage() {
     try {
       await apiFetch(`/workflows/${id}/`, { method: "DELETE" })
       setWorkflows((prev) => prev.filter((w) => w.id !== id))
-      toast.success("Workflow supprim\u00e9")
+      toast.success("Workflow supprimé")
     } catch {
       toast.error("Erreur lors de la suppression")
     }
@@ -203,14 +203,14 @@ export default function WorkflowsPage() {
         <div className="rounded-xl border border-border bg-card flex flex-col items-center justify-center py-20 space-y-3">
           <Zap className="h-10 w-10 text-muted-foreground/30" />
           <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-            Aucun workflow. Cr\u00e9ez votre premier workflow ou utilisez un template.
+            Aucun workflow. Créez votre premier workflow ou utilisez un template.
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setTemplateDialogOpen(true)}>
               Voir les templates
             </Button>
             <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
-              Cr\u00e9er un workflow
+              Créer un workflow
             </Button>
           </div>
         </div>
@@ -226,7 +226,7 @@ export default function WorkflowsPage() {
                 <button
                   onClick={() => handleToggle(workflow)}
                   className="shrink-0"
-                  title={workflow.is_active ? "D\u00e9sactiver" : "Activer"}
+                  title={workflow.is_active ? "Désactiver" : "Activer"}
                 >
                   {workflow.is_active ? (
                     <Zap className="h-5 w-5 text-primary" />
@@ -257,7 +257,7 @@ export default function WorkflowsPage() {
                       </span>
                     )}
                     <span className="text-xs text-muted-foreground/60">
-                      {workflow.execution_count} ex\u00e9cution{workflow.execution_count !== 1 ? "s" : ""}
+                      {workflow.execution_count} exécution{workflow.execution_count !== 1 ? "s" : ""}
                     </span>
                   </div>
                 </div>
@@ -329,7 +329,7 @@ export default function WorkflowsPage() {
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Ex: Suivi de n\u00e9gociation"
+                placeholder="Ex: Suivi de négociation"
                 className="h-11 bg-secondary/30 border-border/60"
                 onKeyDown={(e) => e.key === "Enter" && handleCreateBlank()}
               />
@@ -343,7 +343,7 @@ export default function WorkflowsPage() {
                 disabled={creating || !newName.trim()}
               >
                 {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Cr\u00e9er
+                Créer
               </Button>
             </div>
           </div>

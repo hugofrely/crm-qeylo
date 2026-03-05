@@ -33,7 +33,7 @@ const PALETTE_ITEMS = [
   { type: "trigger", label: "Trigger", icon: Zap, color: "text-blue-500" },
   { type: "condition", label: "Condition", icon: HelpCircle, color: "text-amber-500" },
   { type: "action", label: "Action", icon: Cog, color: "text-emerald-500" },
-  { type: "delay", label: "D\u00e9lai", icon: Clock, color: "text-gray-500" },
+  { type: "delay", label: "Délai", icon: Clock, color: "text-gray-500" },
 ]
 
 let nodeIdCounter = 0

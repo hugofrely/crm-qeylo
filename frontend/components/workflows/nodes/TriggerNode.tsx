@@ -4,17 +4,17 @@ import { Zap } from "lucide-react"
 
 const TRIGGER_LABELS: Record<string, string> = {
   "deal.stage_changed": "Deal change de stage",
-  "deal.created": "Deal cr\u00e9\u00e9",
-  "deal.won": "Deal gagn\u00e9",
+  "deal.created": "Deal créé",
+  "deal.won": "Deal gagné",
   "deal.lost": "Deal perdu",
-  "contact.created": "Contact cr\u00e9\u00e9",
-  "contact.updated": "Contact mis \u00e0 jour",
-  "contact.lead_score_changed": "Lead score chang\u00e9",
-  "task.created": "T\u00e2che cr\u00e9\u00e9e",
-  "task.completed": "T\u00e2che compl\u00e9t\u00e9e",
-  "task.overdue": "T\u00e2che en retard",
-  "email.sent": "Email envoy\u00e9",
-  "note.added": "Note ajout\u00e9e",
+  "contact.created": "Contact créé",
+  "contact.updated": "Contact mis à jour",
+  "contact.lead_score_changed": "Lead score changé",
+  "task.created": "Tâche créée",
+  "task.completed": "Tâche complétée",
+  "task.overdue": "Tâche en retard",
+  "email.sent": "Email envoyé",
+  "note.added": "Note ajoutée",
 }
 
 function TriggerNode({ data, selected }: NodeProps) {

@@ -4,7 +4,7 @@ import { HelpCircle } from "lucide-react"
 
 const OPERATOR_LABELS: Record<string, string> = {
   equals: "=",
-  not_equals: "\u2260",
+  not_equals: "≠",
   greater_than: ">",
   less_than: "<",
   contains: "contient",

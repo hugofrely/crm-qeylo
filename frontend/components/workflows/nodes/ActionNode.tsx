@@ -3,11 +3,11 @@ import { Handle, Position, type NodeProps } from "@xyflow/react"
 import { Cog } from "lucide-react"
 
 const ACTION_LABELS: Record<string, string> = {
-  create_task: "Cr\u00e9er une t\u00e2che",
+  create_task: "Créer une tâche",
   send_notification: "Envoyer une notification",
-  create_note: "Cr\u00e9er une note",
-  move_deal: "D\u00e9placer le deal",
-  update_contact: "Mettre \u00e0 jour le contact",
+  create_note: "Créer une note",
+  move_deal: "Déplacer le deal",
+  update_contact: "Mettre à jour le contact",
   send_email: "Envoyer un email",
   webhook: "Webhook",
 }

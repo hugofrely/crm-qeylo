@@ -37,12 +37,12 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  completed: "Termin\u00e9",
-  failed: "\u00c9chou\u00e9",
+  completed: "Terminé",
+  failed: "Échoué",
   running: "En cours",
-  cancelled: "Annul\u00e9",
+  cancelled: "Annulé",
   pending: "En attente",
-  skipped: "Ignor\u00e9",
+  skipped: "Ignoré",
 }
 
 function timeAgo(dateStr: string): string {
@@ -50,7 +50,7 @@ function timeAgo(dateStr: string): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return "\u00e0 l'instant"
+  if (diffMin < 1) return "à l'instant"
   if (diffMin < 60) return `il y a ${diffMin}min`
   const diffH = Math.floor(diffMin / 60)
   if (diffH < 24) return `il y a ${diffH}h`
@@ -92,7 +92,7 @@ export default function ExecutionHistory({ workflowId }: ExecutionHistoryProps) 
   if (executions.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-        Aucune ex\u00e9cution pour ce workflow.
+        Aucune exécution pour ce workflow.
       </div>
     )
   }

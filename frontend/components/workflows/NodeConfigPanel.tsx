@@ -8,34 +8,34 @@ import type { Node } from "@xyflow/react"
 
 const TRIGGER_OPTIONS = [
   { value: "deal.stage_changed", label: "Deal change de stage" },
-  { value: "deal.created", label: "Deal cr\u00e9\u00e9" },
-  { value: "deal.won", label: "Deal gagn\u00e9" },
+  { value: "deal.created", label: "Deal créé" },
+  { value: "deal.won", label: "Deal gagné" },
   { value: "deal.lost", label: "Deal perdu" },
-  { value: "contact.created", label: "Contact cr\u00e9\u00e9" },
-  { value: "contact.updated", label: "Contact mis \u00e0 jour" },
-  { value: "contact.lead_score_changed", label: "Lead score chang\u00e9" },
-  { value: "task.created", label: "T\u00e2che cr\u00e9\u00e9e" },
-  { value: "task.completed", label: "T\u00e2che compl\u00e9t\u00e9e" },
-  { value: "task.overdue", label: "T\u00e2che en retard" },
-  { value: "email.sent", label: "Email envoy\u00e9" },
-  { value: "note.added", label: "Note ajout\u00e9e" },
+  { value: "contact.created", label: "Contact créé" },
+  { value: "contact.updated", label: "Contact mis à jour" },
+  { value: "contact.lead_score_changed", label: "Lead score changé" },
+  { value: "task.created", label: "Tâche créée" },
+  { value: "task.completed", label: "Tâche complétée" },
+  { value: "task.overdue", label: "Tâche en retard" },
+  { value: "email.sent", label: "Email envoyé" },
+  { value: "note.added", label: "Note ajoutée" },
 ]
 
 const ACTION_OPTIONS = [
-  { value: "create_task", label: "Cr\u00e9er une t\u00e2che" },
+  { value: "create_task", label: "Créer une tâche" },
   { value: "send_notification", label: "Envoyer une notification" },
-  { value: "create_note", label: "Cr\u00e9er une note" },
-  { value: "move_deal", label: "D\u00e9placer le deal" },
-  { value: "update_contact", label: "Mettre \u00e0 jour le contact" },
+  { value: "create_note", label: "Créer une note" },
+  { value: "move_deal", label: "Déplacer le deal" },
+  { value: "update_contact", label: "Mettre à jour le contact" },
   { value: "send_email", label: "Envoyer un email" },
   { value: "webhook", label: "Webhook" },
 ]
 
 const OPERATOR_OPTIONS = [
-  { value: "equals", label: "\u00c9gal \u00e0" },
-  { value: "not_equals", label: "Diff\u00e9rent de" },
-  { value: "greater_than", label: "Sup\u00e9rieur \u00e0" },
-  { value: "less_than", label: "Inf\u00e9rieur \u00e0" },
+  { value: "equals", label: "Égal à" },
+  { value: "not_equals", label: "Différent de" },
+  { value: "greater_than", label: "Supérieur à" },
+  { value: "less_than", label: "Inférieur à" },
   { value: "contains", label: "Contient" },
   { value: "not_contains", label: "Ne contient pas" },
   { value: "is_empty", label: "Est vide" },
@@ -94,7 +94,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
           <>
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                \u00c9v\u00e9nement d\u00e9clencheur
+                Événement déclencheur
               </Label>
               <select
                 value={nodeSubtype}
@@ -116,7 +116,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
                 <Input
                   value={(config.filters as Record<string, string>)?.new_stage_name || ""}
                   onChange={(e) => updateConfig("filters", { ...((config.filters as Record<string, string>) || {}), new_stage_name: e.target.value })}
-                  placeholder="Ex: N\u00e9gociation"
+                  placeholder="Ex: Négociation"
                   className="h-9 bg-secondary/30 border-border/60"
                 />
               </div>
@@ -140,7 +140,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Op\u00e9rateur
+                Opérateur
               </Label>
               <select
                 value={(config.operator as string) || "equals"}
@@ -200,7 +200,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    \u00c9ch\u00e9ance (offset)
+                    Échéance (offset)
                   </Label>
                   <Input
                     value={(config.due_date_offset as string) || "+1d"}
@@ -211,7 +211,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Priorit\u00e9
+                    Priorité
                   </Label>
                   <select
                     value={(config.priority as string) || "normal"}
@@ -246,7 +246,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
                   <textarea
                     value={(config.message as string) || ""}
                     onChange={(e) => updateConfig("message", e.target.value)}
-                    placeholder="{{deal.name}} — {{deal.amount}}\u20ac"
+                    placeholder="{{deal.name}} — {{deal.amount}}€"
                     className="w-full rounded-md border border-border bg-secondary/30 px-3 py-2 text-sm min-h-[80px] resize-none"
                   />
                 </div>
@@ -275,7 +275,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
                 <Input
                   value={(config.stage_name as string) || ""}
                   onChange={(e) => updateConfig("stage_name", e.target.value)}
-                  placeholder="Ex: Gagn\u00e9"
+                  placeholder="Ex: Gagné"
                   className="h-9 bg-secondary/30 border-border/60"
                 />
               </div>
@@ -323,7 +323,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    M\u00e9thode
+                    Méthode
                   </Label>
                   <select
                     value={(config.method as string) || "POST"}
@@ -344,7 +344,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
         {nodeType === "delay" && (
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Dur\u00e9e (en secondes)
+              Durée (en secondes)
             </Label>
             <Input
               type="number"
@@ -401,7 +401,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
               onClose()
             }}
           >
-            Supprimer ce n\u0153ud
+            Supprimer ce nœud
           </Button>
         </div>
       </div>

@@ -118,7 +118,7 @@ export default function WorkflowBuilderPage() {
           edges: apiEdges,
         },
       })
-      toast.success("Workflow sauvegard\u00e9")
+      toast.success("Workflow sauvegardé")
     } catch {
       toast.error("Erreur lors de la sauvegarde")
     } finally {
@@ -134,7 +134,7 @@ export default function WorkflowBuilderPage() {
         { method: "POST" }
       )
       setWorkflow({ ...workflow, is_active: data.is_active })
-      toast.success(data.is_active ? "Workflow activ\u00e9" : "Workflow d\u00e9sactiv\u00e9")
+      toast.success(data.is_active ? "Workflow activé" : "Workflow désactivé")
     } catch {
       toast.error("Erreur")
     }
@@ -235,7 +235,7 @@ export default function WorkflowBuilderPage() {
         <button
           onClick={handleToggle}
           className="flex items-center gap-1.5 text-xs font-medium transition-colors"
-          title={workflow.is_active ? "D\u00e9sactiver" : "Activer"}
+          title={workflow.is_active ? "Désactiver" : "Activer"}
         >
           {workflow.is_active ? (
             <>

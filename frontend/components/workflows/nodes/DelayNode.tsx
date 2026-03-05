@@ -37,7 +37,7 @@ function DelayNode({ data, selected }: NodeProps) {
         </div>
         <div>
           <div className="text-[10px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-            D\u00e9lai
+            Délai
           </div>
           <div className="text-xs font-medium text-foreground">{label}</div>
         </div>
