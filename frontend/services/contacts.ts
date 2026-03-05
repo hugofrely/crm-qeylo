@@ -107,3 +107,40 @@ export async function checkEmailAccount(): Promise<boolean> {
     return false
   }
 }
+
+export async function exportContactsCSV(params?: {
+  category?: string
+  segment?: string
+  q?: string
+}): Promise<void> {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+  const token = (await import("js-cookie")).default.get("access_token")
+  const orgId = (await import("js-cookie")).default.get("organization_id")
+
+  const searchParams = new URLSearchParams()
+  if (params?.category) searchParams.set("category", params.category)
+  if (params?.segment) searchParams.set("segment", params.segment)
+  if (params?.q) searchParams.set("q", params.q)
+
+  const query = searchParams.toString()
+  const url = `${API_URL}/contacts/export/${query ? `?${query}` : ""}`
+
+  const response = await fetch(url, {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(orgId ? { "X-Organization": orgId } : {}),
+    },
+  })
+
+  if (!response.ok) throw new Error("Export failed")
+
+  const blob = await response.blob()
+  const downloadUrl = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = downloadUrl
+  a.download = `contacts-export-${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(downloadUrl)
+}

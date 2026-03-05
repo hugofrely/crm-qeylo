@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { apiFetch } from "@/lib/api"
-import { fetchContactCategories, checkDuplicates } from "@/services/contacts"
+import { fetchContactCategories, checkDuplicates, exportContactsCSV } from "@/services/contacts"
 import { DuplicateDetectionDialog } from "@/components/contacts/DuplicateDetectionDialog"
 import type { DuplicateMatch } from "@/types"
 import { SegmentSelector } from "@/components/segments/SegmentSelector"
@@ -18,7 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Plus, Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { Plus, Search, ChevronLeft, ChevronRight, Loader2, Download } from "lucide-react"
 import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog"
 import type { Contact, ContactCategory } from "@/types"
 
@@ -57,6 +57,7 @@ export default function ContactsPage() {
   const [duplicates, setDuplicates] = useState<DuplicateMatch[]>([])
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -188,6 +189,21 @@ export default function ContactsPage() {
     }
   }
 
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      await exportContactsCSV({
+        ...(selectedSegment ? { segment: selectedSegment } : {}),
+        ...(selectedCategory ? { category: selectedCategory } : {}),
+        ...(search.trim() ? { q: search.trim() } : {}),
+      })
+    } catch (err) {
+      console.error("Export failed:", err)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       {/* Header */}
@@ -201,6 +217,10 @@ export default function ContactsPage() {
 
         <div className="flex gap-2">
           <ImportCSVDialog onImported={fetchContacts} />
+          <Button variant="outline" className="gap-2" onClick={handleExport} disabled={exporting}>
+            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Exporter
+          </Button>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">

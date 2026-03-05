@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 from .duplicates import check_duplicates, merge_contacts, duplicate_settings
+from .export import export_contacts
 
 router = DefaultRouter()
 router.register("", views.ContactViewSet, basename="contact")
@@ -21,5 +22,6 @@ urlpatterns = [
     path("custom-fields/reorder/", views.reorder_custom_fields),
     path("custom-fields/", include(custom_field_router.urls)),
     path("<uuid:pk>/merge/", merge_contacts),
+    path("export/", export_contacts),
     path("", include(router.urls)),
 ]

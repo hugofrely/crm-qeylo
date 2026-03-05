@@ -6,7 +6,8 @@ import { fetchSegment, updateSegment, fetchSegmentContacts } from "@/services/se
 import { SegmentBuilder } from "@/components/segments/SegmentBuilder"
 import { ContactTable } from "@/components/contacts/ContactTable"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Pencil, Users, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowLeft, Pencil, Users, Loader2, ChevronLeft, ChevronRight, Download } from "lucide-react"
+import { exportContactsCSV } from "@/services/contacts"
 import type { Segment, Contact } from "@/types"
 
 const PAGE_SIZE = 20
@@ -36,6 +37,7 @@ export default function SegmentDetailPage() {
   const [page, setPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [builderOpen, setBuilderOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   const loadSegment = useCallback(async () => {
     try {
@@ -73,6 +75,17 @@ export default function SegmentDetailPage() {
     await updateSegment(id, data)
     loadSegment()
     loadContacts()
+  }
+
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      await exportContactsCSV({ segment: id })
+    } catch (err) {
+      console.error("Export failed:", err)
+    } finally {
+      setExporting(false)
+    }
   }
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
@@ -122,10 +135,16 @@ export default function SegmentDetailPage() {
             <span>{totalCount} contact{totalCount !== 1 ? "s" : ""}</span>
           </div>
         </div>
-        <Button variant="outline" className="gap-2" onClick={() => setBuilderOpen(true)}>
-          <Pencil className="h-4 w-4" />
-          Modifier les regles
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleExport} disabled={exporting}>
+            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            Exporter
+          </Button>
+          <Button variant="outline" className="gap-2" onClick={() => setBuilderOpen(true)}>
+            <Pencil className="h-4 w-4" />
+            Modifier les regles
+          </Button>
+        </div>
       </div>
 
       {/* Contacts table */}
