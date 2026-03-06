@@ -8,6 +8,7 @@ class TimelineEntry(models.Model):
         CONTACT_CREATED = "contact_created"
         DEAL_CREATED = "deal_created"
         DEAL_MOVED = "deal_moved"
+        DEAL_UPDATED = "deal_updated"
         NOTE_ADDED = "note_added"
         TASK_CREATED = "task_created"
         CHAT_ACTION = "chat_action"

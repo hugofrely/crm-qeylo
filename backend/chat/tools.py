@@ -18,7 +18,7 @@ from pydantic_ai import RunContext
 
 from contacts.duplicates import _find_duplicates
 from contacts.models import Contact, ContactCategory, CustomFieldDefinition, DuplicateDetectionSettings
-from deals.models import Deal, PipelineStage
+from deals.models import Deal, Pipeline, PipelineStage
 from organizations.models import Organization
 from notes.models import TimelineEntry
 from tasks.models import Task
@@ -577,6 +577,307 @@ def move_deal(
         "name": deal.name,
         "old_stage": old_stage,
         "new_stage": new_stage_name,
+    }
+
+
+def update_deal(
+    ctx: RunContext[ChatDeps],
+    deal_id: str,
+    name: Optional[str] = None,
+    amount: Optional[float] = None,
+    contact_id: Optional[str] = None,
+) -> dict:
+    """Met à jour un deal existant. Seuls les champs fournis sont modifiés."""
+    org_id = ctx.deps.organization_id
+    resolved_id = _resolve_deal_id(org_id, deal_id)
+    if not resolved_id:
+        return {"action": "error", "message": "Deal introuvable."}
+
+    try:
+        deal = Deal.objects.select_related("stage", "contact").get(
+            id=resolved_id, organization_id=org_id,
+        )
+    except Deal.DoesNotExist:
+        return {"action": "error", "message": "Deal introuvable."}
+
+    changes: list[dict] = []
+
+    if name is not None and name != deal.name:
+        changes.append({"field": "name", "from": deal.name, "to": name})
+        deal.name = name
+
+    if amount is not None and float(amount) != float(deal.amount):
+        changes.append({"field": "amount", "from": str(deal.amount), "to": str(amount)})
+        deal.amount = amount
+
+    if contact_id is not None:
+        resolved_contact = _resolve_contact_id(org_id, contact_id)
+        old_contact_name = (
+            f"{deal.contact.first_name} {deal.contact.last_name}" if deal.contact else ""
+        )
+        if resolved_contact:
+            new_contact = Contact.objects.get(id=resolved_contact, organization_id=org_id)
+            new_contact_name = f"{new_contact.first_name} {new_contact.last_name}"
+            if str(deal.contact_id) != resolved_contact:
+                changes.append({"field": "contact", "from": old_contact_name, "to": new_contact_name})
+                deal.contact = new_contact
+
+    if not changes:
+        return {"action": "error", "message": "Aucun champ à mettre à jour."}
+
+    deal.save()
+
+    TimelineEntry.objects.create(
+        organization_id=org_id,
+        created_by_id=ctx.deps.user_id,
+        deal=deal,
+        entry_type=TimelineEntry.EntryType.DEAL_UPDATED,
+        content=f"Deal '{deal.name}' mis à jour via chat",
+        metadata={"changes": changes},
+    )
+
+    contact_name = f"{deal.contact.first_name} {deal.contact.last_name}" if deal.contact else ""
+    return {
+        "action": "deal_updated",
+        "entity_type": "deal",
+        "entity_id": str(deal.id),
+        "summary": f"Deal '{deal.name}' mis à jour",
+        "changes": changes,
+        "entity_preview": {
+            "name": deal.name,
+            "amount": float(deal.amount),
+            "stage": deal.stage.name if deal.stage else "",
+            "contact": contact_name,
+        },
+        "link": f"/deals/{deal.id}",
+    }
+
+
+def delete_deal(ctx: RunContext[ChatDeps], deal_id: str) -> dict:
+    """Supprime un deal (soft delete). Le deal pourra être restauré depuis la corbeille."""
+    org_id = ctx.deps.organization_id
+    resolved_id = _resolve_deal_id(org_id, deal_id)
+    if not resolved_id:
+        return {"action": "error", "message": "Deal introuvable."}
+
+    try:
+        deal = Deal.objects.select_related("stage", "contact").get(
+            id=resolved_id, organization_id=org_id,
+        )
+    except Deal.DoesNotExist:
+        return {"action": "error", "message": "Deal introuvable."}
+
+    contact_name = f"{deal.contact.first_name} {deal.contact.last_name}" if deal.contact else ""
+    preview = {
+        "name": deal.name,
+        "amount": float(deal.amount),
+        "stage": deal.stage.name if deal.stage else "",
+        "contact": contact_name,
+    }
+    deal.delete()
+
+    return {
+        "action": "deal_deleted",
+        "entity_type": "deal",
+        "entity_id": resolved_id,
+        "summary": f"Deal '{preview['name']}' supprimé",
+        "entity_preview": preview,
+        "undo_available": True,
+    }
+
+
+def get_deal(ctx: RunContext[ChatDeps], deal_id: str) -> dict:
+    """Récupère les détails complets d'un deal pour affichage. Utilise l'ID du deal."""
+    org_id = ctx.deps.organization_id
+    resolved_id = _resolve_deal_id(org_id, deal_id)
+    if not resolved_id:
+        return {"action": "error", "message": "Deal introuvable."}
+
+    try:
+        deal = Deal.objects.select_related("stage", "contact").get(
+            id=resolved_id, organization_id=org_id,
+        )
+    except Deal.DoesNotExist:
+        return {"action": "error", "message": "Deal introuvable."}
+
+    contact_name = f"{deal.contact.first_name} {deal.contact.last_name}" if deal.contact else ""
+    return {
+        "action": "get_deal",
+        "entity_type": "deal",
+        "entity_id": resolved_id,
+        "entity_preview": {
+            "name": deal.name,
+            "amount": float(deal.amount),
+            "stage": deal.stage.name if deal.stage else "",
+            "contact": contact_name,
+            "closed_at": str(deal.closed_at) if deal.closed_at else None,
+        },
+        "link": f"/deals/{resolved_id}",
+    }
+
+
+def search_deals(ctx: RunContext[ChatDeps], query: str, stage_name: str = "") -> dict:
+    """Recherche des deals par nom. Filtre optionnel par nom d'étape du pipeline."""
+    org_id = ctx.deps.organization_id
+    qs = Deal.objects.filter(
+        organization_id=org_id,
+        name__icontains=query,
+    ).select_related("stage", "contact")
+
+    if stage_name:
+        qs = qs.filter(stage__name__iexact=stage_name)
+
+    deals = qs[:10]
+    results = [
+        {
+            "id": str(d.id),
+            "name": d.name,
+            "amount": float(d.amount),
+            "stage": d.stage.name if d.stage else "",
+            "contact": f"{d.contact.first_name} {d.contact.last_name}" if d.contact else "",
+        }
+        for d in deals
+    ]
+    return {"action": "search_deals", "count": len(results), "results": results}
+
+
+def list_pipeline_stages(ctx: RunContext[ChatDeps], pipeline_id: Optional[str] = None) -> dict:
+    """Liste les étapes du pipeline, triées par position. Filtre optionnel par pipeline_id."""
+    org_id = ctx.deps.organization_id
+    qs = PipelineStage.objects.filter(
+        pipeline__organization_id=org_id,
+    ).select_related("pipeline").order_by("order")
+
+    if pipeline_id:
+        qs = qs.filter(pipeline_id=pipeline_id)
+
+    stages = qs
+    results = [
+        {
+            "id": str(s.id),
+            "name": s.name,
+            "position": s.order,
+            "pipeline": s.pipeline.name if s.pipeline else "",
+        }
+        for s in stages
+    ]
+    return {"action": "list_pipeline_stages", "count": len(results), "results": results}
+
+
+def create_pipeline_stage(
+    ctx: RunContext[ChatDeps],
+    name: str,
+    pipeline_id: str,
+    position: Optional[int] = None,
+) -> dict:
+    """Crée une nouvelle étape dans un pipeline. La position est calculée automatiquement si non fournie."""
+    org_id = ctx.deps.organization_id
+
+    try:
+        pipeline = Pipeline.objects.get(id=pipeline_id, organization_id=org_id)
+    except Pipeline.DoesNotExist:
+        return {"action": "error", "message": "Pipeline introuvable."}
+
+    if position is None:
+        last = PipelineStage.objects.filter(
+            pipeline=pipeline,
+        ).order_by("-order").first()
+        position = (last.order + 1) if last else 0
+
+    stage = PipelineStage.objects.create(
+        pipeline=pipeline,
+        name=name,
+        order=position,
+    )
+
+    return {
+        "action": "pipeline_stage_created",
+        "entity_type": "pipeline_stage",
+        "entity_id": str(stage.id),
+        "entity_preview": {
+            "name": stage.name,
+            "position": stage.order,
+            "pipeline": pipeline.name,
+        },
+    }
+
+
+def update_pipeline_stage(
+    ctx: RunContext[ChatDeps],
+    stage_id: str,
+    name: Optional[str] = None,
+    position: Optional[int] = None,
+) -> dict:
+    """Met à jour une étape du pipeline. Seuls les champs fournis sont modifiés."""
+    org_id = ctx.deps.organization_id
+
+    try:
+        stage = PipelineStage.objects.select_related("pipeline").get(
+            id=stage_id, pipeline__organization_id=org_id,
+        )
+    except PipelineStage.DoesNotExist:
+        return {"action": "error", "message": "Étape de pipeline introuvable."}
+
+    changes: list[dict] = []
+
+    if name is not None and name != stage.name:
+        changes.append({"field": "name", "from": stage.name, "to": name})
+        stage.name = name
+
+    if position is not None and position != stage.order:
+        changes.append({"field": "position", "from": str(stage.order), "to": str(position)})
+        stage.order = position
+
+    if not changes:
+        return {"action": "error", "message": "Aucun champ à mettre à jour."}
+
+    stage.save()
+
+    return {
+        "action": "pipeline_stage_updated",
+        "entity_type": "pipeline_stage",
+        "entity_id": str(stage.id),
+        "summary": f"Étape '{stage.name}' mise à jour",
+        "changes": changes,
+        "entity_preview": {
+            "name": stage.name,
+            "position": stage.order,
+            "pipeline": stage.pipeline.name if stage.pipeline else "",
+        },
+    }
+
+
+def delete_pipeline_stage(ctx: RunContext[ChatDeps], stage_id: str) -> dict:
+    """Supprime une étape du pipeline. Refuse si des deals sont encore dans cette étape."""
+    org_id = ctx.deps.organization_id
+
+    try:
+        stage = PipelineStage.objects.select_related("pipeline").get(
+            id=stage_id, pipeline__organization_id=org_id,
+        )
+    except PipelineStage.DoesNotExist:
+        return {"action": "error", "message": "Étape de pipeline introuvable."}
+
+    deal_count = Deal.objects.filter(stage=stage, organization_id=org_id).count()
+    if deal_count > 0:
+        return {
+            "action": "error",
+            "message": f"Impossible de supprimer l'étape '{stage.name}' : {deal_count} deal(s) s'y trouvent encore.",
+        }
+
+    preview = {
+        "name": stage.name,
+        "position": stage.order,
+        "pipeline": stage.pipeline.name if stage.pipeline else "",
+    }
+    stage.delete()
+
+    return {
+        "action": "pipeline_stage_deleted",
+        "entity_type": "pipeline_stage",
+        "entity_id": stage_id,
+        "summary": f"Étape '{preview['name']}' supprimée",
+        "entity_preview": preview,
     }
 
 
@@ -1150,6 +1451,14 @@ ALL_TOOLS = [
     delete_contact_category,
     create_deal,
     move_deal,
+    update_deal,
+    delete_deal,
+    get_deal,
+    search_deals,
+    list_pipeline_stages,
+    create_pipeline_stage,
+    update_pipeline_stage,
+    delete_pipeline_stage,
     create_task,
     complete_task,
     add_note,
