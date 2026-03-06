@@ -13,15 +13,14 @@ class DashboardTests(TestCase):
                 "password": "securepass123",
                 "first_name": "Hugo",
                 "last_name": "Frely",
+                "organization_name": "Test Org",
             },
         )
         self.token = response.data["access"]
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
 
-    def test_dashboard_stats(self):
-        response = self.client.get("/api/dashboard/stats/")
+    def test_dashboard_get_or_create(self):
+        response = self.client.get("/api/dashboard/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("revenue_this_month", response.data)
-        self.assertIn("total_pipeline", response.data)
-        self.assertIn("deals_by_stage", response.data)
-        self.assertIn("upcoming_tasks", response.data)
+        self.assertTrue(response.data["is_dashboard"])
+        self.assertEqual(len(response.data["widgets"]), 8)

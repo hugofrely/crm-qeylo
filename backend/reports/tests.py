@@ -123,3 +123,71 @@ class ReportTests(TestCase):
     def test_aggregate_missing_params(self):
         response = self.client.post("/api/reports/aggregate/", {}, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_aggregate_with_today_date_range(self):
+        self.client.post(
+            "/api/contacts/",
+            {"first_name": "Today", "last_name": "Contact"},
+            format="json",
+        )
+        response = self.client.post(
+            "/api/reports/aggregate/",
+            {"source": "contacts", "metric": "count", "date_range": "today"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(response.data["total"], 1)
+
+    def test_aggregate_with_this_week_date_range(self):
+        self.client.post(
+            "/api/contacts/",
+            {"first_name": "Week", "last_name": "Contact"},
+            format="json",
+        )
+        response = self.client.post(
+            "/api/reports/aggregate/",
+            {"source": "contacts", "metric": "count", "date_range": "this_week"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(response.data["total"], 1)
+
+    def test_aggregate_with_compare(self):
+        self.client.post(
+            "/api/contacts/",
+            {"first_name": "Compare", "last_name": "Contact"},
+            format="json",
+        )
+        response = self.client.post(
+            "/api/reports/aggregate/",
+            {
+                "source": "contacts",
+                "metric": "count",
+                "date_range": "this_month",
+                "compare": True,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("previous_total", response.data)
+        self.assertIn("delta_percent", response.data)
+
+    def test_aggregate_without_compare_has_no_delta(self):
+        response = self.client.post(
+            "/api/reports/aggregate/",
+            {"source": "contacts", "metric": "count", "date_range": "this_month"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotIn("previous_total", response.data)
+
+    def test_dashboard_auto_creates(self):
+        response = self.client.get("/api/dashboard/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["is_dashboard"])
+        self.assertEqual(len(response.data["widgets"]), 8)
+
+    def test_dashboard_returns_same_on_second_call(self):
+        response1 = self.client.get("/api/dashboard/")
+        response2 = self.client.get("/api/dashboard/")
+        self.assertEqual(response1.data["id"], response2.data["id"])
