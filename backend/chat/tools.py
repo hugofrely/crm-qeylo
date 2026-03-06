@@ -948,6 +948,149 @@ def complete_task(ctx: RunContext[ChatDeps], task_id: str) -> dict:
     }
 
 
+def update_task(
+    ctx: RunContext[ChatDeps],
+    task_id: str,
+    description: Optional[str] = None,
+    due_date: Optional[str] = None,
+    priority: Optional[str] = None,
+    contact_id: Optional[str] = None,
+    deal_id: Optional[str] = None,
+) -> dict:
+    """Met à jour une tâche existante. Seuls les champs fournis sont modifiés."""
+    org_id = ctx.deps.organization_id
+    try:
+        task = Task.objects.get(id=task_id, organization_id=org_id)
+    except Task.DoesNotExist:
+        return {"action": "error", "message": f"Tâche {task_id} introuvable."}
+
+    changes: list[dict] = []
+
+    if description is not None and description != task.description:
+        changes.append({"field": "description", "from": task.description, "to": description})
+        task.description = description
+
+    if due_date is not None:
+        try:
+            parsed_date = datetime.fromisoformat(due_date)
+            if parsed_date.tzinfo is None:
+                parsed_date = timezone.make_aware(parsed_date)
+        except (ValueError, TypeError):
+            return {"action": "error", "message": "Format de date invalide. Utilisez ISO (YYYY-MM-DD ou YYYY-MM-DDTHH:MM)."}
+        old_due = str(task.due_date) if task.due_date else ""
+        changes.append({"field": "due_date", "from": old_due, "to": str(parsed_date)})
+        task.due_date = parsed_date
+
+    if priority is not None and priority != task.priority:
+        changes.append({"field": "priority", "from": task.priority, "to": priority})
+        task.priority = priority
+
+    if contact_id is not None:
+        resolved_contact = _resolve_contact_id(org_id, contact_id)
+        old_contact = str(task.contact_id) if task.contact_id else ""
+        new_contact = resolved_contact or ""
+        if old_contact != new_contact:
+            changes.append({"field": "contact_id", "from": old_contact, "to": new_contact})
+            task.contact_id = resolved_contact
+
+    if deal_id is not None:
+        resolved_deal = _resolve_deal_id(org_id, deal_id)
+        old_deal = str(task.deal_id) if task.deal_id else ""
+        new_deal = resolved_deal or ""
+        if old_deal != new_deal:
+            changes.append({"field": "deal_id", "from": old_deal, "to": new_deal})
+            task.deal_id = resolved_deal
+
+    if not changes:
+        return {"action": "error", "message": "Aucun champ à mettre à jour."}
+
+    task.save()
+
+    return {
+        "action": "task_updated",
+        "entity_type": "task",
+        "entity_id": str(task.id),
+        "summary": f"Tâche '{task.description}' mise à jour",
+        "changes": changes,
+        "entity_preview": {
+            "description": task.description,
+            "due_date": str(task.due_date) if task.due_date else None,
+            "priority": task.priority,
+            "is_done": task.is_done,
+        },
+    }
+
+
+def delete_task(ctx: RunContext[ChatDeps], task_id: str) -> dict:
+    """Supprime une tâche (soft delete). La tâche pourra être restaurée depuis la corbeille."""
+    org_id = ctx.deps.organization_id
+    try:
+        task = Task.objects.get(id=task_id, organization_id=org_id)
+    except Task.DoesNotExist:
+        return {"action": "error", "message": f"Tâche {task_id} introuvable."}
+
+    preview = {
+        "description": task.description,
+        "due_date": str(task.due_date) if task.due_date else None,
+        "priority": task.priority,
+        "is_done": task.is_done,
+    }
+    task.delete()
+
+    return {
+        "action": "task_deleted",
+        "entity_type": "task",
+        "entity_id": str(task.id),
+        "summary": f"Tâche '{preview['description']}' supprimée",
+        "entity_preview": preview,
+        "undo_available": True,
+    }
+
+
+def search_tasks(
+    ctx: RunContext[ChatDeps],
+    query: str = "",
+    is_done: Optional[bool] = None,
+    priority: Optional[str] = None,
+    contact_id: Optional[str] = None,
+) -> dict:
+    """Recherche des tâches par description. Filtres optionnels par statut, priorité et contact."""
+    org_id = ctx.deps.organization_id
+    qs = Task.objects.filter(organization_id=org_id)
+
+    if query:
+        qs = qs.filter(description__icontains=query)
+    if is_done is not None:
+        qs = qs.filter(is_done=is_done)
+    if priority is not None:
+        qs = qs.filter(priority=priority)
+    if contact_id is not None:
+        resolved_contact = _resolve_contact_id(org_id, contact_id)
+        if resolved_contact:
+            qs = qs.filter(contact_id=resolved_contact)
+
+    tasks = qs.order_by("due_date")[:20]
+    results = [
+        {
+            "id": str(t.id),
+            "description": t.description,
+            "due_date": str(t.due_date) if t.due_date else None,
+            "priority": t.priority,
+            "is_done": t.is_done,
+            "contact_id": str(t.contact_id) if t.contact_id else None,
+            "deal_id": str(t.deal_id) if t.deal_id else None,
+        }
+        for t in tasks
+    ]
+    return {
+        "action": "search_tasks",
+        "entity_type": "task_list",
+        "summary": f"{len(results)} tâche(s) trouvée(s)",
+        "count": len(results),
+        "results": results,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Notes
 # ---------------------------------------------------------------------------
@@ -1461,6 +1604,9 @@ ALL_TOOLS = [
     delete_pipeline_stage,
     create_task,
     complete_task,
+    update_task,
+    delete_task,
+    search_tasks,
     add_note,
     log_interaction,
     send_contact_email,
