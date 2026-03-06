@@ -17,6 +17,7 @@ import {
   type Message,
 } from "@/components/chat/ChatMessage"
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar"
+import { ChatSuggestions } from "@/components/chat/ChatSuggestions"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 export function ChatWindow() {
@@ -326,6 +327,7 @@ export function ChatWindow() {
                   Dis-moi ce que tu veux faire. Je peux créer des contacts,
                   gérer tes deals, organiser tes tâches, et bien plus encore.
                 </p>
+                <ChatSuggestions onSelect={handleSend} />
               </div>
             )}
 
