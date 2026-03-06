@@ -10,6 +10,7 @@ class Notification(models.Model):
         DEAL_UPDATE = "deal_update"
         TASK_DUE = "task_due"
         IMPORT_COMPLETE = "import_complete"
+        TASK_ASSIGNED = "task_assigned"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organization = models.ForeignKey(
