@@ -12,14 +12,13 @@ import {
   Mail,
   Loader2,
   FileText,
-  Calendar,
   Target,
   Briefcase,
   Clock,
   MessageCircle,
   Plus,
 } from "lucide-react"
-import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ActivityDialog } from "@/components/activities/ActivityDialog"
 import { ComposeEmailDialog } from "@/components/emails/ComposeEmailDialog"
 
@@ -264,16 +263,6 @@ export default function ContactDetailPage() {
     )
   }
 
-  /* ── Tab definitions ── */
-  const tabs = [
-    { key: "activities", label: "Activites", icon: MessageCircle },
-    { key: "notes", label: "Notes", icon: FileText },
-    { key: "emails", label: "Emails", icon: Mail },
-    { key: "tasks", label: "Taches", icon: Target },
-    { key: "deals", label: "Deals", icon: Briefcase },
-    { key: "history", label: "Historique", icon: Clock },
-  ]
-
   /* ──────────────────────────────────────────────────────────────
      RENDER
      ────────────────────────────────────────────────────────────── */
@@ -343,30 +332,37 @@ export default function ContactDetailPage() {
 
         {/* RIGHT PANEL (TABS) */}
         <div className="flex-1 min-w-0 rounded-xl border border-border bg-card overflow-hidden">
-          {/* Tab bar */}
-          <div className="border-b border-border">
-            <div className="flex gap-1 px-2 overflow-x-auto">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium border-b-2 transition-colors font-[family-name:var(--font-body)] whitespace-nowrap ${
-                    activeTab === tab.key
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <tab.icon className="h-3.5 w-3.5" />
-                  {tab.label}
-                </button>
-              ))}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <div className="px-2 overflow-x-auto">
+              <TabsList>
+                <TabsTrigger value="activities">
+                  <MessageCircle className="h-3.5 w-3.5" />
+                  Activites
+                </TabsTrigger>
+                <TabsTrigger value="notes">
+                  <FileText className="h-3.5 w-3.5" />
+                  Notes
+                </TabsTrigger>
+                <TabsTrigger value="emails">
+                  <Mail className="h-3.5 w-3.5" />
+                  Emails
+                </TabsTrigger>
+                <TabsTrigger value="tasks">
+                  <Target className="h-3.5 w-3.5" />
+                  Taches
+                </TabsTrigger>
+                <TabsTrigger value="deals">
+                  <Briefcase className="h-3.5 w-3.5" />
+                  Deals
+                </TabsTrigger>
+                <TabsTrigger value="history">
+                  <Clock className="h-3.5 w-3.5" />
+                  Historique
+                </TabsTrigger>
+              </TabsList>
             </div>
-          </div>
 
-          {/* Tab content */}
-          <div className="p-6">
-            {/* Activities Tab */}
-            {activeTab === "activities" && (
+            <TabsContent value="activities" className="p-6">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
@@ -379,19 +375,17 @@ export default function ContactDetailPage() {
                 </div>
                 <ContactTimeline entries={activities} />
               </div>
-            )}
+            </TabsContent>
 
-            {/* Notes Tab */}
-            {activeTab === "notes" && (
+            <TabsContent value="notes" className="p-6">
               <ContactNotes
                 notes={notes}
                 contactId={id}
                 onNoteAdded={() => fetchTabData()}
               />
-            )}
+            </TabsContent>
 
-            {/* Emails Tab */}
-            {activeTab === "emails" && (
+            <TabsContent value="emails" className="p-6">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
@@ -406,10 +400,9 @@ export default function ContactDetailPage() {
                 </div>
                 <ContactTimeline entries={emails} />
               </div>
-            )}
+            </TabsContent>
 
-            {/* Tasks Tab */}
-            {activeTab === "tasks" && (
+            <TabsContent value="tasks" className="p-6">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
@@ -422,10 +415,9 @@ export default function ContactDetailPage() {
                 </div>
                 <ContactTasks tasks={tasks} onToggle={toggleTaskDone} />
               </div>
-            )}
+            </TabsContent>
 
-            {/* Deals Tab */}
-            {activeTab === "deals" && (
+            <TabsContent value="deals" className="p-6">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
@@ -438,10 +430,9 @@ export default function ContactDetailPage() {
                 </div>
                 <ContactDeals deals={deals} stages={stages} />
               </div>
-            )}
+            </TabsContent>
 
-            {/* History Tab */}
-            {activeTab === "history" && (
+            <TabsContent value="history" className="p-6">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
@@ -450,8 +441,8 @@ export default function ContactDetailPage() {
                 </div>
                 <ContactTimeline entries={history} />
               </div>
-            )}
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
