@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/api"
-import type { Report, AggregateRequest, AggregateResponse } from "@/types"
+import type { Report, AggregateRequest, AggregateResponse, FunnelRequest, FunnelResponse } from "@/types"
 
 export async function fetchReports(): Promise<Report[]> {
   return apiFetch<Report[]>("/reports/")
@@ -32,6 +32,15 @@ export async function fetchAggregate(
   request: AggregateRequest
 ): Promise<AggregateResponse> {
   return apiFetch<AggregateResponse>("/reports/aggregate/", {
+    method: "POST",
+    json: request,
+  })
+}
+
+export async function fetchFunnel(
+  request: FunnelRequest
+): Promise<FunnelResponse> {
+  return apiFetch<FunnelResponse>("/reports/funnel/", {
     method: "POST",
     json: request,
   })

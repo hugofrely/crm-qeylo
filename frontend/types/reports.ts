@@ -43,3 +43,30 @@ export interface AggregateResponse {
   previous_total?: number
   delta_percent?: number
 }
+
+export interface FunnelStage {
+  stage_id: string
+  stage_name: string
+  color: string
+  entered: number
+  exited_to_next: number
+  conversion_rate: number
+  avg_duration: string | null
+  total_amount: number
+}
+
+export interface FunnelRequest {
+  pipeline_id: string
+  filter_mode?: "cohort" | "activity"
+  date_range?: string
+  date_from?: string
+  date_to?: string
+}
+
+export interface FunnelResponse {
+  pipeline: string
+  stages: FunnelStage[]
+  overall_conversion: number
+  total_entered: number
+  total_won: number
+}
