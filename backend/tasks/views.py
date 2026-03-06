@@ -1,6 +1,7 @@
 from datetime import timedelta
 from django.utils import timezone
 from rest_framework import viewsets
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .models import Task
 from .serializers import TaskSerializer
@@ -48,6 +49,13 @@ class TaskViewSet(viewsets.ModelViewSet):
                 end = start + timedelta(days=7)
                 qs = qs.filter(due_date__gte=start, due_date__lt=end)
 
+        due_date_gte = params.get("due_date_gte")
+        due_date_lte = params.get("due_date_lte")
+        if due_date_gte:
+            qs = qs.filter(due_date__gte=due_date_gte)
+        if due_date_lte:
+            qs = qs.filter(due_date__lte=due_date_lte)
+
         assigned_to = params.get("assigned_to")
         if assigned_to:
             if assigned_to == "me":
@@ -59,6 +67,17 @@ class TaskViewSet(viewsets.ModelViewSet):
         return qs
 
     def list(self, request, *args, **kwargs):
+        params = request.query_params
+        if params.get("due_date_gte") and params.get("due_date_lte"):
+            qs = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(qs, many=True)
+            base_qs = self._base_queryset()
+            return Response({
+                "count": len(serializer.data),
+                "results": serializer.data,
+                "todo_count": base_qs.filter(is_done=False).count(),
+                "done_count": base_qs.filter(is_done=True).count(),
+            })
         response = super().list(request, *args, **kwargs)
         base_qs = self._base_queryset()
         response.data["todo_count"] = base_qs.filter(is_done=False).count()

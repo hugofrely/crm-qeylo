@@ -305,3 +305,25 @@ class TaskTests(TestCase):
 
         # Reminders should be cleared
         self.assertEqual(TaskReminder.objects.filter(task_id=task_id).count(), 0)
+
+    def test_filter_by_date_range(self):
+        """Filter by due_date_gte and due_date_lte returns tasks in range."""
+        self.client.post("/api/tasks/", {"description": "March 5", "due_date": "2026-03-05T10:00:00Z"})
+        self.client.post("/api/tasks/", {"description": "March 10", "due_date": "2026-03-10T10:00:00Z"})
+        self.client.post("/api/tasks/", {"description": "March 20", "due_date": "2026-03-20T10:00:00Z"})
+
+        response = self.client.get("/api/tasks/?due_date_gte=2026-03-01T00:00:00Z&due_date_lte=2026-03-15T23:59:59Z")
+        self.assertEqual(response.data["count"], 2)
+        descriptions = [t["description"] for t in response.data["results"]]
+        self.assertIn("March 5", descriptions)
+        self.assertIn("March 10", descriptions)
+        self.assertNotIn("March 20", descriptions)
+
+    def test_date_range_returns_unpaginated(self):
+        """When due_date_gte + due_date_lte are set, all results are returned (no pagination)."""
+        for i in range(25):
+            self.client.post("/api/tasks/", {"description": f"Task {i}", "due_date": "2026-03-10T10:00:00Z"})
+
+        response = self.client.get("/api/tasks/?due_date_gte=2026-03-01T00:00:00Z&due_date_lte=2026-03-31T23:59:59Z")
+        self.assertEqual(response.data["count"], 25)
+        self.assertEqual(len(response.data["results"]), 25)
