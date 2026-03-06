@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.conf import settings
+from core.models import SoftDeleteModel
 
 DEFAULT_STAGES = [
     {"name": "Premier contact", "color": "#6366F1", "order": 1},
@@ -107,7 +108,7 @@ class PipelineStage(models.Model):
         Pipeline.create_defaults(organization)
 
 
-class Deal(models.Model):
+class Deal(SoftDeleteModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organization = models.ForeignKey(
         "organizations.Organization",
@@ -141,6 +142,24 @@ class Deal(models.Model):
 
     def __str__(self):
         return self.name
+
+    def soft_delete(self, user=None, source="direct"):
+        super().soft_delete(user=user, source=source)
+        cascade_source = source if source.startswith("cascade_contact:") else f"cascade_deal:{self.id}"
+        from tasks.models import Task
+        Task.objects.filter(deal=self).update(
+            deleted_at=self.deleted_at,
+            deleted_by=user,
+            deletion_source=cascade_source,
+        )
+
+    def restore(self):
+        cascade_source = f"cascade_deal:{self.id}"
+        from tasks.models import Task
+        Task.all_objects.filter(deletion_source=cascade_source).update(
+            deleted_at=None, deleted_by=None, deletion_source=None
+        )
+        super().restore()
 
 
 class DealStageTransition(models.Model):

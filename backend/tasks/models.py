@@ -1,9 +1,10 @@
 import uuid
 from django.db import models
 from django.conf import settings
+from core.models import SoftDeleteModel
 
 
-class Task(models.Model):
+class Task(SoftDeleteModel):
     class Priority(models.TextChoices):
         HIGH = "high", "High"
         NORMAL = "normal", "Normal"

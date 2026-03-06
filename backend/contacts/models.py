@@ -1,9 +1,10 @@
 import uuid
 from django.db import models
 from django.conf import settings
+from core.models import SoftDeleteModel
 
 
-class Contact(models.Model):
+class Contact(SoftDeleteModel):
     class LeadScore(models.TextChoices):
         HOT = "hot", "Chaud"
         WARM = "warm", "Tiede"
@@ -102,6 +103,35 @@ class Contact(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+    def soft_delete(self, user=None, source="direct"):
+        super().soft_delete(user=user, source=source)
+        cascade_source = f"cascade_contact:{self.id}"
+        # Cascade to deals
+        from deals.models import Deal
+        for deal in Deal.objects.filter(contact=self):
+            deal.soft_delete(user=user, source=cascade_source)
+        # Cascade to tasks linked directly to this contact (not via deal)
+        from tasks.models import Task
+        Task.objects.filter(contact=self).update(
+            deleted_at=self.deleted_at,
+            deleted_by=user,
+            deletion_source=cascade_source,
+        )
+
+    def restore(self):
+        cascade_source = f"cascade_contact:{self.id}"
+        # Restore cascaded deals
+        from deals.models import Deal
+        Deal.all_objects.filter(deletion_source=cascade_source).update(
+            deleted_at=None, deleted_by=None, deletion_source=None
+        )
+        # Restore cascaded tasks (from contact AND from deals)
+        from tasks.models import Task
+        Task.all_objects.filter(deletion_source=cascade_source).update(
+            deleted_at=None, deleted_by=None, deletion_source=None
+        )
+        super().restore()
 
 
 class ContactCategory(models.Model):
