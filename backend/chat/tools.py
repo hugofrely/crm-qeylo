@@ -353,6 +353,145 @@ def update_custom_field(
     }
 
 
+def delete_contact(ctx: RunContext[ChatDeps], contact_id: str) -> dict:
+    """Supprime un contact (soft delete). Le contact pourra être restauré depuis la corbeille."""
+    org_id = ctx.deps.organization_id
+    resolved_id = _resolve_contact_id(org_id, contact_id)
+    if not resolved_id:
+        return {"action": "error", "message": "Contact introuvable."}
+
+    try:
+        contact = Contact.objects.get(id=resolved_id, organization_id=org_id)
+    except Contact.DoesNotExist:
+        return {"action": "error", "message": "Contact introuvable."}
+
+    name = f"{contact.first_name} {contact.last_name}"
+    preview = {
+        "name": name,
+        "email": contact.email,
+        "company": contact.company,
+    }
+    contact.delete()
+
+    return {
+        "action": "contact_deleted",
+        "entity_type": "contact",
+        "entity_id": resolved_id,
+        "summary": f"Contact {name} supprimé",
+        "entity_preview": preview,
+        "undo_available": True,
+    }
+
+
+def get_contact(ctx: RunContext[ChatDeps], contact_id: str) -> dict:
+    """Récupère les détails complets d'un contact pour affichage. Utilise l'ID du contact."""
+    org_id = ctx.deps.organization_id
+    resolved_id = _resolve_contact_id(org_id, contact_id)
+    if not resolved_id:
+        return {"action": "error", "message": "Contact introuvable."}
+
+    try:
+        contact = Contact.objects.get(id=resolved_id, organization_id=org_id)
+    except Contact.DoesNotExist:
+        return {"action": "error", "message": "Contact introuvable."}
+
+    initials = ""
+    if contact.first_name:
+        initials += contact.first_name[0].upper()
+    if contact.last_name:
+        initials += contact.last_name[0].upper()
+
+    name = f"{contact.first_name} {contact.last_name}"
+    return {
+        "action": "get_contact",
+        "entity_type": "contact",
+        "entity_id": resolved_id,
+        "entity_preview": {
+            "name": name,
+            "email": contact.email,
+            "phone": contact.phone,
+            "company": contact.company,
+            "job_title": contact.job_title,
+            "lead_score": contact.lead_score,
+            "avatar_initials": initials,
+        },
+        "link": f"/contacts/{resolved_id}",
+    }
+
+
+def list_contact_categories(ctx: RunContext[ChatDeps]) -> dict:
+    """Liste toutes les catégories de contacts disponibles pour l'organisation."""
+    org_id = ctx.deps.organization_id
+    categories = ContactCategory.objects.filter(organization_id=org_id)
+    results = [
+        {
+            "id": str(cat.id),
+            "name": cat.name,
+            "color": cat.color,
+        }
+        for cat in categories
+    ]
+    return {"action": "list_contact_categories", "count": len(results), "results": results}
+
+
+def create_contact_category(
+    ctx: RunContext[ChatDeps],
+    name: str,
+    color: str = "#6366f1",
+) -> dict:
+    """Crée une nouvelle catégorie de contacts. Vérifie qu'une catégorie avec le même nom n'existe pas déjà."""
+    org_id = ctx.deps.organization_id
+
+    existing = ContactCategory.objects.filter(
+        organization_id=org_id,
+        name__iexact=name,
+    ).first()
+    if existing:
+        return {
+            "action": "error",
+            "message": f"Une catégorie '{existing.name}' existe déjà.",
+        }
+
+    category = ContactCategory.objects.create(
+        organization_id=org_id,
+        name=name,
+        color=color,
+    )
+    return {
+        "action": "contact_category_created",
+        "entity_type": "contact_category",
+        "entity_id": str(category.id),
+        "entity_preview": {
+            "name": category.name,
+            "color": category.color,
+        },
+    }
+
+
+def delete_contact_category(ctx: RunContext[ChatDeps], category_id: str) -> dict:
+    """Supprime une catégorie de contacts."""
+    org_id = ctx.deps.organization_id
+
+    try:
+        category = ContactCategory.objects.get(id=category_id, organization_id=org_id)
+    except ContactCategory.DoesNotExist:
+        return {"action": "error", "message": "Catégorie introuvable."}
+
+    preview = {
+        "name": category.name,
+        "color": category.color,
+    }
+    category.delete()
+
+    return {
+        "action": "contact_category_deleted",
+        "entity_type": "contact_category",
+        "entity_id": category_id,
+        "summary": f"Catégorie '{preview['name']}' supprimée",
+        "entity_preview": preview,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Deals
 # ---------------------------------------------------------------------------
@@ -1004,6 +1143,11 @@ ALL_TOOLS = [
     update_contact,
     update_contact_categories,
     update_custom_field,
+    delete_contact,
+    get_contact,
+    list_contact_categories,
+    create_contact_category,
+    delete_contact_category,
     create_deal,
     move_deal,
     create_task,
