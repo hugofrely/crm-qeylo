@@ -18,6 +18,14 @@ class Report(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True, default="")
     is_template = models.BooleanField(default=False)
+    is_dashboard = models.BooleanField(default=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="dashboards",
+    )
     widgets = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
