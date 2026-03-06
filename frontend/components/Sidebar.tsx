@@ -30,6 +30,7 @@ import {
   Check,
   ChevronsUpDown,
   Plus,
+  FileBarChart,
 } from "lucide-react"
 import { CreateOrgDialog } from "@/components/organizations/CreateOrgDialog"
 
@@ -42,6 +43,7 @@ const navigation = [
   { name: "Tâches", href: "/tasks", icon: CheckSquare },
   { name: "Workflows", href: "/workflows", icon: Workflow },
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
+  { name: "Rapports", href: "/reports", icon: FileBarChart },
 ]
 
 export function Sidebar() {
