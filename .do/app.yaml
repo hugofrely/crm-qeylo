@@ -7,6 +7,10 @@ domains:
 
 services:
   - name: backend
+    github:
+      repo: hugofrely/crm-qeylo
+      branch: main
+      deploy_on_push: false
     dockerfile_path: backend/Dockerfile
     source_dir: /
     http_port: 8000
@@ -87,6 +91,10 @@ services:
         value: ""
 
   - name: frontend
+    github:
+      repo: hugofrely/crm-qeylo
+      branch: main
+      deploy_on_push: false
     dockerfile_path: frontend/Dockerfile
     source_dir: /
     http_port: 3000
@@ -101,6 +109,10 @@ services:
 
 workers:
   - name: celery-worker
+    github:
+      repo: hugofrely/crm-qeylo
+      branch: main
+      deploy_on_push: false
     dockerfile_path: backend/Dockerfile
     source_dir: /
     instance_count: 1
@@ -169,6 +181,10 @@ workers:
         value: "https://proto.qeylo.com"
 
   - name: celery-beat
+    github:
+      repo: hugofrely/crm-qeylo
+      branch: main
+      deploy_on_push: false
     dockerfile_path: backend/Dockerfile
     source_dir: /
     instance_count: 1
