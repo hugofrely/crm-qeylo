@@ -2021,6 +2021,444 @@ def list_timeline(
     }
 
 
+# ---------------------------------------------------------------------------
+# Transversal tools
+# ---------------------------------------------------------------------------
+
+ROUTE_MAP = {
+    "contact": {"path": "/contacts", "label": "Contacts"},
+    "deal": {"path": "/deals", "label": "Pipeline"},
+    "task": {"path": "/tasks", "label": "Tâches"},
+    "segment": {"path": "/segments", "label": "Segments"},
+    "workflow": {"path": "/workflows", "label": "Workflows"},
+    "email_template": {"path": "/settings/email-templates", "label": "Templates email"},
+    "dashboard": {"path": "/dashboard", "label": "Dashboard"},
+    "reports": {"path": "/reports", "label": "Rapports"},
+    "settings": {"path": "/settings", "label": "Paramètres"},
+    "pipeline": {"path": "/deals", "label": "Pipeline"},
+    "funnel": {"path": "/pipeline/funnel", "label": "Entonnoir"},
+    "trash": {"path": "/trash", "label": "Corbeille"},
+    "products": {"path": "/products", "label": "Produits"},
+    "chat": {"path": "/chat", "label": "Chat"},
+}
+
+
+def navigate(
+    ctx: RunContext[ChatDeps],
+    destination: str,
+    entity_id: Optional[str] = None,
+) -> dict:
+    """Navigate the user to a specific page in the CRM.
+
+    destination: one of contact, deal, task, segment, workflow, email_template,
+    dashboard, reports, settings, pipeline, funnel, trash, products, chat.
+    entity_id: optional UUID to navigate to a specific entity detail page.
+    """
+    org_id = ctx.deps.organization_id
+    route = ROUTE_MAP.get(destination)
+    if not route:
+        return {
+            "action": "error",
+            "message": f"Destination inconnue: {destination}. Destinations disponibles: {', '.join(ROUTE_MAP.keys())}",
+        }
+
+    path = route["path"]
+    title = route["label"]
+    description = f"Navigation vers {title}"
+
+    if entity_id:
+        path = f"{path}/{entity_id}"
+        # Try to resolve entity name for better display
+        try:
+            if destination == "contact":
+                c = Contact.objects.get(id=entity_id, organization_id=org_id)
+                name = f"{c.first_name} {c.last_name}".strip()
+                parts = [name]
+                if c.email:
+                    parts.append(c.email)
+                if c.company:
+                    parts.append(c.company)
+                description = " — ".join(parts)
+                title = name or title
+            elif destination == "deal":
+                d = Deal.objects.select_related("stage").get(
+                    id=entity_id, organization_id=org_id,
+                )
+                parts = [d.name]
+                if d.amount:
+                    parts.append(f"{float(d.amount):.0f} €")
+                if d.stage:
+                    parts.append(d.stage.name)
+                description = " — ".join(parts)
+                title = d.name
+            elif destination == "segment":
+                s = Segment.objects.get(id=entity_id, organization_id=org_id)
+                title = s.name
+                description = s.description or f"Segment: {s.name}"
+        except Exception:
+            pass
+
+    return {
+        "action": "navigation",
+        "entity_type": destination,
+        "link": path,
+        "title": title,
+        "description": description,
+        "summary": f"Navigation vers {title}",
+    }
+
+
+def query_contacts(
+    ctx: RunContext[ChatDeps],
+    filters: dict,
+    sort_by: Optional[str] = None,
+    limit: int = 20,
+) -> dict:
+    """Query contacts using dynamic segment-style filters.
+
+    filters should follow the segment rules format:
+    {
+        "logic": "AND",
+        "groups": [{
+            "logic": "AND",
+            "conditions": [
+                {"field": "lead_score", "operator": "equals", "value": "hot"}
+            ]
+        }]
+    }
+    Available fields: first_name, last_name, email, company, phone, lead_score,
+    source, industry, job_title, city, country, language, categories,
+    deals_count, open_deals_count, tasks_count, open_tasks_count,
+    last_interaction_date, has_deal_closing_within, created_at, updated_at.
+    Operators: equals, not_equals, contains, not_contains, is_empty, is_not_empty,
+    in, not_in, greater_than, less_than, between, within_last, within_next, before, after.
+
+    sort_by: optional field to sort results (first_name, last_name, email, company, created_at, lead_score).
+    limit: max number of results (default 20).
+    """
+    org_id = ctx.deps.organization_id
+
+    try:
+        org = Organization.objects.get(id=org_id)
+        qs = build_segment_queryset(org, filters)
+    except Exception as e:
+        return {"action": "error", "message": f"Erreur de filtre: {e}"}
+
+    allowed_sort_fields = {
+        "first_name", "last_name", "email", "company", "created_at", "lead_score",
+    }
+    if sort_by and sort_by.lstrip("-") in allowed_sort_fields:
+        qs = qs.order_by(sort_by)
+
+    total = qs.count()
+    contacts = qs[:limit]
+    results = [
+        {
+            "id": str(c.id),
+            "name": f"{c.first_name} {c.last_name}".strip(),
+            "email": c.email or "",
+            "company": c.company or "",
+            "lead_score": c.lead_score or "",
+        }
+        for c in contacts
+    ]
+
+    return {
+        "action": "contacts_queried",
+        "entity_type": "contact_list",
+        "summary": f"{total} contacts correspondent aux filtres",
+        "count": total,
+        "results": results,
+        "rules": filters,
+        "save_as_segment_available": True,
+    }
+
+
+def generate_chart(
+    ctx: RunContext[ChatDeps],
+    metric: str,
+    chart_type: str = "bar",
+    period: Optional[str] = None,
+    group_by: Optional[str] = None,
+    filters: Optional[dict] = None,
+) -> dict:
+    """Generate a chart from CRM data.
+
+    metric: one of deals_count, deals_amount, deals_by_stage, contacts_count,
+    contacts_by_source, contacts_by_category, tasks_count, tasks_by_priority,
+    tasks_completion_rate, revenue_over_time, pipeline_funnel, emails_sent,
+    workflow_executions.
+
+    chart_type: bar, line, pie, funnel (default bar).
+    period: 7d, 30d, 90d, 12m, ytd, all (default all).
+    group_by: month, week, day (default month) — used for date-based truncation.
+    filters: optional segment-style filters for additional filtering.
+    """
+    from django.db.models import Count
+    from django.db.models.functions import TruncMonth, TruncWeek, TruncDay
+
+    org_id = ctx.deps.organization_id
+    now = timezone.now()
+
+    # --- Period parsing ---
+    date_from = None
+    if period == "7d":
+        date_from = now - timedelta(days=7)
+    elif period == "30d":
+        date_from = now - timedelta(days=30)
+    elif period == "90d":
+        date_from = now - timedelta(days=90)
+    elif period == "12m":
+        date_from = now - timedelta(days=365)
+    elif period == "ytd":
+        date_from = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    # --- Truncation ---
+    trunc_fn = TruncMonth
+    if group_by == "week":
+        trunc_fn = TruncWeek
+    elif group_by == "day":
+        trunc_fn = TruncDay
+
+    data: list[dict] = []
+    title = ""
+    series_label = ""
+    color = "#6366f1"
+
+    # ----- Metric implementations -----
+
+    if metric == "deals_count":
+        title = "Nombre de deals"
+        series_label = "Deals"
+        color = "#6366f1"
+        qs = Deal.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.annotate(period=trunc_fn("created_at"))
+            .values("period")
+            .annotate(value=Count("id"))
+            .order_by("period")
+        )
+
+    elif metric == "deals_amount":
+        title = "Montant des deals"
+        series_label = "Montant"
+        color = "#10b981"
+        qs = Deal.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.annotate(period=trunc_fn("created_at"))
+            .values("period")
+            .annotate(value=Sum("amount"))
+            .order_by("period")
+        )
+
+    elif metric == "deals_by_stage":
+        title = "Deals par étape"
+        series_label = "Deals"
+        color = "#f59e0b"
+        qs = Deal.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.values("stage__name")
+            .annotate(value=Count("id"))
+            .order_by("-value")
+        )
+        data = [{"label": r["stage__name"] or "Sans étape", "value": r["value"]} for r in data]
+
+    elif metric == "contacts_count":
+        title = "Nombre de contacts"
+        series_label = "Contacts"
+        color = "#3b82f6"
+        qs = Contact.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.annotate(period=trunc_fn("created_at"))
+            .values("period")
+            .annotate(value=Count("id"))
+            .order_by("period")
+        )
+
+    elif metric == "contacts_by_source":
+        title = "Contacts par source"
+        series_label = "Contacts"
+        color = "#8b5cf6"
+        qs = Contact.objects.filter(organization_id=org_id).exclude(source="")
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.values("source")
+            .annotate(value=Count("id"))
+            .order_by("-value")
+        )
+        data = [{"label": r["source"], "value": r["value"]} for r in data]
+
+    elif metric == "contacts_by_category":
+        title = "Contacts par catégorie"
+        series_label = "Contacts"
+        color = "#ec4899"
+        qs = Contact.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.values("categories__name")
+            .annotate(value=Count("id"))
+            .order_by("-value")
+        )
+        data = [{"label": r["categories__name"] or "Sans catégorie", "value": r["value"]} for r in data]
+
+    elif metric == "tasks_count":
+        title = "Nombre de tâches"
+        series_label = "Tâches"
+        color = "#a855f7"
+        qs = Task.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.annotate(period=trunc_fn("created_at"))
+            .values("period")
+            .annotate(value=Count("id"))
+            .order_by("period")
+        )
+
+    elif metric == "tasks_by_priority":
+        title = "Tâches par priorité"
+        series_label = "Tâches"
+        color = "#f97316"
+        qs = Task.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.values("priority")
+            .annotate(value=Count("id"))
+            .order_by("-value")
+        )
+        data = [{"label": r["priority"] or "Non définie", "value": r["value"]} for r in data]
+
+    elif metric == "tasks_completion_rate":
+        title = "Taux de complétion des tâches"
+        series_label = "% complétées"
+        color = "#22c55e"
+        qs = Task.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        raw = list(
+            qs.annotate(period=trunc_fn("created_at"))
+            .values("period")
+            .annotate(
+                total=Count("id"),
+                done=Count("id", filter=Q(is_done=True)),
+            )
+            .order_by("period")
+        )
+        data = [
+            {
+                "period": r["period"],
+                "value": round(r["done"] / r["total"] * 100, 1) if r["total"] else 0,
+            }
+            for r in raw
+        ]
+
+    elif metric == "revenue_over_time":
+        title = "Revenu dans le temps"
+        series_label = "Revenu"
+        color = "#10b981"
+        qs = Deal.objects.filter(organization_id=org_id, stage__name="Gagné")
+        if date_from:
+            qs = qs.filter(closed_at__gte=date_from)
+        data = list(
+            qs.annotate(period=trunc_fn("closed_at"))
+            .values("period")
+            .annotate(value=Sum("amount"))
+            .order_by("period")
+        )
+
+    elif metric == "pipeline_funnel":
+        title = "Entonnoir du pipeline"
+        series_label = "Deals"
+        color = "#6366f1"
+        if chart_type == "bar":
+            chart_type = "funnel"
+        stages = PipelineStage.objects.filter(
+            pipeline__organization_id=org_id,
+        ).order_by("position")
+        qs = Deal.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = []
+        for stage in stages:
+            count = qs.filter(stage=stage).count()
+            data.append({"label": stage.name, "value": count})
+
+    elif metric == "emails_sent":
+        title = "Emails envoyés"
+        series_label = "Emails"
+        color = "#0ea5e9"
+        qs = TimelineEntry.objects.filter(
+            organization_id=org_id,
+            entry_type="email_sent",
+        )
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.annotate(period=trunc_fn("created_at"))
+            .values("period")
+            .annotate(value=Count("id"))
+            .order_by("period")
+        )
+
+    elif metric == "workflow_executions":
+        title = "Exécutions de workflows"
+        series_label = "Exécutions"
+        color = "#14b8a6"
+        from workflows.models import WorkflowExecution
+
+        qs = WorkflowExecution.objects.filter(
+            workflow__organization_id=org_id,
+        )
+        if date_from:
+            qs = qs.filter(started_at__gte=date_from)
+        data = list(
+            qs.annotate(period=trunc_fn("started_at"))
+            .values("period")
+            .annotate(value=Count("id"))
+            .order_by("period")
+        )
+
+    else:
+        return {"action": "error", "message": f"Métrique inconnue: {metric}"}
+
+    # --- Format date-based labels ---
+    if data and "period" in data[0]:
+        data = [
+            {
+                "label": r["period"].strftime("%b %Y") if r.get("period") else "N/A",
+                "value": float(r["value"]) if r["value"] is not None else 0,
+            }
+            for r in data
+        ]
+
+    if not data:
+        return {"action": "error", "message": "Aucune donnée disponible pour cette métrique."}
+
+    return {
+        "action": "chart_generated",
+        "entity_type": "chart",
+        "summary": title,
+        "chart": {
+            "type": chart_type,
+            "title": title,
+            "data": data,
+            "xKey": "label",
+            "series": [{"key": "value", "label": series_label, "color": color}],
+        },
+    }
+
+
 # All tools to register on the agent
 ALL_TOOLS = [
     create_contact,
@@ -2075,4 +2513,8 @@ ALL_TOOLS = [
     update_note,
     delete_note,
     list_timeline,
+    # Transversal
+    navigate,
+    query_contacts,
+    generate_chart,
 ]
