@@ -290,55 +290,51 @@ export default function ProductsPage() {
         </Button>
       </PageHeader>
 
-      {/* Content with filter panel */}
-      <div className="flex gap-0">
-        <div className="flex-1 min-w-0 space-y-8">
-          <DataTable
-            columns={columns}
-            data={products}
-            loading={loading}
-            emptyMessage="Aucun produit trouve."
-            onRowClick={openEditDialog}
-            rowKey={(p) => p.id}
-          />
-          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-        </div>
-        <FilterPanel
-          open={filterOpen}
-          onOpenChange={setFilterOpen}
-          onReset={() => { setSearch(""); setSelectedCategory(""); setShowActive("active") }}
-          activeFilterCount={activeFilterCount}
-        >
-          <FilterSection label="Recherche">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Rechercher un produit..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9 bg-secondary/30 border-border/60" />
-            </div>
-          </FilterSection>
-          <FilterSection label="Categorie">
-            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="flex h-9 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-1.5 text-sm">
-              <option value="">Toutes</option>
-              {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-            </select>
-            <button onClick={() => setCategoryDialogOpen(true)} className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 mt-1 font-[family-name:var(--font-body)]">
-              Gerer les categories
-            </button>
-          </FilterSection>
-          <FilterSection label="Statut">
-            <div className="flex flex-col gap-1">
-              {(["active", "archived", "all"] as const).map((status) => (
-                <button key={status} onClick={() => setShowActive(status)}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors text-left font-[family-name:var(--font-body)] ${
-                    showActive === status ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
-                  }`}
-                >
-                  {status === "active" ? "Actifs" : status === "archived" ? "Archives" : "Tous"}
-                </button>
-              ))}
-            </div>
-          </FilterSection>
-        </FilterPanel>
-      </div>
+      <DataTable
+        columns={columns}
+        data={products}
+        loading={loading}
+        emptyMessage="Aucun produit trouve."
+        onRowClick={openEditDialog}
+        rowKey={(p) => p.id}
+      />
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+
+      <FilterPanel
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        onReset={() => { setSearch(""); setSelectedCategory(""); setShowActive("active") }}
+        activeFilterCount={activeFilterCount}
+      >
+        <FilterSection label="Recherche">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Rechercher un produit..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9 bg-secondary/30 border-border/60" />
+          </div>
+        </FilterSection>
+        <FilterSection label="Categorie">
+          <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="flex h-9 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-1.5 text-sm">
+            <option value="">Toutes</option>
+            {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+          </select>
+          <button onClick={() => setCategoryDialogOpen(true)} className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 mt-1 font-[family-name:var(--font-body)]">
+            Gerer les categories
+          </button>
+        </FilterSection>
+        <FilterSection label="Statut">
+          <div className="flex flex-col gap-1">
+            {(["active", "archived", "all"] as const).map((status) => (
+              <button key={status} onClick={() => setShowActive(status)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors text-left font-[family-name:var(--font-body)] ${
+                  showActive === status ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                }`}
+              >
+                {status === "active" ? "Actifs" : status === "archived" ? "Archives" : "Tous"}
+              </button>
+            ))}
+          </div>
+        </FilterSection>
+      </FilterPanel>
 
       {/* Create/Edit Product Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

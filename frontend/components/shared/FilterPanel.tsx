@@ -17,24 +17,23 @@ interface FilterPanelProps {
 export function FilterPanel({ open, onOpenChange, onReset, activeFilterCount, children }: FilterPanelProps) {
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Backdrop */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/20 m-0"
           onClick={() => onOpenChange(false)}
         />
       )}
 
-      {/* Panel */}
+      {/* Drawer */}
       <div
         className={cn(
-          "flex-shrink-0 border-l border-border bg-background overflow-y-auto transition-all duration-300",
-          "fixed inset-y-0 right-0 z-50 w-[300px] lg:relative lg:z-auto",
-          open ? "translate-x-0" : "translate-x-full lg:hidden lg:translate-x-0"
+          "fixed inset-y-0 right-0 z-50 w-[320px] max-w-[85vw] bg-background border-l border-border overflow-y-auto transition-transform duration-300 ease-in-out shadow-xl",
+          open ? "translate-x-0" : "translate-x-full"
         )}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center justify-between z-10">
           <h3 className="font-medium text-sm">Filtres</h3>
           <div className="flex items-center gap-1">
             {activeFilterCount > 0 && (
@@ -68,7 +67,6 @@ export function FilterTriggerButton({ open, onOpenChange, activeFilterCount }: F
   return (
     <Button
       variant="outline"
-      size="sm"
       onClick={() => onOpenChange(!open)}
       className="gap-2"
     >

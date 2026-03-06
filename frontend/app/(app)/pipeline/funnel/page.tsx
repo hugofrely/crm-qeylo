@@ -84,30 +84,6 @@ export default function FunnelPage() {
         <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
       </PageHeader>
 
-      <FilterPanel open={filterOpen} onOpenChange={setFilterOpen} onReset={resetFilters} activeFilterCount={activeFilterCount}>
-        <FilterSection label="Pipeline">
-          <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className={selectClass}>
-            {pipelines.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-        </FilterSection>
-        <FilterSection label="Mode de filtre">
-          <select value={filterMode} onChange={(e) => setFilterMode(e.target.value as "" | "cohort" | "activity")} className={selectClass}>
-            <option value="">Tous les deals</option>
-            <option value="cohort">Par cohorte d&apos;entree</option>
-            <option value="activity">Par activite</option>
-          </select>
-        </FilterSection>
-        <FilterSection label="Periode">
-          <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className={selectClass}>
-            {DATE_RANGES.map((d) => (
-              <option key={d.value} value={d.value}>{d.label}</option>
-            ))}
-          </select>
-        </FilterSection>
-      </FilterPanel>
-
       {/* Funnel */}
       <div className="rounded-xl border border-border bg-card p-8">
         {loading ? (
@@ -163,6 +139,30 @@ export default function FunnelPage() {
           </table>
         </div>
       )}
+
+      <FilterPanel open={filterOpen} onOpenChange={setFilterOpen} onReset={resetFilters} activeFilterCount={activeFilterCount}>
+        <FilterSection label="Pipeline">
+          <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className={selectClass}>
+            {pipelines.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </FilterSection>
+        <FilterSection label="Mode de filtre">
+          <select value={filterMode} onChange={(e) => setFilterMode(e.target.value as "" | "cohort" | "activity")} className={selectClass}>
+            <option value="">Tous les deals</option>
+            <option value="cohort">Par cohorte d&apos;entree</option>
+            <option value="activity">Par activite</option>
+          </select>
+        </FilterSection>
+        <FilterSection label="Periode">
+          <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className={selectClass}>
+            {DATE_RANGES.map((d) => (
+              <option key={d.value} value={d.value}>{d.label}</option>
+            ))}
+          </select>
+        </FilterSection>
+      </FilterPanel>
     </div>
   )
 }

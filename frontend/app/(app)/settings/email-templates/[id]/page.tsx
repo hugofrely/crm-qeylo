@@ -36,6 +36,7 @@ export default function EmailTemplateEditPage() {
   const [tagInput, setTagInput] = useState("")
   const [isShared, setIsShared] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(!isNew)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewHtml, setPreviewHtml] = useState("")
   const [previewSubject, setPreviewSubject] = useState("")
@@ -51,7 +52,7 @@ export default function EmailTemplateEditPage() {
       }).catch(() => {
         toast.error("Template introuvable")
         router.push("/settings/email-templates")
-      })
+      }).finally(() => setLoading(false))
     }
   }, [params.id, isNew, router])
 
@@ -155,7 +156,7 @@ export default function EmailTemplateEditPage() {
 
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Corps de l&apos;email</Label>
-            <EmailTemplateEditor content={bodyHtml} onChange={setBodyHtml} />
+            {!loading && <EmailTemplateEditor content={bodyHtml} onChange={setBodyHtml} />}
           </div>
 
           <div className="space-y-2">

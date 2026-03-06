@@ -65,7 +65,8 @@ export async function fetchContactTasks(contactId: string): Promise<Task[]> {
 }
 
 export async function fetchContactDeals(contactId: string): Promise<Deal[]> {
-  return apiFetch<Deal[]>(`/deals/?contact=${contactId}`)
+  const res = await apiFetch<{ results: Deal[] }>(`/deals/?contact=${contactId}`)
+  return res.results ?? (res as unknown as Deal[])
 }
 
 export async function checkDuplicates(data: Record<string, unknown>): Promise<CheckDuplicatesResponse> {

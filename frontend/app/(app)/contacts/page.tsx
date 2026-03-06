@@ -344,79 +344,75 @@ export default function ContactsPage() {
         }}
       />
 
-      <div className="flex gap-0">
-        <div className="flex-1 min-w-0 space-y-8">
-          {/* Loading / ContactTable */}
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <ContactTable contacts={contacts} />
-          )}
-
-          {/* Pagination */}
-          {!search && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
+      {/* Loading / ContactTable */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
+      ) : (
+        <ContactTable contacts={contacts} />
+      )}
 
-        <FilterPanel
-          open={filterOpen}
-          onOpenChange={setFilterOpen}
-          onReset={() => { setSearch(""); setSelectedCategory(null); setSelectedSegment(null) }}
-          activeFilterCount={activeFilterCount}
-        >
-          <FilterSection label="Recherche">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher un contact..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 h-9 bg-secondary/30 border-border/60"
-              />
-            </div>
-          </FilterSection>
-          <FilterSection label="Segment">
-            <SegmentSelector
-              selectedSegmentId={selectedSegment}
-              onSelect={(id) => { setSelectedSegment(id); setSelectedCategory(null); setSearch("") }}
+      {/* Pagination */}
+      {!search && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
+
+      <FilterPanel
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        onReset={() => { setSearch(""); setSelectedCategory(null); setSelectedSegment(null) }}
+        activeFilterCount={activeFilterCount}
+      >
+        <FilterSection label="Recherche">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher un contact..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-9 bg-secondary/30 border-border/60"
             />
-          </FilterSection>
-          {categories.length > 0 && (
-            <FilterSection label="Categorie">
-              <div className="flex flex-wrap gap-1.5">
+          </div>
+        </FilterSection>
+        <FilterSection label="Segment">
+          <SegmentSelector
+            selectedSegmentId={selectedSegment}
+            onSelect={(id) => { setSelectedSegment(id); setSelectedCategory(null); setSearch("") }}
+          />
+        </FilterSection>
+        {categories.length > 0 && (
+          <FilterSection label="Categorie">
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => { setSelectedCategory(null); setSelectedSegment(null) }}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
+                  selectedCategory === null
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                }`}
+              >
+                Tous
+              </button>
+              {categories.map((cat) => (
                 <button
-                  onClick={() => { setSelectedCategory(null); setSelectedSegment(null) }}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
-                    selectedCategory === null
+                  key={cat.id}
+                  onClick={() => { setSelectedCategory(cat.id); setSelectedSegment(null) }}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 font-[family-name:var(--font-body)] ${
+                    selectedCategory === cat.id
                       ? "bg-primary text-primary-foreground"
                       : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
                   }`}
                 >
-                  Tous
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                  {cat.name}
+                  {(cat.contact_count ?? 0) > 0 && (
+                    <span className="text-[10px] opacity-70">({cat.contact_count})</span>
+                  )}
                 </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => { setSelectedCategory(cat.id); setSelectedSegment(null) }}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 font-[family-name:var(--font-body)] ${
-                      selectedCategory === cat.id
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
-                    }`}
-                  >
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                    {cat.name}
-                    {(cat.contact_count ?? 0) > 0 && (
-                      <span className="text-[10px] opacity-70">({cat.contact_count})</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </FilterSection>
-          )}
-        </FilterPanel>
-      </div>
+              ))}
+            </div>
+          </FilterSection>
+        )}
+      </FilterPanel>
     </div>
   )
 }

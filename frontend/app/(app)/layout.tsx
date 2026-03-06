@@ -33,7 +33,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
           <SearchHeader />
-          <main className="flex-1 min-h-0 overflow-auto">{children}</main>
+          <main className="flex-1 min-h-0 overflow-auto bg-background [&>*]:min-h-full">{children}</main>
         </div>
       </div>
     </OrganizationProvider>

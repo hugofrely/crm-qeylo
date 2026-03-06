@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { fetchEmailAccounts, fetchEmailTemplates, sendEmail } from "@/services/emails"
+import { fetchEmailAccounts, fetchEmailTemplates, renderEmailTemplate, sendEmail } from "@/services/emails"
 import { toast } from "sonner"
 import { Send, Loader2, FileText } from "lucide-react"
 import type { EmailAccount, EmailTemplate } from "@/types"
@@ -144,10 +144,16 @@ export function ComposeEmailDialog({
                     <button
                       key={t.id}
                       type="button"
-                      onClick={() => {
-                        setSubject(t.subject)
-                        setBody(t.body_html.replace(/<[^>]*>/g, "\n").replace(/\n{2,}/g, "\n").trim())
+                      onClick={async () => {
                         setShowTemplates(false)
+                        try {
+                          const rendered = await renderEmailTemplate(t.id, { contact_id: contactId })
+                          setSubject(rendered.subject)
+                          setBody(rendered.body_html.replace(/<[^>]*>/g, "\n").replace(/\n{2,}/g, "\n").trim())
+                        } catch {
+                          setSubject(t.subject)
+                          setBody(t.body_html.replace(/<[^>]*>/g, "\n").replace(/\n{2,}/g, "\n").trim())
+                        }
                       }}
                       className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
                     >

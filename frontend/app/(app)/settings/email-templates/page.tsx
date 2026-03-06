@@ -130,59 +130,55 @@ export default function EmailTemplatesPage() {
         </Link>
       </PageHeader>
 
-      <div className="flex gap-0">
-        <div className="flex-1 min-w-0 space-y-8">
-          <DataTable
-            columns={columns}
-            data={templates}
-            loading={loading}
-            emptyMessage="Aucun template trouve"
-            onRowClick={(template) => router.push(`/settings/email-templates/${template.id}`)}
-            rowKey={(template) => template.id}
-          />
-        </div>
+      <DataTable
+        columns={columns}
+        data={templates}
+        loading={loading}
+        emptyMessage="Aucun template trouve"
+        onRowClick={(template) => router.push(`/settings/email-templates/${template.id}`)}
+        rowKey={(template) => template.id}
+      />
 
-        <FilterPanel
-          open={filterOpen}
-          onOpenChange={setFilterOpen}
-          onReset={() => { setSearch(""); setFilter("all") }}
-          activeFilterCount={activeFilterCount}
-        >
-          <FilterSection label="Recherche">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher un template..."
-                className="pl-9 h-9 bg-secondary/30 border-border/60"
-              />
-            </div>
-          </FilterSection>
-          <FilterSection label="Type">
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                { key: "all" as const, label: "Tous" },
-                { key: "mine" as const, label: "Mes templates", icon: User },
-                { key: "shared" as const, label: "Partages", icon: Users },
-              ].map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  onClick={() => setFilter(key)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 font-[family-name:var(--font-body)] ${
-                    filter === key
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
-                  }`}
-                >
-                  {Icon && <Icon className="h-3 w-3" />}
-                  {label}
-                </button>
-              ))}
-            </div>
-          </FilterSection>
-        </FilterPanel>
-      </div>
+      <FilterPanel
+        open={filterOpen}
+        onOpenChange={setFilterOpen}
+        onReset={() => { setSearch(""); setFilter("all") }}
+        activeFilterCount={activeFilterCount}
+      >
+        <FilterSection label="Recherche">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher un template..."
+              className="pl-9 h-9 bg-secondary/30 border-border/60"
+            />
+          </div>
+        </FilterSection>
+        <FilterSection label="Type">
+          <div className="flex flex-wrap gap-1.5">
+            {[
+              { key: "all" as const, label: "Tous" },
+              { key: "mine" as const, label: "Mes templates", icon: User },
+              { key: "shared" as const, label: "Partages", icon: Users },
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setFilter(key)}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 font-[family-name:var(--font-body)] ${
+                  filter === key
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                }`}
+              >
+                {Icon && <Icon className="h-3 w-3" />}
+                {label}
+              </button>
+            ))}
+          </div>
+        </FilterSection>
+      </FilterPanel>
     </div>
   )
 }

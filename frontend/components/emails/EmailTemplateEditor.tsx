@@ -5,7 +5,7 @@ import StarterKit from "@tiptap/starter-kit"
 import Image from "@tiptap/extension-image"
 import Link from "@tiptap/extension-link"
 import Placeholder from "@tiptap/extension-placeholder"
-import { useCallback } from "react"
+import { useCallback, useEffect } from "react"
 import {
   Bold, Italic, List, ListOrdered,
   Link as LinkIcon, Minus,
@@ -50,6 +50,13 @@ export function EmailTemplateEditor({
       },
     },
   })
+
+  useEffect(() => {
+    if (!editor || !content) return
+    if (editor.getHTML() !== content) {
+      editor.commands.setContent(content)
+    }
+  }, [content, editor])
 
   const addLink = useCallback(() => {
     if (!editor) return
