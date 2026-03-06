@@ -45,16 +45,18 @@ doctl databases list
 
 Note l'**ID** de la base de donnees, tu en auras besoin.
 
-## Etape 3 : Creer le Managed Redis
+## Etape 3 : Creer le Managed Valkey (compatible Redis)
 
 ```bash
 doctl databases create redis-staging \
-  --engine redis \
-  --version 7 \
+  --engine valkey \
+  --version 8 \
   --region fra1 \
   --size db-s-1vcpu-1gb \
   --num-nodes 1
 ```
+
+> **Note** : DigitalOcean utilise Valkey (fork open-source de Redis). C'est 100% compatible avec le client `redis-py` — aucune modification de code necessaire.
 
 Verifie :
 
@@ -62,7 +64,7 @@ Verifie :
 doctl databases list
 ```
 
-Note l'**ID** du Redis.
+Note l'**ID** du Valkey.
 
 ## Etape 4 : Creer l'application App Platform
 
@@ -78,7 +80,7 @@ Note l'**App ID** retourne.
 > 2. Clique sur ton app `crm-qeylo-staging`
 > 3. Settings > Components > backend > Environment Variables
 > 4. Pour `DATABASE_URL`, clique "Edit" et lie-la a ta Managed Database `db-staging`
-> 5. Fais la meme chose pour `CELERY_BROKER_URL` et `CELERY_RESULT_BACKEND` avec `redis-staging`
+> 5. Fais la meme chose pour `CELERY_BROKER_URL` et `CELERY_RESULT_BACKEND` avec `redis-staging` (Valkey)
 > 6. Repete pour les workers `celery-worker` et `celery-beat`
 
 ## Etape 5 : Configurer les secrets
@@ -202,7 +204,7 @@ doctl apps update <APP_ID> --spec .do/app.yaml
 - Verifie que les migrations ont ete executees
 
 ### Celery ne traite pas les taches
-- Verifie que `CELERY_BROKER_URL` pointe bien vers Redis
+- Verifie que `CELERY_BROKER_URL` pointe bien vers Valkey/Redis
 - Verifie les logs du worker : `doctl apps logs <APP_ID> --component celery-worker --follow`
 
 ### Erreur SSL / domaine
@@ -226,7 +228,7 @@ DigitalOcean App Platform (region: fra / Amsterdam)
         |
         v
 ├── Managed PostgreSQL 16 (db-staging)
-└── Managed Redis 7 (redis-staging)
+└── Managed Valkey 8 (redis-staging)
 ```
 
 ## Couts
@@ -235,5 +237,5 @@ DigitalOcean App Platform (region: fra / Amsterdam)
 |-----------|-------------------|
 | App Platform (4 composants basic-xxs) | ~20$/mois |
 | Managed PostgreSQL (1 vCPU, 1GB) | ~15$/mois |
-| Managed Redis (1 vCPU, 1GB) | ~15$/mois |
+| Managed Valkey (1 vCPU, 1GB) | ~15$/mois |
 | **Total** | **~50$/mois** |

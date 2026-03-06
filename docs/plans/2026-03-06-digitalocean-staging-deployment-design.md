@@ -24,7 +24,7 @@ Deployer le CRM Qeylo en environnement staging sur DigitalOcean App Platform ave
                            |
               +------------+------------+
               v                         v
-     Managed PostgreSQL          Managed Redis
+     Managed PostgreSQL          Managed Valkey
      (db-staging, 1GB)          (redis-staging, 1GB)
 ```
 
@@ -44,7 +44,7 @@ Deployer le CRM Qeylo en environnement staging sur DigitalOcean App Platform ave
 | Service | Version | Plan | Cout |
 |---------|---------|------|------|
 | PostgreSQL | 16 | Basic 1GB | ~15$/mois |
-| Redis | 7 | Basic 1GB | ~15$/mois |
+| Valkey | 8 | Basic 1GB | ~15$/mois |
 
 ### Cout total estime : ~45-60$/mois
 
@@ -68,8 +68,8 @@ Deployer le CRM Qeylo en environnement staging sur DigitalOcean App Platform ave
 | DEBUG | Manuelle | false |
 | ALLOWED_HOSTS | Manuelle | proto.qeylo.com |
 | DATABASE_URL | Auto (DO Managed DB) | Injectee |
-| CELERY_BROKER_URL | Auto (DO Managed Redis) | Injectee |
-| CELERY_RESULT_BACKEND | Auto (DO Managed Redis) | Injectee |
+| CELERY_BROKER_URL | Auto (DO Managed Valkey) | Injectee |
+| CELERY_RESULT_BACKEND | Auto (DO Managed Valkey) | Injectee |
 | CORS_ALLOWED_ORIGINS | Manuelle | https://proto.qeylo.com |
 | FRONTEND_URL | Manuelle | https://proto.qeylo.com |
 | BACKEND_URL | Manuelle | https://proto.qeylo.com |
