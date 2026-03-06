@@ -2,6 +2,7 @@
 
 import type { Task } from "@/types"
 import { Check, Calendar } from "lucide-react"
+import { EntityLink } from "@/components/shared/EntityLink"
 
 /* ── Helpers ── */
 
@@ -76,9 +77,12 @@ export function ContactTasks({ tasks, onToggle }: ContactTasksProps) {
             {task.is_done && <Check className="h-3 w-3" />}
           </button>
           <div className="flex-1 min-w-0">
-            <p className={`text-sm font-[family-name:var(--font-body)] ${task.is_done ? "line-through" : ""}`}>
-              {task.description}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className={`text-sm font-[family-name:var(--font-body)] ${task.is_done ? "line-through" : ""} flex-1 min-w-0`}>
+                {task.description}
+              </p>
+              <EntityLink type="task" id={task.id} name="Voir" className="shrink-0 text-[11px]" />
+            </div>
             <div className="flex items-center gap-2 mt-1.5">
               {task.priority && (
                 <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border ${getPriorityStyle(task.priority)}`}>
