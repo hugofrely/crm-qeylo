@@ -81,6 +81,8 @@ const GROUP_BY_OPTIONS: Record<string, { value: string; label: string }[]> = {
 
 const DATE_RANGES = [
   { value: "", label: "Pas de filtre" },
+  { value: "today", label: "Aujourd'hui" },
+  { value: "this_week", label: "Cette semaine" },
   { value: "this_month", label: "Ce mois" },
   { value: "last_month", label: "Mois dernier" },
   { value: "last_3_months", label: "3 derniers mois" },
