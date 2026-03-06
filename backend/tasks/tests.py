@@ -124,3 +124,158 @@ class TaskTests(TestCase):
         )
         response = self.client.get("/api/tasks/")
         self.assertEqual(len(response.data["results"][0]["assignees"]), 1)
+
+    def test_filter_by_assigned_to_me(self):
+        """Filter assigned_to=me returns tasks assigned to current user."""
+        from accounts.models import User
+        user = User.objects.get(email="hugo@example.com")
+
+        self.client.post(
+            "/api/tasks/",
+            {"description": "My task", "due_date": "2026-03-10T10:00:00Z", "assigned_to": [str(user.id)]},
+            format="json",
+        )
+        self.client.post(
+            "/api/tasks/",
+            {"description": "Unassigned", "due_date": "2026-03-11T10:00:00Z"},
+        )
+
+        response = self.client.get("/api/tasks/?assigned_to=me")
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["description"], "My task")
+
+    def test_filter_by_assigned_to_user_id(self):
+        """Filter assigned_to=<uuid> returns tasks assigned to that user."""
+        from accounts.models import User
+        user = User.objects.get(email="hugo@example.com")
+
+        self.client.post(
+            "/api/tasks/",
+            {"description": "Assigned", "due_date": "2026-03-10T10:00:00Z", "assigned_to": [str(user.id)]},
+            format="json",
+        )
+        self.client.post(
+            "/api/tasks/",
+            {"description": "Not assigned", "due_date": "2026-03-11T10:00:00Z"},
+        )
+
+        response = self.client.get(f"/api/tasks/?assigned_to={user.id}")
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["description"], "Assigned")
+
+    def test_assign_non_member_fails(self):
+        """Assigning a user who is not a member of the org should fail validation."""
+        import uuid as uuid_mod
+        fake_user_id = str(uuid_mod.uuid4())
+        response = self.client.post(
+            "/api/tasks/",
+            {
+                "description": "Bad assign",
+                "due_date": "2026-03-10T10:00:00Z",
+                "assigned_to": [fake_user_id],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_assignees(self):
+        """Updating assigned_to should sync TaskAssignment records."""
+        from accounts.models import User
+        user = User.objects.get(email="hugo@example.com")
+
+        r = self.client.post(
+            "/api/tasks/",
+            {"description": "Task", "due_date": "2026-03-10T10:00:00Z"},
+        )
+        task_id = r.data["id"]
+        self.assertEqual(len(r.data["assignees"]), 0)
+
+        r2 = self.client.patch(
+            f"/api/tasks/{task_id}/",
+            {"assigned_to": [str(user.id)]},
+            format="json",
+        )
+        self.assertEqual(len(r2.data["assignees"]), 1)
+
+        r3 = self.client.patch(
+            f"/api/tasks/{task_id}/",
+            {"assigned_to": []},
+            format="json",
+        )
+        self.assertEqual(len(r3.data["assignees"]), 0)
+
+    def test_notification_created_on_assign(self):
+        """Assigning someone else should create a notification."""
+        from accounts.models import User
+        from notifications.models import Notification
+
+        r = self.client.post("/api/auth/register/", {
+            "email": "alice@example.com",
+            "password": "securepass123",
+            "first_name": "Alice",
+            "last_name": "Martin",
+        })
+        alice = User.objects.get(email="alice@example.com")
+
+        from organizations.models import Membership
+        hugo = User.objects.get(email="hugo@example.com")
+        org = hugo.memberships.first().organization
+        Membership.objects.create(organization=org, user=alice, role="member")
+
+        self.client.post(
+            "/api/tasks/",
+            {
+                "description": "Tâche pour Alice",
+                "due_date": "2026-03-10T10:00:00Z",
+                "assigned_to": [str(alice.id)],
+            },
+            format="json",
+        )
+
+        notif = Notification.objects.filter(recipient=alice, type="task_assigned").first()
+        self.assertIsNotNone(notif)
+        self.assertIn("Hugo", notif.message)
+        self.assertIn("Tâche pour Alice", notif.message)
+
+    def test_no_self_notification(self):
+        """Assigning yourself should not create a notification."""
+        from accounts.models import User
+        from notifications.models import Notification
+
+        user = User.objects.get(email="hugo@example.com")
+        self.client.post(
+            "/api/tasks/",
+            {
+                "description": "Self assign",
+                "due_date": "2026-03-10T10:00:00Z",
+                "assigned_to": [str(user.id)],
+            },
+            format="json",
+        )
+
+        count = Notification.objects.filter(recipient=user, type="task_assigned").count()
+        self.assertEqual(count, 0)
+
+    def test_unique_assignment(self):
+        """Assigning same user twice in update should not duplicate."""
+        from accounts.models import User
+        from tasks.models import TaskAssignment
+
+        user = User.objects.get(email="hugo@example.com")
+        r = self.client.post(
+            "/api/tasks/",
+            {
+                "description": "Dedup test",
+                "due_date": "2026-03-10T10:00:00Z",
+                "assigned_to": [str(user.id)],
+            },
+            format="json",
+        )
+        task_id = r.data["id"]
+
+        self.client.patch(
+            f"/api/tasks/{task_id}/",
+            {"assigned_to": [str(user.id)]},
+            format="json",
+        )
+        self.assertEqual(TaskAssignment.objects.filter(task_id=task_id).count(), 1)
