@@ -27,13 +27,13 @@ services:
         value: "proto.qeylo.com"
       - key: DATABASE_URL
         scope: RUN_AND_BUILD_TIME
-        value: ${db-staging.DATABASE_URL}
+        value: ${db-postgresql-fra1-20117.DATABASE_URL}
       - key: CELERY_BROKER_URL
         scope: RUN_AND_BUILD_TIME
-        value: ${redis-staging.DATABASE_URL}
+        value: ${db-valkey-staging.DATABASE_URL}
       - key: CELERY_RESULT_BACKEND
         scope: RUN_AND_BUILD_TIME
-        value: ${redis-staging.DATABASE_URL}
+        value: ${db-valkey-staging.DATABASE_URL}
       - key: CORS_ALLOWED_ORIGINS
         scope: RUN_AND_BUILD_TIME
         value: "https://proto.qeylo.com"
@@ -115,13 +115,13 @@ workers:
         value: "false"
       - key: DATABASE_URL
         scope: RUN_AND_BUILD_TIME
-        value: ${db-staging.DATABASE_URL}
+        value: ${db-postgresql-fra1-20117.DATABASE_URL}
       - key: CELERY_BROKER_URL
         scope: RUN_AND_BUILD_TIME
-        value: ${redis-staging.DATABASE_URL}
+        value: ${db-valkey-staging.DATABASE_URL}
       - key: CELERY_RESULT_BACKEND
         scope: RUN_AND_BUILD_TIME
-        value: ${redis-staging.DATABASE_URL}
+        value: ${db-valkey-staging.DATABASE_URL}
       - key: ANTHROPIC_API_KEY
         scope: RUN_AND_BUILD_TIME
         type: SECRET
@@ -183,17 +183,24 @@ workers:
         value: "false"
       - key: DATABASE_URL
         scope: RUN_AND_BUILD_TIME
-        value: ${db-staging.DATABASE_URL}
+        value: ${db-postgresql-fra1-20117.DATABASE_URL}
       - key: CELERY_BROKER_URL
         scope: RUN_AND_BUILD_TIME
-        value: ${redis-staging.DATABASE_URL}
+        value: ${db-valkey-staging.DATABASE_URL}
       - key: CELERY_RESULT_BACKEND
         scope: RUN_AND_BUILD_TIME
-        value: ${redis-staging.DATABASE_URL}
+        value: ${db-valkey-staging.DATABASE_URL}
 
 databases:
-  - name: db-staging
+  - name: db-postgresql-fra1-20117
     engine: PG
     version: "16"
     size: db-s-1vcpu-1gb
     num_nodes: 1
+    cluster_name: db-postgresql-fra1-20117
+  - name: db-valkey-staging
+    engine: VALKEY
+    version: "8"
+    size: db-s-1vcpu-1gb
+    num_nodes: 1
+    cluster_name: db-valkey-staging

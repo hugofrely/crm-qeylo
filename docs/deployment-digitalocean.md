@@ -29,7 +29,7 @@ doctl account get
 ## Etape 2 : Creer la base de donnees Managed PostgreSQL
 
 ```bash
-doctl databases create db-staging \
+doctl databases create db-postgresql-fra1-20117 \
   --engine pg \
   --version 16 \
   --region fra1 \
@@ -48,7 +48,7 @@ Note l'**ID** de la base de donnees, tu en auras besoin.
 ## Etape 3 : Creer le Managed Valkey (compatible Redis)
 
 ```bash
-doctl databases create redis-staging \
+doctl databases create db-valkey-staging \
   --engine valkey \
   --version 8 \
   --region fra1 \
@@ -79,8 +79,8 @@ Note l'**App ID** retourne.
 > 1. Va sur https://cloud.digitalocean.com/apps
 > 2. Clique sur ton app `crm-qeylo-staging`
 > 3. Settings > Components > backend > Environment Variables
-> 4. Pour `DATABASE_URL`, clique "Edit" et lie-la a ta Managed Database `db-staging`
-> 5. Fais la meme chose pour `CELERY_BROKER_URL` et `CELERY_RESULT_BACKEND` avec `redis-staging` (Valkey)
+> 4. Pour `DATABASE_URL`, clique "Edit" et lie-la a ta Managed Database `db-postgresql-fra1-20117`
+> 5. Fais la meme chose pour `CELERY_BROKER_URL` et `CELERY_RESULT_BACKEND` avec `db-valkey-staging` (Valkey)
 > 6. Repete pour les workers `celery-worker` et `celery-beat`
 
 ## Etape 5 : Configurer les secrets
