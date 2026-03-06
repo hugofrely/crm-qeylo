@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "notes",
     "chat",
     "dashboard",
+    "reports",
     "notifications",
     "emails",
     "search",
