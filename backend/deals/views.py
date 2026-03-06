@@ -190,6 +190,9 @@ class DealViewSet(viewsets.ModelViewSet):
             changed_by=self.request.user,
         )
 
+    def perform_destroy(self, instance):
+        instance.soft_delete(user=self.request.user)
+
     def perform_update(self, serializer):
         deal = self.get_object()
         old_stage = deal.stage
@@ -230,10 +233,45 @@ def pipeline_view(request):
     if not pipeline:
         return Response([])
 
+    # Build deal filters from query params
+    deal_filters = {}
+    contact_id = request.query_params.get("contact")
+    if contact_id:
+        deal_filters["contact_id"] = contact_id
+    created_by = request.query_params.get("created_by")
+    if created_by:
+        deal_filters["created_by_id"] = created_by
+    amount_min = request.query_params.get("amount_min")
+    if amount_min:
+        deal_filters["amount__gte"] = amount_min
+    amount_max = request.query_params.get("amount_max")
+    if amount_max:
+        deal_filters["amount__lte"] = amount_max
+    probability_min = request.query_params.get("probability_min")
+    if probability_min:
+        deal_filters["probability__gte"] = probability_min
+    probability_max = request.query_params.get("probability_max")
+    if probability_max:
+        deal_filters["probability__lte"] = probability_max
+    expected_close_after = request.query_params.get("expected_close_after")
+    if expected_close_after:
+        deal_filters["expected_close__gte"] = expected_close_after
+    expected_close_before = request.query_params.get("expected_close_before")
+    if expected_close_before:
+        deal_filters["expected_close__lte"] = expected_close_before
+    created_after = request.query_params.get("created_after")
+    if created_after:
+        deal_filters["created_at__gte"] = created_after
+    created_before = request.query_params.get("created_before")
+    if created_before:
+        deal_filters["created_at__lte"] = created_before
+
     stages = pipeline.stages.prefetch_related("deals", "deals__contact")
     result = []
     for stage in stages:
         deals = stage.deals.select_related("contact")
+        if deal_filters:
+            deals = deals.filter(**deal_filters)
         result.append(
             {
                 "stage": PipelineStageSerializer(stage).data,

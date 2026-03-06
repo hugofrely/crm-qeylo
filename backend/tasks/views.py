@@ -84,6 +84,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         response.data["done_count"] = base_qs.filter(is_done=True).count()
         return response
 
+    def perform_destroy(self, instance):
+        instance.soft_delete(user=self.request.user)
+
     def perform_create(self, serializer):
         serializer.save(
             organization=self.request.organization,

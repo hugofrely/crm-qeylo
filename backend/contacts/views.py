@@ -25,6 +25,9 @@ class ContactViewSet(viewsets.ModelViewSet):
             created_by=self.request.user,
         )
 
+    def perform_destroy(self, instance):
+        instance.soft_delete(user=self.request.user)
+
     def perform_update(self, serializer):
         instance = serializer.save()
         TimelineEntry.objects.create(
