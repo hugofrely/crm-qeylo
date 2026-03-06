@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2, Plus, ChevronLeft, ChevronRight, Search, X } from "lucide-react"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
+import { useMemberAutocomplete } from "@/hooks/useMemberAutocomplete"
 import type { Task, TaskFilterTab, TaskFilters } from "@/types"
 
 const PAGE_SIZE = 20
@@ -34,10 +35,13 @@ export default function TasksPage() {
   const [dueDate, setDueDate] = useState<string | null>(null)
   const [contactId, setContactId] = useState<string | null>(null)
   const [contactLabel, setContactLabel] = useState<string | null>(null)
+  const [assignedTo, setAssignedTo] = useState<string | null>(null)
+  const [assignedLabel, setAssignedLabel] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
 
   const contactAutocomplete = useContactAutocomplete()
+  const memberAutocomplete = useMemberAutocomplete()
 
   const filters: TaskFilters = { page }
   if (tab === "todo") filters.is_done = "false"
@@ -45,6 +49,7 @@ export default function TasksPage() {
   if (priority) filters.priority = priority as TaskFilters["priority"]
   if (dueDate) filters.due_date = dueDate as TaskFilters["due_date"]
   if (contactId) filters.contact = contactId
+  if (assignedTo) filters.assigned_to = assignedTo
 
   const { tasks, setTasks, loading, totalCount, todoCount, doneCount, refresh } = useTasks(filters)
 
@@ -217,6 +222,77 @@ export default function TasksPage() {
               )}
             </>
           )}
+        </div>
+
+        <div className="w-px h-5 bg-border" />
+
+        {/* Assigned to filter */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => {
+              if (assignedTo === "me") {
+                setAssignedTo(null)
+                setAssignedLabel(null)
+              } else {
+                setAssignedTo("me")
+                setAssignedLabel("Mes tâches")
+              }
+              resetPage()
+            }}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              assignedTo === "me"
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+            }`}
+          >
+            Mes tâches
+          </button>
+
+          <div className="relative" ref={memberAutocomplete.wrapperRef}>
+            {assignedTo && assignedTo !== "me" ? (
+              <button
+                onClick={() => {
+                  setAssignedTo(null)
+                  setAssignedLabel(null)
+                  memberAutocomplete.reset()
+                  resetPage()
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-primary text-primary-foreground transition-colors"
+              >
+                {assignedLabel}
+                <X className="h-3 w-3" />
+              </button>
+            ) : assignedTo !== "me" ? (
+              <>
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Filtrer par assigné..."
+                  value={memberAutocomplete.query}
+                  onChange={(e) => memberAutocomplete.search(e.target.value)}
+                  className="pl-8 h-8 w-48 text-xs bg-secondary/30 border-border/60"
+                />
+                {memberAutocomplete.open && memberAutocomplete.results.length > 0 && (
+                  <div className="absolute top-full left-0 mt-1 w-64 bg-popover border rounded-md shadow-md z-50 max-h-48 overflow-y-auto">
+                    {memberAutocomplete.results.map((m) => (
+                      <button
+                        key={m.user_id}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors"
+                        onClick={() => {
+                          setAssignedTo(m.user_id)
+                          setAssignedLabel(`${m.first_name} ${m.last_name}`.trim())
+                          memberAutocomplete.reset()
+                          resetPage()
+                        }}
+                      >
+                        {m.first_name} {m.last_name}
+                        {m.email && <span className="text-muted-foreground ml-1">({m.email})</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : null}
+          </div>
         </div>
       </div>
 
