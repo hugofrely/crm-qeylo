@@ -88,3 +88,39 @@ class TaskTests(TestCase):
         response = self.client.get("/api/tasks/?is_done=false")
         self.assertEqual(response.data["todo_count"], 1)
         self.assertEqual(response.data["done_count"], 1)
+
+    def test_create_task_with_assignees(self):
+        """Creating a task with assigned_to should create TaskAssignment records."""
+        from accounts.models import User
+        user = User.objects.get(email="hugo@example.com")
+
+        response = self.client.post(
+            "/api/tasks/",
+            {
+                "description": "Tâche assignée",
+                "due_date": "2026-03-10T10:00:00Z",
+                "assigned_to": [str(user.id)],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(response.data["assignees"]), 1)
+        self.assertEqual(response.data["assignees"][0]["user_id"], str(user.id))
+        self.assertEqual(response.data["assignees"][0]["first_name"], "Hugo")
+
+    def test_assignees_returned_in_list(self):
+        """Task list should include assignees."""
+        from accounts.models import User
+        user = User.objects.get(email="hugo@example.com")
+
+        self.client.post(
+            "/api/tasks/",
+            {
+                "description": "Tâche avec assigné",
+                "due_date": "2026-03-10T10:00:00Z",
+                "assigned_to": [str(user.id)],
+            },
+            format="json",
+        )
+        response = self.client.get("/api/tasks/")
+        self.assertEqual(len(response.data["results"][0]["assignees"]), 1)
