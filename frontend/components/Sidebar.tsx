@@ -30,6 +30,7 @@ import {
   Check,
   ChevronsUpDown,
   Plus,
+  Filter,
   FileBarChart,
 } from "lucide-react"
 import { CreateOrgDialog } from "@/components/organizations/CreateOrgDialog"
@@ -39,6 +40,7 @@ const navigation = [
   { name: "Contacts", href: "/contacts", icon: Users },
   { name: "Segments", href: "/segments", icon: ListFilter },
   { name: "Pipeline", href: "/deals", icon: Kanban },
+  { name: "Entonnoir", href: "/pipeline/funnel", icon: Filter },
   { name: "Produits", href: "/products", icon: Package },
   { name: "Tâches", href: "/tasks", icon: CheckSquare },
   { name: "Workflows", href: "/workflows", icon: Workflow },
