@@ -24,12 +24,13 @@ import {
 import {
   Plus,
   Search,
-  ChevronLeft,
-  ChevronRight,
   Loader2,
   Trash2,
-  Settings2,
 } from "lucide-react"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
+import { Pagination } from "@/components/shared/Pagination"
+import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
 
 const PAGE_SIZE = 20
 
@@ -46,19 +47,6 @@ function formatEUR(price: string | number): string {
     style: "currency",
     currency: "EUR",
   }).format(num)
-}
-
-function getPageNumbers(current: number, total: number): (number | "...")[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const pages: (number | "...")[] = []
-  pages.push(1)
-  if (current > 3) pages.push("...")
-  const start = Math.max(2, current - 1)
-  const end = Math.min(total - 1, current + 1)
-  for (let i = start; i <= end; i++) pages.push(i)
-  if (current < total - 2) pages.push("...")
-  pages.push(total)
-  return pages
 }
 
 const emptyForm = {
@@ -81,6 +69,8 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<ProductCategory[]>([])
   const [selectedCategory, setSelectedCategory] = useState("")
   const [showActive, setShowActive] = useState<"active" | "archived" | "all">("active")
+  const [filterOpen, setFilterOpen] = useState(false)
+  const activeFilterCount = [search, selectedCategory, showActive !== "active" ? showActive : null].filter(Boolean).length
 
   // Product dialog
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -232,201 +222,123 @@ export default function ProductsPage() {
     }
   }
 
+  const columns: DataTableColumn<Product>[] = [
+    {
+      key: "reference",
+      header: "Reference",
+      className: "text-muted-foreground text-sm font-[family-name:var(--font-body)]",
+      render: (p) => p.reference || "-",
+    },
+    {
+      key: "name",
+      header: "Nom",
+      className: "font-medium text-sm",
+      render: (p) => p.name,
+    },
+    {
+      key: "category",
+      header: "Categorie",
+      headerClassName: "hidden md:table-cell",
+      className: "hidden md:table-cell text-muted-foreground text-sm font-[family-name:var(--font-body)]",
+      render: (p) => p.category_name || "-",
+    },
+    {
+      key: "price",
+      header: "Prix unitaire",
+      headerClassName: "text-right",
+      className: "text-right tabular-nums text-sm",
+      render: (p) => p.unit_price ? formatEUR(p.unit_price) : "-",
+    },
+    {
+      key: "unit",
+      header: "Unite",
+      headerClassName: "hidden lg:table-cell",
+      className: "hidden lg:table-cell text-muted-foreground text-sm font-[family-name:var(--font-body)]",
+      render: (p) => UNIT_LABELS[p.unit],
+    },
+    {
+      key: "tax",
+      header: "TVA",
+      headerClassName: "hidden lg:table-cell text-right",
+      className: "hidden lg:table-cell text-right text-muted-foreground tabular-nums text-sm",
+      render: (p) => p.tax_rate ? `${p.tax_rate}%` : "-",
+    },
+    {
+      key: "status",
+      header: "Statut",
+      render: (p) => (
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+          p.is_active ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"
+        }`}>
+          {p.is_active ? "Actif" : "Archive"}
+        </span>
+      ),
+    },
+  ]
+
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl tracking-tight">Produits</h1>
-          <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
-            {totalCount} produit{totalCount !== 1 ? "s" : ""} au total
-          </p>
-        </div>
+      <PageHeader
+        title="Produits"
+        subtitle={`${totalCount} produit${totalCount !== 1 ? "s" : ""} au total`}
+      >
+        <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
         <Button className="gap-2" onClick={openCreateDialog}>
           <Plus className="h-4 w-4" />
           Nouveau produit
         </Button>
-      </div>
+      </PageHeader>
 
-      {/* Filters row */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative max-w-md flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un produit..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-11 bg-secondary/30 border-border/60"
+      {/* Content with filter panel */}
+      <div className="flex gap-0">
+        <div className="flex-1 min-w-0 space-y-8">
+          <DataTable
+            columns={columns}
+            data={products}
+            loading={loading}
+            emptyMessage="Aucun produit trouve."
+            onRowClick={openEditDialog}
+            rowKey={(p) => p.id}
           />
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </div>
-
-        <div className="flex items-center gap-2">
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="flex h-11 rounded-md border border-border/60 bg-secondary/30 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-[family-name:var(--font-body)]"
-          >
-            <option value="">Toutes les categories</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
-
-          <button
-            onClick={() => setCategoryDialogOpen(true)}
-            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 shrink-0 font-[family-name:var(--font-body)]"
-          >
-            Gerer
-          </button>
-        </div>
-
-        <div className="flex items-center rounded-md border border-border/60 overflow-hidden shrink-0">
-          {(["active", "archived", "all"] as const).map((status) => (
-            <button
-              key={status}
-              onClick={() => setShowActive(status)}
-              className={`px-3 py-2 text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
-                showActive === status
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary/30 text-muted-foreground hover:bg-secondary/60"
-              }`}
-            >
-              {status === "active" ? "Actifs" : status === "archived" ? "Archives" : "Tous"}
+        <FilterPanel
+          open={filterOpen}
+          onOpenChange={setFilterOpen}
+          onReset={() => { setSearch(""); setSelectedCategory(""); setShowActive("active") }}
+          activeFilterCount={activeFilterCount}
+        >
+          <FilterSection label="Recherche">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Rechercher un produit..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9 bg-secondary/30 border-border/60" />
+            </div>
+          </FilterSection>
+          <FilterSection label="Categorie">
+            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="flex h-9 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-1.5 text-sm">
+              <option value="">Toutes</option>
+              {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+            </select>
+            <button onClick={() => setCategoryDialogOpen(true)} className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 mt-1 font-[family-name:var(--font-body)]">
+              Gerer les categories
             </button>
-          ))}
-        </div>
+          </FilterSection>
+          <FilterSection label="Statut">
+            <div className="flex flex-col gap-1">
+              {(["active", "archived", "all"] as const).map((status) => (
+                <button key={status} onClick={() => setShowActive(status)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors text-left font-[family-name:var(--font-body)] ${
+                    showActive === status ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {status === "active" ? "Actifs" : status === "archived" ? "Archives" : "Tous"}
+                </button>
+              ))}
+            </div>
+          </FilterSection>
+        </FilterPanel>
       </div>
-
-      {/* Table */}
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : products.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground font-[family-name:var(--font-body)]">
-          <p className="text-sm">Aucun produit trouve.</p>
-        </div>
-      ) : (
-        <div className="border border-border/60 rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm font-[family-name:var(--font-body)]">
-              <thead>
-                <tr className="border-b border-border/60 bg-secondary/30">
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Reference
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Nom
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Categorie
-                  </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Prix unitaire
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Unite
-                  </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    TVA
-                  </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Statut
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((product) => (
-                  <tr
-                    key={product.id}
-                    onClick={() => openEditDialog(product)}
-                    className="border-b border-border/40 hover:bg-secondary/20 cursor-pointer transition-colors"
-                  >
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {product.reference || "-"}
-                    </td>
-                    <td className="px-4 py-3 font-medium">{product.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {product.category_name || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
-                      {product.unit_price ? formatEUR(product.unit_price) : "-"}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {UNIT_LABELS[product.unit]}
-                    </td>
-                    <td className="px-4 py-3 text-right text-muted-foreground tabular-nums">
-                      {product.tax_rate ? `${product.tax_rate}%` : "-"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                          product.is_active
-                            ? "bg-green-500/10 text-green-600"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {product.is_active ? "Actif" : "Archive"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between font-[family-name:var(--font-body)]">
-          <p className="text-sm text-muted-foreground">
-            Page {page} sur {totalPages}
-          </p>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            {getPageNumbers(page, totalPages).map((p, i) =>
-              p === "..." ? (
-                <span
-                  key={`ellipsis-${i}`}
-                  className="px-1 text-sm text-muted-foreground"
-                >
-                  ...
-                </span>
-              ) : (
-                <Button
-                  key={p}
-                  variant={page === p ? "default" : "outline"}
-                  size="icon"
-                  className="h-8 w-8 text-xs"
-                  onClick={() => setPage(p as number)}
-                >
-                  {p}
-                </Button>
-              )
-            )}
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              disabled={page >= totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Create/Edit Product Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
