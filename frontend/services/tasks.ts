@@ -15,6 +15,10 @@ export async function fetchTasks(filters: TaskFilters = {}): Promise<TasksRespon
   return apiFetch<TasksResponse>(`/tasks/${qs ? `?${qs}` : ""}`)
 }
 
+export async function fetchTask(id: string): Promise<Task> {
+  return apiFetch<Task>(`/tasks/${id}/`)
+}
+
 export async function createTask(data: Record<string, unknown>): Promise<Task> {
   return apiFetch<Task>(`/tasks/`, { method: "POST", json: data })
 }
