@@ -7,7 +7,7 @@ import {
   KanbanSquare,
   CheckSquare,
   BarChart3,
-  Zap,
+  Workflow,
 } from "lucide-react"
 import { FeaturesIllustration } from "./illustrations"
 
@@ -15,54 +15,54 @@ const features = [
   {
     icon: MessageSquare,
     illustration: "chat" as const,
-    title: "Chat intelligent",
+    title: "Chat IA intelligent",
     description:
-      "Parlez naturellement. L'IA comprend vos intentions et exécute les actions : créer un contact, ajouter un deal, planifier une relance.",
+      "Parlez naturellement. L'IA comprend vos intentions et exécute les actions : créer un contact, déplacer un deal, planifier une relance. Plus de 9 outils intégrés.",
     color: "text-primary",
     bgColor: "bg-primary/8",
   },
   {
     icon: Users,
     illustration: "contacts" as const,
-    title: "Gestion des contacts",
+    title: "Contacts & Segments",
     description:
-      "Vos contacts se créent et s'organisent automatiquement. Historique complet, notes, et timeline d'interactions.",
+      "Base de contacts enrichie automatiquement. Segments dynamiques, détection de doublons intelligente, lead scoring et timeline complète d'interactions.",
     color: "text-teal",
     bgColor: "bg-teal/8",
   },
   {
     icon: KanbanSquare,
     illustration: "pipeline" as const,
-    title: "Pipeline visuel",
+    title: "Pipeline & Deals",
     description:
-      "Suivez vos deals sur un Kanban intuitif. Déplacez-les par glisser-déposer ou simplement en le disant au chat.",
+      "Multi-pipeline personnalisable avec Kanban drag-and-drop. Entonnoir de conversion, probabilités, et suivi complet de chaque opportunité.",
     color: "text-warm",
     bgColor: "bg-warm/8",
   },
   {
     icon: CheckSquare,
     illustration: "tasks" as const,
-    title: "Tâches & rappels",
+    title: "Tâches & Rappels",
     description:
-      "Ne ratez plus aucune relance. L'IA crée vos tâches avec priorité et échéance depuis une simple conversation.",
+      "Assignation à l'équipe, vue liste et calendrier, rappels automatiques. Ne ratez plus jamais une relance ou un suivi important.",
     color: "text-primary",
     bgColor: "bg-primary/8",
   },
   {
-    icon: BarChart3,
-    illustration: "dashboard" as const,
-    title: "Dashboard en temps réel",
+    icon: Workflow,
+    illustration: "ai" as const,
+    title: "Workflows & Automations",
     description:
-      "Revenue, pipeline, taux de conversion — tout est calculé automatiquement. Posez la question, obtenez la réponse.",
+      "Automatisez vos processus : triggers sur deals, contacts ou tâches, conditions personnalisées, actions automatiques. Gagnez du temps chaque jour.",
     color: "text-teal",
     bgColor: "bg-teal/8",
   },
   {
-    icon: Zap,
-    illustration: "ai" as const,
-    title: "IA configurable",
+    icon: BarChart3,
+    illustration: "dashboard" as const,
+    title: "Dashboard & Rapports",
     description:
-      "Claude, GPT, ou un autre modèle — choisissez votre IA préférée. Changez à tout moment via les paramètres.",
+      "Dashboard personnalisable avec widgets KPI. Rapports custom, analyse du pipeline, suivi de performance. Tout en temps réel.",
     color: "text-warm",
     bgColor: "bg-warm/8",
   },

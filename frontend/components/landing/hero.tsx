@@ -52,9 +52,9 @@ export function Hero() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-6 text-lg leading-relaxed text-muted-foreground"
             >
-              Le CRM qui comprend ce que vous dites. Parlez naturellement,
-              Qeylo crée vos contacts, gère vos deals et organise vos tâches.
-              Zéro formulaire. Zéro friction.
+              Le CRM qui comprend ce que vous dites. Contacts, deals, tâches,
+              automations, rapports — Qeylo gère tout depuis une simple
+              conversation. Zéro formulaire. Zéro friction.
             </motion.p>
 
             <motion.div

@@ -1,8 +1,9 @@
 "use client"
 
+import React from "react"
 import Link from "next/link"
 import { motion } from "motion/react"
-import { Check, ArrowRight, HelpCircle } from "lucide-react"
+import { Check, ArrowRight, HelpCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/landing/navbar"
 import { Footer } from "@/components/landing/footer"
@@ -16,9 +17,11 @@ const plans = [
     features: [
       "1 utilisateur",
       "100 contacts",
-      "Pipeline avec 6 étapes",
+      "1 pipeline (6 étapes)",
       "Chat IA — 50 messages/mois",
       "Dashboard basique",
+      "Tâches & rappels",
+      "Recherche globale",
     ],
     cta: "Commencer gratuitement",
     href: "/register",
@@ -32,10 +35,15 @@ const plans = [
     features: [
       "1 utilisateur",
       "Contacts illimités",
-      "Pipeline personnalisable",
+      "Multi-pipeline personnalisable",
       "Chat IA illimité",
-      "Dashboard avancé",
-      "Export CSV",
+      "Dashboard & rapports avancés",
+      "Workflows & automations",
+      "Segments dynamiques",
+      "Produits & catalogue",
+      "Email templates",
+      "Import/Export CSV",
+      "Intégration email",
       "Support prioritaire",
     ],
     cta: "Essai gratuit 14 jours",
@@ -46,18 +54,81 @@ const plans = [
     name: "Équipe",
     price: "49",
     period: "/ mois",
-    description: "Pour les petites structures",
+    description: "Pour les équipes ambitieuses",
     features: [
-      "Jusqu'à 5 utilisateurs",
+      "Utilisateurs illimités",
       "Tout du plan Pro",
       "Organisation partagée",
-      "Rôles et permissions",
+      "Rôles & permissions",
+      "Assignation de tâches",
+      "Rapports d'équipe",
       "API access",
       "Onboarding dédié",
     ],
     cta: "Contacter l'équipe",
     href: "/register",
     highlight: false,
+  },
+]
+
+const comparisonData = [
+  {
+    category: "Général",
+    features: [
+      { name: "Utilisateurs", solo: "1", pro: "1", equipe: "Illimité" },
+      { name: "Contacts", solo: "100", pro: "Illimité", equipe: "Illimité" },
+    ],
+  },
+  {
+    category: "CRM",
+    features: [
+      { name: "Pipelines", solo: "1", pro: "Illimité", equipe: "Illimité" },
+      { name: "Étapes personnalisables", solo: false, pro: true, equipe: true },
+      { name: "Deals", solo: "Illimité", pro: "Illimité", equipe: "Illimité" },
+      { name: "Segments dynamiques", solo: false, pro: true, equipe: true },
+      { name: "Produits & catalogue", solo: false, pro: true, equipe: true },
+      { name: "Détection de doublons", solo: false, pro: true, equipe: true },
+    ],
+  },
+  {
+    category: "Productivité",
+    features: [
+      { name: "Tâches & rappels", solo: true, pro: true, equipe: true },
+      { name: "Vue calendrier", solo: true, pro: true, equipe: true },
+      { name: "Assignation d'équipe", solo: false, pro: false, equipe: true },
+      { name: "Workflows & automations", solo: false, pro: true, equipe: true },
+      { name: "Email templates", solo: false, pro: true, equipe: true },
+    ],
+  },
+  {
+    category: "IA",
+    features: [
+      { name: "Chat IA", solo: "50 msg/mois", pro: "Illimité", equipe: "Illimité" },
+    ],
+  },
+  {
+    category: "Analytics",
+    features: [
+      { name: "Dashboard", solo: "Basique", pro: "Avancé", equipe: "Avancé" },
+      { name: "Rapports personnalisés", solo: false, pro: true, equipe: true },
+      { name: "Entonnoir de conversion", solo: false, pro: true, equipe: true },
+    ],
+  },
+  {
+    category: "Intégrations",
+    features: [
+      { name: "Intégration email", solo: false, pro: true, equipe: true },
+      { name: "Import/Export CSV", solo: false, pro: true, equipe: true },
+      { name: "API access", solo: false, pro: false, equipe: true },
+    ],
+  },
+  {
+    category: "Support",
+    features: [
+      { name: "Email", solo: true, pro: true, equipe: true },
+      { name: "Support prioritaire", solo: false, pro: true, equipe: true },
+      { name: "Onboarding dédié", solo: false, pro: false, equipe: true },
+    ],
   },
 ]
 
@@ -85,7 +156,17 @@ const faqs = [
   {
     question: "Puis-je importer mes contacts existants ?",
     answer:
-      "L'import CSV sera bientôt disponible. En attendant, vous pouvez les créer rapidement via le chat : « Ajoute Jean Dupont, jean@example.com, chez Acme ».",
+      "Oui, vous pouvez importer et exporter vos contacts au format CSV depuis la page Contacts. L'import inclut un mapping de colonnes intelligent.",
+  },
+  {
+    question: "Quelles automations puis-je créer ?",
+    answer:
+      "Vous pouvez créer des workflows automatisés basés sur des triggers : deal créé, étape changée, contact mis à jour, tâche en retard, etc. Ajoutez des conditions et des actions automatiques comme envoyer un email, créer une tâche, ou mettre à jour un champ.",
+  },
+  {
+    question: "Puis-je connecter mon email ?",
+    answer:
+      "Oui ! Qeylo s'intègre avec Gmail et Outlook via OAuth. Connectez votre boîte mail en un clic depuis les paramètres pour centraliser vos communications.",
   },
 ]
 
@@ -184,6 +265,74 @@ export default function PricingPage() {
                   </div>
                 </motion.div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Comparison grid */}
+        <section className="pb-24">
+          <div className="mx-auto max-w-5xl px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                Comparaison détaillée
+              </h2>
+              <p className="mt-3 text-muted-foreground">
+                Toutes les fonctionnalités, plan par plan.
+              </p>
+            </motion.div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-border/60">
+                    <th className="py-4 pr-4 text-left text-sm font-medium text-muted-foreground w-[40%]">
+                      Fonctionnalité
+                    </th>
+                    <th className="py-4 px-4 text-center text-sm font-semibold w-[20%]">Solo</th>
+                    <th className="py-4 px-4 text-center text-sm font-semibold text-primary w-[20%]">Pro</th>
+                    <th className="py-4 px-4 text-center text-sm font-semibold w-[20%]">Équipe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {comparisonData.map((group) => (
+                    <React.Fragment key={group.category}>
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="pt-8 pb-3 text-xs font-bold uppercase tracking-widest text-primary"
+                        >
+                          {group.category}
+                        </td>
+                      </tr>
+                      {group.features.map((feature) => (
+                        <tr key={feature.name} className="border-b border-border/30">
+                          <td className="py-3 pr-4 text-sm">{feature.name}</td>
+                          {(["solo", "pro", "equipe"] as const).map((plan) => {
+                            const value = feature[plan]
+                            return (
+                              <td key={plan} className="py-3 px-4 text-center">
+                                {value === true ? (
+                                  <Check className="mx-auto h-4 w-4 text-primary" />
+                                ) : value === false ? (
+                                  <X className="mx-auto h-4 w-4 text-muted-foreground/30" />
+                                ) : (
+                                  <span className="text-sm font-medium">{value}</span>
+                                )}
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
