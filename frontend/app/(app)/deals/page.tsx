@@ -4,8 +4,10 @@ import { useState, useEffect, useRef } from "react"
 import { Plus, Loader2, MoreHorizontal, Pencil, Star, Trash2, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { KanbanBoard } from "@/components/deals/KanbanBoard"
 import { CreatePipelineDialog } from "@/components/deals/CreatePipelineDialog"
+import { PageHeader } from "@/components/shared/PageHeader"
 import { usePipelines } from "@/hooks/useDeals"
 import { updatePipeline, deletePipeline } from "@/services/deals"
 import {
@@ -111,95 +113,84 @@ export default function DealsPage() {
   return (
     <div className="p-8 lg:p-12 space-y-8 animate-fade-in-up">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl tracking-tight">Pipeline</h1>
-          <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
-            Gérez vos deals par étape du pipeline
-          </p>
-        </div>
+      <PageHeader title="Pipeline" subtitle="Gérez vos deals par étape du pipeline">
         <Button onClick={() => setDialogOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
           Nouveau deal
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Pipeline tabs */}
-      <div className="flex items-center gap-1 border-b border-border overflow-x-auto">
-        {pipelines.map((p) => (
-          <div key={p.id} className="group relative shrink-0 flex items-center -mb-px">
-            {renamingId === p.id ? (
-              <div className="flex items-center gap-1 px-2 py-1">
-                <Input
-                  ref={renameInputRef}
-                  value={renameValue}
-                  onChange={(e) => setRenameValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleRename()
-                    if (e.key === "Escape") setRenamingId(null)
-                  }}
-                  className="h-7 w-32 text-sm"
-                  disabled={renameSaving}
-                />
-                <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleRename} disabled={renameSaving || !renameValue.trim()}>
-                  {renameSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : "OK"}
-                </Button>
-              </div>
-            ) : (
-              <>
-                <button
-                  onClick={() => setSelectedPipelineId(p.id)}
-                  className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 font-[family-name:var(--font-body)] ${
-                    selectedPipelineId === p.id
-                      ? "border-primary text-foreground"
-                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-                  }`}
-                >
-                  {p.name}
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1 rounded hover:bg-muted -ml-1 mr-1">
-                      <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    <DropdownMenuItem onClick={() => { setRenamingId(p.id); setRenameValue(p.name) }}>
-                      <Pencil className="h-4 w-4" />
-                      Renommer
-                    </DropdownMenuItem>
-                    {!p.is_default && (
-                      <DropdownMenuItem onClick={() => handleSetDefault(p.id)}>
-                        <Star className="h-4 w-4" />
-                        Définir par défaut
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={() => router.push("/settings/pipeline")}>
-                      <Settings className="h-4 w-4" />
-                      Gérer les étapes
-                    </DropdownMenuItem>
-                    {pipelines.length > 1 && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem variant="destructive" onClick={() => setDeleteDialogId(p.id)}>
-                          <Trash2 className="h-4 w-4" />
-                          Supprimer
+      <Tabs value={selectedPipelineId ?? undefined} onValueChange={setSelectedPipelineId}>
+        <div className="flex items-center gap-1">
+          <TabsList>
+            {pipelines.map((p) => (
+              <div key={p.id} className="group relative flex items-center">
+                {renamingId === p.id ? (
+                  <div className="flex items-center gap-1 px-1">
+                    <Input
+                      ref={renameInputRef}
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleRename()
+                        if (e.key === "Escape") setRenamingId(null)
+                      }}
+                      className="h-7 w-32 text-sm"
+                      disabled={renameSaving}
+                    />
+                    <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleRename} disabled={renameSaving || !renameValue.trim()}>
+                      {renameSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : "OK"}
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <TabsTrigger value={p.id}>{p.name}</TabsTrigger>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1 rounded hover:bg-muted/60 -ml-1">
+                          <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuItem onClick={() => { setRenamingId(p.id); setRenameValue(p.name) }}>
+                          <Pencil className="h-4 w-4" />
+                          Renommer
                         </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            )}
-          </div>
-        ))}
-        <button
-          onClick={() => setCreatePipelineOpen(true)}
-          className="shrink-0 px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-      </div>
+                        {!p.is_default && (
+                          <DropdownMenuItem onClick={() => handleSetDefault(p.id)}>
+                            <Star className="h-4 w-4" />
+                            Définir par défaut
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={() => router.push("/settings/pipeline")}>
+                          <Settings className="h-4 w-4" />
+                          Gérer les étapes
+                        </DropdownMenuItem>
+                        {pipelines.length > 1 && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem variant="destructive" onClick={() => setDeleteDialogId(p.id)}>
+                              <Trash2 className="h-4 w-4" />
+                              Supprimer
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </>
+                )}
+              </div>
+            ))}
+          </TabsList>
+          <button
+            onClick={() => setCreatePipelineOpen(true)}
+            className="shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
+      </Tabs>
 
       {/* Kanban Board */}
       {selectedPipelineId && (
