@@ -143,6 +143,38 @@ class Deal(models.Model):
         return self.name
 
 
+class DealStageTransition(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    deal = models.ForeignKey(Deal, on_delete=models.CASCADE, related_name="transitions")
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="deal_transitions",
+    )
+    from_stage = models.ForeignKey(
+        PipelineStage, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    to_stage = models.ForeignKey(
+        PipelineStage, on_delete=models.CASCADE, related_name="+"
+    )
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL
+    )
+    transitioned_at = models.DateTimeField(auto_now_add=True)
+    duration_in_previous = models.DurationField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-transitioned_at"]
+        indexes = [
+            models.Index(fields=["organization", "to_stage", "transitioned_at"]),
+            models.Index(fields=["deal", "transitioned_at"]),
+        ]
+
+    def __str__(self):
+        from_name = self.from_stage.name if self.from_stage else "New"
+        return f"{self.deal.name}: {from_name} -> {self.to_stage.name}"
+
+
 QUOTE_STATUS_CHOICES = [
     ("draft", "Brouillon"),
     ("sent", "Envoyé"),
