@@ -13,7 +13,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     def _base_queryset(self):
         return Task.objects.filter(
             organization=self.request.organization
-        ).select_related("contact", "deal")
+        ).select_related("contact", "deal").prefetch_related("assignments__user")
 
     def get_queryset(self):
         qs = self._base_queryset()
@@ -47,6 +47,14 @@ class TaskViewSet(viewsets.ModelViewSet):
                 start -= timedelta(days=start.weekday())
                 end = start + timedelta(days=7)
                 qs = qs.filter(due_date__gte=start, due_date__lt=end)
+
+        assigned_to = params.get("assigned_to")
+        if assigned_to:
+            if assigned_to == "me":
+                qs = qs.filter(assignments__user=self.request.user)
+            else:
+                qs = qs.filter(assignments__user_id=assigned_to)
+            qs = qs.distinct()
 
         return qs
 
