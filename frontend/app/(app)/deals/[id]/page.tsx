@@ -25,6 +25,7 @@ import {
   FileText,
   User,
 } from "lucide-react"
+import { EntityLink } from "@/components/shared/EntityLink"
 import type { Deal, Stage, QuoteListItem, Quote } from "@/types"
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -254,10 +255,10 @@ export default function DealDetailPage() {
             {/* Deal header */}
             <div className="p-5 border-b border-border">
               <h1 className="text-lg font-semibold truncate">{deal.name}</h1>
-              {deal.contact_name && (
+              {deal.contact_name && deal.contact && (
                 <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
                   <User className="h-3.5 w-3.5" />
-                  {deal.contact_name}
+                  <EntityLink type="contact" id={deal.contact} name={deal.contact_name} className="text-sm" />
                 </div>
               )}
               <div className="mt-3 text-xl font-semibold text-green-700">
