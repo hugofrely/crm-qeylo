@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { ExternalLink } from "lucide-react"
 import type { Deal, Stage } from "@/types"
 import { Badge } from "@/components/ui/badge"
 
@@ -53,7 +54,7 @@ export function ContactDeals({ deals, stages }: ContactDealsProps) {
       {deals.map((deal) => (
         <Link
           key={deal.id}
-          href={`/deals`}
+          href={`/deals/${deal.id}`}
           className="flex items-center justify-between rounded-lg border border-border p-3 hover:bg-secondary/30 transition-colors"
         >
           <div className="min-w-0 flex-1">
@@ -72,6 +73,7 @@ export function ContactDeals({ deals, stages }: ContactDealsProps) {
               {formatCurrency(String(deal.amount))}
             </span>
           )}
+          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-2" />
         </Link>
       ))}
     </div>
