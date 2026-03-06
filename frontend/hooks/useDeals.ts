@@ -27,22 +27,24 @@ export function usePipelines() {
   return { pipelines, loading, refresh }
 }
 
-export function usePipeline(pipelineId?: string) {
+export function usePipeline(pipelineId?: string, filters?: Record<string, string>) {
   const { orgVersion } = useOrganization()
   const [pipeline, setPipeline] = useState<PipelineStage[]>([])
   const [loading, setLoading] = useState(true)
 
+  const filtersKey = filters ? JSON.stringify(filters) : ""
+
   const refresh = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await fetchPipeline(pipelineId)
+      const data = await fetchPipeline(pipelineId, filters)
       setPipeline(data)
     } catch {
       // silently fail
     } finally {
       setLoading(false)
     }
-  }, [orgVersion, pipelineId])
+  }, [orgVersion, pipelineId, filtersKey])
 
   useEffect(() => { refresh() }, [refresh])
 

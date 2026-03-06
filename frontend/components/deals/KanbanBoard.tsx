@@ -28,11 +28,12 @@ interface KanbanBoardProps {
   pipelineId: string
   dialogOpen?: boolean
   onDialogOpenChange?: (open: boolean) => void
+  filters?: Record<string, string>
 }
 
-export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange }: KanbanBoardProps) {
+export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange, filters }: KanbanBoardProps) {
   const router = useRouter()
-  const { pipeline, setPipeline, loading, refresh } = usePipeline(pipelineId)
+  const { pipeline, setPipeline, loading, refresh } = usePipeline(pipelineId, filters)
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null)
   const [dealDialogOpen, setDealDialogOpen] = useState(false)
 

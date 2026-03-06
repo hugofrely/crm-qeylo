@@ -1,15 +1,19 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { Plus, Loader2, MoreHorizontal, Pencil, Star, Trash2, Settings } from "lucide-react"
+import { useState, useEffect, useRef, useMemo } from "react"
+import { Plus, Loader2, MoreHorizontal, Pencil, Star, Trash2, Settings, Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { KanbanBoard } from "@/components/deals/KanbanBoard"
 import { CreatePipelineDialog } from "@/components/deals/CreatePipelineDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { usePipelines } from "@/hooks/useDeals"
 import { updatePipeline, deletePipeline } from "@/services/deals"
+import { fetchMembers } from "@/services/organizations"
+import { useOrganization } from "@/lib/organization"
+import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -24,9 +28,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useRouter } from "next/navigation"
+import type { Member } from "@/types/organizations"
 
 export default function DealsPage() {
   const router = useRouter()
+  const { currentOrganization } = useOrganization()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [createPipelineOpen, setCreatePipelineOpen] = useState(false)
   const { pipelines, loading: pipelinesLoading, refresh: refreshPipelines } = usePipelines()
@@ -42,6 +48,61 @@ export default function DealsPage() {
   const [deleteDialogId, setDeleteDialogId] = useState<string | null>(null)
   const [deleteMigrateTo, setDeleteMigrateTo] = useState("")
   const [deleting, setDeleting] = useState(false)
+
+  // Filter state
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [filterContact, setFilterContact] = useState("")
+  const [filterAmountMin, setFilterAmountMin] = useState("")
+  const [filterAmountMax, setFilterAmountMax] = useState("")
+  const [filterProbabilityMin, setFilterProbabilityMin] = useState("")
+  const [filterProbabilityMax, setFilterProbabilityMax] = useState("")
+  const [filterExpectedCloseAfter, setFilterExpectedCloseAfter] = useState("")
+  const [filterExpectedCloseBefore, setFilterExpectedCloseBefore] = useState("")
+  const [filterCreatedAfter, setFilterCreatedAfter] = useState("")
+  const [filterCreatedBefore, setFilterCreatedBefore] = useState("")
+  const [filterCreatedBy, setFilterCreatedBy] = useState("")
+  const [filterContactLabel, setFilterContactLabel] = useState("")
+  const [members, setMembers] = useState<Member[]>([])
+  const contactAutocomplete = useContactAutocomplete()
+
+  const filters = useMemo(() => {
+    const f: Record<string, string> = {}
+    if (filterContact) f.contact = filterContact
+    if (filterAmountMin) f.amount_min = filterAmountMin
+    if (filterAmountMax) f.amount_max = filterAmountMax
+    if (filterProbabilityMin) f.probability_min = filterProbabilityMin
+    if (filterProbabilityMax) f.probability_max = filterProbabilityMax
+    if (filterExpectedCloseAfter) f.expected_close_after = filterExpectedCloseAfter
+    if (filterExpectedCloseBefore) f.expected_close_before = filterExpectedCloseBefore
+    if (filterCreatedAfter) f.created_after = filterCreatedAfter
+    if (filterCreatedBefore) f.created_before = filterCreatedBefore
+    if (filterCreatedBy) f.created_by = filterCreatedBy
+    return f
+  }, [filterContact, filterAmountMin, filterAmountMax, filterProbabilityMin, filterProbabilityMax, filterExpectedCloseAfter, filterExpectedCloseBefore, filterCreatedAfter, filterCreatedBefore, filterCreatedBy])
+
+  const activeFilterCount = Object.keys(filters).length
+
+  const resetFilters = () => {
+    setFilterContact("")
+    setFilterContactLabel("")
+    contactAutocomplete.reset()
+    setFilterAmountMin("")
+    setFilterAmountMax("")
+    setFilterProbabilityMin("")
+    setFilterProbabilityMax("")
+    setFilterExpectedCloseAfter("")
+    setFilterExpectedCloseBefore("")
+    setFilterCreatedAfter("")
+    setFilterCreatedBefore("")
+    setFilterCreatedBy("")
+  }
+
+  // Load members for filter select
+  useEffect(() => {
+    if (currentOrganization?.id) {
+      fetchMembers(currentOrganization.id).then((res) => setMembers(res.members))
+    }
+  }, [currentOrganization?.id])
 
   useEffect(() => {
     if (pipelines.length > 0 && !selectedPipelineId) {
@@ -108,6 +169,9 @@ export default function DealsPage() {
     )
   }
 
+  const selectClass =
+    "h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-full"
+
   const deletePipelineData = pipelines.find((p) => p.id === deleteDialogId)
 
   return (
@@ -115,6 +179,7 @@ export default function DealsPage() {
       {/* Header */}
       <div className="p-4 sm:p-8 lg:px-12 lg:pt-12 lg:pb-0 space-y-6 shrink-0">
         <PageHeader title="Pipeline" subtitle="Gérez vos deals par étape du pipeline">
+          <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
           <Button onClick={() => setDialogOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
             Nouveau deal
@@ -202,6 +267,7 @@ export default function DealsPage() {
             pipelineId={selectedPipelineId}
             dialogOpen={dialogOpen}
             onDialogOpenChange={setDialogOpen}
+            filters={filters}
           />
         )}
       </div>
@@ -255,6 +321,100 @@ export default function DealsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <FilterPanel open={filterOpen} onOpenChange={setFilterOpen} onReset={resetFilters} activeFilterCount={activeFilterCount}>
+        <FilterSection label="Contact">
+          <div ref={contactAutocomplete.wrapperRef} className="relative">
+            {filterContact ? (
+              <div className="flex h-9 items-center justify-between rounded-md border border-input bg-transparent px-3 text-sm">
+                <span className="truncate">{filterContactLabel}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterContact("")
+                    setFilterContactLabel("")
+                    contactAutocomplete.reset()
+                  }}
+                  className="ml-2 shrink-0 rounded-sm p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  value={contactAutocomplete.query}
+                  onChange={(e) => contactAutocomplete.search(e.target.value)}
+                  onFocus={() => {
+                    if (contactAutocomplete.results.length > 0) contactAutocomplete.setOpen(true)
+                  }}
+                  placeholder="Rechercher un contact…"
+                  className="pl-8"
+                />
+                {contactAutocomplete.searching && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                )}
+              </div>
+            )}
+            {contactAutocomplete.open && contactAutocomplete.results.length > 0 && (
+              <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg max-h-48 overflow-y-auto">
+                {contactAutocomplete.results.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => {
+                      setFilterContact(c.id)
+                      setFilterContactLabel(`${c.first_name} ${c.last_name}`)
+                      contactAutocomplete.reset()
+                    }}
+                    className="flex w-full items-center px-3 py-2 text-sm hover:bg-secondary/50 transition-colors text-left"
+                  >
+                    {c.first_name} {c.last_name}
+                  </button>
+                ))}
+              </div>
+            )}
+            {contactAutocomplete.open && contactAutocomplete.query && !contactAutocomplete.searching && contactAutocomplete.results.length === 0 && (
+              <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg px-3 py-3 text-sm text-muted-foreground text-center">
+                Aucun contact trouvé
+              </div>
+            )}
+          </div>
+        </FilterSection>
+        <FilterSection label="Montant">
+          <div className="flex gap-2">
+            <input type="number" placeholder="Min" value={filterAmountMin} onChange={(e) => setFilterAmountMin(e.target.value)} className={selectClass} />
+            <input type="number" placeholder="Max" value={filterAmountMax} onChange={(e) => setFilterAmountMax(e.target.value)} className={selectClass} />
+          </div>
+        </FilterSection>
+        <FilterSection label="Probabilité (%)">
+          <div className="flex gap-2">
+            <input type="number" placeholder="Min" min="0" max="100" value={filterProbabilityMin} onChange={(e) => setFilterProbabilityMin(e.target.value)} className={selectClass} />
+            <input type="number" placeholder="Max" min="0" max="100" value={filterProbabilityMax} onChange={(e) => setFilterProbabilityMax(e.target.value)} className={selectClass} />
+          </div>
+        </FilterSection>
+        <FilterSection label="Date de closing prévue">
+          <div className="flex gap-2">
+            <input type="date" value={filterExpectedCloseAfter} onChange={(e) => setFilterExpectedCloseAfter(e.target.value)} className={selectClass} />
+            <input type="date" value={filterExpectedCloseBefore} onChange={(e) => setFilterExpectedCloseBefore(e.target.value)} className={selectClass} />
+          </div>
+        </FilterSection>
+        <FilterSection label="Date de création">
+          <div className="flex gap-2">
+            <input type="date" value={filterCreatedAfter} onChange={(e) => setFilterCreatedAfter(e.target.value)} className={selectClass} />
+            <input type="date" value={filterCreatedBefore} onChange={(e) => setFilterCreatedBefore(e.target.value)} className={selectClass} />
+          </div>
+        </FilterSection>
+        <FilterSection label="Créé par">
+          <select value={filterCreatedBy} onChange={(e) => setFilterCreatedBy(e.target.value)} className={selectClass}>
+            <option value="">Tous les utilisateurs</option>
+            {members.map((m) => (
+              <option key={m.user_id} value={m.user_id}>{m.first_name} {m.last_name}</option>
+            ))}
+          </select>
+        </FilterSection>
+      </FilterPanel>
     </div>
   )
 }

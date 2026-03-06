@@ -26,9 +26,16 @@ export async function reorderPipelines(order: string[]): Promise<void> {
 }
 
 // Pipeline view (Kanban data)
-export async function fetchPipeline(pipelineId?: string): Promise<PipelineStage[]> {
-  const params = pipelineId ? `?pipeline=${pipelineId}` : ""
-  return apiFetch<PipelineStage[]>(`/deals/pipeline/${params}`)
+export async function fetchPipeline(pipelineId?: string, filters?: Record<string, string>): Promise<PipelineStage[]> {
+  const params = new URLSearchParams()
+  if (pipelineId) params.set("pipeline", pipelineId)
+  if (filters) {
+    for (const [key, value] of Object.entries(filters)) {
+      if (value) params.set(key, value)
+    }
+  }
+  const qs = params.toString()
+  return apiFetch<PipelineStage[]>(`/deals/pipeline/${qs ? `?${qs}` : ""}`)
 }
 
 // Deal CRUD
