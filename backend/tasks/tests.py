@@ -13,6 +13,7 @@ class TaskTests(TestCase):
                 "password": "securepass123",
                 "first_name": "Hugo",
                 "last_name": "Frely",
+                "organization_name": "Test Org",
             },
         )
         self.token = response.data["access"]
@@ -209,16 +210,18 @@ class TaskTests(TestCase):
         from accounts.models import User
         from notifications.models import Notification
 
-        r = self.client.post("/api/auth/register/", {
-            "email": "alice@example.com",
-            "password": "securepass123",
-            "first_name": "Alice",
-            "last_name": "Martin",
-        })
-        alice = User.objects.get(email="alice@example.com")
-
         from organizations.models import Membership
-        hugo = User.objects.get(email="hugo@example.com")
+        from django.contrib.auth import get_user_model
+        UserModel = get_user_model()
+
+        alice = UserModel.objects.create_user(
+            email="alice@example.com",
+            password="securepass123",
+            first_name="Alice",
+            last_name="Martin",
+        )
+
+        hugo = UserModel.objects.get(email="hugo@example.com")
         org = hugo.memberships.first().organization
         Membership.objects.create(organization=org, user=alice, role="member")
 
