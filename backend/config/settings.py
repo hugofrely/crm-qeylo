@@ -225,6 +225,11 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
+
+if CELERY_BROKER_URL.startswith("rediss://"):
+    import ssl
+    CELERY_BROKER_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
+    CELERY_REDIS_BACKEND_USE_SSL = {"ssl_cert_reqs": ssl.CERT_NONE}
 CELERY_BEAT_SCHEDULE = {
     "check-task-reminders": {
         "task": "tasks.celery_tasks.check_task_reminders",
@@ -239,9 +244,13 @@ CELERY_BEAT_SCHEDULE = {
 # ---------------------------------------------------------------------------
 # Cache (used for workflow cooldowns)
 # ---------------------------------------------------------------------------
+_cache_url = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0")
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0"),
+        "LOCATION": _cache_url,
     }
 }
+if _cache_url.startswith("rediss://"):
+    import ssl
+    CACHES["default"]["OPTIONS"] = {"ssl_cert_reqs": ssl.CERT_NONE}
