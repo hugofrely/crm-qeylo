@@ -18,8 +18,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Plus, Search, ChevronLeft, ChevronRight, Loader2, Download } from "lucide-react"
+import { Plus, Search, Loader2, Download } from "lucide-react"
 import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
+import { Pagination } from "@/components/shared/Pagination"
 import type { Contact, ContactCategory } from "@/types"
 
 interface ContactsResponse {
@@ -30,19 +33,6 @@ interface ContactsResponse {
 }
 
 const PAGE_SIZE = 20
-
-function getPageNumbers(current: number, total: number): (number | "...")[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const pages: (number | "...")[] = []
-  pages.push(1)
-  if (current > 3) pages.push("...")
-  const start = Math.max(2, current - 1)
-  const end = Math.min(total - 1, current + 1)
-  for (let i = start; i <= end; i++) pages.push(i)
-  if (current < total - 2) pages.push("...")
-  pages.push(total)
-  return pages
-}
 
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([])
@@ -58,6 +48,9 @@ export default function ContactsPage() {
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+
+  const activeFilterCount = [search, selectedCategory, selectedSegment].filter(Boolean).length
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -207,27 +200,27 @@ export default function ContactsPage() {
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl tracking-tight">Contacts</h1>
-          <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
-            {totalCount} contact{totalCount !== 1 ? "s" : ""} au total
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <ImportCSVDialog onImported={fetchContacts} />
-          <Button variant="outline" className="gap-2" onClick={handleExport} disabled={exporting}>
-            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Exporter
-          </Button>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Ajouter
-              </Button>
-            </DialogTrigger>
+      <PageHeader
+        title="Contacts"
+        subtitle={`${totalCount} contact${totalCount !== 1 ? "s" : ""} au total`}
+      >
+        <FilterTriggerButton
+          open={filterOpen}
+          onOpenChange={setFilterOpen}
+          activeFilterCount={activeFilterCount}
+        />
+        <ImportCSVDialog onImported={fetchContacts} />
+        <Button variant="outline" className="gap-2" onClick={handleExport} disabled={exporting}>
+          {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+          Exporter
+        </Button>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Ajouter
+            </Button>
+          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Nouveau contact</DialogTitle>
@@ -336,8 +329,7 @@ export default function ContactsPage() {
             </form>
           </DialogContent>
         </Dialog>
-        </div>
-      </div>
+      </PageHeader>
 
       <DuplicateDetectionDialog
         open={showDuplicateDialog}
@@ -352,117 +344,79 @@ export default function ContactsPage() {
         }}
       />
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Rechercher un contact..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 h-11 bg-secondary/30 border-border/60"
-        />
-      </div>
+      <div className="flex gap-0">
+        <div className="flex-1 min-w-0 space-y-8">
+          {/* Loading / ContactTable */}
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <ContactTable contacts={contacts} />
+          )}
 
-      {/* Segment selector */}
-      <div className="flex items-center gap-3">
-        <SegmentSelector
-          selectedSegmentId={selectedSegment}
-          onSelect={(id) => {
-            setSelectedSegment(id)
-            setSelectedCategory(null)
-            setSearch("")
-          }}
-        />
-      </div>
+          {/* Pagination */}
+          {!search && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
+        </div>
 
-      {/* Category tabs */}
-      {categories.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2">
-          <button
-            onClick={() => { setSelectedCategory(null); setSelectedSegment(null) }}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
-              selectedCategory === null
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
-            }`}
-          >
-            Tous
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => { setSelectedCategory(cat.id); setSelectedSegment(null) }}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 font-[family-name:var(--font-body)] ${
-                selectedCategory === cat.id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
-              }`}
-            >
-              <span
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{ backgroundColor: cat.color }}
+        <FilterPanel
+          open={filterOpen}
+          onOpenChange={setFilterOpen}
+          onReset={() => { setSearch(""); setSelectedCategory(null); setSelectedSegment(null) }}
+          activeFilterCount={activeFilterCount}
+        >
+          <FilterSection label="Recherche">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher un contact..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-9 bg-secondary/30 border-border/60"
               />
-              {cat.name}
-              {(cat.contact_count ?? 0) > 0 && (
-                <span className="text-[10px] opacity-70">({cat.contact_count})</span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Table */}
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
-        <ContactTable contacts={contacts} />
-      )}
-
-      {/* Pagination */}
-      {!search && totalPages > 1 && (
-        <div className="flex items-center justify-between font-[family-name:var(--font-body)]">
-          <p className="text-sm text-muted-foreground">
-            Page {page} sur {totalPages}
-          </p>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            {getPageNumbers(page, totalPages).map((p, i) =>
-              p === "..." ? (
-                <span key={`ellipsis-${i}`} className="px-1 text-sm text-muted-foreground">...</span>
-              ) : (
-                <Button
-                  key={p}
-                  variant={page === p ? "default" : "outline"}
-                  size="icon"
-                  className="h-8 w-8 text-xs"
-                  onClick={() => setPage(p as number)}
+            </div>
+          </FilterSection>
+          <FilterSection label="Segment">
+            <SegmentSelector
+              selectedSegmentId={selectedSegment}
+              onSelect={(id) => { setSelectedSegment(id); setSelectedCategory(null); setSearch("") }}
+            />
+          </FilterSection>
+          {categories.length > 0 && (
+            <FilterSection label="Categorie">
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  onClick={() => { setSelectedCategory(null); setSelectedSegment(null) }}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
+                    selectedCategory === null
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                  }`}
                 >
-                  {p}
-                </Button>
-              )
-            )}
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              disabled={page >= totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+                  Tous
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => { setSelectedCategory(cat.id); setSelectedSegment(null) }}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 font-[family-name:var(--font-body)] ${
+                      selectedCategory === cat.id
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                    {cat.name}
+                    {(cat.contact_count ?? 0) > 0 && (
+                      <span className="text-[10px] opacity-70">({cat.contact_count})</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </FilterSection>
+          )}
+        </FilterPanel>
+      </div>
     </div>
   )
 }
