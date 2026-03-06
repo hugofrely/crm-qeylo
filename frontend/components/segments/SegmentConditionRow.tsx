@@ -109,9 +109,17 @@ const SELECT_FIELDS: Record<string, { value: string; label: string }[]> = {
   preferred_channel: CHANNEL_OPTIONS,
   decision_role: DECISION_ROLE_OPTIONS,
 }
+const CATEGORY_OPERATORS = [
+  { value: "in", label: "est parmi" },
+  { value: "not_in", label: "n'est pas parmi" },
+  { value: "has_any", label: "a au moins une" },
+  { value: "has_none", label: "n'en a aucune" },
+]
+
 const NO_VALUE_OPERATORS = ["is_empty", "is_not_empty", "has_any", "has_none"]
 
 function getOperatorsForField(field: string) {
+  if (field === "categories") return CATEGORY_OPERATORS
   if (DATE_FIELDS.includes(field)) return DATE_OPERATORS
   if (NUMERIC_FIELDS.includes(field)) return NUMERIC_OPERATORS
   if (RELATION_FIELDS.includes(field)) return RELATION_OPERATORS
@@ -124,9 +132,10 @@ interface Props {
   onChange: (condition: SegmentCondition) => void
   onRemove: () => void
   customFields?: { id: string; label: string; field_type: string }[]
+  categories?: { id: string; name: string }[]
 }
 
-export function SegmentConditionRow({ condition, onChange, onRemove, customFields = [] }: Props) {
+export function SegmentConditionRow({ condition, onChange, onRemove, customFields = [], categories = [] }: Props) {
   const allFields = [
     ...FIELD_OPTIONS,
     ...(customFields.length > 0 ? [{
@@ -172,7 +181,18 @@ export function SegmentConditionRow({ condition, onChange, onRemove, customField
       {/* Value input */}
       {needsValue && (
         <>
-          {selectOptions ? (
+          {condition.field === "categories" && categories.length > 0 ? (
+            <select
+              value={condition.value as string ?? ""}
+              onChange={(e) => onChange({ ...condition, value: e.target.value })}
+              className="flex h-9 flex-1 basis-[100px] rounded-md border border-border/60 bg-secondary/30 px-2 py-1 text-sm"
+            >
+              <option value="">-- Categorie --</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          ) : selectOptions ? (
             <select
               value={condition.value as string ?? ""}
               onChange={(e) => onChange({ ...condition, value: e.target.value })}

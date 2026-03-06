@@ -1,8 +1,9 @@
 # backend/segments/engine.py
 from datetime import timedelta
+from uuid import UUID
 from django.db.models import Q, Count, Max, Subquery, OuterRef
 from django.utils import timezone
-from contacts.models import Contact
+from contacts.models import Contact, ContactCategory
 
 
 # Maps field names to Django ORM lookups
@@ -163,13 +164,39 @@ def _build_custom_field_q(field_id: str, operator: str, value) -> Q:
     return Q()
 
 
+def _is_valid_uuid(val: str) -> bool:
+    try:
+        UUID(str(val))
+        return True
+    except (ValueError, AttributeError):
+        return False
+
+
+def _resolve_category_ids(values: list) -> list:
+    """Resolve category values to UUIDs, looking up by name if needed."""
+    uuids = []
+    names = []
+    for v in values:
+        v_str = str(v).strip()
+        if _is_valid_uuid(v_str):
+            uuids.append(v_str)
+        elif v_str:
+            names.append(v_str)
+    if names:
+        found = ContactCategory.objects.filter(name__in=names).values_list("id", flat=True)
+        uuids.extend(str(uid) for uid in found)
+    return uuids
+
+
 def _build_category_q(operator: str, value) -> Q:
     if operator == "equals" or operator == "in":
         ids = value if isinstance(value, list) else [value]
-        return Q(categories__id__in=ids)
+        ids = _resolve_category_ids(ids)
+        return Q(categories__id__in=ids) if ids else Q(pk__in=[])
     if operator == "not_in":
         ids = value if isinstance(value, list) else [value]
-        return ~Q(categories__id__in=ids)
+        ids = _resolve_category_ids(ids)
+        return ~Q(categories__id__in=ids) if ids else Q()
     if operator == "has_any":
         return Q(categories__isnull=False)
     if operator == "has_none":

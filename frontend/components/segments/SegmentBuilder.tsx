@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, Loader2, Users } from "lucide-react"
 import { SegmentRuleGroup } from "./SegmentRuleGroup"
 import { previewSegment } from "@/services/segments"
-import { fetchCustomFieldDefinitions } from "@/services/contacts"
+import { fetchCustomFieldDefinitions, fetchContactCategories } from "@/services/contacts"
 import type { Segment, SegmentRules, SegmentRuleGroup as RuleGroupType } from "@/types"
 
 const COLORS = ["#3b82f6", "#ef4444", "#f59e0b", "#10b981", "#8b5cf6", "#ec4899", "#06b6d4", "#64748b"]
@@ -41,6 +41,7 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
   const [previewLoading, setPreviewLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [customFields, setCustomFields] = useState<{ id: string; label: string; field_type: string }[]>([])
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
 
   useEffect(() => {
     if (open) {
@@ -62,6 +63,9 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
       setPreviewCount(null)
       fetchCustomFieldDefinitions().then((defs) =>
         setCustomFields(defs.map((d) => ({ id: d.id, label: d.label, field_type: d.field_type })))
+      ).catch(() => {})
+      fetchContactCategories().then((cats) =>
+        setCategories(cats.map((c) => ({ id: c.id, name: c.name })))
       ).catch(() => {})
     }
   }, [open, segment])
@@ -224,6 +228,7 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
                   onRemove={() => removeGroup(index)}
                   canRemove={rules.groups.length > 1}
                   customFields={customFields}
+                  categories={categories}
                 />
               </div>
             ))}
