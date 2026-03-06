@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "search",
     "uploads",
     "workflows",
+    "trash",
 ]
 
 # ---------------------------------------------------------------------------
@@ -215,6 +216,10 @@ CELERY_BEAT_SCHEDULE = {
     "check-task-reminders": {
         "task": "tasks.celery_tasks.check_task_reminders",
         "schedule": 300,  # every 5 minutes
+    },
+    "purge-trash": {
+        "task": "trash.tasks.purge_trash",
+        "schedule": 86400,
     },
 }
 

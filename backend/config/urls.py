@@ -25,5 +25,6 @@ urlpatterns = [
     path("api/search/", include("search.urls")),
     path("api/upload/", include("uploads.urls")),
     path("api/workflows/", include("workflows.urls")),
+    path("api/trash/", include("trash.urls")),
     path("api/invite/accept/<uuid:token>/", include("organizations.invite_urls")),
 ]
