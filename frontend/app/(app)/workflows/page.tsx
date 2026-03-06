@@ -10,8 +10,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
 import {
   Plus,
   Loader2,
@@ -50,7 +58,6 @@ export default function WorkflowsPage() {
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false)
   const [newName, setNewName] = useState("")
   const [creating, setCreating] = useState(false)
-  const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
 
   const fetchWorkflows = useCallback(async () => {
     try {
@@ -133,159 +140,95 @@ export default function WorkflowsPage() {
     } catch {
       toast.error("Erreur lors de la suppression")
     }
-    setMenuOpenId(null)
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
+  const columns: DataTableColumn<Workflow>[] = [
+    {
+      key: "status",
+      header: "",
+      headerClassName: "w-10",
+      className: "w-10",
+      render: (w) => (
+        <button onClick={(e) => { e.stopPropagation(); handleToggle(w) }} title={w.is_active ? "Désactiver" : "Activer"}>
+          {w.is_active ? <Zap className="h-5 w-5 text-primary" /> : <ZapOff className="h-5 w-5 text-muted-foreground/40" />}
+        </button>
+      ),
+    },
+    {
+      key: "name",
+      header: "Nom",
+      render: (w) => (
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-sm">{w.name}</span>
+            {w.is_active && (
+              <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">Actif</span>
+            )}
+          </div>
+          {w.trigger_type && (
+            <span className="text-xs text-muted-foreground">{TRIGGER_LABELS[w.trigger_type] || w.trigger_type}</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "executions",
+      header: "Executions",
+      headerClassName: "hidden md:table-cell text-right",
+      className: "hidden md:table-cell text-right text-sm text-muted-foreground tabular-nums",
+      render: (w) => <>{w.execution_count}</>,
+    },
+    {
+      key: "actions",
+      header: "",
+      headerClassName: "w-10",
+      className: "w-10",
+      render: (w) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <Button variant="ghost" size="icon-sm"><MoreHorizontal className="h-4 w-4" /></Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/workflows/${w.id}`) }}>
+              <Pencil className="h-4 w-4 mr-2" /> Modifier
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/workflows/${w.id}?tab=history`) }}>
+              <History className="h-4 w-4 mr-2" /> Historique
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(w.id) }} className="text-destructive">
+              <Trash2 className="h-4 w-4 mr-2" /> Supprimer
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ]
 
   return (
-    <div className="p-8 lg:p-12 max-w-4xl mx-auto space-y-6 animate-fade-in-up">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl tracking-tight">Workflows</h1>
-          <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
-            Automatisez vos processus CRM avec des workflows visuels
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setTemplateDialogOpen(true)}
-            className="gap-2"
-          >
-            <LayoutTemplate className="h-4 w-4" />
-            Templates
-          </Button>
-          <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nouveau
-          </Button>
-        </div>
-      </div>
+    <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-6 animate-fade-in-up">
+      <PageHeader
+        title="Workflows"
+        subtitle="Automatisez vos processus CRM avec des workflows visuels"
+      >
+        <Button variant="outline" onClick={() => setTemplateDialogOpen(true)} className="gap-2">
+          <LayoutTemplate className="h-4 w-4" />
+          Templates
+        </Button>
+        <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Nouveau
+        </Button>
+      </PageHeader>
 
-      {/* Workflows list */}
-      {workflows.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card flex flex-col items-center justify-center py-20 space-y-3">
-          <Zap className="h-10 w-10 text-muted-foreground/30" />
-          <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-            Aucun workflow. Créez votre premier workflow ou utilisez un template.
-          </p>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setTemplateDialogOpen(true)}>
-              Voir les templates
-            </Button>
-            <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
-              Créer un workflow
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {workflows.map((workflow) => (
-            <div
-              key={workflow.id}
-              className="rounded-xl border border-border bg-card hover:bg-secondary/10 transition-colors"
-            >
-              <div className="p-4 flex items-center gap-4 font-[family-name:var(--font-body)]">
-                {/* Status indicator */}
-                <button
-                  onClick={() => handleToggle(workflow)}
-                  className="shrink-0"
-                  title={workflow.is_active ? "Désactiver" : "Activer"}
-                >
-                  {workflow.is_active ? (
-                    <Zap className="h-5 w-5 text-primary" />
-                  ) : (
-                    <ZapOff className="h-5 w-5 text-muted-foreground/40" />
-                  )}
-                </button>
-
-                {/* Info */}
-                <div
-                  className="flex-1 min-w-0 cursor-pointer"
-                  onClick={() => router.push(`/workflows/${workflow.id}`)}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm truncate">
-                      {workflow.name}
-                    </span>
-                    {workflow.is_active && (
-                      <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
-                        Actif
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 mt-0.5">
-                    {workflow.trigger_type && (
-                      <span className="text-xs text-muted-foreground">
-                        {TRIGGER_LABELS[workflow.trigger_type] || workflow.trigger_type}
-                      </span>
-                    )}
-                    <span className="text-xs text-muted-foreground/60">
-                      {workflow.execution_count} exécution{workflow.execution_count !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="relative">
-                  <button
-                    onClick={() => setMenuOpenId(menuOpenId === workflow.id ? null : workflow.id)}
-                    className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
-                  {menuOpenId === workflow.id && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-10"
-                        onClick={() => setMenuOpenId(null)}
-                      />
-                      <div className="absolute right-0 top-full mt-1 z-20 w-48 rounded-lg border border-border bg-card shadow-lg py-1">
-                        <button
-                          onClick={() => {
-                            router.push(`/workflows/${workflow.id}`)
-                            setMenuOpenId(null)
-                          }}
-                          className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-secondary/50 transition-colors"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                          Modifier
-                        </button>
-                        <button
-                          onClick={() => {
-                            router.push(`/workflows/${workflow.id}?tab=history`)
-                            setMenuOpenId(null)
-                          }}
-                          className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-secondary/50 transition-colors"
-                        >
-                          <History className="h-3.5 w-3.5" />
-                          Historique
-                        </button>
-                        <div className="my-1 border-t border-border" />
-                        <button
-                          onClick={() => handleDelete(workflow.id)}
-                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-destructive hover:bg-destructive/8 transition-colors"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Supprimer
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        data={workflows}
+        loading={loading}
+        emptyIcon={<Zap className="h-10 w-10 text-muted-foreground/30 mb-2" />}
+        emptyMessage="Aucun workflow. Créez votre premier workflow ou utilisez un template."
+        onRowClick={(w) => router.push(`/workflows/${w.id}`)}
+        rowKey={(w) => w.id}
+      />
 
       {/* Create blank dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
