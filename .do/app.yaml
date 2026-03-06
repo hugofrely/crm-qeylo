@@ -1,0 +1,199 @@
+name: crm-qeylo-staging
+region: fra
+
+domains:
+  - domain: proto.qeylo.com
+    type: PRIMARY
+
+services:
+  - name: backend
+    dockerfile_path: backend/Dockerfile
+    source_dir: /
+    http_port: 8000
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    routes:
+      - path: /api
+      - path: /admin
+    envs:
+      - key: SECRET_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: DEBUG
+        scope: RUN_AND_BUILD_TIME
+        value: "false"
+      - key: ALLOWED_HOSTS
+        scope: RUN_AND_BUILD_TIME
+        value: "proto.qeylo.com"
+      - key: DATABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        value: ${db-staging.DATABASE_URL}
+      - key: CELERY_BROKER_URL
+        scope: RUN_AND_BUILD_TIME
+        value: ${redis-staging.DATABASE_URL}
+      - key: CELERY_RESULT_BACKEND
+        scope: RUN_AND_BUILD_TIME
+        value: ${redis-staging.DATABASE_URL}
+      - key: CORS_ALLOWED_ORIGINS
+        scope: RUN_AND_BUILD_TIME
+        value: "https://proto.qeylo.com"
+      - key: FRONTEND_URL
+        scope: RUN_AND_BUILD_TIME
+        value: "https://proto.qeylo.com"
+      - key: BACKEND_URL
+        scope: RUN_AND_BUILD_TIME
+        value: "https://proto.qeylo.com"
+      - key: ANTHROPIC_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: OPENAI_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: RESEND_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: EMAIL_FROM
+        scope: RUN_AND_BUILD_TIME
+        value: "Qeylo <noreply@qeylo.com>"
+      - key: GOOGLE_CLIENT_ID
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: GOOGLE_CLIENT_SECRET
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: MICROSOFT_CLIENT_ID
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: MICROSOFT_CLIENT_SECRET
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: EMAIL_ENCRYPTION_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: R2_ACCOUNT_ID
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: R2_ACCESS_KEY_ID
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: R2_SECRET_ACCESS_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: R2_BUCKET_NAME
+        scope: RUN_AND_BUILD_TIME
+        value: ""
+      - key: R2_PUBLIC_URL
+        scope: RUN_AND_BUILD_TIME
+        value: ""
+
+  - name: frontend
+    dockerfile_path: frontend/Dockerfile
+    source_dir: /
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    routes:
+      - path: /
+    envs:
+      - key: NEXT_PUBLIC_API_URL
+        scope: BUILD_TIME
+        value: "https://proto.qeylo.com/api"
+
+workers:
+  - name: celery-worker
+    dockerfile_path: backend/Dockerfile
+    source_dir: /
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    run_command: celery -A config worker -l info --concurrency=2
+    envs:
+      - key: SECRET_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: DEBUG
+        scope: RUN_AND_BUILD_TIME
+        value: "false"
+      - key: DATABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        value: ${db-staging.DATABASE_URL}
+      - key: CELERY_BROKER_URL
+        scope: RUN_AND_BUILD_TIME
+        value: ${redis-staging.DATABASE_URL}
+      - key: CELERY_RESULT_BACKEND
+        scope: RUN_AND_BUILD_TIME
+        value: ${redis-staging.DATABASE_URL}
+      - key: ANTHROPIC_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: OPENAI_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: RESEND_API_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: GOOGLE_CLIENT_ID
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: GOOGLE_CLIENT_SECRET
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: MICROSOFT_CLIENT_ID
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: MICROSOFT_CLIENT_SECRET
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: EMAIL_ENCRYPTION_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: R2_ACCOUNT_ID
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: R2_ACCESS_KEY_ID
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: R2_SECRET_ACCESS_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: R2_BUCKET_NAME
+        scope: RUN_AND_BUILD_TIME
+        value: ""
+      - key: R2_PUBLIC_URL
+        scope: RUN_AND_BUILD_TIME
+        value: ""
+      - key: FRONTEND_URL
+        scope: RUN_AND_BUILD_TIME
+        value: "https://proto.qeylo.com"
+      - key: BACKEND_URL
+        scope: RUN_AND_BUILD_TIME
+        value: "https://proto.qeylo.com"
+
+  - name: celery-beat
+    dockerfile_path: backend/Dockerfile
+    source_dir: /
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    run_command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    envs:
+      - key: SECRET_KEY
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: DEBUG
+        scope: RUN_AND_BUILD_TIME
+        value: "false"
+      - key: DATABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        value: ${db-staging.DATABASE_URL}
+      - key: CELERY_BROKER_URL
+        scope: RUN_AND_BUILD_TIME
+        value: ${redis-staging.DATABASE_URL}
+      - key: CELERY_RESULT_BACKEND
+        scope: RUN_AND_BUILD_TIME
+        value: ${redis-staging.DATABASE_URL}
+
+databases:
+  - name: db-staging
+    engine: PG
+    version: "16"
+    size: db-s-1vcpu-1gb
+    num_nodes: 1
