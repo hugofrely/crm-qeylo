@@ -1,8 +1,11 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { Node } from "@xyflow/react"
+import { fetchEmailTemplates } from "@/services/emails"
+import type { EmailTemplate } from "@/types"
 
 const ACTION_OPTIONS = [
   { value: "create_task", label: "Créer une tâche" },
@@ -30,6 +33,14 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
       config: { ...config, [key]: value },
     })
   }
+
+  const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([])
+
+  useEffect(() => {
+    if (nodeSubtype === "send_email") {
+      fetchEmailTemplates().then(setEmailTemplates).catch(() => {})
+    }
+  }, [nodeSubtype])
 
   const updateSubtype = (value: string) => {
     onUpdate(node.id, {
@@ -154,6 +165,33 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
 
       {nodeSubtype === "send_email" && (
         <>
+          {emailTemplates.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Template (optionnel)
+              </Label>
+              <select
+                value={(config.template_id as string) || ""}
+                onChange={(e) => {
+                  const templateId = e.target.value
+                  updateConfig("template_id", templateId || null)
+                  if (templateId) {
+                    const tpl = emailTemplates.find((t) => t.id === templateId)
+                    if (tpl) {
+                      updateConfig("subject", tpl.subject)
+                      updateConfig("body_template", tpl.body_html)
+                    }
+                  }
+                }}
+                className="w-full h-9 rounded-md border border-border bg-secondary/30 px-3 text-sm"
+              >
+                <option value="">Aucun template</option>
+                {emailTemplates.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Objet
