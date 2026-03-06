@@ -22,6 +22,8 @@ interface TaskDialogProps {
   onOpenChange: (open: boolean) => void
   task?: Task | null
   onSuccess: () => void
+  prefilledDate?: string
+  prefilledTime?: string
 }
 
 export function TaskDialog({
@@ -29,6 +31,8 @@ export function TaskDialog({
   onOpenChange,
   task,
   onSuccess,
+  prefilledDate,
+  prefilledTime,
 }: TaskDialogProps) {
   const isEditing = !!task
 
@@ -58,8 +62,8 @@ export function TaskDialog({
         setAssigneeIds(task.assignees ? task.assignees.map((a) => a.user_id) : [])
       } else {
         setDescription("")
-        setDueDate("")
-        setDueTime("")
+        setDueDate(prefilledDate || "")
+        setDueTime(prefilledTime || "")
         setPriority("normal")
         setContactId("")
         setContactLabel("")
@@ -77,7 +81,9 @@ export function TaskDialog({
     try {
       const payload: Record<string, unknown> = {
         description: description.trim(),
-        due_date: dueDate ? `${dueDate}T${dueTime || "23:59"}:00Z` : null,
+        due_date: dueDate
+          ? new Date(`${dueDate}T${dueTime || "23:59"}:00`).toISOString()
+          : null,
         priority,
         contact: contactId || null,
         assigned_to: assigneeIds,

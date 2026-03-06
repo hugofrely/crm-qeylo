@@ -5,10 +5,11 @@ import { updateTask } from "@/services/tasks"
 import { useTasks } from "@/hooks/useTasks"
 import { TaskList } from "@/components/tasks/TaskList"
 import { TaskDialog } from "@/components/tasks/TaskDialog"
+import { CalendarView } from "@/components/tasks/CalendarView"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, Plus, ChevronLeft, ChevronRight, Search, X } from "lucide-react"
+import { Loader2, Plus, ChevronLeft, ChevronRight, Search, X, List, Calendar as CalendarIcon } from "lucide-react"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 import { useMemberAutocomplete } from "@/hooks/useMemberAutocomplete"
 import type { Task, TaskFilterTab, TaskFilters } from "@/types"
@@ -39,6 +40,9 @@ export default function TasksPage() {
   const [assignedLabel, setAssignedLabel] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list")
+  const [prefilledDate, setPrefilledDate] = useState<string | undefined>()
+  const [prefilledTime, setPrefilledTime] = useState<string | undefined>()
 
   const contactAutocomplete = useContactAutocomplete()
   const memberAutocomplete = useMemberAutocomplete()
@@ -93,11 +97,15 @@ export default function TasksPage() {
 
   const handleEdit = (task: Task) => {
     setEditingTask(task)
+    setPrefilledDate(undefined)
+    setPrefilledTime(undefined)
     setDialogOpen(true)
   }
 
-  const handleCreate = () => {
+  const handleCreate = (date?: string, time?: string) => {
     setEditingTask(null)
+    setPrefilledDate(date)
+    setPrefilledTime(time)
     setDialogOpen(true)
   }
 
@@ -115,6 +123,13 @@ export default function TasksPage() {
     { value: "this_week", label: "Cette semaine" },
   ]
 
+  const calendarFilters: TaskFilters = {}
+  if (tab === "todo") calendarFilters.is_done = "false"
+  if (tab === "done") calendarFilters.is_done = "true"
+  if (priority) calendarFilters.priority = priority as TaskFilters["priority"]
+  if (contactId) calendarFilters.contact = contactId
+  if (assignedTo) calendarFilters.assigned_to = assignedTo
+
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       {/* Header */}
@@ -125,10 +140,32 @@ export default function TasksPage() {
             {todoCount} à faire, {doneCount} terminée{doneCount !== 1 ? "s" : ""}
           </p>
         </div>
-        <Button onClick={handleCreate} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nouvelle tâche
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-0.5 bg-muted rounded-lg p-0.5">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`p-1.5 rounded-md transition-colors ${
+                viewMode === "list" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+              title="Vue liste"
+            >
+              <List className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("calendar")}
+              className={`p-1.5 rounded-md transition-colors ${
+                viewMode === "calendar" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+              title="Vue calendrier"
+            >
+              <CalendarIcon className="h-4 w-4" />
+            </button>
+          </div>
+          <Button onClick={() => handleCreate()} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Nouvelle tâche
+          </Button>
+        </div>
       </div>
 
       {/* Status tabs */}
@@ -142,7 +179,6 @@ export default function TasksPage() {
 
       {/* Secondary filters */}
       <div className="flex flex-wrap items-center gap-3 font-[family-name:var(--font-body)]">
-        {/* Priority pills */}
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-muted-foreground mr-1">Priorité</span>
           {priorityOptions.map((opt) => (
@@ -160,29 +196,30 @@ export default function TasksPage() {
           ))}
         </div>
 
+        {viewMode === "list" && (
+          <>
+            <div className="w-px h-5 bg-border" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground mr-1">Échéance</span>
+              {dueDateOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => toggleDueDate(opt.value)}
+                  className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    dueDate === opt.value
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
         <div className="w-px h-5 bg-border" />
 
-        {/* Due date pills */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-muted-foreground mr-1">Échéance</span>
-          {dueDateOptions.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => toggleDueDate(opt.value)}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                dueDate === opt.value
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="w-px h-5 bg-border" />
-
-        {/* Contact search */}
         <div className="relative" ref={contactAutocomplete.wrapperRef}>
           {contactId ? (
             <button
@@ -226,7 +263,6 @@ export default function TasksPage() {
 
         <div className="w-px h-5 bg-border" />
 
-        {/* Assigned to filter */}
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => {
@@ -296,43 +332,58 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {/* Task list */}
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : (
-        <TaskList tasks={tasks} onToggle={handleToggle} onEdit={handleEdit} />
-      )}
+      {/* Content: List or Calendar */}
+      {viewMode === "list" ? (
+        <>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <TaskList tasks={tasks} onToggle={handleToggle} onEdit={handleEdit} />
+          )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between font-[family-name:var(--font-body)]">
-          <p className="text-sm text-muted-foreground">
-            Page {page} sur {totalPages}
-          </p>
-          <div className="flex items-center gap-1">
-            <Button variant="outline" size="icon" className="h-8 w-8" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            {getPageNumbers(page, totalPages).map((p, i) =>
-              p === "..." ? (
-                <span key={`ellipsis-${i}`} className="px-1 text-sm text-muted-foreground">...</span>
-              ) : (
-                <Button key={p} variant={page === p ? "default" : "outline"} size="icon" className="h-8 w-8 text-xs" onClick={() => setPage(p as number)}>
-                  {p}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between font-[family-name:var(--font-body)]">
+              <p className="text-sm text-muted-foreground">
+                Page {page} sur {totalPages}
+              </p>
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="icon" className="h-8 w-8" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
-              )
-            )}
-            <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+                {getPageNumbers(page, totalPages).map((p, i) =>
+                  p === "..." ? (
+                    <span key={`ellipsis-${i}`} className="px-1 text-sm text-muted-foreground">...</span>
+                  ) : (
+                    <Button key={p} variant={page === p ? "default" : "outline"} size="icon" className="h-8 w-8 text-xs" onClick={() => setPage(p as number)}>
+                      {p}
+                    </Button>
+                  )
+                )}
+                <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <CalendarView
+          filters={calendarFilters}
+          onTaskClick={handleEdit}
+          onCreateTask={handleCreate}
+        />
       )}
 
-      {/* Task dialog */}
-      <TaskDialog open={dialogOpen} onOpenChange={setDialogOpen} task={editingTask} onSuccess={refresh} />
+      <TaskDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        task={editingTask}
+        onSuccess={refresh}
+        prefilledDate={prefilledDate}
+        prefilledTime={prefilledTime}
+      />
     </div>
   )
 }
