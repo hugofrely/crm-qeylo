@@ -39,29 +39,37 @@ def _base_template(content: str) -> str:
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet" />
 </head>
-<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:32px 0;">
+<body style="margin:0;padding:0;background-color:#FAFAF7;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAFAF7;padding:40px 0;">
     <tr>
       <td align="center">
-        <table role="presentation" width="560" cellpadding="0" cellspacing="0"
-               style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
-          <!-- Header -->
+        <!-- Pre-header spacer with logo -->
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
           <tr>
-            <td style="background-color:#F97316;padding:24px 32px;">
-              <span style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">Qeylo</span>
+            <td style="padding:0 4px 12px;">
+              <span style="font-size:20px;font-weight:400;color:#0D4F4F;letter-spacing:-0.3px;font-family:'Instrument Serif',Georgia,serif;">Qeylo</span>
             </td>
+          </tr>
+        </table>
+        <!-- Main card -->
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0"
+               style="background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #E5E2DC;">
+          <!-- Teal top bar -->
+          <tr>
+            <td style="height:4px;background-color:#0D4F4F;font-size:0;line-height:0;">&nbsp;</td>
           </tr>
           <!-- Body -->
           <tr>
-            <td style="padding:32px;">
+            <td style="padding:36px 32px 32px;">
               {content}
             </td>
           </tr>
           <!-- Footer -->
           <tr>
-            <td style="padding:20px 32px;border-top:1px solid #e4e4e7;text-align:center;">
-              <span style="font-size:12px;color:#a1a1aa;">&copy; Qeylo CRM &mdash; Vous recevez cet e-mail car vous avez un compte Qeylo.</span>
+            <td style="padding:20px 32px;border-top:1px solid #E5E2DC;">
+              <span style="font-size:11px;color:#8A8680;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">\u00a9 Qeylo CRM &mdash; Vous recevez cet e-mail car vous avez un compte Qeylo.</span>
             </td>
           </tr>
         </table>
@@ -79,22 +87,22 @@ def _base_template(content: str) -> str:
 def send_invitation_email(to: str, org_name: str, invite_link: str) -> None:
     """Send an organisation invitation email."""
     content = f"""\
-<h2 style="margin:0 0 16px;font-size:20px;color:#18181b;">Vous avez ete invite(e) !</h2>
-<p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3f3f46;">
-  <strong>{org_name}</strong> vous invite a rejoindre leur espace de travail sur Qeylo.
+<h2 style="margin:0 0 6px;font-size:22px;color:#1A1A17;font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-0.01em;">Vous avez \u00e9t\u00e9 invit\u00e9(e)</h2>
+<p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#1A1A17;">
+  <strong style="color:#0D4F4F;">{org_name}</strong> vous invite \u00e0 rejoindre leur espace de travail sur Qeylo.
 </p>
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
   <tr>
-    <td style="background-color:#F97316;border-radius:8px;">
+    <td style="background-color:#0D4F4F;border-radius:100px;">
       <a href="{invite_link}"
-         style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
-        Accepter l'invitation
+         style="display:inline-block;padding:11px 28px;font-size:14px;font-weight:500;color:#F5F5F0;text-decoration:none;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+        Accepter l\u2019invitation
       </a>
     </td>
   </tr>
 </table>
-<p style="margin:0;font-size:13px;color:#a1a1aa;">
-  Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail.
+<p style="margin:0;font-size:12px;color:#8A8680;">
+  Si vous n\u2019attendiez pas cette invitation, vous pouvez ignorer cet e-mail.
 </p>"""
     _send(to, f"Invitation a rejoindre {org_name} sur Qeylo", _base_template(content))
 
@@ -102,15 +110,15 @@ def send_invitation_email(to: str, org_name: str, invite_link: str) -> None:
 def send_notification_email(to: str, title: str, message: str) -> None:
     """Send a generic notification email."""
     content = f"""\
-<h2 style="margin:0 0 16px;font-size:20px;color:#18181b;">{title}</h2>
-<p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#3f3f46;">
+<h2 style="margin:0 0 6px;font-size:22px;color:#1A1A17;font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-0.01em;">{title}</h2>
+<p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#1A1A17;">
   {message}
 </p>
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
   <tr>
-    <td style="background-color:#F97316;border-radius:8px;">
+    <td style="background-color:#0D4F4F;border-radius:100px;">
       <a href="{settings.FRONTEND_URL}"
-         style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+         style="display:inline-block;padding:11px 28px;font-size:14px;font-weight:500;color:#F5F5F0;text-decoration:none;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
         Ouvrir Qeylo
       </a>
     </td>
@@ -128,29 +136,29 @@ def send_reminder_email(to: str, reminders: list[dict]) -> None:
     for r in reminders:
         rows += (
             f'<tr>'
-            f'<td style="padding:10px 12px;border-bottom:1px solid #e4e4e7;font-size:14px;color:#18181b;">{r.get("title", "")}</td>'
-            f'<td style="padding:10px 12px;border-bottom:1px solid #e4e4e7;font-size:14px;color:#71717a;white-space:nowrap;">{r.get("due", "")}</td>'
+            f'<td style="padding:10px 12px;border-bottom:1px solid #E5E2DC;font-size:13px;color:#1A1A17;">{r.get("title", "")}</td>'
+            f'<td style="padding:10px 12px;border-bottom:1px solid #E5E2DC;font-size:13px;color:#8A8680;white-space:nowrap;">{r.get("due", "")}</td>'
             f'</tr>'
         )
 
     content = f"""\
-<h2 style="margin:0 0 8px;font-size:20px;color:#18181b;">Vos rappels du jour</h2>
-<p style="margin:0 0 20px;font-size:15px;line-height:1.6;color:#3f3f46;">
-  Vous avez <strong>{len(reminders)}</strong> rappel(s) a venir.
+<h2 style="margin:0 0 6px;font-size:22px;color:#1A1A17;font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-0.01em;">Vos rappels du jour</h2>
+<p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#1A1A17;">
+  Vous avez <strong style="color:#0D4F4F;">{len(reminders)}</strong> rappel(s) \u00e0 venir.
 </p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-       style="border:1px solid #e4e4e7;border-radius:8px;overflow:hidden;margin-bottom:24px;">
-  <tr style="background-color:#f4f4f5;">
-    <th style="padding:10px 12px;text-align:left;font-size:13px;font-weight:600;color:#3f3f46;">Rappel</th>
-    <th style="padding:10px 12px;text-align:left;font-size:13px;font-weight:600;color:#3f3f46;">Echeance</th>
+       style="border:1px solid #E5E2DC;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+  <tr style="background-color:#F0EDE8;">
+    <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#0D4F4F;text-transform:uppercase;letter-spacing:0.05em;">Rappel</th>
+    <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#0D4F4F;text-transform:uppercase;letter-spacing:0.05em;">\u00c9ch\u00e9ance</th>
   </tr>
   {rows}
 </table>
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
   <tr>
-    <td style="background-color:#F97316;border-radius:8px;">
+    <td style="background-color:#0D4F4F;border-radius:100px;">
       <a href="{settings.FRONTEND_URL}"
-         style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;">
+         style="display:inline-block;padding:11px 28px;font-size:14px;font-weight:500;color:#F5F5F0;text-decoration:none;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
         Voir dans Qeylo
       </a>
     </td>
