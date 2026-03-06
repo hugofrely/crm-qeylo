@@ -26,6 +26,7 @@ const CHART_TYPES = [
   { value: "pie_chart", label: "Camembert" },
   { value: "kpi_card", label: "KPI" },
   { value: "table", label: "Tableau" },
+  { value: "funnel_chart", label: "Entonnoir" },
 ] as const
 
 const SOURCES = [
@@ -105,6 +106,24 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
   const [groupBy, setGroupBy] = useState<string>("month")
   const [dateRange, setDateRange] = useState("")
   const [size, setSize] = useState<WidgetConfig["size"]>("medium")
+  const [pipelineId, setPipelineId] = useState("")
+  const [filterMode, setFilterMode] = useState<string>("")
+  const [pipelines, setPipelines] = useState<{ id: string; name: string }[]>([])
+
+  useEffect(() => {
+    if (chartType === "funnel_chart") {
+      import("@/services/deals").then((mod) => {
+        mod.fetchPipelines().then(setPipelines)
+      })
+    }
+  }, [chartType])
+
+  useEffect(() => {
+    if (open && widget && widget.type === "funnel_chart") {
+      setPipelineId((widget.filters?.pipeline_id as string) || "")
+      setFilterMode((widget.filters?.filter_mode as string) || "")
+    }
+  }, [open, widget])
 
   useEffect(() => {
     if (open && widget) {
@@ -139,6 +158,24 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
     if (!title.trim()) return
     const filters: Record<string, unknown> = {}
     if (dateRange) filters.date_range = dateRange
+
+    if (chartType === "funnel_chart") {
+      if (pipelineId) filters.pipeline_id = pipelineId
+      if (filterMode) filters.filter_mode = filterMode
+      onSave({
+        id: widget?.id || crypto.randomUUID(),
+        type: "funnel_chart",
+        title: title.trim(),
+        source: "deals",
+        metric: "count",
+        group_by: null,
+        filters,
+        size: "large",
+      })
+      onOpenChange(false)
+      return
+    }
+
     onSave({
       id: widget?.id || crypto.randomUUID(),
       type: chartType,
@@ -168,67 +205,99 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titre du widget" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Type de graphique</Label>
-              <select value={chartType} onChange={(e) => setChartType(e.target.value as WidgetConfig["type"])} className={selectClass}>
-                {CHART_TYPES.map((t) => (
-                  <option key={t.value} value={t.value}>{t.label}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Source de donnees</Label>
-              <select value={source} onChange={(e) => handleSourceChange(e.target.value as WidgetConfig["source"])} className={selectClass}>
-                {SOURCES.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
-            </div>
+          <div className="space-y-1.5">
+            <Label>Type de graphique</Label>
+            <select value={chartType} onChange={(e) => setChartType(e.target.value as WidgetConfig["type"])} className={selectClass}>
+              {CHART_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Metrique</Label>
-              <select value={metric} onChange={(e) => setMetric(e.target.value)} className={selectClass}>
-                {(METRICS_BY_SOURCE[source] || []).map((m) => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
-              </select>
-            </div>
-
-            {chartType !== "kpi_card" && (
+          {chartType === "funnel_chart" ? (
+            <>
               <div className="space-y-1.5">
-                <Label>Grouper par</Label>
-                <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)} className={selectClass}>
-                  {(GROUP_BY_OPTIONS[source] || []).map((g) => (
-                    <option key={g.value} value={g.value}>{g.label}</option>
+                <Label>Pipeline</Label>
+                <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className={selectClass}>
+                  <option value="">Selectionner...</option>
+                  {pipelines.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
               </div>
-            )}
-          </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Mode de filtre</Label>
+                  <select value={filterMode} onChange={(e) => setFilterMode(e.target.value)} className={selectClass}>
+                    <option value="">Tous</option>
+                    <option value="cohort">Cohorte</option>
+                    <option value="activity">Activite</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Periode</Label>
+                  <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className={selectClass}>
+                    {DATE_RANGES.map((d) => (
+                      <option key={d.value} value={d.value}>{d.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Source de donnees</Label>
+                  <select value={source} onChange={(e) => handleSourceChange(e.target.value as WidgetConfig["source"])} className={selectClass}>
+                    {SOURCES.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Periode</Label>
-              <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className={selectClass}>
-                {DATE_RANGES.map((d) => (
-                  <option key={d.value} value={d.value}>{d.label}</option>
-                ))}
-              </select>
-            </div>
+                <div className="space-y-1.5">
+                  <Label>Metrique</Label>
+                  <select value={metric} onChange={(e) => setMetric(e.target.value)} className={selectClass}>
+                    {(METRICS_BY_SOURCE[source] || []).map((m) => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-            <div className="space-y-1.5">
-              <Label>Taille</Label>
-              <select value={size} onChange={(e) => setSize(e.target.value as WidgetConfig["size"])} className={selectClass}>
-                {SIZES.map((s) => (
-                  <option key={s.value} value={s.value}>{s.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+              {chartType !== "kpi_card" && (
+                <div className="space-y-1.5">
+                  <Label>Grouper par</Label>
+                  <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)} className={selectClass}>
+                    {(GROUP_BY_OPTIONS[source] || []).map((g) => (
+                      <option key={g.value} value={g.value}>{g.label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Periode</Label>
+                  <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className={selectClass}>
+                    {DATE_RANGES.map((d) => (
+                      <option key={d.value} value={d.value}>{d.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Taille</Label>
+                  <select value={size} onChange={(e) => setSize(e.target.value as WidgetConfig["size"])} className={selectClass}>
+                    {SIZES.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         <DialogFooter>

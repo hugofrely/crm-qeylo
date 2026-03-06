@@ -15,8 +15,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts"
-import type { WidgetConfig, AggregateResponse } from "@/types"
-import { fetchAggregate } from "@/services/reports"
+import type { WidgetConfig, AggregateResponse, FunnelResponse } from "@/types"
+import { fetchAggregate, fetchFunnel } from "@/services/reports"
+import { FunnelChart } from "./FunnelChart"
 
 const COLORS = [
   "#6366F1", "#F59E0B", "#10B981", "#EF4444", "#3B82F6",
@@ -37,10 +38,34 @@ interface WidgetChartProps {
 
 export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartProps) {
   const [data, setData] = useState<AggregateResponse | null>(null)
+  const [funnelData, setFunnelData] = useState<FunnelResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (widget.type !== "funnel_chart") return
+    const loadFunnel = async () => {
+      setLoading(true)
+      try {
+        const pipelineId = widget.filters?.pipeline_id as string
+        if (!pipelineId) return
+        const result = await fetchFunnel({
+          pipeline_id: pipelineId,
+          filter_mode: (widget.filters?.filter_mode as "cohort" | "activity") || undefined,
+          date_range: (widget.filters?.date_range as string) || undefined,
+        })
+        setFunnelData(result)
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadFunnel()
+  }, [widget.type, JSON.stringify(widget.filters)])
+
+  useEffect(() => {
     const load = async () => {
+      if (widget.type === "funnel_chart") return
       setLoading(true)
       try {
         const filters = { ...widget.filters }
@@ -87,6 +112,33 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
     border: "1px solid hsl(var(--border))",
     borderRadius: "8px",
     fontSize: "12px",
+  }
+
+  if (widget.type === "funnel_chart") {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center h-48">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+        </div>
+      )
+    }
+    if (!funnelData || funnelData.stages.length === 0) {
+      return (
+        <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
+          Aucune donnee
+        </div>
+      )
+    }
+    return (
+      <div>
+        <FunnelChart stages={funnelData.stages} compact />
+        <div className="mt-2 text-center">
+          <span className="text-xs text-muted-foreground">
+            Conversion globale: <span className="font-medium text-foreground">{funnelData.overall_conversion}%</span>
+          </span>
+        </div>
+      </div>
+    )
   }
 
   if (widget.type === "kpi_card") {
