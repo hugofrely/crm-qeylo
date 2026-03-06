@@ -21,6 +21,8 @@ from contacts.models import Contact, ContactCategory, CustomFieldDefinition, Dup
 from deals.models import Deal, Pipeline, PipelineStage
 from organizations.models import Organization
 from notes.models import TimelineEntry
+from segments.models import Segment
+from segments.engine import build_segment_queryset
 from tasks.models import Task
 from emails.models import EmailAccount
 from emails.service import send_email as service_send_email
@@ -1125,6 +1127,148 @@ def add_note(
 
 
 # ---------------------------------------------------------------------------
+# Segments
+# ---------------------------------------------------------------------------
+
+def list_segments(ctx: RunContext[ChatDeps]) -> dict:
+    """Liste tous les segments de l'organisation."""
+    org_id = ctx.deps.organization_id
+    segments = Segment.objects.filter(organization_id=org_id).order_by("order")
+    results = [
+        {
+            "id": str(s.id),
+            "name": s.name,
+            "description": s.description,
+            "icon": s.icon,
+            "color": s.color,
+            "is_pinned": s.is_pinned,
+        }
+        for s in segments
+    ]
+    return {
+        "action": "list_segments",
+        "entity_type": "segment_list",
+        "summary": f"{len(results)} segment(s) trouvé(s)",
+        "count": len(results),
+        "results": results,
+    }
+
+
+def update_segment(
+    ctx: RunContext[ChatDeps],
+    segment_id: str,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    icon: Optional[str] = None,
+    color: Optional[str] = None,
+    rules: Optional[dict] = None,
+) -> dict:
+    """Met à jour un segment existant. Seuls les champs fournis sont modifiés."""
+    org_id = ctx.deps.organization_id
+    try:
+        segment = Segment.objects.get(id=segment_id, organization_id=org_id)
+    except Segment.DoesNotExist:
+        return {"action": "error", "message": "Segment introuvable."}
+
+    changes: list[dict] = []
+
+    if name is not None and name != segment.name:
+        changes.append({"field": "name", "from": segment.name, "to": name})
+        segment.name = name
+
+    if description is not None and description != segment.description:
+        changes.append({"field": "description", "from": segment.description, "to": description})
+        segment.description = description
+
+    if icon is not None and icon != segment.icon:
+        changes.append({"field": "icon", "from": segment.icon, "to": icon})
+        segment.icon = icon
+
+    if color is not None and color != segment.color:
+        changes.append({"field": "color", "from": segment.color, "to": color})
+        segment.color = color
+
+    if rules is not None and rules != segment.rules:
+        changes.append({"field": "rules", "from": "...", "to": "..."})
+        segment.rules = rules
+
+    if not changes:
+        return {"action": "error", "message": "Aucun champ à mettre à jour."}
+
+    segment.save()
+
+    return {
+        "action": "segment_updated",
+        "entity_type": "segment",
+        "entity_id": str(segment.id),
+        "summary": f"Segment '{segment.name}' mis à jour",
+        "changes": changes,
+        "entity_preview": {
+            "name": segment.name,
+            "description": segment.description,
+            "icon": segment.icon,
+            "color": segment.color,
+        },
+        "link": f"/segments/{segment.id}",
+    }
+
+
+def delete_segment(ctx: RunContext[ChatDeps], segment_id: str) -> dict:
+    """Supprime un segment."""
+    org_id = ctx.deps.organization_id
+    try:
+        segment = Segment.objects.get(id=segment_id, organization_id=org_id)
+    except Segment.DoesNotExist:
+        return {"action": "error", "message": "Segment introuvable."}
+
+    preview = {
+        "name": segment.name,
+        "description": segment.description,
+        "icon": segment.icon,
+        "color": segment.color,
+    }
+    segment.delete()
+
+    return {
+        "action": "segment_deleted",
+        "entity_type": "segment",
+        "entity_id": segment_id,
+        "summary": f"Segment '{preview['name']}' supprimé",
+        "entity_preview": preview,
+    }
+
+
+def get_segment_contacts(ctx: RunContext[ChatDeps], segment_id: str, limit: int = 20) -> dict:
+    """Récupère les contacts correspondant aux règles d'un segment."""
+    org_id = ctx.deps.organization_id
+    try:
+        segment = Segment.objects.get(id=segment_id, organization_id=org_id)
+    except Segment.DoesNotExist:
+        return {"action": "error", "message": "Segment introuvable."}
+
+    org = Organization.objects.get(id=org_id)
+    qs = build_segment_queryset(org, segment.rules)
+    total = qs.count()
+    contacts = qs[:limit]
+    results = [
+        {
+            "id": str(c.id),
+            "name": f"{c.first_name} {c.last_name}",
+            "email": c.email,
+            "company": c.company,
+        }
+        for c in contacts
+    ]
+    return {
+        "action": "segment_contacts",
+        "entity_type": "contact_list",
+        "summary": f"{total} contact(s) dans le segment '{segment.name}'",
+        "count": total,
+        "results": results,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Emails
 # ---------------------------------------------------------------------------
 
@@ -1494,6 +1638,77 @@ def get_workflow_executions(ctx: RunContext[ChatDeps], workflow_id: str, limit: 
     }
 
 
+def update_workflow(
+    ctx: RunContext[ChatDeps],
+    workflow_id: str,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+) -> dict:
+    """Met à jour un workflow existant. Seuls les champs fournis sont modifiés."""
+    from workflows.models import Workflow
+
+    org_id = ctx.deps.organization_id
+    try:
+        workflow = Workflow.objects.get(id=workflow_id, organization_id=org_id)
+    except Workflow.DoesNotExist:
+        return {"action": "error", "message": "Workflow introuvable."}
+
+    changes: list[dict] = []
+
+    if name is not None and name != workflow.name:
+        changes.append({"field": "name", "from": workflow.name, "to": name})
+        workflow.name = name
+
+    if description is not None and description != workflow.description:
+        changes.append({"field": "description", "from": workflow.description, "to": description})
+        workflow.description = description
+
+    if not changes:
+        return {"action": "error", "message": "Aucun champ à mettre à jour."}
+
+    workflow.save()
+
+    return {
+        "action": "workflow_updated",
+        "entity_type": "workflow",
+        "entity_id": str(workflow.id),
+        "summary": f"Workflow '{workflow.name}' mis à jour",
+        "changes": changes,
+        "entity_preview": {
+            "name": workflow.name,
+            "description": workflow.description,
+            "is_active": workflow.is_active,
+        },
+        "link": f"/workflows/{workflow.id}",
+    }
+
+
+def delete_workflow(ctx: RunContext[ChatDeps], workflow_id: str) -> dict:
+    """Supprime un workflow."""
+    from workflows.models import Workflow
+
+    org_id = ctx.deps.organization_id
+    try:
+        workflow = Workflow.objects.get(id=workflow_id, organization_id=org_id)
+    except Workflow.DoesNotExist:
+        return {"action": "error", "message": "Workflow introuvable."}
+
+    preview = {
+        "name": workflow.name,
+        "description": workflow.description,
+        "is_active": workflow.is_active,
+    }
+    workflow.delete()
+
+    return {
+        "action": "workflow_deleted",
+        "entity_type": "workflow",
+        "entity_id": workflow_id,
+        "summary": f"Workflow '{preview['name']}' supprimé",
+        "entity_preview": preview,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Email Templates
 # ---------------------------------------------------------------------------
@@ -1580,6 +1795,232 @@ def send_email_from_template(
     }
 
 
+def create_email_template(
+    ctx: RunContext[ChatDeps],
+    name: str,
+    subject: str,
+    body_html: str,
+    tags: Optional[list] = None,
+    is_shared: bool = False,
+) -> dict:
+    """Crée un nouveau template d'email."""
+    from emails.models import EmailTemplate
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+
+    template = EmailTemplate.objects.create(
+        organization_id=org_id,
+        created_by_id=user_id,
+        name=name,
+        subject=subject,
+        body_html=body_html,
+        tags=tags or [],
+        is_shared=is_shared,
+    )
+
+    return {
+        "action": "email_template_created",
+        "entity_type": "email_template",
+        "entity_id": str(template.id),
+        "summary": f"Template '{name}' créé",
+        "entity_preview": {
+            "name": template.name,
+            "subject": template.subject,
+        },
+        "link": f"/settings/email-templates/{template.id}",
+    }
+
+
+def update_email_template(
+    ctx: RunContext[ChatDeps],
+    template_id: str,
+    name: Optional[str] = None,
+    subject: Optional[str] = None,
+    body_html: Optional[str] = None,
+    tags: Optional[list] = None,
+) -> dict:
+    """Met à jour un template d'email existant. Seuls les champs fournis sont modifiés."""
+    from emails.models import EmailTemplate
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+
+    try:
+        template = EmailTemplate.objects.get(
+            Q(created_by_id=user_id, organization_id=org_id)
+            | Q(is_shared=True, organization_id=org_id),
+            id=template_id,
+        )
+    except EmailTemplate.DoesNotExist:
+        return {"action": "error", "message": "Template introuvable."}
+
+    changes: list[dict] = []
+
+    if name is not None and name != template.name:
+        changes.append({"field": "name", "from": template.name, "to": name})
+        template.name = name
+
+    if subject is not None and subject != template.subject:
+        changes.append({"field": "subject", "from": template.subject, "to": subject})
+        template.subject = subject
+
+    if body_html is not None and body_html != template.body_html:
+        changes.append({"field": "body_html", "from": "...", "to": "..."})
+        template.body_html = body_html
+
+    if tags is not None and tags != template.tags:
+        changes.append({"field": "tags", "from": str(template.tags), "to": str(tags)})
+        template.tags = tags
+
+    if not changes:
+        return {"action": "error", "message": "Aucun champ à mettre à jour."}
+
+    template.save()
+
+    return {
+        "action": "email_template_updated",
+        "entity_type": "email_template",
+        "entity_id": str(template.id),
+        "summary": f"Template '{template.name}' mis à jour",
+        "changes": changes,
+        "entity_preview": {
+            "name": template.name,
+            "subject": template.subject,
+        },
+        "link": f"/settings/email-templates/{template.id}",
+    }
+
+
+def delete_email_template(ctx: RunContext[ChatDeps], template_id: str) -> dict:
+    """Supprime un template d'email."""
+    from emails.models import EmailTemplate
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+
+    try:
+        template = EmailTemplate.objects.get(
+            Q(created_by_id=user_id, organization_id=org_id)
+            | Q(is_shared=True, organization_id=org_id),
+            id=template_id,
+        )
+    except EmailTemplate.DoesNotExist:
+        return {"action": "error", "message": "Template introuvable."}
+
+    preview = {
+        "name": template.name,
+        "subject": template.subject,
+    }
+    template.delete()
+
+    return {
+        "action": "email_template_deleted",
+        "entity_type": "email_template",
+        "entity_id": template_id,
+        "summary": f"Template '{preview['name']}' supprimé",
+        "entity_preview": preview,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Timeline / Notes (update, delete, list)
+# ---------------------------------------------------------------------------
+
+def update_note(ctx: RunContext[ChatDeps], note_id: str, content: str) -> dict:
+    """Met à jour le contenu d'une note existante."""
+    org_id = ctx.deps.organization_id
+    try:
+        entry = TimelineEntry.objects.get(
+            id=note_id,
+            organization_id=org_id,
+            entry_type=TimelineEntry.EntryType.NOTE_ADDED,
+        )
+    except TimelineEntry.DoesNotExist:
+        return {"action": "error", "message": "Note introuvable."}
+
+    changes = [{"field": "content", "from": entry.content[:100], "to": content[:100]}]
+    entry.content = content
+    entry.save()
+
+    return {
+        "action": "note_updated",
+        "entity_type": "note",
+        "entity_id": str(entry.id),
+        "summary": "Note mise à jour",
+        "changes": changes,
+        "entity_preview": {
+            "content": entry.content[:100],
+        },
+    }
+
+
+def delete_note(ctx: RunContext[ChatDeps], note_id: str) -> dict:
+    """Supprime une note."""
+    org_id = ctx.deps.organization_id
+    try:
+        entry = TimelineEntry.objects.get(
+            id=note_id,
+            organization_id=org_id,
+            entry_type=TimelineEntry.EntryType.NOTE_ADDED,
+        )
+    except TimelineEntry.DoesNotExist:
+        return {"action": "error", "message": "Note introuvable."}
+
+    preview = {
+        "content": entry.content[:100],
+    }
+    entry.delete()
+
+    return {
+        "action": "note_deleted",
+        "entity_type": "note",
+        "entity_id": note_id,
+        "summary": "Note supprimée",
+        "entity_preview": preview,
+    }
+
+
+def list_timeline(
+    ctx: RunContext[ChatDeps],
+    contact_id: Optional[str] = None,
+    deal_id: Optional[str] = None,
+    limit: int = 20,
+) -> dict:
+    """Liste les entrées récentes de la timeline, avec filtre optionnel par contact ou deal."""
+    org_id = ctx.deps.organization_id
+    qs = TimelineEntry.objects.filter(organization_id=org_id)
+
+    if contact_id:
+        resolved_contact = _resolve_contact_id(org_id, contact_id)
+        if resolved_contact:
+            qs = qs.filter(contact_id=resolved_contact)
+
+    if deal_id:
+        resolved_deal = _resolve_deal_id(org_id, deal_id)
+        if resolved_deal:
+            qs = qs.filter(deal_id=resolved_deal)
+
+    entries = qs.order_by("-created_at")[:limit]
+    results = [
+        {
+            "id": str(e.id),
+            "type": e.entry_type,
+            "subject": e.subject or "",
+            "content": (e.content or "")[:100],
+            "created_at": str(e.created_at),
+        }
+        for e in entries
+    ]
+    return {
+        "action": "list_timeline",
+        "entity_type": "timeline",
+        "summary": f"{len(results)} entrée(s) de timeline",
+        "count": len(results),
+        "results": results,
+    }
+
+
 # All tools to register on the agent
 ALL_TOOLS = [
     create_contact,
@@ -1614,9 +2055,24 @@ ALL_TOOLS = [
     send_email_from_template,
     get_dashboard_summary,
     search_all,
+    # Segments
+    list_segments,
+    update_segment,
+    delete_segment,
+    get_segment_contacts,
     # Workflows
     create_workflow,
     list_workflows,
     toggle_workflow,
     get_workflow_executions,
+    update_workflow,
+    delete_workflow,
+    # Email Templates CRUD
+    create_email_template,
+    update_email_template,
+    delete_email_template,
+    # Timeline / Notes
+    update_note,
+    delete_note,
+    list_timeline,
 ]
