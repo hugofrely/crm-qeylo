@@ -13,6 +13,7 @@ import { WidgetChart } from "./WidgetChart"
 interface ReportWidgetProps {
   widget: WidgetConfig
   globalDateRange?: string
+  compare?: boolean
   onEdit: (widget: WidgetConfig) => void
   onDuplicate: (widget: WidgetConfig) => void
   onDelete: (widgetId: string) => void
@@ -21,6 +22,7 @@ interface ReportWidgetProps {
 export function ReportWidget({
   widget,
   globalDateRange,
+  compare,
   onEdit,
   onDuplicate,
   onDelete,
@@ -55,7 +57,7 @@ export function ReportWidget({
         </DropdownMenu>
       </div>
       <div className="p-4">
-        <WidgetChart widget={widget} globalDateRange={globalDateRange} />
+        <WidgetChart widget={widget} globalDateRange={globalDateRange} compare={compare} />
       </div>
     </div>
   )
