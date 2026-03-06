@@ -3,6 +3,14 @@ from django.utils import timezone
 from django.db.models import Count, Sum, Avg
 from django.db.models.functions import TruncMonth, TruncWeek
 
+COMPARISON_PERIODS = {
+    "today": "yesterday",
+    "this_week": "last_week",
+    "this_month": "last_month",
+    "last_3_months": "last_6_months",
+    "this_year": "last_12_months",
+}
+
 from deals.models import Deal, Quote
 from contacts.models import Contact
 from tasks.models import Task
@@ -75,7 +83,24 @@ SOURCE_CONFIG = {
 
 def _resolve_date_range(date_range, date_from=None, date_to=None):
     now = timezone.now()
-    if date_range == "this_month":
+    if date_range == "today":
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = start + timedelta(days=1)
+        return start, end
+    elif date_range == "yesterday":
+        end = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        start = end - timedelta(days=1)
+        return start, end
+    elif date_range == "this_week":
+        start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=now.weekday())
+        end = start + timedelta(days=7)
+        return start, end
+    elif date_range == "last_week":
+        this_monday = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=now.weekday())
+        start = this_monday - timedelta(days=7)
+        end = this_monday
+        return start, end
+    elif date_range == "this_month":
         start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         if now.month == 12:
             end = start.replace(year=now.year + 1, month=1)
@@ -125,7 +150,8 @@ def _format_label(value, group_by):
 
 
 def aggregate(organization, source, metric, group_by, date_field=None,
-              date_range=None, date_from=None, date_to=None, filters=None):
+              date_range=None, date_from=None, date_to=None, filters=None,
+              compare=False):
     config = SOURCE_CONFIG.get(source)
     if not config:
         return {"error": f"Unknown source: {source}"}
@@ -174,4 +200,30 @@ def aggregate(organization, source, metric, group_by, date_field=None,
         data = [{"label": "Total", "value": float(total)}]
 
     total = sum(d["value"] for d in data)
-    return {"data": data, "total": total}
+    result = {"data": data, "total": total}
+
+    if compare and date_range in COMPARISON_PERIODS:
+        prev_period = COMPARISON_PERIODS[date_range]
+        prev_result = aggregate(
+            organization=organization,
+            source=source,
+            metric=metric,
+            group_by=group_by,
+            date_field=date_field,
+            date_range=prev_period,
+            date_from=date_from,
+            date_to=date_to,
+            filters=filters,
+            compare=False,
+        )
+        previous_total = prev_result["total"]
+        if previous_total > 0:
+            delta_percent = round(((total - previous_total) / previous_total) * 100, 1)
+        elif total > 0:
+            delta_percent = 100.0
+        else:
+            delta_percent = 0.0
+        result["previous_total"] = previous_total
+        result["delta_percent"] = delta_percent
+
+    return result

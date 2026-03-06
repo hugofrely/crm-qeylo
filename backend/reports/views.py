@@ -56,6 +56,7 @@ def aggregate_view(request):
         date_from=data.get("date_from"),
         date_to=data.get("date_to"),
         filters=data.get("filters"),
+        compare=data.get("compare", False),
     )
 
     if "error" in result:
