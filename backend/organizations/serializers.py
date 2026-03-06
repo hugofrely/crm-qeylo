@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Organization, Membership, Invitation
+from .models import Organization, Membership, Invitation, OrganizationSettings
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -23,3 +23,9 @@ class InvitationSerializer(serializers.ModelSerializer):
         model = Invitation
         fields = ["id", "email", "role", "status", "created_at", "expires_at"]
         read_only_fields = ["id", "status", "created_at", "expires_at"]
+
+
+class OrganizationSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationSettings
+        fields = ["task_reminder_offsets"]

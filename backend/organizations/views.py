@@ -189,3 +189,32 @@ def accept_invitation(request, token):
         link="/settings/organization",
     )
     return Response({"status": "accepted", "organization": OrganizationSerializer(invitation.organization).data})
+
+
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated])
+def organization_settings(request, org_id):
+    try:
+        org = Organization.objects.get(id=org_id)
+    except Organization.DoesNotExist:
+        return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+    if not Membership.objects.filter(organization=org, user=request.user).exists():
+        return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+    settings_obj, _ = OrganizationSettings.objects.get_or_create(organization=org)
+
+    if request.method == "GET":
+        from .serializers import OrganizationSettingsSerializer
+        return Response(OrganizationSettingsSerializer(settings_obj).data)
+
+    # PATCH — only owner/admin
+    caller = Membership.objects.filter(organization=org, user=request.user).first()
+    if not caller or caller.role not in ("owner", "admin"):
+        return Response({"detail": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+    from .serializers import OrganizationSettingsSerializer
+    serializer = OrganizationSettingsSerializer(settings_obj, data=request.data, partial=True)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer.save()
+    return Response(serializer.data)
