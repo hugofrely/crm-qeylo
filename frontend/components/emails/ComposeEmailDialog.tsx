@@ -18,10 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { fetchEmailAccounts, sendEmail } from "@/services/emails"
+import { fetchEmailAccounts, fetchEmailTemplates, sendEmail } from "@/services/emails"
 import { toast } from "sonner"
-import { Send, Loader2 } from "lucide-react"
-import type { EmailAccount } from "@/types"
+import { Send, Loader2, FileText } from "lucide-react"
+import type { EmailAccount, EmailTemplate } from "@/types"
 
 interface ComposeEmailDialogProps {
   open: boolean
@@ -45,6 +45,8 @@ export function ComposeEmailDialog({
   const [subject, setSubject] = useState("")
   const [body, setBody] = useState("")
   const [sending, setSending] = useState(false)
+  const [templates, setTemplates] = useState<EmailTemplate[]>([])
+  const [showTemplates, setShowTemplates] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -56,6 +58,7 @@ export function ComposeEmailDialog({
           }
         })
         .catch(() => {})
+      fetchEmailTemplates().then(setTemplates).catch(() => {})
     }
   }, [open])
 
@@ -122,6 +125,40 @@ export function ComposeEmailDialog({
             <Label className="text-xs text-muted-foreground">A</Label>
             <Input value={contactEmail} disabled className="bg-secondary/30" />
           </div>
+
+          {/* Template picker */}
+          {templates.length > 0 && (
+            <div className="relative">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowTemplates(!showTemplates)}
+                className="w-full justify-start text-muted-foreground"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Utiliser un template
+              </Button>
+              {showTemplates && (
+                <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-border bg-popover shadow-lg z-50 max-h-48 overflow-y-auto py-1">
+                  {templates.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        setSubject(t.subject)
+                        setBody(t.body_html.replace(/<[^>]*>/g, "\n").replace(/\n{2,}/g, "\n").trim())
+                        setShowTemplates(false)
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
+                    >
+                      <span className="font-medium">{t.name}</span>
+                      <span className="text-xs text-muted-foreground block">{t.subject}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Objet</Label>
