@@ -15,6 +15,7 @@ import {
   PenLine,
 } from "lucide-react"
 import { toast } from "sonner"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import type { Node, Edge } from "@xyflow/react"
 import dynamic from "next/dynamic"
 import ExecutionHistory from "@/components/workflows/ExecutionHistory"
@@ -145,7 +146,11 @@ export default function WorkflowBuilderPage() {
   }))
 
   return (
-    <div className="flex flex-col h-screen">
+    <Tabs
+      value={activeTab}
+      onValueChange={(v) => setActiveTab(v as "builder" | "history")}
+      className="flex flex-col h-screen"
+    >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card shrink-0">
         <Button
@@ -178,29 +183,13 @@ export default function WorkflowBuilderPage() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-1 ml-4 bg-secondary/30 rounded-lg p-0.5">
-          <button
-            onClick={() => setActiveTab("builder")}
-            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-              activeTab === "builder"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Builder
-          </button>
-          <button
-            onClick={() => setActiveTab("history")}
-            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
-              activeTab === "history"
-                ? "bg-card text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
+        <TabsList className="ml-4">
+          <TabsTrigger value="builder">Builder</TabsTrigger>
+          <TabsTrigger value="history">
             <History className="h-3 w-3" />
             Historique
-          </button>
-        </div>
+          </TabsTrigger>
+        </TabsList>
 
         <div className="flex-1" />
 
@@ -237,19 +226,18 @@ export default function WorkflowBuilderPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden">
-        {activeTab === "builder" ? (
-          <WorkflowBuilder
-            initialNodes={initialNodes}
-            initialEdges={initialEdges}
-            onChange={handleGraphChange}
-          />
-        ) : (
-          <div className="p-6 max-w-3xl mx-auto overflow-y-auto h-full">
-            <ExecutionHistory workflowId={workflowId} />
-          </div>
-        )}
-      </div>
-    </div>
+      <TabsContent value="builder" className="flex-1 overflow-hidden">
+        <WorkflowBuilder
+          initialNodes={initialNodes}
+          initialEdges={initialEdges}
+          onChange={handleGraphChange}
+        />
+      </TabsContent>
+      <TabsContent value="history" className="flex-1 overflow-hidden">
+        <div className="p-6 max-w-3xl mx-auto overflow-y-auto h-full">
+          <ExecutionHistory workflowId={workflowId} />
+        </div>
+      </TabsContent>
+    </Tabs>
   )
 }
