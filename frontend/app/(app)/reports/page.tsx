@@ -9,6 +9,7 @@ import {
   Plus, Loader2, FileText, BarChart3, Users, ListTodo,
   PieChart, FileBarChart,
 } from "lucide-react"
+import { PageHeader } from "@/components/shared/PageHeader"
 import type { Report } from "@/types"
 
 const TEMPLATE_ICONS: Record<string, typeof FileText> = {
@@ -64,18 +65,12 @@ export default function ReportsPage() {
 
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-10 animate-fade-in-up">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl tracking-tight">Rapports</h1>
-          <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
-            Analysez vos donnees avec des rapports personnalisables
-          </p>
-        </div>
+      <PageHeader title="Rapports" subtitle="Analysez vos donnees avec des rapports personnalisables">
         <Button onClick={handleCreate} className="gap-2">
           <Plus className="h-4 w-4" />
           Nouveau rapport
         </Button>
-      </div>
+      </PageHeader>
 
       {templates.length > 0 && (
         <div className="space-y-4">
