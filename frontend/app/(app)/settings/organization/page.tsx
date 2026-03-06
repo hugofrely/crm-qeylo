@@ -6,6 +6,7 @@ import { Building2, Loader2 } from "lucide-react"
 import MembersSection from "@/components/settings/MembersSection"
 import CategoriesManager from "@/components/settings/CategoriesManager"
 import CustomFieldsManager from "@/components/settings/CustomFieldsManager"
+import ReminderSettings from "@/components/settings/ReminderSettings"
 
 export default function OrganizationSettingsPage() {
   const [orgId, setOrgId] = useState<string | null>(null)
@@ -46,6 +47,8 @@ export default function OrganizationSettingsPage() {
       </div>
 
       {orgId && <MembersSection orgId={orgId} />}
+
+      {orgId && <ReminderSettings orgId={orgId} />}
 
       <CategoriesManager />
 
