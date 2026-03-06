@@ -18,17 +18,43 @@ export interface Message {
   created_at: string
 }
 
-/** Convert legacy API message format (content + actions) to parts. */
+/** Convert legacy API message format (content + actions) to parts.
+ *  Uses text_before on each action to reconstruct the interleaved ordering. */
 export function messageToParts(msg: {
   content: string
-  actions?: Array<{ tool?: string; args?: Record<string, unknown>; result?: Record<string, unknown> }>
+  actions?: Array<{ tool?: string; args?: Record<string, unknown>; result?: Record<string, unknown>; text_before?: string }>
 }): MessagePart[] {
   const parts: MessagePart[] = []
-  if (msg.content) {
-    parts.push({ type: "text", content: msg.content })
-  }
-  if (msg.actions) {
-    for (const action of msg.actions) {
+  const actions = msg.actions || []
+  const hasTextBefore = actions.some((a) => typeof a.text_before === "string")
+
+  if (hasTextBefore) {
+    // Reconstruct interleaved order using text_before
+    for (const action of actions) {
+      if (action.text_before) {
+        parts.push({ type: "text", content: action.text_before })
+      }
+      parts.push({
+        type: "tool_call",
+        toolName: action.tool || "",
+        toolCallId: "",
+        args: action.args || {},
+        status: "completed" as const,
+        result: action.result,
+      })
+    }
+    // Any remaining text after the last action
+    const coveredText = actions.map((a) => a.text_before || "").join("")
+    const remaining = msg.content.slice(coveredText.length)
+    if (remaining.trim()) {
+      parts.push({ type: "text", content: remaining })
+    }
+  } else {
+    // Fallback for old messages without text_before
+    if (msg.content) {
+      parts.push({ type: "text", content: msg.content })
+    }
+    for (const action of actions) {
       parts.push({
         type: "tool_call",
         toolName: action.tool || "",

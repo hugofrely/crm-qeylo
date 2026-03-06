@@ -17,7 +17,7 @@ export function ContactListCard({ action }: { action: EnrichedAction }) {
     if (!action.rules) return
     setLoading(true)
     try {
-      await apiFetch("/api/segments/", {
+      await apiFetch("/segments/", {
         method: "POST",
         json: {
           name: action.summary || "Segment depuis le chat",

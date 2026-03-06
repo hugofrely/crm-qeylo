@@ -16,7 +16,7 @@ export function EntityDeletedCard({ action }: { action: EnrichedAction }) {
     if (!action.entity_id) return
     setLoading(true)
     try {
-      await apiFetch(`/api/trash/${action.entity_id}/restore/`, { method: "POST" })
+      await apiFetch(`/trash/${action.entity_id}/restore/`, { method: "POST" })
       setRestored(true)
     } catch {
       // silently fail

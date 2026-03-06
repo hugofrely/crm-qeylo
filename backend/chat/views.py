@@ -212,16 +212,21 @@ def _extract_actions(messages) -> list[dict]:
                 if isinstance(part, ToolReturnPart):
                     tool_results[part.tool_call_id] = part.content
 
-    # Second pass: build action list from tool calls
+    # Second pass: build action list from tool calls with text_before
     for msg in messages:
         if isinstance(msg, ModelResponse):
+            text_before = ""
             for part in msg.parts:
-                if isinstance(part, ToolCallPart):
+                if isinstance(part, TextPart):
+                    text_before += part.content
+                elif isinstance(part, ToolCallPart):
                     result = tool_results.get(part.tool_call_id)
                     action_info = {
                         "tool": part.tool_name,
                         "args": part.args,
+                        "text_before": text_before,
                     }
+                    text_before = ""
                     if isinstance(result, dict):
                         action_info["result"] = result
                     actions.append(action_info)
@@ -476,6 +481,7 @@ async def stream_message(request):
         full_text = ""
         actions = []
         pending_tool_calls = {}  # tool_call_id -> args
+        text_since_last_action = ""  # track text before each tool call
 
         run_kwargs = dict(
             deps=deps,
@@ -497,12 +503,14 @@ async def stream_message(request):
                     if isinstance(event.part, TextPart) and event.part.content:
                         delta = event.part.content
                         full_text += delta
+                        text_since_last_action += delta
                         yield _sse_event("text_delta", {"content": delta})
 
                 elif isinstance(event, PartDeltaEvent):
                     if isinstance(event.delta, TextPartDelta):
                         delta = event.delta.content_delta
                         full_text += delta
+                        text_since_last_action += delta
                         yield _sse_event("text_delta", {"content": delta})
 
                 elif isinstance(event, FunctionToolCallEvent):
@@ -522,7 +530,9 @@ async def stream_message(request):
                             "tool": event.result.tool_name,
                             "args": pending_tool_calls.pop(tool_call_id, {}),
                             "result": result_content,
+                            "text_before": text_since_last_action,
                         })
+                        text_since_last_action = ""
                     yield _sse_event("tool_result", {
                         "tool_call_id": tool_call_id,
                         "result": result_content if isinstance(result_content, dict) else {},
