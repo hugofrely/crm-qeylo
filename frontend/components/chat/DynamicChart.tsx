@@ -116,13 +116,8 @@ export function DynamicChart({ config }: { config: ChartConfig }) {
               cx="50%"
               cy="50%"
               outerRadius={80}
-              label={({
-                name,
-                value,
-              }: {
-                name: string
-                value: number
-              }) => `${name}: ${value}`}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              label={(props: any) => `${props.name ?? ""}: ${props.value ?? ""}`}
             >
               {data.map((_, i) => (
                 <Cell

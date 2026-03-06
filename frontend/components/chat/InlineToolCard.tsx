@@ -250,7 +250,7 @@ export function InlineToolCard({ part }: { part: ToolCallPart }) {
   const config = toolConfig[part.toolName] || defaultConfig
   const Icon = config.icon
   const argsText = formatArgs(part.toolName, part.args)
-  const isEnriched = part.status === "completed" && part.result?.entity_type
+  const isEnriched = part.status === "completed" && !!part.result?.entity_type
   const resultText =
     part.status === "completed" && part.result && !isEnriched
       ? formatResult(part.result)
