@@ -35,5 +35,7 @@ export interface TaskFilters {
   contact?: string
   due_date?: "overdue" | "today" | "this_week"
   assigned_to?: string
+  due_date_gte?: string
+  due_date_lte?: string
   page?: number
 }

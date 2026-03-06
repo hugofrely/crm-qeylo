@@ -9,6 +9,8 @@ export async function fetchTasks(filters: TaskFilters = {}): Promise<TasksRespon
   if (filters.contact) params.set("contact", filters.contact)
   if (filters.due_date) params.set("due_date", filters.due_date)
   if (filters.assigned_to) params.set("assigned_to", filters.assigned_to)
+  if (filters.due_date_gte) params.set("due_date_gte", filters.due_date_gte)
+  if (filters.due_date_lte) params.set("due_date_lte", filters.due_date_lte)
   const qs = params.toString()
   return apiFetch<TasksResponse>(`/tasks/${qs ? `?${qs}` : ""}`)
 }
