@@ -1,20 +1,27 @@
 import logging
 
 from django.conf import settings
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import EmailAccount
+from .models import EmailAccount, EmailTemplate
 from .oauth import (
     get_gmail_auth_url,
     get_outlook_auth_url,
     exchange_gmail_code,
     exchange_outlook_code,
 )
-from .serializers import EmailAccountSerializer, SendEmailSerializer
+from .serializers import (
+    EmailAccountSerializer,
+    EmailTemplateRenderSerializer,
+    EmailTemplateSerializer,
+    SendEmailSerializer,
+)
+from .template_rendering import build_template_context, render_email_template
 
 logger = logging.getLogger(__name__)
 
@@ -153,4 +160,118 @@ def send_email_view(request):
         "id": str(sent.id),
         "provider_message_id": sent.provider_message_id,
         "sent_at": sent.sent_at.isoformat(),
+    })
+
+
+# ---------------------------------------------------------------------------
+# Email templates
+# ---------------------------------------------------------------------------
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def template_list_create(request):
+    org = request.organization
+    if not org:
+        return Response({"detail": "No organization."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == "GET":
+        qs = EmailTemplate.objects.filter(
+            Q(created_by=request.user, organization=org)
+            | Q(is_shared=True, organization=org)
+        )
+        search = request.query_params.get("search", "").strip()
+        if search:
+            qs = qs.filter(name__icontains=search)
+        tag = request.query_params.get("tag", "").strip()
+        if tag:
+            qs = qs.filter(tags__contains=[tag])
+        if request.query_params.get("mine_only") == "true":
+            qs = qs.filter(created_by=request.user)
+        if request.query_params.get("shared_only") == "true":
+            qs = qs.filter(is_shared=True)
+        return Response(EmailTemplateSerializer(qs.distinct(), many=True).data)
+
+    serializer = EmailTemplateSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer.save(organization=org, created_by=request.user)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET", "PUT", "DELETE"])
+@permission_classes([IsAuthenticated])
+def template_detail(request, template_id):
+    org = request.organization
+    if not org:
+        return Response({"detail": "No organization."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        template = EmailTemplate.objects.get(
+            Q(created_by=request.user, organization=org)
+            | Q(is_shared=True, organization=org),
+            id=template_id,
+        )
+    except EmailTemplate.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "GET":
+        return Response(EmailTemplateSerializer(template).data)
+
+    if template.created_by != request.user:
+        return Response(
+            {"detail": "Seul le createur peut modifier ce template."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if request.method == "DELETE":
+        template.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    serializer = EmailTemplateSerializer(template, data=request.data, partial=True)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer.save()
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def template_render(request, template_id):
+    org = request.organization
+    if not org:
+        return Response({"detail": "No organization."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        template = EmailTemplate.objects.get(
+            Q(created_by=request.user, organization=org)
+            | Q(is_shared=True, organization=org),
+            id=template_id,
+        )
+    except EmailTemplate.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    serializer = EmailTemplateRenderSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    contact = None
+    deal = None
+    contact_id = serializer.validated_data.get("contact_id")
+    deal_id = serializer.validated_data.get("deal_id")
+
+    if contact_id:
+        from contacts.models import Contact
+        contact = Contact.objects.filter(id=contact_id, organization=org).first()
+    if deal_id:
+        from deals.models import Deal
+        deal = Deal.objects.select_related("stage").filter(id=deal_id, organization=org).first()
+
+    context = build_template_context(contact=contact, deal=deal)
+    rendered_subject, rendered_body = render_email_template(
+        template.subject, template.body_html, context
+    )
+
+    return Response({
+        "subject": rendered_subject,
+        "body_html": rendered_body,
     })
