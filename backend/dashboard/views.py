@@ -1,66 +1,129 @@
-from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Sum
-from deals.models import Deal, PipelineStage
-from tasks.models import Task
+
+from reports.models import Report
+from reports.serializers import ReportSerializer
+
+
+DEFAULT_DASHBOARD_WIDGETS = [
+    {
+        "id": "default-contacts-today",
+        "type": "kpi_card",
+        "title": "Contacts aujourd'hui",
+        "source": "contacts",
+        "metric": "count",
+        "group_by": None,
+        "filters": {"date_range": "today"},
+        "size": "small",
+    },
+    {
+        "id": "default-revenue-month",
+        "type": "kpi_card",
+        "title": "Revenu ce mois",
+        "source": "deals",
+        "metric": "sum:amount",
+        "group_by": None,
+        "filters": {
+            "date_range": "this_month",
+            "date_field": "closed_at",
+            "stage__name__in": ["Gagné"],
+        },
+        "size": "small",
+    },
+    {
+        "id": "default-pipeline-active",
+        "type": "kpi_card",
+        "title": "Pipeline actif",
+        "source": "deals",
+        "metric": "sum:amount",
+        "group_by": None,
+        "filters": {},
+        "size": "small",
+    },
+    {
+        "id": "default-tasks-today",
+        "type": "kpi_card",
+        "title": "Taches du jour",
+        "source": "tasks",
+        "metric": "count",
+        "group_by": None,
+        "filters": {
+            "date_range": "today",
+            "date_field": "due_date",
+            "is_done": False,
+        },
+        "size": "small",
+    },
+    {
+        "id": "default-revenue-monthly-chart",
+        "type": "line_chart",
+        "title": "CA mensuel",
+        "source": "deals",
+        "metric": "sum:amount",
+        "group_by": "month",
+        "filters": {
+            "date_range": "last_6_months",
+            "date_field": "closed_at",
+            "stage__name__in": ["Gagné"],
+        },
+        "size": "medium",
+    },
+    {
+        "id": "default-new-contacts-chart",
+        "type": "bar_chart",
+        "title": "Nouveaux contacts",
+        "source": "contacts",
+        "metric": "count",
+        "group_by": "week",
+        "filters": {"date_range": "last_3_months"},
+        "size": "medium",
+    },
+    {
+        "id": "default-deals-won-month",
+        "type": "bar_chart",
+        "title": "Deals gagnes / mois",
+        "source": "deals",
+        "metric": "count",
+        "group_by": "month",
+        "filters": {
+            "date_range": "last_6_months",
+            "date_field": "closed_at",
+            "stage__name__in": ["Gagné"],
+        },
+        "size": "small",
+    },
+    {
+        "id": "default-deals-by-stage",
+        "type": "bar_chart",
+        "title": "Deals par etape",
+        "source": "deals",
+        "metric": "count",
+        "group_by": "stage",
+        "filters": {},
+        "size": "large",
+    },
+]
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def dashboard_stats(request):
+def dashboard_view(request):
     org = request.organization
-    now = timezone.now()
+    user = request.user
 
-    won_stages = PipelineStage.objects.filter(organization=org, name="Gagné")
-    revenue = (
-        Deal.objects.filter(
+    dashboard = Report.objects.filter(
+        organization=org, user=user, is_dashboard=True
+    ).first()
+
+    if not dashboard:
+        dashboard = Report.objects.create(
             organization=org,
-            stage__in=won_stages,
-            closed_at__year=now.year,
-            closed_at__month=now.month,
-        ).aggregate(total=Sum("amount"))["total"]
-        or 0
-    )
-
-    excluded_names = ["Gagné", "Perdu"]
-    active_deals = Deal.objects.filter(organization=org).exclude(
-        stage__name__in=excluded_names
-    )
-    total_pipeline = (
-        active_deals.aggregate(total=Sum("amount"))["total"] or 0
-    )
-
-    stages = PipelineStage.objects.filter(organization=org)
-    deals_by_stage = []
-    for stage in stages:
-        stage_deals = Deal.objects.filter(organization=org, stage=stage)
-        deals_by_stage.append(
-            {
-                "stage_id": str(stage.id),
-                "stage_name": stage.name,
-                "stage_color": stage.color,
-                "count": stage_deals.count(),
-                "total_amount": float(
-                    stage_deals.aggregate(total=Sum("amount"))["total"] or 0
-                ),
-            }
+            created_by=user,
+            user=user,
+            name="Mon tableau de bord",
+            is_dashboard=True,
+            widgets=DEFAULT_DASHBOARD_WIDGETS,
         )
 
-    week_from_now = now + timezone.timedelta(days=7)
-    upcoming_tasks = Task.objects.filter(
-        organization=org,
-        is_done=False,
-        due_date__lte=week_from_now,
-    ).count()
-
-    return Response(
-        {
-            "revenue_this_month": float(revenue),
-            "total_pipeline": float(total_pipeline),
-            "deals_by_stage": deals_by_stage,
-            "upcoming_tasks": upcoming_tasks,
-            "active_deals_count": active_deals.count(),
-        }
-    )
+    return Response(ReportSerializer(dashboard).data)

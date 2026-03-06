@@ -1,4 +1,4 @@
 from django.urls import path
 from . import views
 
-urlpatterns = [path("stats/", views.dashboard_stats)]
+urlpatterns = [path("", views.dashboard_view)]
