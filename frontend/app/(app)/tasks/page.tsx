@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { updateTask } from "@/services/tasks"
 import { useTasks } from "@/hooks/useTasks"
 import { TaskList } from "@/components/tasks/TaskList"
@@ -20,6 +21,7 @@ import type { Task, TaskFilterTab, TaskFilters } from "@/types"
 const PAGE_SIZE = 20
 
 export default function TasksPage() {
+  const router = useRouter()
   const [page, setPage] = useState(1)
   const [tab, setTab] = useState<TaskFilterTab>("todo")
   const [priority, setPriority] = useState<string | null>(null)
@@ -89,10 +91,7 @@ export default function TasksPage() {
   }
 
   const handleEdit = (task: Task) => {
-    setEditingTask(task)
-    setPrefilledDate(undefined)
-    setPrefilledTime(undefined)
-    setDialogOpen(true)
+    router.push(`/tasks/${task.id}`)
   }
 
   const handleCreate = (date?: string, time?: string) => {
