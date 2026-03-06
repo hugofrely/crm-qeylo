@@ -21,6 +21,7 @@ import { fetchDuplicateSettings, updateDuplicateSettings } from "@/services/cont
 import type { DuplicateDetectionSettings } from "@/types"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { PageHeader } from "@/components/shared/PageHeader"
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -82,13 +83,7 @@ export default function SettingsPage() {
 
   return (
     <div className="p-8 lg:p-12 max-w-3xl mx-auto space-y-6 animate-fade-in-up">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl tracking-tight">Paramètres</h1>
-        <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
-          Gérez votre profil et votre configuration
-        </p>
-      </div>
+      <PageHeader title="Paramètres" subtitle="Gérez votre profil et votre configuration" />
 
       {/* Profile card */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
