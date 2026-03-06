@@ -1,5 +1,5 @@
 import { Node, mergeAttributes } from "@tiptap/core"
-import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react"
+import { NodeViewWrapper, ReactNodeViewRenderer, type ReactNodeViewProps } from "@tiptap/react"
 
 const VARIABLE_OPTIONS = [
   { group: "Contact", variables: [
@@ -18,10 +18,11 @@ const VARIABLE_OPTIONS = [
 
 export { VARIABLE_OPTIONS }
 
-function VariableNodeView({ node }: { node: { attrs: { variable: string } } }) {
+function VariableNodeView({ node }: ReactNodeViewProps) {
+  const variable = node.attrs.variable as string
   const label = VARIABLE_OPTIONS
     .flatMap((g) => g.variables)
-    .find((v) => v.value === node.attrs.variable)?.label || node.attrs.variable
+    .find((v) => v.value === variable)?.label || variable
 
   return (
     <NodeViewWrapper as="span" className="inline">
