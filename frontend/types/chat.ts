@@ -63,3 +63,66 @@ export interface ChatAction {
   action: string
   [key: string]: unknown
 }
+
+export interface EntityPreview {
+  name?: string
+  email?: string
+  phone?: string
+  company?: string
+  job_title?: string
+  lead_score?: string
+  avatar_initials?: string
+  description?: string
+  amount?: string
+  stage?: string
+  contact?: string | null
+  due_date?: string
+  priority?: string
+  is_done?: boolean
+  is_active?: boolean
+  content?: string
+  subject?: string
+  icon?: string
+  color?: string
+  pipeline?: string
+  position?: number
+}
+
+export interface FieldChange {
+  field: string
+  from: string
+  to: string
+}
+
+export interface ChartSeries {
+  key: string
+  label: string
+  color: string
+}
+
+export interface ChartConfig {
+  type: "bar" | "line" | "pie" | "area" | "funnel" | "radar" | "composed"
+  title: string
+  data: Array<Record<string, unknown>>
+  xKey: string
+  series: ChartSeries[]
+}
+
+export interface EnrichedAction {
+  action: string
+  entity_type?: string
+  entity_id?: string
+  summary?: string
+  entity_preview?: EntityPreview
+  changes?: FieldChange[]
+  link?: string
+  undo_available?: boolean
+  save_as_segment_available?: boolean
+  rules?: Record<string, unknown>
+  count?: number
+  results?: Array<Record<string, unknown>>
+  chart?: ChartConfig
+  title?: string
+  description?: string
+  [key: string]: unknown
+}
