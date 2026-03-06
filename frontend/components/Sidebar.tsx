@@ -32,6 +32,7 @@ import {
   Plus,
   Filter,
   FileBarChart,
+  Trash2,
 } from "lucide-react"
 import { CreateOrgDialog } from "@/components/organizations/CreateOrgDialog"
 
@@ -46,6 +47,7 @@ const navigation = [
   { name: "Workflows", href: "/workflows", icon: Workflow },
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   { name: "Rapports", href: "/reports", icon: FileBarChart },
+  { name: "Corbeille", href: "/trash", icon: Trash2 },
 ]
 
 export function Sidebar() {
