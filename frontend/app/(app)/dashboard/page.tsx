@@ -6,6 +6,7 @@ import { fetchDashboard } from "@/services/dashboard"
 import { updateReport } from "@/services/reports"
 import { Button } from "@/components/ui/button"
 import { Loader2, Plus, Settings2 } from "lucide-react"
+import { PageHeader } from "@/components/shared/PageHeader"
 import type { Report, WidgetConfig } from "@/types"
 import { ReportWidget } from "@/components/reports/ReportWidget"
 import { WidgetEditor } from "@/components/reports/WidgetEditor"
@@ -105,27 +106,23 @@ export default function DashboardPage() {
 
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl tracking-tight">Tableau de bord</h1>
-        <div className="flex items-center gap-2">
-          {editing && (
-            <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs" onClick={handleAddWidget}>
-              <Plus className="h-3.5 w-3.5" />
-              Widget
-            </Button>
-          )}
-          <Button
-            variant={editing ? "default" : "outline"}
-            size="sm"
-            className="gap-1.5 h-8 text-xs"
-            onClick={() => setEditing(!editing)}
-          >
-            <Settings2 className="h-3.5 w-3.5" />
-            {editing ? "Terminer" : "Personnaliser"}
+      <PageHeader title="Tableau de bord">
+        {editing && (
+          <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs" onClick={handleAddWidget}>
+            <Plus className="h-3.5 w-3.5" />
+            Widget
           </Button>
-        </div>
-      </div>
+        )}
+        <Button
+          variant={editing ? "default" : "outline"}
+          size="sm"
+          className="gap-1.5 h-8 text-xs"
+          onClick={() => setEditing(!editing)}
+        >
+          <Settings2 className="h-3.5 w-3.5" />
+          {editing ? "Terminer" : "Personnaliser"}
+        </Button>
+      </PageHeader>
 
       {/* Widget grid */}
       {dashboard.widgets.length === 0 ? (
