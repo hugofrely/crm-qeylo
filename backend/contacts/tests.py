@@ -60,8 +60,112 @@ class ContactTests(TestCase):
         create = self.client.post(
             "/api/contacts/", {"first_name": "Marie", "last_name": "Dupont"}
         )
-        response = self.client.delete(f"/api/contacts/{create.data['id']}/")
+        contact_id = create.data["id"]
+        response = self.client.delete(f"/api/contacts/{contact_id}/")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Contact should NOT appear in normal list
+        list_response = self.client.get("/api/contacts/")
+        ids = [c["id"] for c in list_response.data["results"]]
+        self.assertNotIn(contact_id, ids)
+
+        # Contact should still exist in DB with deleted_at set
+        from contacts.models import Contact
+        contact = Contact.all_objects.get(id=contact_id)
+        self.assertIsNotNone(contact.deleted_at)
+
+    def test_delete_contact_cascades_to_deals(self):
+        # Create a contact
+        contact_res = self.client.post(
+            "/api/contacts/",
+            {"first_name": "Cascade", "last_name": "Test"},
+            format="json",
+        )
+        contact_id = contact_res.data["id"]
+
+        # Need a pipeline stage for creating a deal
+        from deals.models import PipelineStage
+        from organizations.models import Organization
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.get(email="hugo@example.com")
+        org = Organization.objects.filter(memberships__user=user).first()
+        stage = PipelineStage.objects.filter(pipeline__organization=org).first()
+        if not stage:
+            from deals.models import Pipeline
+            Pipeline.create_defaults(org)
+            stage = PipelineStage.objects.filter(pipeline__organization=org).first()
+
+        # Create a deal linked to this contact
+        from deals.models import Deal
+        deal = Deal.objects.create(
+            organization=org,
+            created_by=user,
+            name="Cascade Deal",
+            contact_id=contact_id,
+            amount=1000,
+            stage=stage,
+        )
+        deal_id = deal.id
+
+        # Delete the contact
+        self.client.delete(f"/api/contacts/{contact_id}/")
+
+        # Assert deal is also soft-deleted with cascade source
+        deal = Deal.all_objects.get(id=deal_id)
+        self.assertIsNotNone(deal.deleted_at)
+        self.assertTrue(deal.deletion_source.startswith("cascade_contact:"))
+
+    def test_restore_contact_restores_cascaded(self):
+        # Create a contact
+        contact_res = self.client.post(
+            "/api/contacts/",
+            {"first_name": "Restore", "last_name": "Cascade"},
+            format="json",
+        )
+        contact_id = contact_res.data["id"]
+
+        # Set up pipeline stage and deal
+        from deals.models import Deal, PipelineStage
+        from organizations.models import Organization
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user = User.objects.get(email="hugo@example.com")
+        org = Organization.objects.filter(memberships__user=user).first()
+        stage = PipelineStage.objects.filter(pipeline__organization=org).first()
+        if not stage:
+            from deals.models import Pipeline
+            Pipeline.create_defaults(org)
+            stage = PipelineStage.objects.filter(pipeline__organization=org).first()
+
+        deal = Deal.objects.create(
+            organization=org,
+            created_by=user,
+            name="Restore Deal",
+            contact_id=contact_id,
+            amount=500,
+            stage=stage,
+        )
+        deal_id = deal.id
+
+        # Delete the contact (cascades to deal)
+        self.client.delete(f"/api/contacts/{contact_id}/")
+
+        # Restore via trash API
+        restore_response = self.client.post(
+            "/api/trash/restore/",
+            {"type": "contact", "ids": [contact_id]},
+            format="json",
+        )
+        self.assertEqual(restore_response.status_code, 200)
+
+        # Both contact and deal should be alive again
+        from contacts.models import Contact
+        contact = Contact.all_objects.get(id=contact_id)
+        self.assertIsNone(contact.deleted_at)
+
+        deal = Deal.all_objects.get(id=deal_id)
+        self.assertIsNone(deal.deleted_at)
 
     def test_search_contacts(self):
         self.client.post(

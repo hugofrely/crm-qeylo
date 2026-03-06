@@ -52,6 +52,25 @@ class TaskTests(TestCase):
         )
         self.assertTrue(response.data["is_done"])
 
+    def test_delete_task(self):
+        create = self.client.post(
+            "/api/tasks/",
+            {"description": "Delete me", "due_date": "2026-03-10T10:00:00Z"},
+        )
+        task_id = create.data["id"]
+        response = self.client.delete(f"/api/tasks/{task_id}/")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Task should NOT appear in normal list
+        list_response = self.client.get("/api/tasks/")
+        ids = [t["id"] for t in list_response.data["results"]]
+        self.assertNotIn(task_id, ids)
+
+        # Task should still exist in DB with deleted_at set
+        from tasks.models import Task
+        task = Task.all_objects.get(id=task_id)
+        self.assertIsNotNone(task.deleted_at)
+
     def test_filter_tasks_by_is_done(self):
         self.client.post("/api/tasks/", {"description": "Done task", "due_date": "2026-03-10T10:00:00Z"})
         create2 = self.client.post("/api/tasks/", {"description": "Todo task", "due_date": "2026-03-11T10:00:00Z"})

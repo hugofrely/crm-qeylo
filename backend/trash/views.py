@@ -97,9 +97,10 @@ def trash_permanent_delete(request):
         )
 
     org = request.organization
-    count, _ = Model.all_objects.filter(
+    qs = Model.all_objects.filter(
         organization=org, id__in=ids, deleted_at__isnull=False
-    ).delete()
+    )
+    count, _ = qs.hard_delete()
 
     return Response({"deleted": count})
 
@@ -110,9 +111,10 @@ def trash_empty(request):
     org = request.organization
     total = 0
     for Model in [Task, Deal, Contact]:
-        count, _ = Model.all_objects.filter(
+        qs = Model.all_objects.filter(
             organization=org, deleted_at__isnull=False
-        ).delete()
+        )
+        count, _ = qs.hard_delete()
         total += count
 
     return Response({"deleted": total})
