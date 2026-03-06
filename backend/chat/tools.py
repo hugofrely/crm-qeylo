@@ -139,8 +139,18 @@ def create_contact(
     return {
         "action": "contact_created",
         "id": str(contact.id),
+        "entity_id": str(contact.id),
         "name": f"{first_name} {last_name}",
         "company": company,
+        "entity_type": "contact",
+        "summary": f"Contact {first_name} {last_name} créé",
+        "entity_preview": {
+            "name": f"{first_name} {last_name}",
+            "email": email,
+            "company": company,
+            "avatar_initials": f"{first_name[0]}{last_name[0]}".upper() if first_name and last_name else "",
+        },
+        "link": f"/contacts/{contact.id}",
     }
 
 
@@ -172,7 +182,13 @@ def search_contacts(ctx: RunContext[ChatDeps], query: str, category: str = "") -
         }
         for c in contacts
     ]
-    return {"action": "search_contacts", "count": len(results), "results": results}
+    return {
+        "action": "search_contacts",
+        "count": len(results),
+        "results": results,
+        "entity_type": "contact_list",
+        "summary": f"{len(results)} contacts trouvés",
+    }
 
 
 def update_contact(
@@ -253,8 +269,18 @@ def update_contact(
     return {
         "action": "contact_updated",
         "id": str(contact.id),
+        "entity_id": str(contact.id),
         "name": f"{contact.first_name} {contact.last_name}",
         "changed_fields": changed,
+        "entity_type": "contact",
+        "summary": f"Contact {contact.first_name} {contact.last_name} mis à jour",
+        "entity_preview": {
+            "name": f"{contact.first_name} {contact.last_name}",
+            "email": contact.email,
+            "company": contact.company,
+        },
+        "link": f"/contacts/{contact.id}",
+        "changes": [{"field": f, "from": "", "to": ""} for f in changed],
     }
 
 
@@ -293,6 +319,8 @@ def update_contact_categories(
         "action": "categories_updated",
         "contact": f"{contact.first_name} {contact.last_name}",
         "categories": list(found_names),
+        "entity_type": "contact",
+        "summary": f"Catégories mises à jour pour {contact.first_name} {contact.last_name}",
     }
     if not_found:
         result["warning"] = f"Categories introuvables: {', '.join(not_found)}"
@@ -352,6 +380,8 @@ def update_custom_field(
         "contact": f"{contact.first_name} {contact.last_name}",
         "field": field_def.label,
         "value": value,
+        "entity_type": "contact",
+        "summary": f"Champ '{field_def.label}' mis à jour",
     }
 
 
@@ -536,9 +566,19 @@ def create_deal(
     return {
         "action": "deal_created",
         "id": str(deal.id),
+        "entity_id": str(deal.id),
         "name": name,
         "amount": float(amount),
         "stage": stage.name,
+        "entity_type": "deal",
+        "summary": f"Deal '{name}' créé",
+        "entity_preview": {
+            "name": name,
+            "amount": str(amount),
+            "stage": stage.name,
+            "contact": None,
+        },
+        "link": f"/deals/{deal.id}",
     }
 
 
@@ -576,9 +616,19 @@ def move_deal(
     return {
         "action": "deal_moved",
         "id": str(deal.id),
+        "entity_id": str(deal.id),
         "name": deal.name,
         "old_stage": old_stage,
         "new_stage": new_stage_name,
+        "entity_type": "deal",
+        "summary": f"Deal '{deal.name}' déplacé",
+        "entity_preview": {
+            "name": deal.name,
+            "amount": str(deal.amount),
+            "stage": new_stage_name,
+        },
+        "changes": [{"field": "stage", "from": old_stage, "to": new_stage_name}],
+        "link": f"/deals/{deal.id}",
     }
 
 
@@ -927,9 +977,18 @@ def create_task(
     return {
         "action": "task_created",
         "id": str(task.id),
+        "entity_id": str(task.id),
         "description": description,
         "due_date": str(task.due_date),
         "priority": priority,
+        "entity_type": "task",
+        "summary": "Tâche créée",
+        "entity_preview": {
+            "description": description,
+            "due_date": str(task.due_date),
+            "priority": priority,
+            "is_done": False,
+        },
     }
 
 
@@ -946,7 +1005,14 @@ def complete_task(ctx: RunContext[ChatDeps], task_id: str) -> dict:
     return {
         "action": "task_completed",
         "id": str(task.id),
+        "entity_id": str(task.id),
         "description": task.description,
+        "entity_type": "task",
+        "summary": "Tâche terminée",
+        "entity_preview": {
+            "description": task.description,
+            "is_done": True,
+        },
     }
 
 
@@ -1123,6 +1189,9 @@ def add_note(
         "action": "note_added",
         "id": str(entry.id),
         "content": content[:100],
+        "entity_type": "note",
+        "summary": "Note ajoutée",
+        "entity_preview": {"content": content[:100]},
     }
 
 
@@ -1322,6 +1391,8 @@ def send_contact_email(
         "action": "email_sent",
         "to": sent.to_email,
         "subject": subject,
+        "entity_type": "email",
+        "summary": f"Email envoyé à {sent.to_email}",
     }
 
 
@@ -1389,6 +1460,8 @@ def log_interaction(
         "type": interaction_type,
         "subject": subject,
         "contact_id": resolved_contact,
+        "entity_type": "interaction",
+        "summary": f"Interaction '{subject}' enregistrée",
     }
 
 
@@ -1430,6 +1503,8 @@ def get_dashboard_summary(ctx: RunContext[ChatDeps]) -> dict:
         "pipeline_total": pipeline_total,
         "upcoming_tasks_7d": upcoming_tasks,
         "overdue_tasks": overdue_tasks,
+        "entity_type": "dashboard",
+        "summary": "Résumé du dashboard",
     }
 
 
@@ -1470,6 +1545,8 @@ def search_all(ctx: RunContext[ChatDeps], query: str) -> dict:
             {"id": str(n.id), "content": n.content[:100]}
             for n in notes
         ],
+        "entity_type": "search_results",
+        "summary": "Résultats de recherche",
     }
 
 
@@ -1560,10 +1637,15 @@ def create_workflow(
     return {
         "action": "workflow_created",
         "id": str(workflow.id),
+        "entity_id": str(workflow.id),
         "name": name,
         "trigger": trigger_type,
         "action_count": len(actions),
         "is_active": True,
+        "entity_type": "workflow",
+        "summary": f"Workflow '{name}' créé",
+        "entity_preview": {"name": name, "is_active": True},
+        "link": f"/workflows/{workflow.id}",
     }
 
 
@@ -1583,7 +1665,13 @@ def list_workflows(ctx: RunContext[ChatDeps]) -> dict:
         }
         for w in workflows[:20]
     ]
-    return {"action": "list_workflows", "count": len(results), "workflows": results}
+    return {
+        "action": "list_workflows",
+        "count": len(results),
+        "workflows": results,
+        "entity_type": "workflow_list",
+        "summary": f"{len(results)} workflows",
+    }
 
 
 def toggle_workflow(ctx: RunContext[ChatDeps], workflow_id: str, active: bool) -> dict:
@@ -1602,9 +1690,13 @@ def toggle_workflow(ctx: RunContext[ChatDeps], workflow_id: str, active: bool) -
     return {
         "action": "workflow_toggled",
         "id": str(workflow.id),
+        "entity_id": str(workflow.id),
         "name": workflow.name,
         "is_active": active,
         "message": f"Workflow '{workflow.name}' {status_text}.",
+        "entity_type": "workflow",
+        "summary": f"Workflow '{workflow.name}' {status_text}",
+        "entity_preview": {"name": workflow.name, "is_active": active},
     }
 
 
@@ -1635,6 +1727,8 @@ def get_workflow_executions(ctx: RunContext[ChatDeps], workflow_id: str, limit: 
         "workflow": workflow.name,
         "count": len(results),
         "executions": results,
+        "entity_type": "workflow_executions",
+        "summary": f"{len(results)} exécutions récentes",
     }
 
 
@@ -1735,7 +1829,13 @@ def list_email_templates(ctx: RunContext[ChatDeps]) -> dict:
         }
         for t in templates
     ]
-    return {"action": "list_email_templates", "count": len(results), "templates": results}
+    return {
+        "action": "list_email_templates",
+        "count": len(results),
+        "templates": results,
+        "entity_type": "email_template_list",
+        "summary": f"{len(results)} templates",
+    }
 
 
 def send_email_from_template(
@@ -1792,6 +1892,8 @@ def send_email_from_template(
         "to": sent.to_email,
         "subject": sent.subject,
         "template_id": template_id,
+        "entity_type": "email",
+        "summary": "Email envoyé depuis le template",
     }
 
 
