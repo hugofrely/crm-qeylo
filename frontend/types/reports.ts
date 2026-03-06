@@ -14,6 +14,7 @@ export interface Report {
   name: string
   description: string
   is_template: boolean
+  is_dashboard: boolean
   widgets: WidgetConfig[]
   created_at: string
   updated_at: string
@@ -28,6 +29,7 @@ export interface AggregateRequest {
   date_from?: string
   date_to?: string
   filters?: Record<string, unknown>
+  compare?: boolean
 }
 
 export interface AggregateDataPoint {
@@ -38,4 +40,6 @@ export interface AggregateDataPoint {
 export interface AggregateResponse {
   data: AggregateDataPoint[]
   total: number
+  previous_total?: number
+  delta_percent?: number
 }
