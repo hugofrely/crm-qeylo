@@ -196,3 +196,79 @@ class QuoteTests(TestCase):
         quote = self.client.post("/api/quotes/", {"deal": self.deal["id"]}, format="json").data
         response = self.client.delete(f"/api/quotes/{quote['id']}/")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class DealStageTransitionTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "email": "transition@example.com",
+                "password": "securepass123",
+                "first_name": "Test",
+                "last_name": "User",
+                "organization_name": "Test Org",
+            },
+        )
+        self.token = response.data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+        from organizations.models import Membership
+        self.membership = Membership.objects.get(user__email="transition@example.com")
+        self.org = self.membership.organization
+        from deals.models import PipelineStage
+        self.stages = list(
+            PipelineStage.objects.filter(pipeline__organization=self.org).order_by("order")
+        )
+
+    def test_create_deal_creates_initial_transition(self):
+        from deals.models import DealStageTransition
+        response = self.client.post(
+            "/api/deals/",
+            {"name": "Deal 1", "amount": "1000", "stage": str(self.stages[0].id)},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deal_id = response.data["id"]
+        transitions = DealStageTransition.objects.filter(deal_id=deal_id)
+        self.assertEqual(transitions.count(), 1)
+        t = transitions.first()
+        self.assertIsNone(t.from_stage)
+        self.assertEqual(t.to_stage, self.stages[0])
+        self.assertIsNone(t.duration_in_previous)
+
+    def test_update_stage_creates_transition(self):
+        from deals.models import DealStageTransition
+        response = self.client.post(
+            "/api/deals/",
+            {"name": "Deal 2", "amount": "2000", "stage": str(self.stages[0].id)},
+            format="json",
+        )
+        deal_id = response.data["id"]
+        self.client.patch(
+            f"/api/deals/{deal_id}/",
+            {"stage": str(self.stages[1].id)},
+            format="json",
+        )
+        transitions = DealStageTransition.objects.filter(deal_id=deal_id).order_by("transitioned_at")
+        self.assertEqual(transitions.count(), 2)
+        second = transitions.last()
+        self.assertEqual(second.from_stage, self.stages[0])
+        self.assertEqual(second.to_stage, self.stages[1])
+        self.assertIsNotNone(second.duration_in_previous)
+
+    def test_update_without_stage_change_no_new_transition(self):
+        from deals.models import DealStageTransition
+        response = self.client.post(
+            "/api/deals/",
+            {"name": "Deal 3", "amount": "3000", "stage": str(self.stages[0].id)},
+            format="json",
+        )
+        deal_id = response.data["id"]
+        self.client.patch(
+            f"/api/deals/{deal_id}/",
+            {"name": "Deal 3 renamed"},
+            format="json",
+        )
+        transitions = DealStageTransition.objects.filter(deal_id=deal_id)
+        self.assertEqual(transitions.count(), 1)

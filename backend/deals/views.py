@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Count
-from .models import Pipeline, PipelineStage, Deal, PIPELINE_TEMPLATES
+from .models import Pipeline, PipelineStage, Deal, DealStageTransition, PIPELINE_TEMPLATES
 from .serializers import (
     PipelineSerializer,
     PipelineStageSerializer,
@@ -178,10 +178,40 @@ class DealViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        serializer.save(
+        deal = serializer.save(
             organization=self.request.organization,
             created_by=self.request.user,
         )
+        DealStageTransition.objects.create(
+            deal=deal,
+            organization=deal.organization,
+            from_stage=None,
+            to_stage=deal.stage,
+            changed_by=self.request.user,
+        )
+
+    def perform_update(self, serializer):
+        deal = self.get_object()
+        old_stage = deal.stage
+        updated_deal = serializer.save()
+        if updated_deal.stage_id != old_stage.id:
+            last_transition = (
+                DealStageTransition.objects.filter(deal=deal)
+                .order_by("-transitioned_at")
+                .first()
+            )
+            duration = None
+            if last_transition:
+                from django.utils import timezone
+                duration = timezone.now() - last_transition.transitioned_at
+            DealStageTransition.objects.create(
+                deal=updated_deal,
+                organization=updated_deal.organization,
+                from_stage=old_stage,
+                to_stage=updated_deal.stage,
+                changed_by=self.request.user,
+                duration_in_previous=duration,
+            )
 
 
 @api_view(["GET"])
