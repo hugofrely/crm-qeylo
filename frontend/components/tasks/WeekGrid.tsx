@@ -41,10 +41,6 @@ function isAllDay(task: Task): boolean {
   return d.getHours() === 23 && d.getMinutes() === 59
 }
 
-function formatDayHeader(date: Date): string {
-  return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" }).format(date)
-}
-
 export function WeekGrid({ currentDate, tasks, onTaskClick, onSlotClick }: WeekGridProps) {
   const weekDays = getWeekDays(currentDate)
   const today = new Date()
@@ -80,12 +76,17 @@ export function WeekGrid({ currentDate, tasks, onTaskClick, onSlotClick }: WeekG
           return (
             <div key={i} className="px-2 py-2 text-center border-l">
               <div className="text-xs text-muted-foreground">{DAY_NAMES[i]}</div>
-              <div className={`text-sm font-medium ${
-                isToday
-                  ? "inline-flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground"
-                  : ""
-              }`}>
-                {formatDayHeader(day)}
+              <div className="flex items-center justify-center gap-1">
+                <span className={`text-sm font-medium ${
+                  isToday
+                    ? "inline-flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground"
+                    : ""
+                }`}>
+                  {day.getDate()}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {new Intl.DateTimeFormat("fr-FR", { month: "short" }).format(day)}
+                </span>
               </div>
             </div>
           )
@@ -102,7 +103,7 @@ export function WeekGrid({ currentDate, tasks, onTaskClick, onSlotClick }: WeekG
             <div
               key={i}
               onClick={() => onSlotClick(day)}
-              className="border-l p-1 min-h-[36px] cursor-pointer hover:bg-muted/30 transition-colors"
+              className="border-l p-1 min-h-[36px] min-w-0 cursor-pointer hover:bg-muted/30 transition-colors"
             >
               {dayData.allDay.map((task) => (
                 <CalendarTaskItem key={task.id} task={task} onClick={onTaskClick} compact />
@@ -124,7 +125,7 @@ export function WeekGrid({ currentDate, tasks, onTaskClick, onSlotClick }: WeekG
               <div
                 key={i}
                 onClick={() => onSlotClick(day, hour)}
-                className="border-l p-0.5 min-h-[48px] cursor-pointer hover:bg-muted/30 transition-colors"
+                className="border-l p-0.5 min-h-[48px] min-w-0 cursor-pointer hover:bg-muted/30 transition-colors overflow-hidden"
               >
                 {hourTasks.map((task) => (
                   <CalendarTaskItem key={task.id} task={task} onClick={onTaskClick} />

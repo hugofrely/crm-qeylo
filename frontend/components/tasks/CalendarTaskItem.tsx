@@ -21,7 +21,7 @@ export function CalendarTaskItem({ task, onClick, compact = false }: CalendarTas
         e.stopPropagation()
         onClick(task)
       }}
-      className={`w-full text-left rounded px-1.5 py-0.5 text-xs transition-colors hover:bg-muted/80 group flex items-center gap-1.5 ${
+      className={`w-full text-left rounded px-1.5 py-0.5 text-xs transition-colors hover:bg-muted/80 group flex items-center gap-1.5 min-w-0 overflow-hidden ${
         task.is_done ? "opacity-50" : ""
       }`}
       title={task.description}
@@ -31,7 +31,7 @@ export function CalendarTaskItem({ task, onClick, compact = false }: CalendarTas
           priorityColors[task.priority] || "bg-gray-400"
         }`}
       />
-      <span className={`truncate ${task.is_done ? "line-through" : ""} ${compact ? "max-w-[80px]" : ""}`}>
+      <span className={`truncate min-w-0 ${task.is_done ? "line-through" : ""}`}>
         {!compact && task.due_date && (() => {
           const d = new Date(task.due_date)
           const h = d.getHours()
