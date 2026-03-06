@@ -11,7 +11,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Plus, MoreHorizontal, Pencil, Copy, Trash2, Loader2, ListFilter, Users } from "lucide-react"
+import { Plus, MoreHorizontal, Pencil, Copy, Trash2, ListFilter } from "lucide-react"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
 import type { Segment } from "@/types"
 
 export default function SegmentsPage() {
@@ -74,105 +76,81 @@ export default function SegmentsPage() {
     setBuilderOpen(true)
   }
 
+  const columns: DataTableColumn<Segment>[] = [
+    {
+      key: "name",
+      header: "Nom",
+      render: (s) => (
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+          <span className="font-medium text-sm">{s.name}</span>
+          {s.is_pinned && (
+            <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-[family-name:var(--font-body)]">Épinglé</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "description",
+      header: "Description",
+      headerClassName: "hidden md:table-cell",
+      className: "hidden md:table-cell text-sm text-muted-foreground font-[family-name:var(--font-body)]",
+      render: (s) => s.description || "—",
+    },
+    {
+      key: "contacts",
+      header: "Contacts",
+      headerClassName: "text-right",
+      className: "text-right text-sm text-muted-foreground tabular-nums",
+      render: (s) => <>{s.contact_count ?? 0}</>,
+    },
+    {
+      key: "actions",
+      header: "",
+      headerClassName: "w-10",
+      className: "w-10",
+      render: (s) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <Button variant="ghost" size="icon-sm"><MoreHorizontal className="h-4 w-4" /></Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(s) }}>
+              <Pencil className="h-4 w-4 mr-2" /> Modifier
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDuplicate(s) }}>
+              <Copy className="h-4 w-4 mr-2" /> Dupliquer
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(s.id) }} className="text-destructive">
+              <Trash2 className="h-4 w-4 mr-2" /> Supprimer
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ]
+
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl tracking-tight">Segments</h1>
-          <p className="text-muted-foreground text-sm mt-1 font-[family-name:var(--font-body)]">
-            {segments.length} segment{segments.length !== 1 ? "s" : ""} dynamique{segments.length !== 1 ? "s" : ""}
-          </p>
-        </div>
+      <PageHeader
+        title="Segments"
+        subtitle={`${segments.length} segment${segments.length !== 1 ? "s" : ""} dynamique${segments.length !== 1 ? "s" : ""}`}
+      >
         <Button className="gap-2" onClick={handleNew}>
           <Plus className="h-4 w-4" />
           Nouveau segment
         </Button>
-      </div>
+      </PageHeader>
 
-      {/* Segment grid */}
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : segments.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <ListFilter className="h-12 w-12 text-muted-foreground/30 mb-4" />
-          <h3 className="text-lg font-medium mb-1">Aucun segment</h3>
-          <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)] mb-4">
-            Creez votre premier segment pour filtrer vos contacts dynamiquement.
-          </p>
-          <Button onClick={handleNew} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Creer un segment
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {segments.map((segment) => (
-            <div
-              key={segment.id}
-              className="group relative rounded-xl border border-border/60 bg-card p-5 hover:border-border hover:shadow-sm transition-all cursor-pointer"
-              onClick={() => router.push(`/segments/${segment.id}`)}
-            >
-              {/* Color bar */}
-              <div
-                className="absolute top-0 left-0 right-0 h-1 rounded-t-xl"
-                style={{ backgroundColor: segment.color }}
-              />
-
-              <div className="flex items-start justify-between mt-1">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium truncate">{segment.name}</h3>
-                    {segment.is_pinned && (
-                      <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-[family-name:var(--font-body)]">
-                        Epingle
-                      </span>
-                    )}
-                  </div>
-                  {segment.description && (
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2 font-[family-name:var(--font-body)]">
-                      {segment.description}
-                    </p>
-                  )}
-                </div>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(segment) }}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Modifier
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDuplicate(segment) }}>
-                      <Copy className="h-4 w-4 mr-2" />
-                      Dupliquer
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={(e) => { e.stopPropagation(); handleDelete(segment.id) }}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Supprimer
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Count */}
-              <div className="flex items-center gap-1.5 mt-4 text-sm text-muted-foreground font-[family-name:var(--font-body)]">
-                <Users className="h-3.5 w-3.5" />
-                <span>{segment.contact_count ?? 0} contact{(segment.contact_count ?? 0) !== 1 ? "s" : ""}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <DataTable
+        columns={columns}
+        data={segments}
+        loading={loading}
+        emptyIcon={<ListFilter className="h-12 w-12 text-muted-foreground/30 mb-4" />}
+        emptyMessage="Aucun segment. Créez votre premier segment pour filtrer vos contacts dynamiquement."
+        onRowClick={(s) => router.push(`/segments/${s.id}`)}
+        rowKey={(s) => s.id}
+      />
 
       <SegmentBuilder
         open={builderOpen}
