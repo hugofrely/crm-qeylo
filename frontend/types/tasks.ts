@@ -1,3 +1,11 @@
+export interface TaskAssignee {
+  user_id: string
+  email: string
+  first_name: string
+  last_name: string
+  assigned_at: string
+}
+
 export interface Task {
   id: string
   description: string
@@ -9,6 +17,7 @@ export interface Task {
   priority: string
   is_done: boolean
   created_at: string
+  assignees: TaskAssignee[]
 }
 
 export interface TasksResponse {
@@ -25,5 +34,6 @@ export interface TaskFilters {
   priority?: "high" | "normal" | "low"
   contact?: string
   due_date?: "overdue" | "today" | "this_week"
+  assigned_to?: string
   page?: number
 }
