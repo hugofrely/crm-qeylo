@@ -15,6 +15,6 @@ def purge_trash():
         count, _ = Model.all_objects.filter(
             deleted_at__isnull=False,
             deleted_at__lte=cutoff,
-        ).delete()
+        ).hard_delete()
         total += count
     return f"Purged {total} items from trash"
