@@ -34,6 +34,7 @@ export function TaskDialog({
 
   const [description, setDescription] = useState("")
   const [dueDate, setDueDate] = useState("")
+  const [dueTime, setDueTime] = useState("")
   const [priority, setPriority] = useState("normal")
   const [contactId, setContactId] = useState("")
   const [contactLabel, setContactLabel] = useState("")
@@ -49,6 +50,8 @@ export function TaskDialog({
       if (task) {
         setDescription(task.description)
         setDueDate(task.due_date ? task.due_date.split("T")[0] : "")
+        const timeMatch = task.due_date?.match(/T(\d{2}:\d{2})/)
+        setDueTime(timeMatch && timeMatch[1] !== "23:59" ? timeMatch[1] : "")
         setPriority(task.priority)
         setContactId(task.contact || "")
         setContactLabel(task.contact_name || "")
@@ -56,6 +59,7 @@ export function TaskDialog({
       } else {
         setDescription("")
         setDueDate("")
+        setDueTime("")
         setPriority("normal")
         setContactId("")
         setContactLabel("")
@@ -73,7 +77,7 @@ export function TaskDialog({
     try {
       const payload: Record<string, unknown> = {
         description: description.trim(),
-        due_date: dueDate || null,
+        due_date: dueDate ? `${dueDate}T${dueTime || "23:59"}:00Z` : null,
         priority,
         contact: contactId || null,
         assigned_to: assigneeIds,
@@ -131,7 +135,7 @@ export function TaskDialog({
           </div>
 
           {/* Date + Priorité */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="task-due-date">Date d&apos;échéance</Label>
               <Input
@@ -139,6 +143,16 @@ export function TaskDialog({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="task-due-time">Heure</Label>
+              <Input
+                id="task-due-time"
+                type="time"
+                value={dueTime}
+                onChange={(e) => setDueTime(e.target.value)}
+                placeholder="Optionnel"
               />
             </div>
             <div className="space-y-1.5">
