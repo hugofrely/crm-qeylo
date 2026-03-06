@@ -5,13 +5,14 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
 import { QuoteEditor } from "@/components/deals/QuoteEditor"
 import { apiUploadImage } from "@/lib/api"
 import { fetchDeal, updateDeal, deleteDeal, fetchPipelineStages } from "@/services/deals"
+import { restoreItems } from "@/services/trash"
+import { toast } from "sonner"
 import { fetchQuotes, fetchQuote, createQuote } from "@/services/quotes"
 import {
   ArrowLeft,
@@ -196,6 +197,20 @@ export default function DealDetailPage() {
     setDeleting(true)
     try {
       await deleteDeal(id)
+      toast("Element supprime", {
+        action: {
+          label: "Annuler",
+          onClick: async () => {
+            try {
+              await restoreItems("deal", [id])
+              toast.success("Element restaure")
+            } catch {
+              toast.error("Erreur lors de la restauration")
+            }
+          },
+        },
+        duration: 5000,
+      })
       router.push("/deals")
     } catch (err) {
       console.error("Failed to delete deal:", err)
@@ -224,163 +239,55 @@ export default function DealDetailPage() {
   }
 
   return (
-    <div className="animate-fade-in-up font-[family-name:var(--font-body)]">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto animate-fade-in-up font-[family-name:var(--font-body)]">
       {/* Back button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
-        onClick={() => router.push("/deals")}
-      >
-        <ArrowLeft className="h-4 w-4 mr-1" />
-        Pipeline
+      <Button variant="ghost" onClick={() => router.push("/deals")} className="gap-2 text-muted-foreground -ml-2 mb-6">
+        <ArrowLeft className="h-4 w-4" />
+        <span className="text-sm">Retour au pipeline</span>
       </Button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left content (2/3) */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Tabs */}
-          <Tabs defaultValue="devis">
-            <TabsList>
-              <TabsTrigger value="devis">
-                <FileText className="h-4 w-4 mr-1.5" />
-                Devis
-              </TabsTrigger>
-              <TabsTrigger value="notes">
-                Notes
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Devis tab */}
-            <TabsContent value="devis" className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-muted-foreground">
-                  {quotes.length} devis
-                </h2>
-                <Button size="sm" onClick={handleCreateQuote} disabled={creatingQuote}>
-                  {creatingQuote ? (
-                    <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
-                  ) : (
-                    <Plus className="h-3.5 w-3.5 mr-1" />
-                  )}
-                  Nouveau devis
-                </Button>
-              </div>
-
-              {quotes.length === 0 && (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      Aucun devis pour ce deal.
-                    </p>
-                  </CardContent>
-                </Card>
+      {/* 2-column layout — stacks on mobile */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* LEFT PANEL — Info */}
+        <div className="w-full lg:w-[340px] lg:shrink-0">
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            {/* Deal header */}
+            <div className="p-5 border-b border-border">
+              <h1 className="text-lg font-semibold truncate">{deal.name}</h1>
+              {deal.contact_name && (
+                <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
+                  <User className="h-3.5 w-3.5" />
+                  {deal.contact_name}
+                </div>
               )}
-
-              {quotes.map((q) => {
-                const config = STATUS_CONFIG[q.status] || STATUS_CONFIG.draft
-                const isExpanded = expandedQuoteId === q.id
-
-                return (
-                  <Card key={q.id}>
-                    <button
-                      onClick={() => handleExpandQuote(q.id)}
-                      className="w-full text-left"
-                    >
-                      <CardContent className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="font-medium text-sm">{q.number}</span>
-                          <Badge className={config.className}>{config.label}</Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(q.created_at)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-semibold text-sm">
-                            {formatAmount(q.total_ttc)}
-                          </span>
-                          {isExpanded ? (
-                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </div>
-                      </CardContent>
-                    </button>
-
-                    {isExpanded && (
-                      <div className="border-t">
-                        {loadingQuote ? (
-                          <div className="flex justify-center py-8">
-                            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                          </div>
-                        ) : expandedQuote ? (
-                          <QuoteEditor
-                            quote={expandedQuote}
-                            onUpdate={handleQuoteUpdate}
-                            onDelete={handleQuoteDelete}
-                          />
-                        ) : null}
-                      </div>
-                    )}
-                  </Card>
-                )
-              })}
-            </TabsContent>
-
-            {/* Notes tab */}
-            <TabsContent value="notes" className="space-y-3">
-              <RichTextEditor
-                content={notes}
-                onChange={setNotes}
-                placeholder="Notes sur ce deal..."
-                minHeight="200px"
-                onImageUpload={apiUploadImage}
-              />
-              <div className="flex justify-end">
-                <Button size="sm" onClick={handleSave} disabled={saving}>
-                  {saving ? (
-                    <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
-                  ) : (
-                    <Save className="h-3.5 w-3.5 mr-1" />
-                  )}
-                  Enregistrer les notes
-                </Button>
+              <div className="mt-3 text-xl font-semibold text-green-700">
+                {formatAmount(deal.amount)}
               </div>
-            </TabsContent>
-          </Tabs>
-        </div>
+            </div>
 
-        {/* Right sidebar (1/3) */}
-        <div>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Informations</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Name */}
+            {/* Deal fields */}
+            <div className="p-5 space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="deal-name" className="text-xs text-muted-foreground">
+                <Label htmlFor="deal-name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Nom
                 </Label>
                 <Input
                   id="deal-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className="h-9 bg-secondary/30 border-border/60"
                 />
               </div>
 
-              {/* Stage */}
               <div className="space-y-1.5">
-                <Label htmlFor="deal-stage" className="text-xs text-muted-foreground">
+                <Label htmlFor="deal-stage" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Étape
                 </Label>
                 <select
                   id="deal-stage"
                   value={stageId}
                   onChange={(e) => setStageId(e.target.value)}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  className="flex h-9 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   {stages.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -390,28 +297,8 @@ export default function DealDetailPage() {
                 </select>
               </div>
 
-              {/* Contact (read-only) */}
-              {deal.contact_name && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Contact</Label>
-                  <div className="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-muted/30 text-sm">
-                    <User className="h-3.5 w-3.5 text-muted-foreground" />
-                    {deal.contact_name}
-                  </div>
-                </div>
-              )}
-
-              {/* Amount (read-only, from quotes) */}
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Montant</Label>
-                <div className="h-9 px-3 rounded-md border border-input bg-muted/30 text-sm flex items-center font-semibold text-green-700">
-                  {formatAmount(deal.amount)}
-                </div>
-              </div>
-
-              {/* Probability */}
-              <div className="space-y-1.5">
-                <Label htmlFor="deal-probability" className="text-xs text-muted-foreground">
+                <Label htmlFor="deal-probability" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Probabilité (%)
                 </Label>
                 <Input
@@ -422,12 +309,12 @@ export default function DealDetailPage() {
                   value={probability}
                   onChange={(e) => setProbability(e.target.value)}
                   placeholder="50"
+                  className="h-9 bg-secondary/30 border-border/60"
                 />
               </div>
 
-              {/* Expected close date */}
               <div className="space-y-1.5">
-                <Label htmlFor="deal-close" className="text-xs text-muted-foreground">
+                <Label htmlFor="deal-close" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Date de clôture prévue
                 </Label>
                 <Input
@@ -435,18 +322,7 @@ export default function DealDetailPage() {
                   type="date"
                   value={expectedClose}
                   onChange={(e) => setExpectedClose(e.target.value)}
-                />
-              </div>
-
-              {/* Notes (sidebar mini) */}
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Notes</Label>
-                <RichTextEditor
-                  content={notes}
-                  onChange={setNotes}
-                  placeholder="Notes..."
-                  minHeight="80px"
-                  onImageUpload={apiUploadImage}
+                  className="h-9 bg-secondary/30 border-border/60"
                 />
               </div>
 
@@ -477,8 +353,122 @@ export default function DealDetailPage() {
                   )}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT PANEL — Tabs */}
+        <div className="flex-1 min-w-0 w-full rounded-xl border border-border bg-card overflow-hidden">
+          <Tabs defaultValue="devis">
+            <div className="px-2 pt-2">
+              <TabsList>
+                <TabsTrigger value="devis">
+                  <FileText className="h-3.5 w-3.5" />
+                  Devis
+                </TabsTrigger>
+                <TabsTrigger value="notes">
+                  Notes
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Devis tab */}
+            <TabsContent value="devis" className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-sm font-medium">
+                  {quotes.length} devis
+                </h2>
+                <Button variant="outline" size="sm" onClick={handleCreateQuote} disabled={creatingQuote} className="gap-1.5">
+                  {creatingQuote ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Plus className="h-3.5 w-3.5" />
+                  )}
+                  Nouveau devis
+                </Button>
+              </div>
+
+              {quotes.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <FileText className="h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    Aucun devis pour ce deal.
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {quotes.map((q) => {
+                  const config = STATUS_CONFIG[q.status] || STATUS_CONFIG.draft
+                  const isExpanded = expandedQuoteId === q.id
+
+                  return (
+                    <div key={q.id} className="rounded-lg border border-border overflow-hidden">
+                      <button
+                        onClick={() => handleExpandQuote(q.id)}
+                        className="w-full text-left p-4 flex items-center justify-between hover:bg-secondary/30 transition-colors"
+                      >
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="font-medium text-sm">{q.number}</span>
+                          <Badge className={config.className}>{config.label}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(q.created_at)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-semibold text-sm">
+                            {formatAmount(q.total_ttc)}
+                          </span>
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="border-t">
+                          {loadingQuote ? (
+                            <div className="flex justify-center py-8">
+                              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                            </div>
+                          ) : expandedQuote ? (
+                            <QuoteEditor
+                              quote={expandedQuote}
+                              onUpdate={handleQuoteUpdate}
+                              onDelete={handleQuoteDelete}
+                            />
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </TabsContent>
+
+            {/* Notes tab */}
+            <TabsContent value="notes" className="p-6">
+              <RichTextEditor
+                content={notes}
+                onChange={setNotes}
+                placeholder="Notes sur ce deal..."
+                minHeight="200px"
+                onImageUpload={apiUploadImage}
+              />
+              <div className="flex justify-end mt-4">
+                <Button size="sm" onClick={handleSave} disabled={saving} className="gap-1.5">
+                  {saving ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Save className="h-3.5 w-3.5" />
+                  )}
+                  Enregistrer les notes
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>

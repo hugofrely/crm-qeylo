@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dialog"
 import type { Task } from "@/types"
 import { createTask, updateTask, deleteTask } from "@/services/tasks"
+import { restoreItems } from "@/services/trash"
+import { toast } from "sonner"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 import { useMemberAutocomplete } from "@/hooks/useMemberAutocomplete"
 
@@ -109,7 +111,23 @@ export function TaskDialog({
     if (!window.confirm("Supprimer cette tâche ? Cette action est irréversible.")) return
     setDeleting(true)
     try {
-      await deleteTask(task.id)
+      const taskId = task.id
+      await deleteTask(taskId)
+      toast("Element supprime", {
+        action: {
+          label: "Annuler",
+          onClick: async () => {
+            try {
+              await restoreItems("task", [taskId])
+              toast.success("Element restaure")
+              onSuccess()
+            } catch {
+              toast.error("Erreur lors de la restauration")
+            }
+          },
+        },
+        duration: 5000,
+      })
       onOpenChange(false)
       onSuccess()
     } catch (err) {

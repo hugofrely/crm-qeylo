@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { fetchContact as fetchContactApi, updateContact, deleteContact as deleteContactApi, fetchContactCategories, fetchCustomFieldDefinitions, checkEmailAccount, fetchContactTimeline, fetchContactTasks, fetchContactDeals } from "@/services/contacts"
+import { restoreItems } from "@/services/trash"
+import { toast } from "sonner"
 import { fetchPipelineStages } from "@/services/deals"
 import { updateTask as updateTaskApi } from "@/services/tasks"
 import type { Contact, ContactCategory, CustomFieldDefinition, TimelineEntry, Task, Deal, Stage } from "@/types"
@@ -179,6 +181,20 @@ export default function ContactDetailPage() {
   const handleDelete = async () => {
     try {
       await deleteContactApi(id as string)
+      toast("Element supprime", {
+        action: {
+          label: "Annuler",
+          onClick: async () => {
+            try {
+              await restoreItems("contact", [id])
+              toast.success("Element restaure")
+            } catch {
+              toast.error("Erreur lors de la restauration")
+            }
+          },
+        },
+        duration: 5000,
+      })
       router.push("/contacts")
     } catch (err) {
       console.error("Failed to delete contact:", err)

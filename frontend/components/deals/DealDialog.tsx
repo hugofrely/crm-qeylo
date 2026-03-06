@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dialog"
 import { apiUploadImage } from "@/lib/api"
 import { createDeal, updateDeal, deleteDeal } from "@/services/deals"
+import { restoreItems } from "@/services/trash"
+import { toast } from "sonner"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
 import type { Deal, Stage } from "@/types"
@@ -110,7 +112,23 @@ export function DealDialog({
     if (!window.confirm("Supprimer ce deal ? Cette action est irréversible.")) return
     setDeleting(true)
     try {
-      await deleteDeal(deal.id)
+      const dealId = deal.id
+      await deleteDeal(dealId)
+      toast("Element supprime", {
+        action: {
+          label: "Annuler",
+          onClick: async () => {
+            try {
+              await restoreItems("deal", [dealId])
+              toast.success("Element restaure")
+              onSuccess()
+            } catch {
+              toast.error("Erreur lors de la restauration")
+            }
+          },
+        },
+        duration: 5000,
+      })
       onOpenChange(false)
       onSuccess()
     } catch (err) {
