@@ -32,9 +32,10 @@ function formatValue(value: number): string {
 interface WidgetChartProps {
   widget: WidgetConfig
   globalDateRange?: string
+  compare?: boolean
 }
 
-export function WidgetChart({ widget, globalDateRange }: WidgetChartProps) {
+export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartProps) {
   const [data, setData] = useState<AggregateResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -53,6 +54,7 @@ export function WidgetChart({ widget, globalDateRange }: WidgetChartProps) {
           date_field: filters.date_field as string | undefined,
           date_range: filters.date_range as string | undefined,
           filters,
+          compare,
         })
         setData(result)
       } catch {
@@ -62,7 +64,7 @@ export function WidgetChart({ widget, globalDateRange }: WidgetChartProps) {
       }
     }
     load()
-  }, [widget.source, widget.metric, widget.group_by, JSON.stringify(widget.filters), globalDateRange])
+  }, [widget.source, widget.metric, widget.group_by, JSON.stringify(widget.filters), globalDateRange, compare])
 
   if (loading) {
     return (
@@ -88,11 +90,28 @@ export function WidgetChart({ widget, globalDateRange }: WidgetChartProps) {
   }
 
   if (widget.type === "kpi_card") {
+    const hasDelta = data.delta_percent !== undefined && data.delta_percent !== null
+    const deltaPositive = (data.delta_percent ?? 0) >= 0
+
     return (
-      <div className="flex flex-col items-center justify-center h-48 gap-2">
+      <div className="flex flex-col items-center justify-center h-48 gap-3">
         <span className="text-4xl font-light tracking-tight">
           {formatValue(data.total)}
         </span>
+        {hasDelta && (
+          <div className="flex items-center gap-1.5">
+            <span
+              className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-medium ${
+                deltaPositive
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : "bg-red-500/10 text-red-600 dark:text-red-400"
+              }`}
+            >
+              {deltaPositive ? "\u2191" : "\u2193"}
+              {Math.abs(data.delta_percent ?? 0)}%
+            </span>
+          </div>
+        )}
       </div>
     )
   }
