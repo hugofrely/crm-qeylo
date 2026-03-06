@@ -51,7 +51,7 @@ export function SearchHeader() {
 
   return (
     <div className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
-      <div className="flex items-center gap-3 px-6 py-3">
+      <div className="flex items-center gap-3 pl-16 lg:pl-6 pr-6 py-3">
         {/* Search input */}
         <div ref={containerRef} className="relative flex-1 max-w-xl">
           <div className="relative">

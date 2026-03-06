@@ -141,12 +141,12 @@ export function SegmentConditionRow({ condition, onChange, onRemove, customField
   const isDateDuration = ["within_last", "within_next"].includes(condition.operator)
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       {/* Field selector */}
       <select
         value={condition.field}
         onChange={(e) => onChange({ ...condition, field: e.target.value, operator: getOperatorsForField(e.target.value)[0]?.value ?? "equals", value: "" })}
-        className="flex h-9 rounded-md border border-border/60 bg-secondary/30 px-2 py-1 text-sm min-w-[160px]"
+        className="flex h-9 flex-1 basis-[140px] rounded-md border border-border/60 bg-secondary/30 px-2 py-1 text-sm"
       >
         <option value="">-- Champ --</option>
         {allFields.map((group) => (
@@ -162,7 +162,7 @@ export function SegmentConditionRow({ condition, onChange, onRemove, customField
       <select
         value={condition.operator}
         onChange={(e) => onChange({ ...condition, operator: e.target.value })}
-        className="flex h-9 rounded-md border border-border/60 bg-secondary/30 px-2 py-1 text-sm min-w-[140px]"
+        className="flex h-9 flex-1 basis-[120px] rounded-md border border-border/60 bg-secondary/30 px-2 py-1 text-sm"
       >
         {operators.map((op) => (
           <option key={op.value} value={op.value}>{op.label}</option>
@@ -176,7 +176,7 @@ export function SegmentConditionRow({ condition, onChange, onRemove, customField
             <select
               value={condition.value as string ?? ""}
               onChange={(e) => onChange({ ...condition, value: e.target.value })}
-              className="flex h-9 rounded-md border border-border/60 bg-secondary/30 px-2 py-1 text-sm min-w-[120px]"
+              className="flex h-9 flex-1 basis-[100px] rounded-md border border-border/60 bg-secondary/30 px-2 py-1 text-sm"
             >
               <option value="">--</option>
               {selectOptions.map((opt) => (
@@ -184,7 +184,7 @@ export function SegmentConditionRow({ condition, onChange, onRemove, customField
               ))}
             </select>
           ) : isDateDuration ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-1 basis-[100px]">
               <Input
                 type="number"
                 min={1}
@@ -208,13 +208,13 @@ export function SegmentConditionRow({ condition, onChange, onRemove, customField
               type="date"
               value={condition.value as string ?? ""}
               onChange={(e) => onChange({ ...condition, value: e.target.value })}
-              className="h-9 bg-secondary/30 border-border/60 min-w-[140px]"
+              className="h-9 bg-secondary/30 border-border/60 flex-1 basis-[120px]"
             />
           ) : (
             <Input
               value={condition.value as string ?? ""}
               onChange={(e) => onChange({ ...condition, value: e.target.value })}
-              className="h-9 bg-secondary/30 border-border/60 min-w-[120px]"
+              className="h-9 bg-secondary/30 border-border/60 flex-1 basis-[100px]"
               placeholder="Valeur..."
             />
           )}

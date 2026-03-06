@@ -198,7 +198,7 @@ export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange }: Kanb
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4 min-h-[400px]">
+      <div className="flex gap-4 overflow-x-auto pb-4 h-full">
         {pipeline.map((stageData) => (
           <KanbanColumn
             key={stageData.stage.id}

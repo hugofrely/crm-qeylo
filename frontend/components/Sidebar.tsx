@@ -91,8 +91,16 @@ export function Sidebar() {
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
+        {/* Brand */}
+        <div className="px-5 pt-5 pb-2 flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--sidebar-primary)] shrink-0">
+            <MessageSquare className="h-4 w-4 text-[var(--sidebar-primary-foreground)]" />
+          </div>
+          <span className="text-lg tracking-tight font-semibold text-[var(--sidebar-foreground)]">Qeylo</span>
+        </div>
+
         {/* Organization switcher */}
-        <div className="px-3 py-4">
+        <div className="px-3 py-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-[var(--sidebar-accent)]/50 transition-colors">

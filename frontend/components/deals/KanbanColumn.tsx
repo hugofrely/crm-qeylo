@@ -38,7 +38,7 @@ export function KanbanColumn({ stage, deals, totalAmount, onDealClick }: KanbanC
   const dealIds = deals.map((d) => `deal-${d.id}`)
 
   return (
-    <div className="flex flex-col w-72 shrink-0">
+    <div className="flex flex-col w-72 shrink-0 h-full">
       {/* Header */}
       <div className="mb-3">
         <div className="flex items-center gap-2 mb-1">
@@ -60,13 +60,13 @@ export function KanbanColumn({ stage, deals, totalAmount, onDealClick }: KanbanC
       <SortableContext items={dealIds} strategy={verticalListSortingStrategy}>
         <div
           ref={setNodeRef}
-          className={`flex-1 rounded-lg border-2 border-dashed p-2 space-y-2 min-h-[200px] transition-colors ${
+          className={`flex-1 min-h-0 rounded-lg border-2 border-dashed p-2 space-y-2 transition-colors ${
             isOver
               ? "border-primary/50 bg-primary/5"
               : "border-transparent bg-muted/30"
           }`}
         >
-          <ScrollArea className="h-full max-h-[calc(100vh-250px)]">
+          <ScrollArea className="h-full">
             <div className="space-y-2 pr-2">
               {deals.map((deal) => (
                 <DealCard key={deal.id} deal={deal} onClick={() => onDealClick?.(deal)} />

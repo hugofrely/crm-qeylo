@@ -268,17 +268,17 @@ export default function ContactDetailPage() {
      ────────────────────────────────────────────────────────────── */
 
   return (
-    <div className="p-6 lg:p-8 max-w-[1400px] mx-auto animate-fade-in-up">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto animate-fade-in-up">
       {/* Back button */}
       <Button variant="ghost" onClick={() => router.push("/contacts")} className="gap-2 text-muted-foreground -ml-2 mb-6">
         <ArrowLeft className="h-4 w-4" />
         <span className="font-[family-name:var(--font-body)] text-sm">Retour aux contacts</span>
       </Button>
 
-      {/* 2-column layout */}
-      <div className="flex gap-6 items-start">
+      {/* 2-column layout — stacks on mobile */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* LEFT PANEL */}
-        <div className="w-[340px] shrink-0 space-y-4">
+        <div className="w-full lg:w-[340px] lg:shrink-0 space-y-4">
           {editing ? (
             <div className="space-y-4">
               <ContactHeader
@@ -331,33 +331,33 @@ export default function ContactDetailPage() {
         </div>
 
         {/* RIGHT PANEL (TABS) */}
-        <div className="flex-1 min-w-0 rounded-xl border border-border bg-card overflow-hidden">
+        <div className="flex-1 min-w-0 rounded-xl border border-border bg-card overflow-hidden pt-2 w-full">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="px-2 overflow-x-auto">
-              <TabsList>
-                <TabsTrigger value="activities">
+            <div className="px-2">
+              <TabsList className="w-full">
+                <TabsTrigger value="activities" className="group/tab">
                   <MessageCircle className="h-3.5 w-3.5" />
-                  Activites
+                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Activites</span>
                 </TabsTrigger>
-                <TabsTrigger value="notes">
+                <TabsTrigger value="notes" className="group/tab">
                   <FileText className="h-3.5 w-3.5" />
-                  Notes
+                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Notes</span>
                 </TabsTrigger>
-                <TabsTrigger value="emails">
+                <TabsTrigger value="emails" className="group/tab">
                   <Mail className="h-3.5 w-3.5" />
-                  Emails
+                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Emails</span>
                 </TabsTrigger>
-                <TabsTrigger value="tasks">
+                <TabsTrigger value="tasks" className="group/tab">
                   <Target className="h-3.5 w-3.5" />
-                  Taches
+                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Taches</span>
                 </TabsTrigger>
-                <TabsTrigger value="deals">
+                <TabsTrigger value="deals" className="group/tab">
                   <Briefcase className="h-3.5 w-3.5" />
-                  Deals
+                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Deals</span>
                 </TabsTrigger>
-                <TabsTrigger value="history">
+                <TabsTrigger value="history" className="group/tab">
                   <Clock className="h-3.5 w-3.5" />
-                  Historique
+                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Historique</span>
                 </TabsTrigger>
               </TabsList>
             </div>

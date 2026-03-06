@@ -4,7 +4,7 @@ import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { X, RotateCcw, SlidersHorizontal } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+
 
 interface FilterPanelProps {
   open: boolean
@@ -15,22 +15,19 @@ interface FilterPanelProps {
 }
 
 export function FilterPanel({ open, onOpenChange, onReset, activeFilterCount, children }: FilterPanelProps) {
+  if (!open) return null
+
   return (
     <>
       {/* Backdrop */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/20 m-0"
-          onClick={() => onOpenChange(false)}
-        />
-      )}
+      <div
+        className="fixed inset-0 z-40 bg-black/20 m-0 animate-in fade-in duration-200"
+        onClick={() => onOpenChange(false)}
+      />
 
       {/* Drawer */}
       <div
-        className={cn(
-          "fixed inset-y-0 right-0 z-50 w-[320px] max-w-[85vw] bg-background border-l border-border overflow-y-auto transition-transform duration-300 ease-in-out shadow-xl",
-          open ? "translate-x-0" : "translate-x-full"
-        )}
+        className="fixed inset-y-0 right-0 z-50 w-[320px] max-w-[85vw] bg-background border-l border-border overflow-y-auto shadow-xl animate-in slide-in-from-right duration-300"
       >
         {/* Header */}
         <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center justify-between z-10">

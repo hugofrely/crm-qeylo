@@ -111,23 +111,23 @@ export default function DealsPage() {
   const deletePipelineData = pipelines.find((p) => p.id === deleteDialogId)
 
   return (
-    <div className="p-8 lg:p-12 space-y-8 animate-fade-in-up">
+    <div className="flex flex-col h-full animate-fade-in-up">
       {/* Header */}
-      <PageHeader title="Pipeline" subtitle="Gérez vos deals par étape du pipeline">
-        <Button onClick={() => setDialogOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nouveau deal
-        </Button>
-      </PageHeader>
+      <div className="p-4 sm:p-8 lg:px-12 lg:pt-12 lg:pb-0 space-y-6 shrink-0">
+        <PageHeader title="Pipeline" subtitle="Gérez vos deals par étape du pipeline">
+          <Button onClick={() => setDialogOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Nouveau deal
+          </Button>
+        </PageHeader>
 
-      {/* Pipeline tabs */}
-      <Tabs value={selectedPipelineId ?? undefined} onValueChange={setSelectedPipelineId}>
-        <div className="flex items-center gap-1">
-          <TabsList>
-            {pipelines.map((p) => (
-              <div key={p.id} className="group relative flex items-center">
-                {renamingId === p.id ? (
-                  <div className="flex items-center gap-1 px-1">
+        {/* Pipeline tabs */}
+        <Tabs value={selectedPipelineId ?? undefined} onValueChange={setSelectedPipelineId}>
+          <div className="flex items-center gap-2">
+            <TabsList>
+              {pipelines.map((p) => (
+                renamingId === p.id ? (
+                  <div key={p.id} className="flex items-center gap-1 px-1">
                     <Input
                       ref={renameInputRef}
                       value={renameValue}
@@ -144,62 +144,67 @@ export default function DealsPage() {
                     </Button>
                   </div>
                 ) : (
-                  <>
-                    <TabsTrigger value={p.id}>{p.name}</TabsTrigger>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1 rounded hover:bg-muted/60 -ml-1">
-                          <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start">
-                        <DropdownMenuItem onClick={() => { setRenamingId(p.id); setRenameValue(p.name) }}>
-                          <Pencil className="h-4 w-4" />
-                          Renommer
-                        </DropdownMenuItem>
-                        {!p.is_default && (
-                          <DropdownMenuItem onClick={() => handleSetDefault(p.id)}>
-                            <Star className="h-4 w-4" />
-                            Définir par défaut
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem onClick={() => router.push("/settings/pipeline")}>
-                          <Settings className="h-4 w-4" />
-                          Gérer les étapes
-                        </DropdownMenuItem>
-                        {pipelines.length > 1 && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem variant="destructive" onClick={() => setDeleteDialogId(p.id)}>
-                              <Trash2 className="h-4 w-4" />
-                              Supprimer
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                )}
-              </div>
-            ))}
-          </TabsList>
-          <button
-            onClick={() => setCreatePipelineOpen(true)}
-            className="shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-        </div>
-      </Tabs>
+                  <TabsTrigger key={p.id} value={p.id}>{p.name}</TabsTrigger>
+                )
+              ))}
+            </TabsList>
 
-      {/* Kanban Board */}
-      {selectedPipelineId && (
-        <KanbanBoard
-          pipelineId={selectedPipelineId}
-          dialogOpen={dialogOpen}
-          onDialogOpenChange={setDialogOpen}
-        />
-      )}
+            {/* Actions outside TabsList */}
+            {selectedPipelineId && !renamingId && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={() => { setRenamingId(selectedPipelineId); setRenameValue(pipelines.find((p) => p.id === selectedPipelineId)?.name ?? "") }}>
+                    <Pencil className="h-4 w-4" />
+                    Renommer
+                  </DropdownMenuItem>
+                  {!pipelines.find((p) => p.id === selectedPipelineId)?.is_default && (
+                    <DropdownMenuItem onClick={() => handleSetDefault(selectedPipelineId)}>
+                      <Star className="h-4 w-4" />
+                      Définir par défaut
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => router.push("/settings/pipeline")}>
+                    <Settings className="h-4 w-4" />
+                    Gérer les étapes
+                  </DropdownMenuItem>
+                  {pipelines.length > 1 && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem variant="destructive" onClick={() => setDeleteDialogId(selectedPipelineId)}>
+                        <Trash2 className="h-4 w-4" />
+                        Supprimer
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            <button
+              onClick={() => setCreatePipelineOpen(true)}
+              className="shrink-0 p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded hover:bg-muted"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        </Tabs>
+      </div>
+
+      {/* Kanban Board — fills remaining height */}
+      <div className="flex-1 min-h-0 px-4 sm:px-8 lg:px-12 py-6">
+        {selectedPipelineId && (
+          <KanbanBoard
+            pipelineId={selectedPipelineId}
+            dialogOpen={dialogOpen}
+            onDialogOpenChange={setDialogOpen}
+          />
+        )}
+      </div>
 
       <CreatePipelineDialog
         open={createPipelineOpen}

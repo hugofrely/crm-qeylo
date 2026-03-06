@@ -135,7 +135,7 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
 
         <div className="space-y-6">
           {/* Name & description */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
                 Nom
@@ -161,7 +161,7 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
           </div>
 
           {/* Color & pinned */}
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
                 Couleur
