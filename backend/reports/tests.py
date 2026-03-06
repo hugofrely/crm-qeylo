@@ -191,3 +191,95 @@ class ReportTests(TestCase):
         response1 = self.client.get("/api/dashboard/")
         response2 = self.client.get("/api/dashboard/")
         self.assertEqual(response1.data["id"], response2.data["id"])
+
+
+class FunnelTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "email": "funnel@example.com",
+                "password": "securepass123",
+                "first_name": "Test",
+                "last_name": "User",
+                "organization_name": "Funnel Org",
+            },
+        )
+        self.token = response.data["access"]
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+        from organizations.models import Membership
+        from deals.models import Pipeline, PipelineStage
+        self.membership = Membership.objects.get(user__email="funnel@example.com")
+        self.org = self.membership.organization
+        self.pipeline = Pipeline.objects.filter(organization=self.org).first()
+        self.stages = list(self.pipeline.stages.order_by("order"))
+
+    def _create_deal_and_advance(self, name, amount, stages_to_visit):
+        """Create a deal and move it through the given stages in order."""
+        response = self.client.post(
+            "/api/deals/",
+            {"name": name, "amount": str(amount), "stage": str(stages_to_visit[0].id)},
+            format="json",
+        )
+        deal_id = response.data["id"]
+        for stage in stages_to_visit[1:]:
+            self.client.patch(
+                f"/api/deals/{deal_id}/",
+                {"stage": str(stage.id)},
+                format="json",
+            )
+        return deal_id
+
+    def test_funnel_basic(self):
+        # 3 deals enter stage 0, 2 advance to stage 1, 1 advances to stage 2
+        self._create_deal_and_advance("D1", 1000, self.stages[:3])
+        self._create_deal_and_advance("D2", 2000, self.stages[:2])
+        self._create_deal_and_advance("D3", 3000, [self.stages[0]])
+
+        response = self.client.post(
+            "/api/reports/funnel/",
+            {"pipeline_id": str(self.pipeline.id)},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.data
+        self.assertEqual(data["pipeline"], self.pipeline.name)
+        self.assertIn("stages", data)
+        self.assertEqual(data["stages"][0]["entered"], 3)
+        self.assertEqual(data["stages"][1]["entered"], 2)
+        self.assertEqual(data["stages"][2]["entered"], 1)
+
+    def test_funnel_requires_pipeline_id(self):
+        response = self.client.post(
+            "/api/reports/funnel/", {}, format="json"
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_funnel_cohort_filter(self):
+        self._create_deal_and_advance("D1", 1000, self.stages[:2])
+        response = self.client.post(
+            "/api/reports/funnel/",
+            {
+                "pipeline_id": str(self.pipeline.id),
+                "filter_mode": "cohort",
+                "date_range": "this_month",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(response.data["stages"][0]["entered"], 1)
+
+    def test_funnel_activity_filter(self):
+        self._create_deal_and_advance("D1", 1000, self.stages[:2])
+        response = self.client.post(
+            "/api/reports/funnel/",
+            {
+                "pipeline_id": str(self.pipeline.id),
+                "filter_mode": "activity",
+                "date_range": "this_month",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(response.data["stages"][0]["entered"], 1)

@@ -7,5 +7,6 @@ router.register("", views.ReportViewSet, basename="report")
 
 urlpatterns = [
     path("aggregate/", views.aggregate_view),
+    path("funnel/", views.funnel_view),
     path("", include(router.urls)),
 ]

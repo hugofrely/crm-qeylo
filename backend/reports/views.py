@@ -63,3 +63,32 @@ def aggregate_view(request):
         return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(result)
+
+
+from .funnel import compute_funnel
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def funnel_view(request):
+    data = request.data
+    pipeline_id = data.get("pipeline_id")
+    if not pipeline_id:
+        return Response(
+            {"detail": "pipeline_id is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    result = compute_funnel(
+        organization=request.organization,
+        pipeline_id=pipeline_id,
+        filter_mode=data.get("filter_mode"),
+        date_range=data.get("date_range"),
+        date_from=data.get("date_from"),
+        date_to=data.get("date_to"),
+    )
+
+    if "error" in result:
+        return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(result)
