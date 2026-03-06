@@ -15,6 +15,7 @@ import {
 import type { Task } from "@/types"
 import { createTask, updateTask, deleteTask } from "@/services/tasks"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
+import { useMemberAutocomplete } from "@/hooks/useMemberAutocomplete"
 
 interface TaskDialogProps {
   open: boolean
@@ -40,6 +41,8 @@ export function TaskDialog({
   const [deleting, setDeleting] = useState(false)
 
   const contactAutocomplete = useContactAutocomplete()
+  const memberAutocomplete = useMemberAutocomplete()
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([])
 
   useEffect(() => {
     if (open) {
@@ -49,14 +52,17 @@ export function TaskDialog({
         setPriority(task.priority)
         setContactId(task.contact || "")
         setContactLabel(task.contact_name || "")
+        setAssigneeIds(task.assignees ? task.assignees.map((a) => a.user_id) : [])
       } else {
         setDescription("")
         setDueDate("")
         setPriority("normal")
         setContactId("")
         setContactLabel("")
+        setAssigneeIds([])
       }
       contactAutocomplete.reset()
+      memberAutocomplete.reset()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, task])
@@ -70,6 +76,7 @@ export function TaskDialog({
         due_date: dueDate || null,
         priority,
         contact: contactId || null,
+        assigned_to: assigneeIds,
       }
 
       if (isEditing) {
@@ -206,6 +213,71 @@ export function TaskDialog({
               {contactAutocomplete.open && contactAutocomplete.query && !contactAutocomplete.searching && contactAutocomplete.results.length === 0 && (
                 <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg px-3 py-3 text-sm text-muted-foreground text-center">
                   Aucun contact trouvé
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Assignés */}
+          <div className="space-y-1.5">
+            <Label>Assignés</Label>
+            {assigneeIds.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {assigneeIds.map((uid) => {
+                  const member = memberAutocomplete.allMembers.find((m) => m.user_id === uid)
+                  if (!member) return null
+                  return (
+                    <span
+                      key={uid}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs font-medium"
+                    >
+                      {member.first_name} {member.last_name}
+                      <button
+                        type="button"
+                        onClick={() => setAssigneeIds((prev) => prev.filter((id) => id !== uid))}
+                        className="ml-0.5 rounded-full p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+            <div ref={memberAutocomplete.wrapperRef} className="relative">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  value={memberAutocomplete.query}
+                  onChange={(e) => memberAutocomplete.search(e.target.value)}
+                  onFocus={() => memberAutocomplete.search(memberAutocomplete.query)}
+                  placeholder="Rechercher un membre…"
+                  className="pl-8"
+                />
+              </div>
+              {memberAutocomplete.open && (
+                <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg max-h-48 overflow-y-auto">
+                  {memberAutocomplete.results
+                    .filter((m) => !assigneeIds.includes(m.user_id))
+                    .map((m) => (
+                      <button
+                        key={m.user_id}
+                        type="button"
+                        onClick={() => {
+                          setAssigneeIds((prev) => [...prev, m.user_id])
+                          memberAutocomplete.reset()
+                        }}
+                        className="flex w-full items-center px-3 py-2 text-sm hover:bg-secondary/50 transition-colors text-left"
+                      >
+                        {m.first_name} {m.last_name}
+                        <span className="ml-auto text-xs text-muted-foreground">{m.email}</span>
+                      </button>
+                    ))}
+                  {memberAutocomplete.results.filter((m) => !assigneeIds.includes(m.user_id)).length === 0 && (
+                    <div className="px-3 py-3 text-sm text-muted-foreground text-center">
+                      {memberAutocomplete.query ? "Aucun membre trouvé" : "Tous les membres sont déjà assignés"}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
