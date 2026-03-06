@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { fetchFunnel } from "@/services/reports"
 import { fetchPipelines } from "@/services/deals"
 import { FunnelChart } from "@/components/reports/FunnelChart"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import type { FunnelResponse } from "@/types"
 
 const DATE_RANGES = [
@@ -31,6 +33,14 @@ export default function FunnelPage() {
   const [dateRange, setDateRange] = useState("")
   const [data, setData] = useState<FunnelResponse | null>(null)
   const [loading, setLoading] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+
+  const activeFilterCount = [filterMode, dateRange].filter(Boolean).length
+
+  const resetFilters = () => {
+    setFilterMode("")
+    setDateRange("")
+  }
 
   useEffect(() => {
     fetchPipelines().then((p) => {
@@ -60,38 +70,43 @@ export default function FunnelPage() {
   }, [pipelineId, filterMode, dateRange])
 
   const selectClass =
-    "h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    "h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-full"
 
   return (
     <div className="p-8 lg:p-12 max-w-5xl mx-auto space-y-8 animate-fade-in-up">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl tracking-tight">Entonnoir de conversion</h1>
+      <PageHeader title="Entonnoir de conversion">
         {data && (
           <div className="text-right">
             <div className="text-3xl font-light tracking-tight">{data.overall_conversion}%</div>
             <div className="text-xs text-muted-foreground">Conversion globale</div>
           </div>
         )}
-      </div>
+        <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
+      </PageHeader>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className={selectClass}>
-          {pipelines.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-        <select value={filterMode} onChange={(e) => setFilterMode(e.target.value as "" | "cohort" | "activity")} className={selectClass}>
-          <option value="">Tous les deals</option>
-          <option value="cohort">Par cohorte d&apos;entree</option>
-          <option value="activity">Par activite</option>
-        </select>
-        <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className={selectClass}>
-          {DATE_RANGES.map((d) => (
-            <option key={d.value} value={d.value}>{d.label}</option>
-          ))}
-        </select>
-      </div>
+      <FilterPanel open={filterOpen} onOpenChange={setFilterOpen} onReset={resetFilters} activeFilterCount={activeFilterCount}>
+        <FilterSection label="Pipeline">
+          <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className={selectClass}>
+            {pipelines.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </FilterSection>
+        <FilterSection label="Mode de filtre">
+          <select value={filterMode} onChange={(e) => setFilterMode(e.target.value as "" | "cohort" | "activity")} className={selectClass}>
+            <option value="">Tous les deals</option>
+            <option value="cohort">Par cohorte d&apos;entree</option>
+            <option value="activity">Par activite</option>
+          </select>
+        </FilterSection>
+        <FilterSection label="Periode">
+          <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className={selectClass}>
+            {DATE_RANGES.map((d) => (
+              <option key={d.value} value={d.value}>{d.label}</option>
+            ))}
+          </select>
+        </FilterSection>
+      </FilterPanel>
 
       {/* Funnel */}
       <div className="rounded-xl border border-border bg-card p-8">
