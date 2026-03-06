@@ -120,6 +120,27 @@ export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
                 </div>
               )}
             </div>
+            {task.assignees && task.assignees.length > 0 && (
+              <div className="flex items-center gap-1">
+                {task.assignees.slice(0, 3).map((a) => (
+                  <span
+                    key={a.user_id}
+                    title={`${a.first_name} ${a.last_name}`}
+                    className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-[10px] font-medium shrink-0"
+                  >
+                    {a.first_name[0]}{a.last_name[0]}
+                  </span>
+                ))}
+                {task.assignees.length > 3 && (
+                  <span
+                    title={task.assignees.slice(3).map((a) => `${a.first_name} ${a.last_name}`).join(", ")}
+                    className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-muted text-muted-foreground text-[10px] font-medium shrink-0"
+                  >
+                    +{task.assignees.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <div className="shrink-0">
             {getPriorityBadge(task.priority)}
