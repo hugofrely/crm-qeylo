@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
 import { QuoteEditor } from "@/components/deals/QuoteEditor"
@@ -76,8 +77,7 @@ export default function DealDetailPage() {
   const [loadingQuote, setLoadingQuote] = useState(false)
   const [creatingQuote, setCreatingQuote] = useState(false)
 
-  // Tabs
-  const [activeTab, setActiveTab] = useState<"devis" | "notes">("devis")
+  // Tabs (managed by Shadcn Tabs)
 
   const loadDeal = useCallback(async () => {
     try {
@@ -240,33 +240,19 @@ export default function DealDetailPage() {
         {/* Left content (2/3) */}
         <div className="lg:col-span-2 space-y-4">
           {/* Tabs */}
-          <div className="flex gap-1 border-b">
-            <button
-              onClick={() => setActiveTab("devis")}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "devis"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <FileText className="h-4 w-4 inline mr-1.5 -mt-0.5" />
-              Devis
-            </button>
-            <button
-              onClick={() => setActiveTab("notes")}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "notes"
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Notes
-            </button>
-          </div>
+          <Tabs defaultValue="devis">
+            <TabsList>
+              <TabsTrigger value="devis">
+                <FileText className="h-4 w-4 mr-1.5" />
+                Devis
+              </TabsTrigger>
+              <TabsTrigger value="notes">
+                Notes
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Devis tab */}
-          {activeTab === "devis" && (
-            <div className="space-y-3">
+            {/* Devis tab */}
+            <TabsContent value="devis" className="space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-muted-foreground">
                   {quotes.length} devis
@@ -341,12 +327,10 @@ export default function DealDetailPage() {
                   </Card>
                 )
               })}
-            </div>
-          )}
+            </TabsContent>
 
-          {/* Notes tab */}
-          {activeTab === "notes" && (
-            <div className="space-y-3">
+            {/* Notes tab */}
+            <TabsContent value="notes" className="space-y-3">
               <RichTextEditor
                 content={notes}
                 onChange={setNotes}
@@ -364,8 +348,8 @@ export default function DealDetailPage() {
                   Enregistrer les notes
                 </Button>
               </div>
-            </div>
-          )}
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Right sidebar (1/3) */}
