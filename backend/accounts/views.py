@@ -39,6 +39,8 @@ def register(request):
         role="owner",
     )
     Pipeline.create_defaults(org)
+    from organizations.models import OrganizationSettings
+    OrganizationSettings.objects.create(organization=org)
 
     # Auto-accept pending invitations for this email
     pending = Invitation.objects.filter(email=user.email, status="pending")

@@ -66,3 +66,18 @@ class Invitation(models.Model):
 
     def __str__(self):
         return f"Invitation {self.email} → {self.organization.name}"
+
+
+def default_reminder_offsets():
+    return [60, 1440]
+
+
+class OrganizationSettings(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.OneToOneField(
+        Organization, on_delete=models.CASCADE, related_name="settings"
+    )
+    task_reminder_offsets = models.JSONField(default=default_reminder_offsets)
+
+    def __str__(self):
+        return f"Settings for {self.organization.name}"

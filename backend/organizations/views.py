@@ -14,7 +14,7 @@ from contacts.models import ContactCategory
 from notifications.email import send_invitation_email
 from notifications.helpers import create_notification
 
-from .models import Invitation, Membership, Organization
+from .models import Invitation, Membership, Organization, OrganizationSettings
 from .serializers import (
     InvitationSerializer,
     MemberSerializer,
@@ -60,6 +60,7 @@ def organization_list(request):
     org = Organization.objects.create(name=serializer.validated_data["name"], slug=slug)
     Membership.objects.create(organization=org, user=request.user, role="owner")
     create_default_categories(org)
+    OrganizationSettings.objects.create(organization=org)
     return Response(OrganizationSerializer(org).data, status=status.HTTP_201_CREATED)
 
 
