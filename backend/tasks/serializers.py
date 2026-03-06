@@ -111,6 +111,12 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         assigned_to = validated_data.pop("assigned_to", None)
+
+        # Clear reminders if due_date is changing
+        new_due_date = validated_data.get("due_date")
+        if new_due_date and new_due_date != instance.due_date:
+            instance.reminders.all().delete()
+
         task = super().update(instance, validated_data)
         if assigned_to is not None:
             request = self.context.get("request")

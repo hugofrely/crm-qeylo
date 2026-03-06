@@ -282,3 +282,26 @@ class TaskTests(TestCase):
             format="json",
         )
         self.assertEqual(TaskAssignment.objects.filter(task_id=task_id).count(), 1)
+
+    def test_reminders_reset_on_due_date_change(self):
+        """Changing due_date should delete existing TaskReminder records."""
+        from tasks.models import TaskReminder
+
+        r = self.client.post(
+            "/api/tasks/",
+            {"description": "Reminder test", "due_date": "2026-03-10T10:00:00Z"},
+        )
+        task_id = r.data["id"]
+
+        # Simulate a sent reminder
+        TaskReminder.objects.create(task_id=task_id, offset_minutes=60)
+        self.assertEqual(TaskReminder.objects.filter(task_id=task_id).count(), 1)
+
+        # Change due_date
+        self.client.patch(
+            f"/api/tasks/{task_id}/",
+            {"due_date": "2026-03-15T14:00:00Z"},
+        )
+
+        # Reminders should be cleared
+        self.assertEqual(TaskReminder.objects.filter(task_id=task_id).count(), 0)
