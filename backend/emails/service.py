@@ -12,8 +12,9 @@ from django.utils import timezone
 from contacts.models import Contact
 from notes.models import TimelineEntry
 
-from .models import EmailAccount, SentEmail
+from .models import EmailAccount, SentEmail, EmailTemplate
 from .oauth import get_valid_access_token
+from .template_rendering import render_email_template, build_template_context
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ def send_email(
     contact_id: str | None = None,
     to_email: str = "",
     provider: str = "",
+    template_id: str | None = None,
 ) -> SentEmail:
     """
     Send an email via the user's connected account.
@@ -43,6 +45,16 @@ def send_email(
             to_email = contact.email
     if not to_email:
         raise ValueError("Ce contact n'a pas d'adresse email.")
+
+    # Resolve template if provided
+    template = None
+    if template_id:
+        try:
+            template = EmailTemplate.objects.get(id=template_id, organization=organization)
+        except EmailTemplate.DoesNotExist:
+            raise ValueError(f"Template {template_id} introuvable.")
+        context = build_template_context(contact=contact)
+        subject, body_html = render_email_template(template.subject, template.body_html, context)
 
     # Resolve email account
     accounts = EmailAccount.objects.filter(
@@ -74,6 +86,7 @@ def send_email(
         subject=subject,
         body_html=body_html,
         provider_message_id=message_id,
+        template=template,
     )
 
     # Create timeline entry

@@ -14,6 +14,7 @@ class SendEmailSerializer(serializers.Serializer):
     to_email = serializers.EmailField(required=False, allow_blank=True)
     subject = serializers.CharField(max_length=500)
     body_html = serializers.CharField()
+    template_id = serializers.UUIDField(required=False, allow_null=True)
     provider = serializers.ChoiceField(
         choices=[("gmail", "Gmail"), ("outlook", "Outlook")],
         required=False,

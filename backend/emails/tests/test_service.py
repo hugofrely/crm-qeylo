@@ -88,3 +88,32 @@ class SendEmailServiceTests(TestCase):
         ).first()
         self.assertIsNotNone(entry)
         self.assertEqual(entry.subject, "Relance devis")
+
+    @patch("emails.service._send_via_gmail")
+    @patch("emails.service.get_valid_access_token")
+    def test_send_with_template_resolves_variables(self, mock_token, mock_send):
+        from emails.models import EmailTemplate
+
+        mock_token.return_value = "valid_token"
+        mock_send.return_value = "msg_id_456"
+
+        template = EmailTemplate.objects.create(
+            organization=self.org,
+            created_by=self.user,
+            name="Relance",
+            subject="Bonjour {{contact.first_name}}",
+            body_html="<p>Cher {{contact.first_name}} {{contact.last_name}}</p>",
+        )
+
+        sent = send_email(
+            user=self.user,
+            organization=self.org,
+            contact_id=str(self.contact.id),
+            subject="ignored",
+            body_html="<p>ignored</p>",
+            template_id=str(template.id),
+        )
+
+        self.assertEqual(sent.subject, "Bonjour Jean")
+        self.assertIn("Cher Jean Dupont", sent.body_html)
+        self.assertEqual(sent.template, template)
