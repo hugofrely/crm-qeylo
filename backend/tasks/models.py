@@ -63,3 +63,16 @@ class TaskAssignment(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.task}"
+
+
+class TaskReminder(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="reminders")
+    offset_minutes = models.IntegerField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("task", "offset_minutes")
+
+    def __str__(self):
+        return f"Reminder {self.offset_minutes}min for {self.task}"
