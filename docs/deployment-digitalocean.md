@@ -72,16 +72,28 @@ Note l'**ID** du Valkey.
 doctl apps create --spec .do/app.yaml
 ```
 
-Note l'**App ID** retourne.
+Note l'**App ID** retourne (quelque chose comme `a1b2c3d4-...`).
 
-> **Important** : L'app spec reference `${db-staging.DATABASE_URL}` et `${redis-staging.DATABASE_URL}`.
-> Tu devras lier les bases de donnees a l'app via le dashboard DigitalOcean :
-> 1. Va sur https://cloud.digitalocean.com/apps
-> 2. Clique sur ton app `crm-qeylo-staging`
-> 3. Settings > Components > backend > Environment Variables
-> 4. Pour `DATABASE_URL`, clique "Edit" et lie-la a ta Managed Database `db-postgresql-fra1-20117`
-> 5. Fais la meme chose pour `CELERY_BROKER_URL` et `CELERY_RESULT_BACKEND` avec `db-valkey-staging` (Valkey)
-> 6. Repete pour les workers `celery-worker` et `celery-beat`
+Ensuite, recupere les connection strings de tes bases de donnees :
+
+```bash
+# Connection string PostgreSQL
+doctl databases connection db-postgresql-fra1-20117 --format URI
+
+# Connection string Valkey
+doctl databases connection db-valkey-staging --format URI
+```
+
+Puis va dans le dashboard DigitalOcean pour configurer les secrets :
+
+1. Va sur https://cloud.digitalocean.com/apps > `crm-qeylo-staging`
+2. Clique sur **Settings** > **App-Level Environment Variables** (en haut, pas par composant)
+3. Ajoute ces 3 variables avec les connection strings recuperees :
+   - `DATABASE_URL` = la connection string PostgreSQL
+   - `CELERY_BROKER_URL` = la connection string Valkey (format `rediss://...`)
+   - `CELERY_RESULT_BACKEND` = la meme connection string Valkey
+
+> En les mettant en "App-Level", elles seront partagees automatiquement entre backend, celery-worker et celery-beat.
 
 ## Etape 5 : Configurer les secrets
 
