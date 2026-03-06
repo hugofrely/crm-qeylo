@@ -5,6 +5,7 @@ import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { Card, CardContent } from "@/components/ui/card"
 import { User, DollarSign } from "lucide-react"
+import { EntityLink } from "@/components/shared/EntityLink"
 import type { Deal } from "@/types"
 
 interface DealCardProps {
@@ -70,10 +71,10 @@ export function DealCard({ deal, onClick }: DealCardProps) {
             <DollarSign className="h-3.5 w-3.5" />
             {formatAmount(deal.amount)}
           </div>
-          {deal.contact_name && (
+          {deal.contact_name && deal.contact && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <User className="h-3 w-3" />
-              <span className="truncate max-w-[100px]">{deal.contact_name}</span>
+              <EntityLink type="contact" id={deal.contact} name={deal.contact_name} className="max-w-[100px]" />
             </div>
           )}
         </div>
