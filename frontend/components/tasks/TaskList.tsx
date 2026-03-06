@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, User, Briefcase } from "lucide-react"
 import type { Task } from "@/types"
+import { EntityLink } from "@/components/shared/EntityLink"
 
 interface TaskListProps {
   tasks: Task[]
@@ -107,16 +108,16 @@ export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
                   {formatDate(task.due_date)}
                 </div>
               )}
-              {task.contact_name && (
+              {task.contact_name && task.contact && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <User className="h-3 w-3" />
-                  {task.contact_name}
+                  <EntityLink type="contact" id={task.contact} name={task.contact_name} />
                 </div>
               )}
-              {task.deal_name && (
+              {task.deal_name && task.deal && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Briefcase className="h-3 w-3" />
-                  {task.deal_name}
+                  <EntityLink type="deal" id={task.deal} name={task.deal_name} />
                 </div>
               )}
             </div>
