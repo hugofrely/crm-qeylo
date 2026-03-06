@@ -185,6 +185,17 @@ def _action_send_email(config, context, organization_id, user_id):
     if not body_html:
         body_html = f"<p>{body}</p>"
 
+    # If a template_id is provided, load and render it
+    template_id = config.get("template_id")
+    if template_id:
+        from emails.models import EmailTemplate
+        from emails.template_rendering import render_email_template
+        try:
+            template = EmailTemplate.objects.get(id=template_id)
+            subject, body_html = render_email_template(template.subject, template.body_html, context)
+        except EmailTemplate.DoesNotExist:
+            pass  # Fall back to config subject/body
+
     # Build recipient list
     to_addresses: list[str] = []
 

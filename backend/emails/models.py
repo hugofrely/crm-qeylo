@@ -60,6 +60,13 @@ class SentEmail(models.Model):
         blank=True,
         related_name="sent_emails",
     )
+    template = models.ForeignKey(
+        "EmailTemplate",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sent_emails",
+    )
     to_email = models.EmailField()
     subject = models.CharField(max_length=500)
     body_html = models.TextField()
@@ -72,3 +79,30 @@ class SentEmail(models.Model):
 
     def __str__(self):
         return f"To: {self.to_email} — {self.subject[:50]}"
+
+
+class EmailTemplate(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="email_templates",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="email_templates",
+    )
+    name = models.CharField(max_length=255)
+    subject = models.CharField(max_length=500)
+    body_html = models.TextField()
+    tags = models.JSONField(default=list, blank=True)
+    is_shared = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return self.name

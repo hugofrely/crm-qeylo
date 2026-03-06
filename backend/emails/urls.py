@@ -12,4 +12,8 @@ urlpatterns = [
     path("accounts/<uuid:account_id>/", views.disconnect_account, name="email-disconnect"),
     # Send
     path("send/", views.send_email_view, name="email-send"),
+    # Templates
+    path("templates/", views.template_list_create, name="email-templates"),
+    path("templates/<uuid:template_id>/", views.template_detail, name="email-template-detail"),
+    path("templates/<uuid:template_id>/render/", views.template_render, name="email-template-render"),
 ]

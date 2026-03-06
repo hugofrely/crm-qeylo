@@ -911,6 +911,92 @@ def get_workflow_executions(ctx: RunContext[ChatDeps], workflow_id: str, limit: 
     }
 
 
+# ---------------------------------------------------------------------------
+# Email Templates
+# ---------------------------------------------------------------------------
+
+def list_email_templates(ctx: RunContext[ChatDeps]) -> dict:
+    """List available email templates for the current organization.
+    Use when the user wants to see available email templates or choose a template to send."""
+    from emails.models import EmailTemplate
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+    templates = EmailTemplate.objects.filter(
+        Q(created_by_id=user_id, organization_id=org_id)
+        | Q(is_shared=True, organization_id=org_id)
+    )[:20]
+
+    results = [
+        {
+            "id": str(t.id),
+            "name": t.name,
+            "subject": t.subject,
+            "tags": t.tags,
+            "is_shared": t.is_shared,
+        }
+        for t in templates
+    ]
+    return {"action": "list_email_templates", "count": len(results), "templates": results}
+
+
+def send_email_from_template(
+    ctx: RunContext[ChatDeps],
+    template_id: str,
+    contact_id: str,
+) -> dict:
+    """Send an email to a contact using a pre-defined email template.
+    The template's subject and body variables will be automatically resolved with the contact's data.
+    Use when the user asks to send an email using a specific template."""
+    from accounts.models import User
+    from organizations.models import Organization
+    from emails.models import EmailTemplate
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+
+    try:
+        EmailTemplate.objects.get(
+            Q(created_by_id=user_id, organization_id=org_id)
+            | Q(is_shared=True, organization_id=org_id),
+            id=template_id,
+        )
+    except EmailTemplate.DoesNotExist:
+        return {"action": "error", "message": "Template introuvable."}
+
+    account = EmailAccount.objects.filter(
+        user_id=user_id, organization_id=org_id, is_active=True,
+    ).first()
+    if not account:
+        return {
+            "action": "error",
+            "message": "Aucun compte email connecté. Connectez votre Gmail ou Outlook dans Paramètres.",
+        }
+
+    try:
+        user = User.objects.get(id=user_id)
+        org = Organization.objects.get(id=org_id)
+        sent = service_send_email(
+            user=user,
+            organization=org,
+            contact_id=contact_id,
+            subject="",
+            body_html="",
+            template_id=template_id,
+        )
+    except (ValueError, PermissionError) as e:
+        return {"action": "error", "message": str(e)}
+    except Exception:
+        return {"action": "error", "message": "Erreur lors de l'envoi de l'email."}
+
+    return {
+        "action": "email_sent_from_template",
+        "to": sent.to_email,
+        "subject": sent.subject,
+        "template_id": template_id,
+    }
+
+
 # All tools to register on the agent
 ALL_TOOLS = [
     create_contact,
@@ -925,6 +1011,8 @@ ALL_TOOLS = [
     add_note,
     log_interaction,
     send_contact_email,
+    list_email_templates,
+    send_email_from_template,
     get_dashboard_summary,
     search_all,
     # Workflows

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import EmailAccount
+from .models import EmailAccount, EmailTemplate
 
 
 class EmailAccountSerializer(serializers.ModelSerializer):
@@ -14,6 +14,7 @@ class SendEmailSerializer(serializers.Serializer):
     to_email = serializers.EmailField(required=False, allow_blank=True)
     subject = serializers.CharField(max_length=500)
     body_html = serializers.CharField()
+    template_id = serializers.UUIDField(required=False, allow_null=True)
     provider = serializers.ChoiceField(
         choices=[("gmail", "Gmail"), ("outlook", "Outlook")],
         required=False,
@@ -26,3 +27,24 @@ class SendEmailSerializer(serializers.Serializer):
                 "Fournissez contact_id ou to_email."
             )
         return data
+
+
+class EmailTemplateSerializer(serializers.ModelSerializer):
+    created_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EmailTemplate
+        fields = [
+            "id", "name", "subject", "body_html", "tags",
+            "is_shared", "created_by", "created_by_name",
+            "created_at", "updated_at",
+        ]
+        read_only_fields = ["id", "created_by", "created_by_name", "created_at", "updated_at"]
+
+    def get_created_by_name(self, obj):
+        return f"{obj.created_by.first_name} {obj.created_by.last_name}".strip()
+
+
+class EmailTemplateRenderSerializer(serializers.Serializer):
+    contact_id = serializers.UUIDField(required=False, allow_null=True)
+    deal_id = serializers.UUIDField(required=False, allow_null=True)
