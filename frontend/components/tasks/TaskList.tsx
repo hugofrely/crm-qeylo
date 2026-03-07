@@ -112,7 +112,7 @@ export function TaskList({ tasks, onToggle, onEdit, onViewDetails }: TaskListPro
               </TableCell>
               <TableCell>
                 <p
-                  className={`text-sm font-medium font-[family-name:var(--font-body)] ${
+                  className={`text-sm font-medium font-[family-name:var(--font-body)] break-words ${
                     task.is_done ? "line-through text-muted-foreground" : ""
                   }`}
                 >

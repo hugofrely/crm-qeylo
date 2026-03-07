@@ -81,7 +81,10 @@ export function TaskDialog({
   }, [open, task])
 
   const handleSave = async () => {
-    if (!description.trim()) return
+    if (description.trim().length < 2) {
+      toast.error("Le titre doit contenir au moins 2 caractères")
+      return
+    }
     setSaving(true)
     try {
       const payload: Record<string, unknown> = {
@@ -161,6 +164,8 @@ export function TaskDialog({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Ex: Appeler le client pour le devis"
+              required
+              minLength={2}
             />
           </div>
 
