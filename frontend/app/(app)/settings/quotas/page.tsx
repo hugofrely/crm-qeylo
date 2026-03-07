@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useAuth } from "@/lib/auth"
+import { useOrganization } from "@/lib/organization"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ArrowLeft, ChevronLeft, ChevronRight, Save, Copy, Loader2 } from "lucide-react"
@@ -27,26 +27,26 @@ function formatMonth(dateStr: string): string {
 }
 
 export default function QuotasPage() {
-  const { user } = useAuth()
+  const { currentOrganization } = useOrganization()
   const [currentMonth, setCurrentMonth] = useState(() => getMonthStr(new Date()))
   const [memberQuotas, setMemberQuotas] = useState<MemberQuota[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   const loadData = useCallback(async () => {
-    if (!user?.organization) return
+    if (!currentOrganization) return
     setLoading(true)
     try {
       const [membersResp, quotas] = await Promise.all([
-        fetchMembers(user.organization),
+        fetchMembers(currentOrganization.id),
         fetchQuotas(currentMonth),
       ])
       const quotaMap = new Map(quotas.map((q) => [q.user, q]))
       setMemberQuotas(
-        membersResp.members.map((m: { id: string; first_name: string; last_name: string }) => {
-          const q = quotaMap.get(m.id)
+        membersResp.members.map((m) => {
+          const q = quotaMap.get(m.user_id)
           return {
-            userId: m.id,
+            userId: m.user_id,
             name: `${m.first_name} ${m.last_name}`.trim() || "Utilisateur",
             targetAmount: q ? String(q.target_amount) : "",
           }
@@ -57,7 +57,7 @@ export default function QuotasPage() {
     } finally {
       setLoading(false)
     }
-  }, [user?.organization, currentMonth])
+  }, [currentOrganization?.id, currentMonth])
 
   useEffect(() => {
     loadData()
@@ -92,7 +92,7 @@ export default function QuotasPage() {
   }
 
   const handleCopyPrevious = async () => {
-    if (!user?.organization) return
+    if (!currentOrganization) return
     const prevDate = new Date(currentMonth)
     prevDate.setMonth(prevDate.getMonth() - 1)
     const prevMonth = getMonthStr(prevDate)
@@ -124,7 +124,7 @@ export default function QuotasPage() {
         Paramètres
       </Link>
 
-      <PageHeader title="Quotas mensuels" description="Définir les objectifs de vente par commercial" />
+      <PageHeader title="Quotas mensuels" subtitle="Définir les objectifs de vente par commercial" />
 
       {/* Month navigation */}
       <div className="flex items-center justify-between mt-6 mb-4">
