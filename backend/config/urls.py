@@ -27,5 +27,7 @@ urlpatterns = [
     path("api/workflows/", include("workflows.urls")),
     path("api/trash/", include("trash.urls")),
     path("api/ai-usage/", include("ai_usage.urls")),
+    path("api/subscriptions/", include("subscriptions.urls")),
+    path("api/webhooks/stripe/", include("subscriptions.webhook_urls")),
     path("api/invite/accept/<uuid:token>/", include("organizations.invite_urls")),
 ]
