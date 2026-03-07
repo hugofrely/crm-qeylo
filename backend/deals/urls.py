@@ -10,6 +10,10 @@ loss_reason_router.register("", views.DealLossReasonViewSet, basename="loss-reas
 
 urlpatterns = [
     path("pipeline/", views.pipeline_view),
+    path("forecast/", views.forecast_view),
+    path("win-loss/", views.win_loss_view),
+    path("velocity/", views.velocity_view),
+    path("leaderboard/", views.leaderboard_view),
     path("loss-reasons/", include(loss_reason_router.urls)),
     path("", include(router.urls)),
 ]

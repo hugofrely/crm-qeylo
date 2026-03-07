@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Count, Q
 from .models import Pipeline, PipelineStage, Deal, DealStageTransition, DealLossReason, PIPELINE_TEMPLATES, SalesQuota
+from .analytics import compute_forecast, compute_win_loss, compute_velocity, compute_leaderboard
 from .serializers import (
     PipelineSerializer,
     PipelineStageSerializer,
@@ -454,3 +455,61 @@ def quota_bulk_update(request):
         )
         results.append(SalesQuotaSerializer(obj).data)
     return Response(results)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def forecast_view(request):
+    result = compute_forecast(
+        organization=request.organization,
+        period=request.query_params.get("period", "this_quarter"),
+        pipeline_id=request.query_params.get("pipeline"),
+        user_id=request.query_params.get("user"),
+    )
+    if "error" in result:
+        return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(result)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def win_loss_view(request):
+    result = compute_win_loss(
+        organization=request.organization,
+        period=request.query_params.get("period", "this_quarter"),
+        pipeline_id=request.query_params.get("pipeline"),
+        user_id=request.query_params.get("user"),
+    )
+    if "error" in result:
+        return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(result)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def velocity_view(request):
+    pipeline_id = request.query_params.get("pipeline")
+    if not pipeline_id:
+        return Response({"detail": "pipeline is required"}, status=status.HTTP_400_BAD_REQUEST)
+    result = compute_velocity(
+        organization=request.organization,
+        pipeline_id=pipeline_id,
+        period=request.query_params.get("period", "last_6_months"),
+        user_id=request.query_params.get("user"),
+    )
+    if "error" in result:
+        return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(result)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def leaderboard_view(request):
+    result = compute_leaderboard(
+        organization=request.organization,
+        period=request.query_params.get("period", "this_month"),
+        pipeline_id=request.query_params.get("pipeline"),
+    )
+    if "error" in result:
+        return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(result)
