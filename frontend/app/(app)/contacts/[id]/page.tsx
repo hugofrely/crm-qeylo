@@ -164,7 +164,7 @@ export default function ContactDetailPage() {
     if (!contact) return
     setSaving(true)
     try {
-      const { categories, ...rest } = editForm
+      const { categories, _company_entity_name, ...rest } = editForm
       await updateContact(contact.id, {
         ...rest,
         birthday: (rest.birthday as string) || null,
@@ -224,6 +224,8 @@ export default function ContactDetailPage() {
       email: contact.email || "",
       phone: contact.phone || "",
       company: contact.company || "",
+      company_entity: contact.company_entity || null,
+      _company_entity_name: contact.company_entity_name || null,
       source: contact.source || "",
       notes: contact.notes || "",
       job_title: contact.job_title || "",

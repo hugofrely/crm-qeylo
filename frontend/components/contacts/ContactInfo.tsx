@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useCompanyAutocomplete } from "@/hooks/useCompanyAutocomplete"
 import {
   Mail,
   Phone,
@@ -26,6 +27,9 @@ import {
   FileText,
   Smartphone,
   Twitter,
+  Search,
+  X,
+  Loader2,
 } from "lucide-react"
 
 /* ── Helpers ── */
@@ -126,6 +130,91 @@ const selectClass =
   "flex h-9 w-full rounded-lg border border-border/60 bg-secondary/30 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 const labelClass = "text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]"
 
+/* ── Company Field ── */
+
+function CompanyField({
+  companyEntityId,
+  companyEntityName,
+  companyText,
+  onSelectCompany,
+  onClearCompany,
+  onTextChange,
+}: {
+  companyEntityId: string | null
+  companyEntityName: string | null
+  companyText: string
+  onSelectCompany: (id: string, name: string) => void
+  onClearCompany: () => void
+  onTextChange: (val: string) => void
+}) {
+  const autocomplete = useCompanyAutocomplete()
+
+  return (
+    <div className="space-y-1">
+      <Label className="text-xs font-[family-name:var(--font-body)]">Entreprise</Label>
+      {companyEntityId && companyEntityName ? (
+        <div className="flex items-center gap-2">
+          <div className={`flex-1 flex items-center gap-2 ${inputClass} rounded-lg px-3`}>
+            <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <Link href={`/companies/${companyEntityId}`} className="text-sm text-primary hover:underline truncate">
+              {companyEntityName}
+            </Link>
+          </div>
+          <button
+            type="button"
+            onClick={onClearCompany}
+            className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ) : (
+        <div ref={autocomplete.wrapperRef} className="relative">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={autocomplete.query || companyText}
+              onChange={(e) => {
+                onTextChange(e.target.value)
+                autocomplete.search(e.target.value)
+              }}
+              onFocus={() => {
+                if (companyText && !autocomplete.query) {
+                  autocomplete.search(companyText)
+                }
+                if (autocomplete.results.length > 0) autocomplete.setOpen(true)
+              }}
+              placeholder="Rechercher ou saisir une entreprise..."
+              className={`${inputClass} pl-8`}
+            />
+            {autocomplete.searching && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
+            )}
+          </div>
+          {autocomplete.open && autocomplete.results.length > 0 && (
+            <div className="absolute z-50 mt-1 w-full bg-popover border rounded-md shadow-md max-h-48 overflow-y-auto">
+              {autocomplete.results.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors"
+                  onClick={() => {
+                    onSelectCompany(c.id, c.name)
+                    autocomplete.reset()
+                  }}
+                >
+                  <span className="font-medium">{c.name}</span>
+                  {c.industry && <span className="text-muted-foreground ml-1">({c.industry})</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ── Props ── */
 
 export interface ContactInfoProps {
@@ -169,16 +258,21 @@ export function ContactInfo({
               <Input value={editForm.last_name as string} onChange={(e) => onEditFormChange("last_name", e.target.value)} className={inputClass} />
             </div>
           </div>
-          <div className="space-y-1">
-            <Label className="text-xs font-[family-name:var(--font-body)]">Entreprise</Label>
-            <Input value={editForm.company as string} onChange={(e) => onEditFormChange("company", e.target.value)} className={inputClass} />
-            {/* Text field kept for backward compatibility — company_entity link is managed separately */}
-            {contact.company_entity_name && (
-              <p className="text-[11px] text-muted-foreground font-[family-name:var(--font-body)]">
-                Liee a <Link href={`/companies/${contact.company_entity}`} className="text-primary hover:underline">{contact.company_entity_name}</Link>
-              </p>
-            )}
-          </div>
+          <CompanyField
+            companyEntityId={editForm.company_entity as string | null}
+            companyEntityName={editForm._company_entity_name as string | null}
+            companyText={editForm.company as string}
+            onSelectCompany={(id, name) => {
+              onEditFormChange("company_entity", id)
+              onEditFormChange("_company_entity_name", name)
+              onEditFormChange("company", name)
+            }}
+            onClearCompany={() => {
+              onEditFormChange("company_entity", null)
+              onEditFormChange("_company_entity_name", null)
+            }}
+            onTextChange={(val) => onEditFormChange("company", val)}
+          />
           <div className="space-y-1">
             <Label className="text-xs font-[family-name:var(--font-body)]">Poste</Label>
             <Input value={editForm.job_title as string} onChange={(e) => onEditFormChange("job_title", e.target.value)} className={inputClass} />

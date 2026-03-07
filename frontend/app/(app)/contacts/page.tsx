@@ -18,13 +18,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Plus, Search, Loader2, Download } from "lucide-react"
+import { Plus, Search, Loader2, Download, Building2, X } from "lucide-react"
 import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterBar } from "@/components/shared/FilterBar"
 import { FilterSearchInput, FilterPills } from "@/components/shared/FilterControls"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { Pagination } from "@/components/shared/Pagination"
+import { useCompanyAutocomplete } from "@/hooks/useCompanyAutocomplete"
 import posthog from "posthog-js"
 import { handleQuotaError } from "@/lib/quota-error"
 import type { Contact, ContactCategory } from "@/types"
@@ -74,6 +75,9 @@ export default function ContactsPage() {
 
   const activeFilterCount = [search, selectedCategory, selectedSegment].filter(Boolean).length
 
+  const companyAutocomplete = useCompanyAutocomplete()
+  const [companyEntityLabel, setCompanyEntityLabel] = useState("")
+
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -81,6 +85,7 @@ export default function ContactsPage() {
     phone: "",
     mobile_phone: "",
     company: "",
+    company_entity: null as string | null,
     job_title: "",
     lead_score: "",
     city: "",
@@ -157,7 +162,9 @@ export default function ContactsPage() {
     try {
       await apiFetch("/contacts/", { method: "POST", json: formData })
       posthog.capture("contact_created", { has_email: !!formData.email, has_company: !!formData.company, lead_score: formData.lead_score || null })
-      setFormData({ first_name: "", last_name: "", email: "", phone: "", mobile_phone: "", company: "", job_title: "", lead_score: "", city: "", postal_code: "", country: "", category_ids: [] })
+      setFormData({ first_name: "", last_name: "", email: "", phone: "", mobile_phone: "", company: "", company_entity: null, job_title: "", lead_score: "", city: "", postal_code: "", country: "", category_ids: [] })
+      setCompanyEntityLabel("")
+      companyAutocomplete.reset()
       setDialogOpen(false)
       setShowDuplicateDialog(false)
       setDuplicates([])
@@ -199,7 +206,9 @@ export default function ContactsPage() {
   const handleMerge = async (primaryId: string, fieldOverrides: Record<string, unknown>) => {
     try {
       await apiFetch(`/contacts/${primaryId}/`, { method: "PATCH", json: fieldOverrides })
-      setFormData({ first_name: "", last_name: "", email: "", phone: "", mobile_phone: "", company: "", job_title: "", lead_score: "", city: "", postal_code: "", country: "", category_ids: [] })
+      setFormData({ first_name: "", last_name: "", email: "", phone: "", mobile_phone: "", company: "", company_entity: null, job_title: "", lead_score: "", city: "", postal_code: "", country: "", category_ids: [] })
+      setCompanyEntityLabel("")
+      companyAutocomplete.reset()
       setDialogOpen(false)
       setShowDuplicateDialog(false)
       setDuplicates([])
@@ -305,14 +314,69 @@ export default function ContactsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="company" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Entreprise</Label>
-                <Input
-                  id="company"
-                  value={formData.company}
-                  onChange={(e) =>
-                    setFormData({ ...formData, company: e.target.value })
-                  }
-                  className="h-11 bg-secondary/30 border-border/60"
-                />
+                {formData.company_entity && companyEntityLabel ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 flex items-center gap-2 h-11 bg-secondary/30 border border-border/60 rounded-md px-3">
+                      <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-sm truncate">{companyEntityLabel}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, company_entity: null, company: "" })
+                        setCompanyEntityLabel("")
+                        companyAutocomplete.reset()
+                      }}
+                      className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div ref={companyAutocomplete.wrapperRef} className="relative">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        id="company"
+                        value={companyAutocomplete.query || formData.company}
+                        onChange={(e) => {
+                          setFormData({ ...formData, company: e.target.value })
+                          companyAutocomplete.search(e.target.value)
+                        }}
+                        onFocus={() => {
+                          if (formData.company && !companyAutocomplete.query) {
+                            companyAutocomplete.search(formData.company)
+                          }
+                          if (companyAutocomplete.results.length > 0) companyAutocomplete.setOpen(true)
+                        }}
+                        placeholder="Rechercher ou saisir une entreprise..."
+                        className="h-11 bg-secondary/30 border-border/60 pl-8"
+                      />
+                      {companyAutocomplete.searching && (
+                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                      )}
+                    </div>
+                    {companyAutocomplete.open && companyAutocomplete.results.length > 0 && (
+                      <div className="absolute z-50 mt-1 w-full bg-popover border rounded-md shadow-md max-h-48 overflow-y-auto">
+                        {companyAutocomplete.results.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"
+                            onClick={() => {
+                              setFormData({ ...formData, company: c.name, company_entity: c.id })
+                              setCompanyEntityLabel(c.name)
+                              companyAutocomplete.reset()
+                            }}
+                          >
+                            <span className="font-medium">{c.name}</span>
+                            {c.industry && <span className="text-muted-foreground ml-1">({c.industry})</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="job_title" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Poste</Label>

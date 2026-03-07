@@ -240,6 +240,9 @@ def pipeline_view(request):
     contact_id = request.query_params.get("contact")
     if contact_id:
         deal_filters["contact_id"] = contact_id
+    company_id = request.query_params.get("company")
+    if company_id:
+        deal_filters["company_id"] = company_id
     created_by = request.query_params.get("created_by")
     if created_by:
         deal_filters["created_by_id"] = created_by

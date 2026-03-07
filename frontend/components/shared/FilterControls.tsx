@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search, X, RotateCcw, Loader2 } from "lucide-react"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
+import { useCompanyAutocomplete } from "@/hooks/useCompanyAutocomplete"
 import { useMemberAutocomplete } from "@/hooks/useMemberAutocomplete"
 
 // --- FilterLabel (internal helper) ---
@@ -232,6 +233,67 @@ export function FilterContactSearch({ contactId, contactLabel, onSelect, onClear
               >
                 {c.first_name} {c.last_name}
                 {c.email && <span className="text-muted-foreground ml-1">({c.email})</span>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </FilterGroup>
+  )
+}
+
+// --- FilterCompanySearch ---
+interface FilterCompanySearchProps {
+  companyId: string | null
+  companyLabel: string | null
+  onSelect: (id: string, label: string) => void
+  onClear: () => void
+  label?: string
+  className?: string
+}
+
+export function FilterCompanySearch({ companyId, companyLabel, onSelect, onClear, label, className }: FilterCompanySearchProps) {
+  const autocomplete = useCompanyAutocomplete()
+
+  return (
+    <FilterGroup label={label} className={className}>
+      <div className="relative" ref={autocomplete.wrapperRef}>
+        {companyId ? (
+          <button
+            onClick={() => { onClear(); autocomplete.reset() }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-primary text-primary-foreground transition-colors"
+          >
+            {companyLabel}
+            <X className="h-3 w-3" />
+          </button>
+        ) : (
+          <>
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher une entreprise..."
+              value={autocomplete.query}
+              onChange={(e) => autocomplete.search(e.target.value)}
+              onFocus={() => { if (autocomplete.results.length > 0) autocomplete.setOpen(true) }}
+              className="pl-8 h-9 text-xs bg-background border-border w-48"
+            />
+            {autocomplete.searching && (
+              <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
+            )}
+          </>
+        )}
+        {autocomplete.open && autocomplete.results.length > 0 && (
+          <div className="absolute top-full left-0 mt-1 w-full bg-popover border rounded-md shadow-md z-50 max-h-48 overflow-y-auto">
+            {autocomplete.results.map((c) => (
+              <button
+                key={c.id}
+                className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors"
+                onClick={() => {
+                  onSelect(c.id, c.name)
+                  autocomplete.reset()
+                }}
+              >
+                {c.name}
+                {c.industry && <span className="text-muted-foreground ml-1">({c.industry})</span>}
               </button>
             ))}
           </div>

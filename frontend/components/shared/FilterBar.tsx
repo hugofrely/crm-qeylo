@@ -13,8 +13,8 @@ interface FilterBarProps {
 export function FilterBar({ open, activeFilterCount, onReset, children }: FilterBarProps) {
   return (
     <div
-      className={`overflow-hidden transition-all duration-200 ease-out ${
-        open ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+      className={`transition-all duration-200 ease-out ${
+        open ? "max-h-[500px] opacity-100 overflow-visible" : "max-h-0 opacity-0 overflow-hidden"
       }`}
     >
       <div className="hidden lg:flex flex-wrap items-end gap-3 bg-card border border-border rounded-lg px-4 py-3">

@@ -9,13 +9,14 @@ import { KanbanBoard } from "@/components/deals/KanbanBoard"
 import { CreatePipelineDialog } from "@/components/deals/CreatePipelineDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterBar } from "@/components/shared/FilterBar"
-import { FilterSearchInput, FilterSelect, FilterNumberRange, FilterDateRange, FilterContactSearch } from "@/components/shared/FilterControls"
+import { FilterSearchInput, FilterSelect, FilterNumberRange, FilterDateRange, FilterContactSearch, FilterCompanySearch } from "@/components/shared/FilterControls"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { usePipelines } from "@/hooks/useDeals"
 import { updatePipeline, deletePipeline } from "@/services/deals"
 import { fetchMembers } from "@/services/organizations"
 import { useOrganization } from "@/lib/organization"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
+import { useCompanyAutocomplete } from "@/hooks/useCompanyAutocomplete"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -63,14 +64,18 @@ export default function DealsPage() {
   const [filterCreatedAfter, setFilterCreatedAfter] = useState("")
   const [filterCreatedBefore, setFilterCreatedBefore] = useState("")
   const [filterCreatedBy, setFilterCreatedBy] = useState("")
+  const [filterCompany, setFilterCompany] = useState("")
+  const [filterCompanyLabel, setFilterCompanyLabel] = useState("")
   const [filterSearch, setFilterSearch] = useState("")
   const [filterContactLabel, setFilterContactLabel] = useState("")
   const [members, setMembers] = useState<Member[]>([])
   const contactAutocomplete = useContactAutocomplete()
+  const companyAutocomplete = useCompanyAutocomplete()
 
   const filters = useMemo(() => {
     const f: Record<string, string> = {}
     if (filterContact) f.contact = filterContact
+    if (filterCompany) f.company = filterCompany
     if (filterAmountMin) f.amount_min = filterAmountMin
     if (filterAmountMax) f.amount_max = filterAmountMax
     if (filterProbabilityMin) f.probability_min = filterProbabilityMin
@@ -82,7 +87,7 @@ export default function DealsPage() {
     if (filterCreatedBy) f.created_by = filterCreatedBy
     if (filterSearch) f.search = filterSearch
     return f
-  }, [filterContact, filterAmountMin, filterAmountMax, filterProbabilityMin, filterProbabilityMax, filterExpectedCloseAfter, filterExpectedCloseBefore, filterCreatedAfter, filterCreatedBefore, filterCreatedBy, filterSearch])
+  }, [filterContact, filterCompany, filterAmountMin, filterAmountMax, filterProbabilityMin, filterProbabilityMax, filterExpectedCloseAfter, filterExpectedCloseBefore, filterCreatedAfter, filterCreatedBefore, filterCreatedBy, filterSearch])
 
   const activeFilterCount = Object.keys(filters).length
 
@@ -90,6 +95,8 @@ export default function DealsPage() {
     setFilterContact("")
     setFilterContactLabel("")
     contactAutocomplete.reset()
+    setFilterCompany("")
+    setFilterCompanyLabel("")
     setFilterAmountMin("")
     setFilterAmountMax("")
     setFilterProbabilityMin("")
@@ -205,6 +212,13 @@ export default function DealsPage() {
             onSelect={(id, label) => { setFilterContact(id); setFilterContactLabel(label) }}
             onClear={() => { setFilterContact(""); setFilterContactLabel(""); contactAutocomplete.reset() }}
             label="Contact"
+          />
+          <FilterCompanySearch
+            companyId={filterCompany || null}
+            companyLabel={filterCompanyLabel || null}
+            onSelect={(id, label) => { setFilterCompany(id); setFilterCompanyLabel(label) }}
+            onClear={() => { setFilterCompany(""); setFilterCompanyLabel("") }}
+            label="Entreprise"
           />
           <FilterNumberRange
             min={filterAmountMin}
@@ -415,7 +429,7 @@ export default function DealsPage() {
               </div>
             )}
             {contactAutocomplete.open && contactAutocomplete.results.length > 0 && (
-              <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg max-h-48 overflow-y-auto">
+              <div className="mt-1 w-full rounded-md border border-border bg-background max-h-48 overflow-y-auto">
                 {contactAutocomplete.results.map((c) => (
                   <button
                     key={c.id}
@@ -433,8 +447,68 @@ export default function DealsPage() {
               </div>
             )}
             {contactAutocomplete.open && contactAutocomplete.query && !contactAutocomplete.searching && contactAutocomplete.results.length === 0 && (
-              <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg px-3 py-3 text-sm text-muted-foreground text-center">
+              <div className="mt-1 w-full rounded-md border border-border bg-background px-3 py-3 text-sm text-muted-foreground text-center">
                 Aucun contact trouvé
+              </div>
+            )}
+          </div>
+        </FilterSection>
+        <FilterSection label="Entreprise">
+          <div ref={companyAutocomplete.wrapperRef} className="relative">
+            {filterCompany ? (
+              <div className="flex h-9 items-center justify-between rounded-md border border-input bg-transparent px-3 text-sm">
+                <span className="truncate">{filterCompanyLabel}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterCompany("")
+                    setFilterCompanyLabel("")
+                    companyAutocomplete.reset()
+                  }}
+                  className="ml-2 shrink-0 rounded-sm p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  value={companyAutocomplete.query}
+                  onChange={(e) => companyAutocomplete.search(e.target.value)}
+                  onFocus={() => {
+                    if (companyAutocomplete.results.length > 0) companyAutocomplete.setOpen(true)
+                  }}
+                  placeholder="Rechercher une entreprise…"
+                  className="pl-8"
+                />
+                {companyAutocomplete.searching && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                )}
+              </div>
+            )}
+            {companyAutocomplete.open && companyAutocomplete.results.length > 0 && (
+              <div className="mt-1 w-full rounded-md border border-border bg-background max-h-48 overflow-y-auto">
+                {companyAutocomplete.results.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => {
+                      setFilterCompany(c.id)
+                      setFilterCompanyLabel(c.name)
+                      companyAutocomplete.reset()
+                    }}
+                    className="flex w-full items-center px-3 py-2 text-sm hover:bg-secondary/50 transition-colors text-left"
+                  >
+                    {c.name}
+                    {c.industry && <span className="text-muted-foreground ml-1">({c.industry})</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+            {companyAutocomplete.open && companyAutocomplete.query && !companyAutocomplete.searching && companyAutocomplete.results.length === 0 && (
+              <div className="mt-1 w-full rounded-md border border-border bg-background px-3 py-3 text-sm text-muted-foreground text-center">
+                Aucune entreprise trouvée
               </div>
             )}
           </div>
