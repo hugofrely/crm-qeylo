@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from . import views
 from .duplicates import check_duplicates, merge_contacts, duplicate_settings
 from .export import export_contacts
+from companies.views import contact_relationships
 
 router = DefaultRouter()
 router.register("", views.ContactViewSet, basename="contact")
@@ -21,6 +22,7 @@ urlpatterns = [
     path("categories/", include(category_router.urls)),
     path("custom-fields/reorder/", views.reorder_custom_fields),
     path("custom-fields/", include(custom_field_router.urls)),
+    path("<uuid:pk>/relationships/", contact_relationships),
     path("<uuid:pk>/merge/", merge_contacts),
     path("export/", export_contacts),
     path("", include(router.urls)),

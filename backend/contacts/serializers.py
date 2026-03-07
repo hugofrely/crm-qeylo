@@ -25,13 +25,16 @@ class ContactSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False,
     )
+    company_entity_name = serializers.CharField(
+        source="company_entity.name", read_only=True, default=None
+    )
 
     class Meta:
         model = Contact
         fields = [
             # Existing fields
             "id", "first_name", "last_name", "email", "phone",
-            "company", "source", "tags", "notes",
+            "company", "company_entity", "company_entity_name", "source", "tags", "notes",
             # Profile
             "job_title", "linkedin_url", "website", "address", "industry",
             # Qualification

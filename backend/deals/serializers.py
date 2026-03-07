@@ -20,6 +20,10 @@ class PipelineStageSerializer(serializers.ModelSerializer):
 
 
 class DealSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(
+        source="company.name", read_only=True, default=None
+    )
+
     class Meta:
         model = Deal
         fields = [
@@ -28,6 +32,8 @@ class DealSerializer(serializers.ModelSerializer):
             "amount",
             "stage",
             "contact",
+            "company",
+            "company_name",
             "probability",
             "expected_close",
             "notes",

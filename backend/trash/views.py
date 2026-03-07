@@ -4,12 +4,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from contacts.models import Contact
+from companies.models import Company
 from deals.models import Deal
 from tasks.models import Task
 
 
 MODEL_MAP = {
     "contact": Contact,
+    "company": Company,
     "deal": Deal,
     "task": Task,
 }
@@ -110,7 +112,7 @@ def trash_permanent_delete(request):
 def trash_empty(request):
     org = request.organization
     total = 0
-    for Model in [Task, Deal, Contact]:
+    for Model in [Task, Deal, Contact, Company]:
         qs = Model.all_objects.filter(
             organization=org, deleted_at__isnull=False
         )

@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from contacts.models import Contact
+from companies.models import Company
 from deals.models import Deal
 from tasks.models import Task
 
@@ -16,7 +17,7 @@ MAX_RESULTS = 5
 def global_search(request):
     q = request.query_params.get("q", "").strip()
     if len(q) < 2:
-        return Response({"contacts": [], "deals": [], "tasks": []})
+        return Response({"contacts": [], "companies": [], "deals": [], "tasks": []})
 
     org = request.organization
     if not org:
@@ -85,4 +86,21 @@ def global_search(request):
         for t in tasks_qs[:MAX_RESULTS]
     ]
 
-    return Response({"contacts": contacts, "deals": deals, "tasks": tasks})
+    # --- Companies ---
+    companies_qs = Company.objects.filter(organization=org)
+    for word in words:
+        companies_qs = companies_qs.filter(
+            Q(name__icontains=word) | Q(domain__icontains=word)
+        )
+    companies = [
+        {
+            "id": str(c.id),
+            "name": c.name,
+            "industry": c.industry,
+            "domain": c.domain,
+            "health_score": c.health_score,
+        }
+        for c in companies_qs[:MAX_RESULTS]
+    ]
+
+    return Response({"contacts": contacts, "companies": companies, "deals": deals, "tasks": tasks})
