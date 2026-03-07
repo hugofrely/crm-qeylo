@@ -22,6 +22,8 @@ class SegmentViewSet(viewsets.ModelViewSet):
         return Segment.objects.filter(organization=self.request.organization)
 
     def perform_create(self, serializer):
+        from subscriptions.permissions import require_feature
+        require_feature(self.request.organization, "dynamic_segments")
         serializer.save(
             organization=self.request.organization,
             created_by=self.request.user,

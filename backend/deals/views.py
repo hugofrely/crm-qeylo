@@ -27,6 +27,8 @@ class PipelineViewSet(viewsets.ModelViewSet):
         )
 
     def create(self, request, *args, **kwargs):
+        from subscriptions.permissions import require_can_create_pipeline
+        require_can_create_pipeline(request.organization)
         template = request.data.get("template")
         name = request.data.get("name", "").strip()
         if not name:

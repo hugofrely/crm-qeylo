@@ -21,6 +21,11 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        from subscriptions.permissions import require_feature
+        require_feature(self.request.organization, "products_catalog")
+        serializer.save(organization=self.request.organization)
+
     def get_queryset(self):
         qs = Product.objects.filter(organization=self.request.organization)
         category = self.request.query_params.get("category")
@@ -33,6 +38,3 @@ class ProductViewSet(viewsets.ModelViewSet):
         if search:
             qs = qs.filter(Q(name__icontains=search) | Q(reference__icontains=search))
         return qs
-
-    def perform_create(self, serializer):
-        serializer.save(organization=self.request.organization)

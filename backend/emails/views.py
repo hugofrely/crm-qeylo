@@ -34,9 +34,11 @@ logger = logging.getLogger(__name__)
 @permission_classes([IsAuthenticated])
 def connect_gmail(request):
     """Return the Google OAuth consent URL."""
+    from subscriptions.permissions import require_feature
     org = request.organization
     if not org:
         return Response({"detail": "No organization."}, status=status.HTTP_400_BAD_REQUEST)
+    require_feature(org, "email_integration")
     url = get_gmail_auth_url(str(request.user.id), str(org.id))
     return Response({"url": url})
 
@@ -66,9 +68,11 @@ def callback_gmail(request):
 @permission_classes([IsAuthenticated])
 def connect_outlook(request):
     """Return the Microsoft OAuth consent URL."""
+    from subscriptions.permissions import require_feature
     org = request.organization
     if not org:
         return Response({"detail": "No organization."}, status=status.HTTP_400_BAD_REQUEST)
+    require_feature(org, "email_integration")
     url = get_outlook_auth_url(str(request.user.id), str(org.id))
     return Response({"url": url})
 

@@ -297,12 +297,15 @@ def _generate_title_sync(user_message: str, assistant_message: str, org=None, us
 @permission_classes([IsAuthenticated])
 def send_message(request):
     """Send a message and get an AI response."""
+    from subscriptions.permissions import require_can_send_ai_message
     org = request.organization
     if not org:
         return Response(
             {"detail": "No organization found."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    require_can_send_ai_message(org)
 
     serializer = ChatInputSerializer(data=request.data)
     if not serializer.is_valid():

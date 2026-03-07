@@ -100,6 +100,8 @@ def invite_member(request, org_id):
         return Response({"detail": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
     if role not in ("admin", "member"):
         return Response({"detail": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
+    from subscriptions.permissions import require_can_add_member
+    require_can_add_member(org)
     existing_user = User.objects.filter(email=email).first()
     if existing_user and Membership.objects.filter(organization=org, user=existing_user).exists():
         return Response({"detail": "Already a member"}, status=status.HTTP_400_BAD_REQUEST)

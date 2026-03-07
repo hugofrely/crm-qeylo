@@ -40,6 +40,8 @@ class WorkflowViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """Create a workflow with its nodes and edges in one request."""
+        from subscriptions.permissions import require_feature
+        require_feature(request.organization, "workflows")
         save_serializer = WorkflowSaveSerializer(data=request.data)
         save_serializer.is_valid(raise_exception=True)
         data = save_serializer.validated_data

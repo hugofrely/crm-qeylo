@@ -20,6 +20,8 @@ class ContactViewSet(viewsets.ModelViewSet):
         return qs.distinct()
 
     def perform_create(self, serializer):
+        from subscriptions.permissions import require_can_create_contact
+        require_can_create_contact(self.request.organization)
         serializer.save(
             organization=self.request.organization,
             created_by=self.request.user,
