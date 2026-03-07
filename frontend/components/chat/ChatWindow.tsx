@@ -10,6 +10,7 @@ import {
 } from "@/services/chat"
 import posthog from "posthog-js"
 import type { Conversation } from "@/types"
+import { MessageSquare, Plus, X } from "lucide-react"
 import { ChatInput } from "@/components/chat/ChatInput"
 import {
   ChatMessage,
@@ -29,6 +30,7 @@ export function ChatWindow() {
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
+  const [showConversations, setShowConversations] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const skipNextLoadRef = useRef(false)
@@ -321,10 +323,55 @@ export function ChatWindow() {
     [activeConversationId]
   )
 
+  const handleMobileSelect = useCallback((id: string) => {
+    setActiveConversationId(id)
+    setShowConversations(false)
+  }, [])
+
   return (
     <div className="flex h-full min-h-0">
+      {/* Mobile conversation drawer */}
+      {showConversations && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/20 lg:hidden" onClick={() => setShowConversations(false)} />
+          <div className="fixed inset-y-0 left-0 z-50 w-[300px] max-w-[85vw] bg-background border-r border-border overflow-y-auto shadow-xl animate-in slide-in-from-left duration-300 lg:hidden">
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <h3 className="font-medium text-sm">Conversations</h3>
+              <div className="flex items-center gap-1">
+                <button onClick={() => { handleNewConversation(); setShowConversations(false) }} className="p-1 rounded-sm hover:bg-muted" title="Nouvelle conversation">
+                  <Plus className="h-4 w-4" />
+                </button>
+                <button onClick={() => setShowConversations(false)} className="p-1 rounded-sm hover:bg-muted">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="p-2">
+              <ConversationSidebar
+                conversations={conversations}
+                activeConversationId={activeConversationId}
+                onSelect={handleMobileSelect}
+                onNew={() => { handleNewConversation(); setShowConversations(false) }}
+                onDeleted={handleDeleteConversation}
+                onRenamed={handleRenameConversation}
+                isMobileDrawer
+              />
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Chat area */}
       <div className="flex flex-1 flex-col min-h-0">
+        {/* Mobile conversation toggle */}
+        <div className="flex items-center gap-2 px-4 py-2 lg:hidden">
+          <button
+            onClick={() => setShowConversations(!showConversations)}
+            className="p-2 rounded-lg bg-card border border-border shadow-sm"
+          >
+            <MessageSquare className="h-4 w-4" />
+          </button>
+        </div>
         <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
           <div className="mx-auto max-w-3xl px-6 py-8">
             {isHistoryLoaded && messages.length === 0 && (

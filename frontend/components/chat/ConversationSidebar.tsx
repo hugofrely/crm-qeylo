@@ -14,6 +14,7 @@ interface ConversationSidebarProps {
   onNew: () => void
   onDeleted: (id: string) => void
   onRenamed: (id: string, title: string) => void
+  isMobileDrawer?: boolean
 }
 
 function formatRelativeDate(dateStr: string) {
@@ -37,6 +38,7 @@ export function ConversationSidebar({
   onNew,
   onDeleted,
   onRenamed,
+  isMobileDrawer = false,
 }: ConversationSidebarProps) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
@@ -67,13 +69,18 @@ export function ConversationSidebar({
   }
 
   return (
-    <div className="hidden lg:flex h-full w-[260px] shrink-0 flex-col overflow-hidden border-l border-border bg-secondary/20">
-      <div className="flex items-center justify-between border-b border-border px-5 py-4">
-        <h3 className="text-sm font-medium font-[family-name:var(--font-body)]">Conversations</h3>
-        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={onNew}>
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
+    <div className={isMobileDrawer
+      ? "flex h-full flex-col overflow-hidden"
+      : "hidden lg:flex h-full w-[260px] shrink-0 flex-col overflow-hidden border-l border-border bg-secondary/20"
+    }>
+      {!isMobileDrawer && (
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h3 className="text-sm font-medium font-[family-name:var(--font-body)]">Conversations</h3>
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={onNew}>
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       <ScrollArea className="min-h-0 flex-1 [&>div>div]:!block">
         <div className="flex flex-col gap-0.5 p-2">
