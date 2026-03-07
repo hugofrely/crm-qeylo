@@ -9,8 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
 import type { Contact } from "@/types"
 
 interface ContactTableProps {
@@ -18,6 +18,8 @@ interface ContactTableProps {
   selectedIds?: Set<string>
   onToggleSelect?: (id: string) => void
   onToggleAll?: () => void
+  ordering?: string
+  onOrderingChange?: (ordering: string) => void
 }
 
 function formatDate(dateStr: string): string {
@@ -29,7 +31,61 @@ function formatDate(dateStr: string): string {
   }).format(date)
 }
 
-export function ContactTable({ contacts, selectedIds, onToggleSelect, onToggleAll }: ContactTableProps) {
+type SortField = "last_name" | "company" | "created_at"
+
+function SortableHeader({
+  label,
+  field,
+  ordering,
+  onOrderingChange,
+  className,
+}: {
+  label: string
+  field: SortField
+  ordering: string
+  onOrderingChange: (ordering: string) => void
+  className?: string
+}) {
+  const isAsc = ordering === field
+  const isDesc = ordering === `-${field}`
+
+  const handleClick = () => {
+    if (isAsc) {
+      onOrderingChange(`-${field}`)
+    } else if (isDesc) {
+      onOrderingChange("-created_at")
+    } else {
+      onOrderingChange(field)
+    }
+  }
+
+  return (
+    <TableHead
+      className={`text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)] cursor-pointer select-none hover:text-foreground transition-colors ${className ?? ""}`}
+      onClick={handleClick}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {isAsc ? (
+          <ArrowUp className="h-3 w-3" />
+        ) : isDesc ? (
+          <ArrowDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-30" />
+        )}
+      </span>
+    </TableHead>
+  )
+}
+
+export function ContactTable({
+  contacts,
+  selectedIds,
+  onToggleSelect,
+  onToggleAll,
+  ordering = "-created_at",
+  onOrderingChange,
+}: ContactTableProps) {
   const router = useRouter()
 
   if (contacts.length === 0) {
@@ -41,6 +97,8 @@ export function ContactTable({ contacts, selectedIds, onToggleSelect, onToggleAl
       </div>
     )
   }
+
+  const handleOrderingChange = onOrderingChange ?? (() => {})
 
   return (
     <div className="rounded-xl border border-border overflow-hidden bg-card">
@@ -55,11 +113,11 @@ export function ContactTable({ contacts, selectedIds, onToggleSelect, onToggleAl
                 />
               </TableHead>
             )}
-            <TableHead className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Nom</TableHead>
-            <TableHead className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Entreprise</TableHead>
+            <SortableHeader label="Nom" field="last_name" ordering={ordering} onOrderingChange={handleOrderingChange} />
+            <SortableHeader label="Entreprise" field="company" ordering={ordering} onOrderingChange={handleOrderingChange} />
             <TableHead className="hidden md:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Email</TableHead>
             <TableHead className="hidden lg:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Téléphone</TableHead>
-            <TableHead className="hidden lg:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Créé le</TableHead>
+            <SortableHeader label="Créé le" field="created_at" ordering={ordering} onOrderingChange={handleOrderingChange} className="hidden lg:table-cell" />
           </TableRow>
         </TableHeader>
         <TableBody>
