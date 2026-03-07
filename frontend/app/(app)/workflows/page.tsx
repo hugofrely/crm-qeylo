@@ -235,6 +235,26 @@ export default function WorkflowsPage() {
         rowKey={(w) => w.id}
       />
 
+      {workflows.length < 3 && templates.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-medium text-muted-foreground">Templates disponibles</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {templates.map((template) => (
+              <button
+                key={template.id}
+                onClick={() => handleCreateFromTemplate(template)}
+                className="text-left p-4 rounded-xl border border-dashed border-border hover:border-primary/30 hover:bg-card transition-colors"
+              >
+                <p className="text-sm font-medium">{template.name}</p>
+                {template.description && (
+                  <p className="text-xs text-muted-foreground mt-1">{template.description}</p>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Create blank dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>

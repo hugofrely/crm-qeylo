@@ -152,6 +152,27 @@ export default function SegmentsPage() {
         rowKey={(s) => s.id}
       />
 
+      {segments.length < 5 && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-medium text-muted-foreground">Segments suggérés</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[
+              { name: "Contacts actifs (30j)", description: "Contacts avec activité dans les 30 derniers jours" },
+              { name: "Leads chauds sans deal", description: "Contacts avec score 'chaud' sans deal associé" },
+              { name: "Contacts sans email", description: "Contacts sans adresse email renseignée" },
+            ].map((suggestion) => (
+              <div
+                key={suggestion.name}
+                className="text-left p-4 rounded-xl border border-dashed border-border hover:border-primary/30 hover:bg-card transition-colors cursor-default"
+              >
+                <p className="text-sm font-medium">{suggestion.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">{suggestion.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <SegmentBuilder
         open={builderOpen}
         onOpenChange={(open) => {

@@ -125,6 +125,11 @@ export default function ReportsPage() {
                 className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 text-left transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5"
               >
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary/40 via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="flex items-start gap-4">
+                  <div className="flex items-center justify-center h-11 w-11 rounded-xl bg-muted/60 text-muted-foreground group-hover:bg-primary/8 group-hover:text-primary shrink-0 transition-colors">
+                    <BarChart3 className="h-5 w-5" />
+                  </div>
+                  <div>
                 <h3 className="text-sm font-medium">{report.name}</h3>
                 {report.description && (
                   <p className="text-xs text-muted-foreground mt-1 font-[family-name:var(--font-body)]">
@@ -135,6 +140,8 @@ export default function ReportsPage() {
                   {report.widgets.length} widget{report.widgets.length !== 1 ? "s" : ""} · Modifie le{" "}
                   {new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" }).format(new Date(report.updated_at))}
                 </p>
+                  </div>
+                </div>
               </button>
             ))}
           </div>
