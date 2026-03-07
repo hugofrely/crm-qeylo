@@ -38,6 +38,10 @@ class Contact(SoftDeleteModel):
     email = models.EmailField(blank=True, default="")
     phone = models.CharField(max_length=20, blank=True, default="")
     company = models.CharField(max_length=255, blank=True, default="")
+    company_entity = models.ForeignKey(
+        "companies.Company", null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="contacts",
+    )
     source = models.CharField(max_length=100, blank=True, default="")
     tags = models.JSONField(default=list, blank=True)
     notes = models.TextField(blank=True, default="")
@@ -154,6 +158,42 @@ class ContactCategory(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ContactRelationship(models.Model):
+    class RelType(models.TextChoices):
+        REPORTS_TO = "reports_to", "Rend compte a"
+        MANAGES = "manages", "Manage"
+        ASSISTANT_OF = "assistant_of", "Assistant de"
+        COLLEAGUE = "colleague", "Collegue"
+        DECISION_MAKER = "decision_maker", "Decideur"
+        INFLUENCER = "influencer", "Influenceur"
+        CHAMPION = "champion", "Champion"
+        BLOCKER = "blocker", "Bloqueur"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="contact_relationships",
+    )
+    from_contact = models.ForeignKey(
+        Contact, on_delete=models.CASCADE, related_name="relationships_from",
+    )
+    to_contact = models.ForeignKey(
+        Contact, on_delete=models.CASCADE, related_name="relationships_to",
+    )
+    relationship_type = models.CharField(
+        max_length=30, choices=RelType.choices,
+    )
+    notes = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ["from_contact", "to_contact", "relationship_type"]
+
+    def __str__(self):
+        return f"{self.from_contact} -> {self.relationship_type} -> {self.to_contact}"
 
 
 class CustomFieldDefinition(models.Model):

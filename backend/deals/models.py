@@ -130,6 +130,10 @@ class Deal(SoftDeleteModel):
         blank=True,
         related_name="deals",
     )
+    company = models.ForeignKey(
+        "companies.Company", null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="deals",
+    )
     probability = models.IntegerField(null=True, blank=True)
     expected_close = models.DateField(null=True, blank=True)
     notes = models.TextField(blank=True, default="")
