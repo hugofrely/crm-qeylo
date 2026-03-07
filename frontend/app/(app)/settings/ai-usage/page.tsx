@@ -365,7 +365,7 @@ export default function AIUsagePage() {
                           borderRadius: "8px",
                           fontSize: "12px",
                         }}
-                        formatter={(value: number) => [formatCost(value), "Cout"]}
+                        formatter={(value) => [formatCost(Number(value ?? 0)), "Cout"]}
                       />
                       <Line
                         type="monotone"
@@ -418,7 +418,7 @@ export default function AIUsagePage() {
                           borderRadius: "8px",
                           fontSize: "12px",
                         }}
-                        formatter={(value: number) => [formatCost(value), "Cout"]}
+                        formatter={(value) => [formatCost(Number(value ?? 0)), "Cout"]}
                       />
                       <Legend
                         wrapperStyle={{ fontSize: "12px" }}
@@ -472,7 +472,7 @@ export default function AIUsagePage() {
                           borderRadius: "8px",
                           fontSize: "12px",
                         }}
-                        formatter={(value: number) => [formatCost(value), "Cout"]}
+                        formatter={(value) => [formatCost(Number(value ?? 0)), "Cout"]}
                       />
                       <Bar
                         dataKey="total_cost"
@@ -525,7 +525,7 @@ export default function AIUsagePage() {
                           borderRadius: "8px",
                           fontSize: "12px",
                         }}
-                        formatter={(value: number) => [formatCost(value), "Cout"]}
+                        formatter={(value) => [formatCost(Number(value ?? 0)), "Cout"]}
                       />
                       <Bar
                         dataKey="total_cost"
