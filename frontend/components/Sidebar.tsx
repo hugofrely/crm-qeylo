@@ -17,6 +17,7 @@ import {
 import {
   MessageSquare,
   Users,
+  Building2,
   Kanban,
   CheckSquare,
   BarChart3,
@@ -43,6 +44,7 @@ const navigationGroups = [
     items: [
       { name: "Chat", href: "/chat", icon: MessageSquare },
       { name: "Contacts", href: "/contacts", icon: Users },
+      { name: "Entreprises", href: "/companies", icon: Building2 },
       { name: "Segments", href: "/segments", icon: ListFilter },
       { name: "Pipeline", href: "/deals", icon: Kanban },
       { name: "Entonnoir", href: "/pipeline/funnel", icon: Filter },
