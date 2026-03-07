@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "workflows",
     "trash",
     "ai_usage",
+    "subscriptions",
 ]
 
 # ---------------------------------------------------------------------------
