@@ -7,6 +7,7 @@ import { useTasks } from "@/hooks/useTasks"
 import { TaskList } from "@/components/tasks/TaskList"
 import { TaskDialog } from "@/components/tasks/TaskDialog"
 import { CalendarView } from "@/components/tasks/CalendarView"
+import posthog from "posthog-js"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -82,6 +83,7 @@ export default function TasksPage() {
     )
     try {
       await updateTask(taskId, { is_done: isDone })
+      posthog.capture("task_toggled", { is_done: isDone })
       refresh()
     } catch {
       setTasks((prev) =>

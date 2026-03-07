@@ -16,6 +16,7 @@ import {
 } from "@dnd-kit/core"
 import { useRouter } from "next/navigation"
 import { updateDeal } from "@/services/deals"
+import posthog from "posthog-js"
 import { usePipeline } from "@/hooks/useDeals"
 import { KanbanColumn } from "./KanbanColumn"
 import { DealCard } from "./DealCard"
@@ -163,6 +164,8 @@ export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange, filter
     // Persist the change
     try {
       await updateDeal(dealId, { stage: newStageId })
+      const stageName = pipeline.find((s) => s.stage.id === newStageId)?.stage.name
+      posthog.capture("deal_stage_changed", { stage: stageName })
     } catch (err) {
       console.error("Failed to update deal stage:", err)
       // Re-fetch to restore correct state

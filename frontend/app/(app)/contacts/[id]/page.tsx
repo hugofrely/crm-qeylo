@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { fetchContact as fetchContactApi, updateContact, deleteContact as deleteContactApi, fetchContactCategories, fetchCustomFieldDefinitions, checkEmailAccount, fetchContactTimeline, fetchContactTasks, fetchContactDeals } from "@/services/contacts"
 import { restoreItems } from "@/services/trash"
 import { toast } from "sonner"
+import posthog from "posthog-js"
 import { fetchPipelineStages } from "@/services/deals"
 import { updateTask as updateTaskApi } from "@/services/tasks"
 import type { Contact, ContactCategory, CustomFieldDefinition, TimelineEntry, Task, Deal, Stage } from "@/types"
@@ -168,6 +169,7 @@ export default function ContactDetailPage() {
         birthday: (rest.birthday as string) || null,
         estimated_budget: (rest.estimated_budget as string) || null,
       })
+      posthog.capture("contact_edited")
       setEditing(false)
       fetchContact()
     } catch (err) {
@@ -181,6 +183,7 @@ export default function ContactDetailPage() {
   const handleDelete = async () => {
     try {
       await deleteContactApi(id as string)
+      posthog.capture("contact_deleted")
       toast("Element supprime", {
         action: {
           label: "Annuler",

@@ -9,6 +9,7 @@ import {
   useCallback,
 } from "react"
 import { apiFetch, setTokens, clearTokens } from "./api"
+import posthog from "posthog-js"
 import type { User, AuthContextType } from "@/types"
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -32,6 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }>("/auth/login/", { method: "POST", json: { email, password } })
     setTokens(data.access, data.refresh)
     setUser(data.user)
+    posthog.identify(data.user.id, { email: data.user.email, name: `${data.user.first_name} ${data.user.last_name}` })
+    posthog.capture("user_logged_in")
   }, [])
 
   const register = useCallback(
@@ -49,11 +52,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }>("/auth/register/", { method: "POST", json: formData })
       setTokens(data.access, data.refresh)
       setUser(data.user)
+      posthog.identify(data.user.id, { email: data.user.email, name: `${data.user.first_name} ${data.user.last_name}` })
+      posthog.capture("user_signed_up")
     },
     []
   )
 
   const logout = useCallback(() => {
+    posthog.capture("user_logged_out")
+    posthog.reset()
     clearTokens()
     setUser(null)
     window.location.href = "/login"

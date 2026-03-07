@@ -8,6 +8,7 @@ import {
   createConversation,
   fetchConversationMessages,
 } from "@/services/chat"
+import posthog from "posthog-js"
 import type { Conversation } from "@/types"
 import { ChatInput } from "@/components/chat/ChatInput"
 import {
@@ -169,6 +170,7 @@ export function ChatWindow() {
         created_at: new Date().toISOString(),
       }
 
+      posthog.capture("chat_message_sent")
       setMessages((prev) => [...prev, userMessage, assistantMessage])
       setIsLoading(true)
 

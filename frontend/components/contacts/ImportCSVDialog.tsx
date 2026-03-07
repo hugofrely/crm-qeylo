@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useMemo } from "react"
+import posthog from "posthog-js"
 import { Upload, FileSpreadsheet, Loader2, CheckCircle, ChevronsUpDown, Check, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -282,6 +283,7 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || "Error")
       setResult(data)
+      posthog.capture("contacts_imported", { count: data.created, skipped: data.skipped })
       setStep(3)
       onImported()
     } catch (err) {

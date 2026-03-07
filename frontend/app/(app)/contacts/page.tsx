@@ -23,6 +23,7 @@ import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { Pagination } from "@/components/shared/Pagination"
+import posthog from "posthog-js"
 import type { Contact, ContactCategory } from "@/types"
 
 interface ContactsResponse {
@@ -131,6 +132,7 @@ export default function ContactsPage() {
   const createContact = async () => {
     try {
       await apiFetch("/contacts/", { method: "POST", json: formData })
+      posthog.capture("contact_created", { has_email: !!formData.email, has_company: !!formData.company, lead_score: formData.lead_score || null })
       setFormData({ first_name: "", last_name: "", email: "", phone: "", mobile_phone: "", company: "", job_title: "", lead_score: "", city: "", postal_code: "", country: "", category_ids: [] })
       setDialogOpen(false)
       setShowDuplicateDialog(false)
@@ -190,6 +192,7 @@ export default function ContactsPage() {
         ...(selectedCategory ? { category: selectedCategory } : {}),
         ...(search.trim() ? { q: search.trim() } : {}),
       })
+      posthog.capture("contacts_exported")
     } catch (err) {
       console.error("Export failed:", err)
     } finally {

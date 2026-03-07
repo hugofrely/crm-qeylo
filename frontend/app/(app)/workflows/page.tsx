@@ -32,6 +32,7 @@ import {
   LayoutTemplate,
 } from "lucide-react"
 import { toast } from "sonner"
+import posthog from "posthog-js"
 import type { Workflow, WorkflowTemplate } from "@/types"
 
 const TRIGGER_LABELS: Record<string, string> = {
@@ -93,6 +94,7 @@ export default function WorkflowsPage() {
         nodes: [],
         edges: [],
       })
+      posthog.capture("workflow_created", { from_template: false })
       setCreateDialogOpen(false)
       setNewName("")
       router.push(`/workflows/${data.id}`)
@@ -111,6 +113,7 @@ export default function WorkflowsPage() {
         nodes: template.nodes,
         edges: template.edges,
       })
+      posthog.capture("workflow_created", { from_template: true, template: template.name })
       setTemplateDialogOpen(false)
       router.push(`/workflows/${data.id}`)
     } catch {
@@ -126,6 +129,7 @@ export default function WorkflowsPage() {
           w.id === workflow.id ? { ...w, is_active: data.is_active } : w
         )
       )
+      posthog.capture("workflow_toggled", { is_active: data.is_active })
       toast.success(data.is_active ? "Workflow activé" : "Workflow désactivé")
     } catch {
       toast.error("Erreur")
@@ -135,6 +139,7 @@ export default function WorkflowsPage() {
   const handleDelete = async (id: string) => {
     try {
       await deleteWorkflow(id)
+      posthog.capture("workflow_deleted")
       setWorkflows((prev) => prev.filter((w) => w.id !== id))
       toast.success("Workflow supprimé")
     } catch {

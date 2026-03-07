@@ -16,6 +16,7 @@ import type { Task } from "@/types"
 import { createTask, updateTask, deleteTask } from "@/services/tasks"
 import { restoreItems } from "@/services/trash"
 import { toast } from "sonner"
+import posthog from "posthog-js"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 import { useMemberAutocomplete } from "@/hooks/useMemberAutocomplete"
 
@@ -95,8 +96,10 @@ export function TaskDialog({
 
       if (isEditing) {
         await updateTask(task!.id, payload)
+        posthog.capture("task_edited", { priority })
       } else {
         await createTask(payload)
+        posthog.capture("task_created", { priority, has_contact: !!payload.contact, has_due_date: !!payload.due_date })
       }
 
       onOpenChange(false)
@@ -115,6 +118,7 @@ export function TaskDialog({
     try {
       const taskId = task.id
       await deleteTask(taskId)
+      posthog.capture("task_deleted")
       toast("Element supprime", {
         action: {
           label: "Annuler",

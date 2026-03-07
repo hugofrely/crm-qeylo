@@ -16,6 +16,7 @@ import { apiUploadImage } from "@/lib/api"
 import { createDeal, updateDeal, deleteDeal } from "@/services/deals"
 import { restoreItems } from "@/services/trash"
 import { toast } from "sonner"
+import posthog from "posthog-js"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
 import type { Deal, Stage } from "@/types"
@@ -94,8 +95,10 @@ export function DealDialog({
 
       if (isEditing) {
         await updateDeal(deal!.id, payload)
+        posthog.capture("deal_edited", { amount: payload.amount })
       } else {
         await createDeal(payload)
+        posthog.capture("deal_created", { amount: payload.amount, has_contact: !!payload.contact })
       }
 
       onOpenChange(false)
@@ -114,6 +117,7 @@ export function DealDialog({
     try {
       const dealId = deal.id
       await deleteDeal(dealId)
+      posthog.capture("deal_deleted")
       toast("Element supprime", {
         action: {
           label: "Annuler",

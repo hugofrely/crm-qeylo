@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select"
 import { fetchEmailAccounts, fetchEmailTemplates, renderEmailTemplate, sendEmail } from "@/services/emails"
 import { toast } from "sonner"
+import posthog from "posthog-js"
 import { Send, Loader2, FileText } from "lucide-react"
 import type { EmailAccount, EmailTemplate } from "@/types"
 
@@ -83,6 +84,7 @@ export function ComposeEmailDialog({
         ...(selectedProvider && { provider: selectedProvider }),
       })
 
+      posthog.capture("email_sent")
       toast.success(`Email envoye a ${contactName}`)
       setSubject("")
       setBody("")
