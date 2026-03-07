@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { apiFetch } from "@/lib/api"
-import { fetchContactCategories, checkDuplicates, exportContactsCSV } from "@/services/contacts"
+import { fetchContactCategories, checkDuplicates, exportContactsCSV, fetchContactTags, fetchContactSources, bulkContactAction } from "@/services/contacts"
 import { DuplicateDetectionDialog } from "@/components/contacts/DuplicateDetectionDialog"
 import type { DuplicateMatch } from "@/types"
 import { SegmentSelector } from "@/components/segments/SegmentSelector"
@@ -18,11 +18,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Plus, Search, Loader2, Download, Building2, X } from "lucide-react"
+import { Plus, Search, Loader2, Download, Building2, X, Tag, FolderOpen } from "lucide-react"
 import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterBar } from "@/components/shared/FilterBar"
-import { FilterSearchInput, FilterPills } from "@/components/shared/FilterControls"
+import { FilterSearchInput, FilterPills, FilterSelect, FilterDateRange, FilterCompanySearch } from "@/components/shared/FilterControls"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { Pagination } from "@/components/shared/Pagination"
 import { useCompanyAutocomplete } from "@/hooks/useCompanyAutocomplete"
@@ -38,6 +38,12 @@ interface ContactsResponse {
 }
 
 const PAGE_SIZE = 20
+
+const LEAD_SCORE_OPTIONS = [
+  { value: "hot", label: "Chaud" },
+  { value: "warm", label: "Tiède" },
+  { value: "cold", label: "Froid" },
+]
 
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([])
@@ -56,6 +62,25 @@ export default function ContactsPage() {
   const [filterOpen, setFilterOpen] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
+  // New filter states
+  const [ordering, setOrdering] = useState("-created_at")
+  const [leadScore, setLeadScore] = useState<string | null>(null)
+  const [source, setSource] = useState("")
+  const [createdAfter, setCreatedAfter] = useState("")
+  const [createdBefore, setCreatedBefore] = useState("")
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+
+  // Autocomplete data
+  const [availableTags, setAvailableTags] = useState<string[]>([])
+  const [availableSources, setAvailableSources] = useState<string[]>([])
+
+  // Bulk action dialogs
+  const [bulkCategorizeOpen, setBulkCategorizeOpen] = useState(false)
+  const [bulkCategorizeIds, setBulkCategorizeIds] = useState<string[]>([])
+  const [bulkAssignCompanyOpen, setBulkAssignCompanyOpen] = useState(false)
+  const [bulkCompanyId, setBulkCompanyId] = useState<string | null>(null)
+  const [bulkCompanyLabel, setBulkCompanyLabel] = useState<string | null>(null)
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev)
@@ -73,7 +98,7 @@ export default function ContactsPage() {
     }
   }
 
-  const activeFilterCount = [search, selectedCategory, selectedSegment].filter(Boolean).length
+  const activeFilterCount = [search, selectedCategory, selectedSegment, leadScore, source, createdAfter, createdBefore, selectedTags.length > 0].filter(Boolean).length
 
   const companyAutocomplete = useCompanyAutocomplete()
   const [companyEntityLabel, setCompanyEntityLabel] = useState("")
@@ -110,9 +135,18 @@ export default function ContactsPage() {
         setSelectedIds(new Set())
         setTotalCount(results.length)
       } else {
-        const categoryParam = selectedCategory ? `&category=${selectedCategory}` : ""
+        const params = new URLSearchParams()
+        params.set("page", String(page))
+        if (selectedCategory) params.set("category", selectedCategory)
+        if (ordering && ordering !== "-created_at") params.set("ordering", ordering)
+        if (leadScore) params.set("lead_score", leadScore)
+        if (source) params.set("source", source)
+        if (createdAfter) params.set("created_after", createdAfter)
+        if (createdBefore) params.set("created_before", createdBefore)
+        if (selectedTags.length > 0) params.set("tags", selectedTags.join(","))
+
         const data = await apiFetch<ContactsResponse>(
-          `/contacts/?page=${page}${categoryParam}`
+          `/contacts/?${params.toString()}`
         )
         setContacts(data.results)
         setSelectedIds(new Set())
@@ -123,7 +157,7 @@ export default function ContactsPage() {
     } finally {
       setLoading(false)
     }
-  }, [search, page, selectedCategory, selectedSegment])
+  }, [search, page, selectedCategory, selectedSegment, ordering, leadScore, source, createdAfter, createdBefore, selectedTags])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -132,28 +166,27 @@ export default function ContactsPage() {
     return () => clearTimeout(timer)
   }, [fetchContacts, search])
 
-  useEffect(() => {
-    setPage(1)
-  }, [search])
+  useEffect(() => { setPage(1) }, [search])
+  useEffect(() => { setPage(1) }, [selectedCategory])
+  useEffect(() => { setPage(1) }, [selectedSegment])
+  useEffect(() => { setPage(1) }, [leadScore, source, createdAfter, createdBefore, selectedTags])
 
   useEffect(() => {
-    setPage(1)
-  }, [selectedCategory])
-
-  useEffect(() => {
-    setPage(1)
-  }, [selectedSegment])
-
-  useEffect(() => {
-    const loadCategories = async () => {
+    const loadData = async () => {
       try {
-        const data = await fetchContactCategories()
-        setCategories(data)
+        const [cats, tags, sources] = await Promise.all([
+          fetchContactCategories(),
+          fetchContactTags(),
+          fetchContactSources(),
+        ])
+        setCategories(cats)
+        setAvailableTags(tags)
+        setAvailableSources(sources)
       } catch (err) {
-        console.error("Failed to fetch categories:", err)
+        console.error("Failed to fetch filter data:", err)
       }
     }
-    loadCategories()
+    loadData()
   }, [])
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
@@ -181,7 +214,6 @@ export default function ContactsPage() {
     e.preventDefault()
     setCreating(true)
     try {
-      // Check for duplicates first
       const result = await checkDuplicates(formData)
       if (result.duplicates.length > 0) {
         setDuplicates(result.duplicates)
@@ -189,11 +221,9 @@ export default function ContactsPage() {
         setCreating(false)
         return
       }
-      // No duplicates — create normally
       await createContact()
     } catch (err) {
       console.error("Failed to check duplicates:", err)
-      // On error, proceed with creation
       await createContact()
     }
   }
@@ -234,6 +264,77 @@ export default function ContactsPage() {
     }
   }
 
+  const handleBulkDelete = async () => {
+    try {
+      await bulkContactAction({ action: "delete", ids: Array.from(selectedIds) })
+      setSelectedIds(new Set())
+      fetchContacts()
+    } catch (err) {
+      console.error("Bulk delete failed:", err)
+    }
+  }
+
+  const handleBulkExport = async () => {
+    try {
+      await bulkContactAction({ action: "export", ids: Array.from(selectedIds) })
+      setSelectedIds(new Set())
+    } catch (err) {
+      console.error("Bulk export failed:", err)
+    }
+  }
+
+  const handleBulkCategorize = async () => {
+    if (bulkCategorizeIds.length === 0) return
+    try {
+      await bulkContactAction({
+        action: "categorize",
+        ids: Array.from(selectedIds),
+        params: { category_ids: bulkCategorizeIds },
+      })
+      setSelectedIds(new Set())
+      setBulkCategorizeOpen(false)
+      setBulkCategorizeIds([])
+      fetchContacts()
+    } catch (err) {
+      console.error("Bulk categorize failed:", err)
+    }
+  }
+
+  const handleBulkAssignCompany = async () => {
+    if (!bulkCompanyId) return
+    try {
+      await bulkContactAction({
+        action: "assign_company",
+        ids: Array.from(selectedIds),
+        params: { company_entity_id: bulkCompanyId },
+      })
+      setSelectedIds(new Set())
+      setBulkAssignCompanyOpen(false)
+      setBulkCompanyId(null)
+      setBulkCompanyLabel(null)
+      fetchContacts()
+    } catch (err) {
+      console.error("Bulk assign company failed:", err)
+    }
+  }
+
+  const resetFilters = () => {
+    setSearch("")
+    setSelectedCategory(null)
+    setSelectedSegment(null)
+    setLeadScore(null)
+    setSource("")
+    setCreatedAfter("")
+    setCreatedBefore("")
+    setSelectedTags([])
+  }
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    )
+  }
+
   return (
     <div className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       {/* Header */}
@@ -266,51 +367,20 @@ export default function ContactsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="first_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Prénom</Label>
-                  <Input
-                    id="first_name"
-                    value={formData.first_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, first_name: e.target.value })
-                    }
-                    required
-                    className="h-11 bg-secondary/30 border-border/60"
-                  />
+                  <Input id="first_name" value={formData.first_name} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} required className="h-11 bg-secondary/30 border-border/60" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="last_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Nom</Label>
-                  <Input
-                    id="last_name"
-                    value={formData.last_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, last_name: e.target.value })
-                    }
-                    required
-                    className="h-11 bg-secondary/30 border-border/60"
-                  />
+                  <Input id="last_name" value={formData.last_name} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} required className="h-11 bg-secondary/30 border-border/60" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  className="h-11 bg-secondary/30 border-border/60"
-                />
+                <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Téléphone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  className="h-11 bg-secondary/30 border-border/60"
-                />
+                <Input id="phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="company" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Entreprise</Label>
@@ -320,15 +390,7 @@ export default function ContactsPage() {
                       <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       <span className="text-sm truncate">{companyEntityLabel}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData({ ...formData, company_entity: null, company: "" })
-                        setCompanyEntityLabel("")
-                        companyAutocomplete.reset()
-                      }}
-                      className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                    >
+                    <button type="button" onClick={() => { setFormData({ ...formData, company_entity: null, company: "" }); setCompanyEntityLabel(""); companyAutocomplete.reset() }} className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -339,36 +401,17 @@ export default function ContactsPage() {
                       <Input
                         id="company"
                         value={companyAutocomplete.query || formData.company}
-                        onChange={(e) => {
-                          setFormData({ ...formData, company: e.target.value })
-                          companyAutocomplete.search(e.target.value)
-                        }}
-                        onFocus={() => {
-                          if (formData.company && !companyAutocomplete.query) {
-                            companyAutocomplete.search(formData.company)
-                          }
-                          if (companyAutocomplete.results.length > 0) companyAutocomplete.setOpen(true)
-                        }}
+                        onChange={(e) => { setFormData({ ...formData, company: e.target.value }); companyAutocomplete.search(e.target.value) }}
+                        onFocus={() => { if (formData.company && !companyAutocomplete.query) companyAutocomplete.search(formData.company); if (companyAutocomplete.results.length > 0) companyAutocomplete.setOpen(true) }}
                         placeholder="Rechercher ou saisir une entreprise..."
                         className="h-11 bg-secondary/30 border-border/60 pl-8"
                       />
-                      {companyAutocomplete.searching && (
-                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
-                      )}
+                      {companyAutocomplete.searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
                     </div>
                     {companyAutocomplete.open && companyAutocomplete.results.length > 0 && (
                       <div className="absolute z-50 mt-1 w-full bg-popover border rounded-md shadow-md max-h-48 overflow-y-auto">
                         {companyAutocomplete.results.map((c) => (
-                          <button
-                            key={c.id}
-                            type="button"
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors"
-                            onClick={() => {
-                              setFormData({ ...formData, company: c.name, company_entity: c.id })
-                              setCompanyEntityLabel(c.name)
-                              companyAutocomplete.reset()
-                            }}
-                          >
+                          <button key={c.id} type="button" className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors" onClick={() => { setFormData({ ...formData, company: c.name, company_entity: c.id }); setCompanyEntityLabel(c.name); companyAutocomplete.reset() }}>
                             <span className="font-medium">{c.name}</span>
                             {c.industry && <span className="text-muted-foreground ml-1">({c.industry})</span>}
                           </button>
@@ -380,25 +423,11 @@ export default function ContactsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="job_title" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Poste</Label>
-                <Input
-                  id="job_title"
-                  value={formData.job_title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, job_title: e.target.value })
-                  }
-                  className="h-11 bg-secondary/30 border-border/60"
-                />
+                <Input id="job_title" value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lead_score" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Score</Label>
-                <select
-                  id="lead_score"
-                  value={formData.lead_score}
-                  onChange={(e) =>
-                    setFormData({ ...formData, lead_score: e.target.value })
-                  }
-                  className="flex h-11 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
+                <select id="lead_score" value={formData.lead_score} onChange={(e) => setFormData({ ...formData, lead_score: e.target.value })} className="flex h-11 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                   <option value="">-- Aucun --</option>
                   <option value="hot">Chaud</option>
                   <option value="warm">Tiede</option>
@@ -406,13 +435,7 @@ export default function ContactsPage() {
                 </select>
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setDialogOpen(false)}
-                >
-                  Annuler
-                </Button>
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Annuler</Button>
                 <Button type="submit" disabled={creating}>
                   {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Créer
@@ -427,7 +450,7 @@ export default function ContactsPage() {
       <FilterBar
         open={filterOpen}
         activeFilterCount={activeFilterCount}
-        onReset={() => { setSearch(""); setSelectedCategory(null); setSelectedSegment(null) }}
+        onReset={resetFilters}
       >
         <FilterSearchInput
           value={search}
@@ -444,6 +467,51 @@ export default function ContactsPage() {
             showAll
           />
         )}
+        <FilterPills
+          label="Score"
+          options={LEAD_SCORE_OPTIONS}
+          value={leadScore}
+          onChange={setLeadScore}
+          showAll
+          allLabel="Tous"
+        />
+        {availableSources.length > 0 && (
+          <FilterSelect
+            label="Source"
+            options={availableSources.map((s) => ({ value: s, label: s }))}
+            value={source}
+            onChange={setSource}
+            placeholder="Toutes les sources"
+          />
+        )}
+        <FilterDateRange
+          label="Date de création"
+          after={createdAfter}
+          before={createdBefore}
+          onAfterChange={setCreatedAfter}
+          onBeforeChange={setCreatedBefore}
+        />
+        {availableTags.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Tags</span>
+            <div className="flex flex-wrap gap-1.5">
+              {availableTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => toggleTag(tag)}
+                  className={`px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1 font-[family-name:var(--font-body)] ${
+                    selectedTags.includes(tag)
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-background text-muted-foreground border border-border hover:bg-secondary/80 hover:text-foreground"
+                  }`}
+                >
+                  <Tag className="h-3 w-3" />
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </FilterBar>
 
       <DuplicateDetectionDialog
@@ -453,10 +521,7 @@ export default function ContactsPage() {
         newContactData={formData}
         onCreateAnyway={handleCreateAnyway}
         onMerge={handleMerge}
-        onCancel={() => {
-          setShowDuplicateDialog(false)
-          setDuplicates([])
-        }}
+        onCancel={() => { setShowDuplicateDialog(false); setDuplicates([]) }}
       />
 
       {/* Bulk action bar */}
@@ -469,17 +534,71 @@ export default function ContactsPage() {
             <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>
               Annuler
             </Button>
-            <Button variant="destructive" size="sm" onClick={async () => {
-              try {
-                for (const id of selectedIds) {
-                  await apiFetch(`/contacts/${id}/`, { method: "DELETE" })
-                }
-                setSelectedIds(new Set())
-                fetchContacts()
-              } catch (err) {
-                console.error("Bulk delete failed:", err)
-              }
-            }}>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={handleBulkExport}>
+              <Download className="h-3.5 w-3.5" />
+              Exporter
+            </Button>
+            <Dialog open={bulkCategorizeOpen} onOpenChange={setBulkCategorizeOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <FolderOpen className="h-3.5 w-3.5" />
+                  Catégoriser
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Catégoriser {selectedIds.size} contact{selectedIds.size > 1 ? "s" : ""}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-1.5">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setBulkCategorizeIds((prev) => prev.includes(cat.id) ? prev.filter((id) => id !== cat.id) : [...prev, cat.id])}
+                        className={`px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1 font-[family-name:var(--font-body)] ${
+                          bulkCategorizeIds.includes(cat.id)
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
+                        {cat.name}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => { setBulkCategorizeOpen(false); setBulkCategorizeIds([]) }}>Annuler</Button>
+                    <Button onClick={handleBulkCategorize} disabled={bulkCategorizeIds.length === 0}>Appliquer</Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Dialog open={bulkAssignCompanyOpen} onOpenChange={setBulkAssignCompanyOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Building2 className="h-3.5 w-3.5" />
+                  Entreprise
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Assigner une entreprise à {selectedIds.size} contact{selectedIds.size > 1 ? "s" : ""}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <FilterCompanySearch
+                    companyId={bulkCompanyId}
+                    companyLabel={bulkCompanyLabel}
+                    onSelect={(id, label) => { setBulkCompanyId(id); setBulkCompanyLabel(label) }}
+                    onClear={() => { setBulkCompanyId(null); setBulkCompanyLabel(null) }}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => { setBulkAssignCompanyOpen(false); setBulkCompanyId(null); setBulkCompanyLabel(null) }}>Annuler</Button>
+                    <Button onClick={handleBulkAssignCompany} disabled={!bulkCompanyId}>Assigner</Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
               Supprimer ({selectedIds.size})
             </Button>
           </div>
@@ -497,6 +616,8 @@ export default function ContactsPage() {
           selectedIds={selectedIds}
           onToggleSelect={toggleSelect}
           onToggleAll={toggleSelectAll}
+          ordering={ordering}
+          onOrderingChange={setOrdering}
         />
       )}
 
@@ -506,7 +627,7 @@ export default function ContactsPage() {
       <FilterPanel
         open={filterOpen}
         onOpenChange={setFilterOpen}
-        onReset={() => { setSearch(""); setSelectedCategory(null); setSelectedSegment(null) }}
+        onReset={resetFilters}
         activeFilterCount={activeFilterCount}
       >
         <FilterSection label="Recherche">
@@ -527,14 +648,12 @@ export default function ContactsPage() {
           />
         </FilterSection>
         {categories.length > 0 && (
-          <FilterSection label="Categorie">
+          <FilterSection label="Catégorie">
             <div className="flex flex-wrap gap-1.5">
               <button
                 onClick={() => { setSelectedCategory(null); setSelectedSegment(null) }}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
-                  selectedCategory === null
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                  selectedCategory === null ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
                 }`}
               >
                 Tous
@@ -544,16 +663,73 @@ export default function ContactsPage() {
                   key={cat.id}
                   onClick={() => { setSelectedCategory(cat.id); setSelectedSegment(null) }}
                   className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 font-[family-name:var(--font-body)] ${
-                    selectedCategory === cat.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                    selectedCategory === cat.id ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
                   }`}
                 >
                   <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
                   {cat.name}
-                  {(cat.contact_count ?? 0) > 0 && (
-                    <span className="text-[10px] opacity-70">({cat.contact_count})</span>
-                  )}
+                  {(cat.contact_count ?? 0) > 0 && <span className="text-[10px] opacity-70">({cat.contact_count})</span>}
+                </button>
+              ))}
+            </div>
+          </FilterSection>
+        )}
+        <FilterSection label="Score">
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              onClick={() => setLeadScore(null)}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
+                leadScore === null ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+              }`}
+            >
+              Tous
+            </button>
+            {LEAD_SCORE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setLeadScore(leadScore === opt.value ? null : opt.value)}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
+                  leadScore === opt.value ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </FilterSection>
+        {availableSources.length > 0 && (
+          <FilterSection label="Source">
+            <FilterSelect
+              options={availableSources.map((s) => ({ value: s, label: s }))}
+              value={source}
+              onChange={setSource}
+              placeholder="Toutes les sources"
+            />
+          </FilterSection>
+        )}
+        <FilterSection label="Date de création">
+          <FilterDateRange
+            after={createdAfter}
+            before={createdBefore}
+            onAfterChange={setCreatedAfter}
+            onBeforeChange={setCreatedBefore}
+          />
+        </FilterSection>
+        {availableTags.length > 0 && (
+          <FilterSection label="Tags">
+            <div className="flex flex-wrap gap-1.5">
+              {availableTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => toggleTag(tag)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 font-[family-name:var(--font-body)] ${
+                    selectedTags.includes(tag)
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  <Tag className="h-3 w-3" />
+                  {tag}
                 </button>
               ))}
             </div>
