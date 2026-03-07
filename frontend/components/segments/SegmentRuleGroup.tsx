@@ -13,9 +13,11 @@ interface Props {
   canRemove: boolean
   customFields?: { id: string; label: string; field_type: string }[]
   categories?: { id: string; name: string }[]
+  companies?: { id: string; name: string }[]
+  onCompanySearch?: (query: string) => void
 }
 
-export function SegmentRuleGroup({ group, onChange, onRemove, canRemove, customFields, categories }: Props) {
+export function SegmentRuleGroup({ group, onChange, onRemove, canRemove, customFields, categories, companies, onCompanySearch }: Props) {
   const updateCondition = (index: number, condition: SegmentCondition) => {
     const conditions = [...group.conditions]
     conditions[index] = condition
@@ -66,6 +68,8 @@ export function SegmentRuleGroup({ group, onChange, onRemove, canRemove, customF
             onRemove={() => removeCondition(index)}
             customFields={customFields}
             categories={categories}
+            companies={companies}
+            onCompanySearch={onCompanySearch}
           />
         ))}
       </div>

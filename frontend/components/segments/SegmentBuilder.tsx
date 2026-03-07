@@ -14,6 +14,7 @@ import { Plus, Loader2, Users } from "lucide-react"
 import { SegmentRuleGroup } from "./SegmentRuleGroup"
 import { previewSegment } from "@/services/segments"
 import { fetchCustomFieldDefinitions, fetchContactCategories } from "@/services/contacts"
+import { fetchCompanies } from "@/services/companies"
 import type { Segment, SegmentRules, SegmentRuleGroup as RuleGroupType } from "@/types"
 
 const COLORS = ["#3b82f6", "#ef4444", "#f59e0b", "#10b981", "#8b5cf6", "#ec4899", "#06b6d4", "#64748b"]
@@ -42,6 +43,20 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
   const [saving, setSaving] = useState(false)
   const [customFields, setCustomFields] = useState<{ id: string; label: string; field_type: string }[]>([])
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
+  const [companyResults, setCompanyResults] = useState<{ id: string; name: string }[]>([])
+
+  const handleCompanySearch = useCallback(async (query: string) => {
+    if (query.length < 2) {
+      setCompanyResults([])
+      return
+    }
+    try {
+      const data = await fetchCompanies({ search: query })
+      setCompanyResults(data.results.map((c) => ({ id: c.id, name: c.name })))
+    } catch {
+      setCompanyResults([])
+    }
+  }, [])
 
   useEffect(() => {
     if (open) {
@@ -229,6 +244,8 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
                   canRemove={rules.groups.length > 1}
                   customFields={customFields}
                   categories={categories}
+                  companies={companyResults}
+                  onCompanySearch={handleCompanySearch}
                 />
               </div>
             ))}

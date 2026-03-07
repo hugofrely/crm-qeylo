@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useRef, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
@@ -11,7 +12,6 @@ const FIELD_OPTIONS = [
     { value: "last_name", label: "Nom" },
     { value: "email", label: "Email" },
     { value: "phone", label: "Téléphone" },
-    { value: "company", label: "Entreprise" },
     { value: "job_title", label: "Poste" },
     { value: "source", label: "Source" },
     { value: "lead_score", label: "Score" },
@@ -24,6 +24,16 @@ const FIELD_OPTIONS = [
     { value: "tags", label: "Tags" },
     { value: "categories", label: "Catégories" },
     { value: "estimated_budget", label: "Budget estime" },
+  ]},
+  { group: "Entreprise", fields: [
+    { value: "company.name", label: "Entreprise" },
+    { value: "company.industry", label: "Industrie (entreprise)" },
+    { value: "company.annual_revenue", label: "CA annuel" },
+    { value: "company.employee_count", label: "Nombre d'employés" },
+    { value: "company.health_score", label: "Score santé" },
+    { value: "company.city", label: "Ville (entreprise)" },
+    { value: "company.country", label: "Pays (entreprise)" },
+    { value: "company.source", label: "Source (entreprise)" },
   ]},
   { group: "Dates", fields: [
     { value: "created_at", label: "Date de creation" },
@@ -101,6 +111,22 @@ const DECISION_ROLE_OPTIONS = [
   { value: "other", label: "Autre" },
 ]
 
+const HEALTH_SCORE_OPTIONS = [
+  { value: "excellent", label: "Excellent" },
+  { value: "good", label: "Bon" },
+  { value: "at_risk", label: "A risque" },
+  { value: "churned", label: "Perdu" },
+]
+
+const COMPANY_NAME_OPERATORS = [
+  { value: "equals", label: "est" },
+  { value: "not_equals", label: "n'est pas" },
+  { value: "is_empty", label: "n'a pas d'entreprise" },
+  { value: "is_not_empty", label: "a une entreprise" },
+]
+
+const COMPANY_NUMERIC_FIELDS = ["company.annual_revenue", "company.employee_count"]
+
 const DATE_FIELDS = ["created_at", "updated_at", "birthday"]
 const NUMERIC_FIELDS = ["estimated_budget"]
 const RELATION_FIELDS = ["deals_count", "open_deals_count", "tasks_count", "open_tasks_count", "last_interaction_date", "has_deal_closing_within"]
@@ -108,6 +134,7 @@ const SELECT_FIELDS: Record<string, { value: string; label: string }[]> = {
   lead_score: LEAD_SCORE_OPTIONS,
   preferred_channel: CHANNEL_OPTIONS,
   decision_role: DECISION_ROLE_OPTIONS,
+  "company.health_score": HEALTH_SCORE_OPTIONS,
 }
 const CATEGORY_OPERATORS = [
   { value: "in", label: "est parmi" },
@@ -119,6 +146,10 @@ const CATEGORY_OPERATORS = [
 const NO_VALUE_OPERATORS = ["is_empty", "is_not_empty", "has_any", "has_none"]
 
 function getOperatorsForField(field: string) {
+  if (field === "company.name") return COMPANY_NAME_OPERATORS
+  if (field === "company.health_score") return SELECT_OPERATORS
+  if (COMPANY_NUMERIC_FIELDS.includes(field)) return NUMERIC_OPERATORS
+  if (field.startsWith("company.")) return TEXT_OPERATORS
   if (field === "categories") return CATEGORY_OPERATORS
   if (DATE_FIELDS.includes(field)) return DATE_OPERATORS
   if (NUMERIC_FIELDS.includes(field)) return NUMERIC_OPERATORS
@@ -133,9 +164,74 @@ interface Props {
   onRemove: () => void
   customFields?: { id: string; label: string; field_type: string }[]
   categories?: { id: string; name: string }[]
+  companies?: { id: string; name: string }[]
+  onCompanySearch?: (query: string) => void
 }
 
-export function SegmentConditionRow({ condition, onChange, onRemove, customFields = [], categories = [] }: Props) {
+function CompanyAutocompleteInput({
+  value,
+  companies,
+  onChange,
+  onSearch,
+}: {
+  value: string
+  companies: { id: string; name: string }[]
+  onChange: (id: string) => void
+  onSearch?: (query: string) => void
+}) {
+  const [query, setQuery] = useState("")
+  const [open, setOpen] = useState(false)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const selected = companies.find((c) => c.id === value)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  return (
+    <div ref={wrapperRef} className="relative flex-1 basis-[140px]">
+      <Input
+        value={selected ? selected.name : query}
+        onChange={(e) => {
+          const q = e.target.value
+          setQuery(q)
+          onSearch?.(q)
+          setOpen(q.length >= 2)
+          if (selected) onChange("")
+        }}
+        onFocus={() => { if (query.length >= 2) setOpen(true) }}
+        className="h-9 bg-secondary/30 border-border/60"
+        placeholder="Rechercher une entreprise..."
+      />
+      {open && companies.length > 0 && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-popover shadow-md">
+          {companies.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className="w-full text-left px-3 py-2 text-sm hover:bg-accent transition-colors"
+              onClick={() => {
+                onChange(c.id)
+                setQuery(c.name)
+                setOpen(false)
+              }}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function SegmentConditionRow({ condition, onChange, onRemove, customFields = [], categories = [], companies = [], onCompanySearch }: Props) {
   const allFields = [
     ...FIELD_OPTIONS,
     ...(customFields.length > 0 ? [{
@@ -181,7 +277,14 @@ export function SegmentConditionRow({ condition, onChange, onRemove, customField
       {/* Value input */}
       {needsValue && (
         <>
-          {condition.field === "categories" && categories.length > 0 ? (
+          {condition.field === "company.name" ? (
+            <CompanyAutocompleteInput
+              value={condition.value as string ?? ""}
+              companies={companies}
+              onChange={(id) => onChange({ ...condition, value: id })}
+              onSearch={onCompanySearch}
+            />
+          ) : condition.field === "categories" && categories.length > 0 ? (
             <select
               value={condition.value as string ?? ""}
               onChange={(e) => onChange({ ...condition, value: e.target.value })}
