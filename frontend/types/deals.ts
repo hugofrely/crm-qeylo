@@ -20,6 +20,18 @@ export interface Deal {
   expected_close?: string | null
   notes?: string
   created_at?: string
+  loss_reason?: string | null
+  loss_reason_name?: string | null
+  loss_comment?: string
+  won_at?: string | null
+  lost_at?: string | null
+}
+
+export interface DealLossReason {
+  id: string
+  name: string
+  order: number
+  is_default: boolean
 }
 
 export interface Stage {

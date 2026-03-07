@@ -4,11 +4,12 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Count, Q
-from .models import Pipeline, PipelineStage, Deal, DealStageTransition, PIPELINE_TEMPLATES
+from .models import Pipeline, PipelineStage, Deal, DealStageTransition, DealLossReason, PIPELINE_TEMPLATES
 from .serializers import (
     PipelineSerializer,
     PipelineStageSerializer,
     DealSerializer,
+    DealLossReasonSerializer,
     PipelineDealSerializer,
 )
 
@@ -173,7 +174,9 @@ class DealViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        qs = Deal.objects.filter(organization=self.request.organization)
+        qs = Deal.objects.filter(
+            organization=self.request.organization
+        ).select_related("loss_reason")
         contact_id = self.request.query_params.get("contact")
         if contact_id:
             qs = qs.filter(contact_id=contact_id)
@@ -200,6 +203,26 @@ class DealViewSet(viewsets.ModelViewSet):
         old_stage = deal.stage
         updated_deal = serializer.save()
         if updated_deal.stage_id != old_stage.id:
+            from django.utils import timezone
+            now = timezone.now()
+            new_stage = updated_deal.stage
+            if new_stage.is_won and not old_stage.is_won:
+                updated_deal.won_at = now
+                updated_deal.closed_at = now
+                updated_deal.save(update_fields=["won_at", "closed_at"])
+            elif new_stage.is_lost and not old_stage.is_lost:
+                updated_deal.lost_at = now
+                updated_deal.closed_at = now
+                updated_deal.save(update_fields=["lost_at", "closed_at"])
+            elif not new_stage.is_won and not new_stage.is_lost:
+                if old_stage.is_won or old_stage.is_lost:
+                    updated_deal.won_at = None
+                    updated_deal.lost_at = None
+                    updated_deal.closed_at = None
+                    updated_deal.loss_reason = None
+                    updated_deal.loss_comment = ""
+                    updated_deal.save(update_fields=["won_at", "lost_at", "closed_at", "loss_reason", "loss_comment"])
+
             last_transition = (
                 DealStageTransition.objects.filter(deal=deal)
                 .order_by("-transitioned_at")
@@ -207,8 +230,7 @@ class DealViewSet(viewsets.ModelViewSet):
             )
             duration = None
             if last_transition:
-                from django.utils import timezone
-                duration = timezone.now() - last_transition.transitioned_at
+                duration = now - last_transition.transitioned_at
             DealStageTransition.objects.create(
                 deal=updated_deal,
                 organization=updated_deal.organization,
@@ -217,6 +239,18 @@ class DealViewSet(viewsets.ModelViewSet):
                 changed_by=self.request.user,
                 duration_in_previous=duration,
             )
+
+
+class DealLossReasonViewSet(viewsets.ModelViewSet):
+    serializer_class = DealLossReasonSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        return DealLossReason.objects.filter(organization=self.request.organization)
+
+    def perform_create(self, serializer):
+        serializer.save(organization=self.request.organization)
 
 
 @api_view(["GET"])

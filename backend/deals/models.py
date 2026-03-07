@@ -110,6 +110,46 @@ class PipelineStage(models.Model):
         Pipeline.create_defaults(organization)
 
 
+class DealLossReason(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="deal_loss_reasons",
+    )
+    name = models.CharField(max_length=100)
+    order = models.IntegerField(default=0)
+    is_default = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["order"]
+        constraints = [
+            models.UniqueConstraint(fields=["organization", "name"], name="unique_loss_reason_per_org"),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    DEFAULT_REASONS = [
+        "Prix trop élevé",
+        "Concurrent choisi",
+        "Pas de budget",
+        "Mauvais timing",
+        "Pas de besoin réel",
+        "Pas de réponse",
+        "Autre",
+    ]
+
+    @classmethod
+    def create_defaults(cls, organization):
+        for i, name in enumerate(cls.DEFAULT_REASONS):
+            cls.objects.get_or_create(
+                organization=organization,
+                name=name,
+                defaults={"order": i, "is_default": True},
+            )
+
+
 class Deal(SoftDeleteModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organization = models.ForeignKey(
@@ -142,6 +182,13 @@ class Deal(SoftDeleteModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     closed_at = models.DateTimeField(null=True, blank=True)
+    loss_reason = models.ForeignKey(
+        DealLossReason, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="deals",
+    )
+    loss_comment = models.TextField(blank=True, default="")
+    won_at = models.DateTimeField(null=True, blank=True)
+    lost_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]

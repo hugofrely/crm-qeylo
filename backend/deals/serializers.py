@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Pipeline, PipelineStage, Deal
+from .models import Pipeline, PipelineStage, Deal, DealLossReason
 
 
 class PipelineSerializer(serializers.ModelSerializer):
@@ -19,9 +19,19 @@ class PipelineStageSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
 
+class DealLossReasonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DealLossReason
+        fields = ["id", "name", "order", "is_default"]
+        read_only_fields = ["id"]
+
+
 class DealSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(
         source="company.name", read_only=True, default=None
+    )
+    loss_reason_name = serializers.CharField(
+        source="loss_reason.name", read_only=True, default=None
     )
 
     class Meta:
@@ -40,6 +50,11 @@ class DealSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "closed_at",
+            "loss_reason",
+            "loss_reason_name",
+            "loss_comment",
+            "won_at",
+            "lost_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 

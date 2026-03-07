@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/api"
-import type { Deal, Pipeline, PipelineStage, Stage } from "@/types"
+import type { Deal, Pipeline, PipelineStage, Stage, DealLossReason } from "@/types"
 
 // Pipeline CRUD
 export async function fetchPipelines(): Promise<Pipeline[]> {
@@ -74,4 +74,9 @@ export async function deletePipelineStage(id: string | number, migrateTo?: strin
     ? `/pipeline-stages/${id}/?migrate_to=${migrateTo}`
     : `/pipeline-stages/${id}/`
   await apiFetch(url, { method: "DELETE" })
+}
+
+// Loss Reasons
+export async function fetchLossReasons(): Promise<DealLossReason[]> {
+  return apiFetch<DealLossReason[]>(`/deals/loss-reasons/`)
 }
