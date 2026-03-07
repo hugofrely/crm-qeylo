@@ -26,6 +26,8 @@ from segments.engine import build_segment_queryset
 from tasks.models import Task
 from emails.models import EmailAccount
 from emails.service import send_email as service_send_email
+from companies.models import Company
+from contacts.models import ContactRelationship
 
 
 @dataclass
@@ -72,6 +74,28 @@ def _resolve_deal_id(org_id: str, raw_id: str | None) -> str | None:
             return raw_id
     latest = Deal.objects.filter(organization_id=org_id).order_by("-created_at").first()
     return str(latest.id) if latest else None
+
+
+def _resolve_company_id(org_id: str, raw_id: str | None) -> str | None:
+    """Return a valid company UUID or None."""
+    if not raw_id:
+        return None
+    if _is_valid_uuid(raw_id):
+        if Company.objects.filter(id=raw_id, organization_id=org_id).exists():
+            return raw_id
+    latest = Company.objects.filter(organization_id=org_id).order_by("-created_at").first()
+    return str(latest.id) if latest else None
+
+
+def _find_company(org_id: str, name_or_id: str):
+    """Find a company by ID or name."""
+    if _is_valid_uuid(name_or_id):
+        c = Company.objects.filter(id=name_or_id, organization_id=org_id).first()
+        if c:
+            return c
+    return Company.objects.filter(
+        organization_id=org_id, name__icontains=name_or_id
+    ).first()
 
 
 # ---------------------------------------------------------------------------
@@ -1496,6 +1520,9 @@ def get_dashboard_summary(ctx: RunContext[ChatDeps]) -> dict:
         due_date__lt=now,
     ).count()
 
+    total_companies = Company.objects.filter(organization_id=org_id).count()
+    at_risk_companies = Company.objects.filter(organization_id=org_id, health_score="at_risk").count()
+
     return {
         "action": "dashboard_summary",
         "total_contacts": total_contacts,
@@ -1503,6 +1530,8 @@ def get_dashboard_summary(ctx: RunContext[ChatDeps]) -> dict:
         "pipeline_total": pipeline_total,
         "upcoming_tasks_7d": upcoming_tasks,
         "overdue_tasks": overdue_tasks,
+        "total_companies": total_companies,
+        "at_risk_companies": at_risk_companies,
         "entity_type": "dashboard",
         "summary": "Résumé du dashboard",
     }
@@ -1531,6 +1560,10 @@ def search_all(ctx: RunContext[ChatDeps], query: str) -> dict:
         content__icontains=query,
     )[:5]
 
+    companies = Company.objects.filter(organization_id=org_id).filter(
+        Q(name__icontains=query) | Q(domain__icontains=query)
+    )[:5]
+
     return {
         "action": "search_all",
         "contacts": [
@@ -1544,6 +1577,10 @@ def search_all(ctx: RunContext[ChatDeps], query: str) -> dict:
         "notes": [
             {"id": str(n.id), "content": n.content[:100]}
             for n in notes
+        ],
+        "companies": [
+            {"id": str(c.id), "name": c.name, "industry": c.industry}
+            for c in companies
         ],
         "entity_type": "search_results",
         "summary": "Résultats de recherche",
@@ -2142,6 +2179,7 @@ ROUTE_MAP = {
     "trash": {"path": "/trash", "label": "Corbeille"},
     "products": {"path": "/products", "label": "Produits"},
     "chat": {"path": "/chat", "label": "Chat"},
+    "company": {"path": "/companies", "label": "Entreprises"},
 }
 
 
@@ -2197,6 +2235,10 @@ def navigate(
                 s = Segment.objects.get(id=entity_id, organization_id=org_id)
                 title = s.name
                 description = s.description or f"Segment: {s.name}"
+            elif destination == "company":
+                comp = Company.objects.get(id=entity_id, organization_id=org_id)
+                title = comp.name
+                description = f"{comp.name} — {comp.industry}" if comp.industry else comp.name
         except Exception:
             pass
 
@@ -2561,6 +2603,444 @@ def generate_chart(
     }
 
 
+# ---------------------------------------------------------------------------
+# Companies
+# ---------------------------------------------------------------------------
+
+def create_company(
+    ctx: RunContext[ChatDeps],
+    name: str,
+    industry: str = "",
+    website: str = "",
+    phone: str = "",
+    email: str = "",
+    domain: str = "",
+    address: str = "",
+    city: str = "",
+    country: str = "",
+    annual_revenue: Optional[float] = None,
+    employee_count: Optional[int] = None,
+    siret: str = "",
+    vat_number: str = "",
+    legal_status: str = "",
+    source: str = "",
+    health_score: str = "good",
+    parent_name: Optional[str] = None,
+    description: str = "",
+) -> dict:
+    """Create a new company/account in the CRM."""
+    org_id = ctx.deps.organization_id
+    existing = Company.objects.filter(organization_id=org_id, name__iexact=name).first()
+    if existing:
+        return {
+            "action": "duplicate_found",
+            "summary": f"L'entreprise '{name}' existe deja.",
+            "entity_id": str(existing.id),
+            "entity_type": "company",
+            "entity_preview": {"name": existing.name, "industry": existing.industry},
+            "link": f"/companies/{existing.id}",
+        }
+    parent = None
+    if parent_name:
+        parent = Company.objects.filter(organization_id=org_id, name__icontains=parent_name).first()
+    company = Company.objects.create(
+        organization_id=org_id,
+        created_by_id=ctx.deps.user_id,
+        name=name, industry=industry, website=website, phone=phone,
+        email=email, domain=domain, address=address, city=city,
+        country=country, annual_revenue=annual_revenue,
+        employee_count=employee_count, siret=siret, vat_number=vat_number,
+        legal_status=legal_status, source=source, health_score=health_score,
+        parent=parent, description=description,
+    )
+    return {
+        "action": "created",
+        "entity_type": "company",
+        "entity_id": str(company.id),
+        "summary": f"Entreprise '{name}' creee.",
+        "entity_preview": {"name": name, "industry": industry},
+        "link": f"/companies/{company.id}",
+    }
+
+
+def get_company(ctx: RunContext[ChatDeps], company_name_or_id: str) -> dict:
+    """Get details of a company by name or ID."""
+    org_id = ctx.deps.organization_id
+    company = _find_company(org_id, company_name_or_id)
+    if not company:
+        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+    contacts_count = company.contacts.count()
+    deals = company.deals.all()
+    open_value = float(deals.exclude(stage__name__in=["Gagne", "Perdu", "Gagné"]).aggregate(t=Sum("amount"))["t"] or 0)
+    won_value = float(deals.filter(stage__name__in=["Gagne", "Gagné"]).aggregate(t=Sum("amount"))["t"] or 0)
+    return {
+        "action": "found",
+        "entity_type": "company",
+        "entity_id": str(company.id),
+        "summary": f"Entreprise: {company.name}",
+        "entity_preview": {
+            "name": company.name, "industry": company.industry,
+            "health_score": company.health_score, "contacts": contacts_count,
+            "open_pipeline": f"{open_value:.0f}", "won_revenue": f"{won_value:.0f}",
+            "website": company.website, "phone": company.phone,
+            "parent": company.parent.name if company.parent else None,
+        },
+        "link": f"/companies/{company.id}",
+    }
+
+
+def search_companies(
+    ctx: RunContext[ChatDeps],
+    query: str = "",
+    industry: str = "",
+    health_score: str = "",
+) -> dict:
+    """Search companies by name, industry, health score."""
+    org_id = ctx.deps.organization_id
+    qs = Company.objects.filter(organization_id=org_id)
+    if query:
+        for word in query.split():
+            qs = qs.filter(Q(name__icontains=word) | Q(domain__icontains=word))
+    if industry:
+        qs = qs.filter(industry__icontains=industry)
+    if health_score:
+        qs = qs.filter(health_score=health_score)
+    companies = qs[:10]
+    return {
+        "action": "search_results",
+        "entity_type": "company_list",
+        "summary": f"{len(companies)} entreprise(s) trouvee(s).",
+        "results": [
+            {"id": str(c.id), "name": c.name, "industry": c.industry, "health_score": c.health_score}
+            for c in companies
+        ],
+    }
+
+
+def update_company(
+    ctx: RunContext[ChatDeps],
+    company_name_or_id: str,
+    name: Optional[str] = None,
+    industry: Optional[str] = None,
+    website: Optional[str] = None,
+    phone: Optional[str] = None,
+    email: Optional[str] = None,
+    health_score: Optional[str] = None,
+    annual_revenue: Optional[float] = None,
+    employee_count: Optional[int] = None,
+    description: Optional[str] = None,
+    address: Optional[str] = None,
+    city: Optional[str] = None,
+    country: Optional[str] = None,
+    siret: Optional[str] = None,
+    vat_number: Optional[str] = None,
+    legal_status: Optional[str] = None,
+    source: Optional[str] = None,
+) -> dict:
+    """Update a company's fields."""
+    org_id = ctx.deps.organization_id
+    company = _find_company(org_id, company_name_or_id)
+    if not company:
+        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+    changes = []
+    for field, value in [
+        ("name", name), ("industry", industry), ("website", website),
+        ("phone", phone), ("email", email), ("health_score", health_score),
+        ("annual_revenue", annual_revenue), ("employee_count", employee_count),
+        ("description", description), ("address", address), ("city", city),
+        ("country", country), ("siret", siret), ("vat_number", vat_number),
+        ("legal_status", legal_status), ("source", source),
+    ]:
+        if value is not None:
+            setattr(company, field, value)
+            changes.append(field)
+    if changes:
+        company.save(update_fields=changes + ["updated_at"])
+    return {
+        "action": "updated",
+        "entity_type": "company",
+        "entity_id": str(company.id),
+        "summary": f"Entreprise '{company.name}' mise a jour ({', '.join(changes)}).",
+        "link": f"/companies/{company.id}",
+    }
+
+
+def delete_company(ctx: RunContext[ChatDeps], company_name_or_id: str) -> dict:
+    """Delete a company (soft delete)."""
+    org_id = ctx.deps.organization_id
+    company = _find_company(org_id, company_name_or_id)
+    if not company:
+        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+    company.soft_delete(user_id=ctx.deps.user_id)
+    return {
+        "action": "deleted",
+        "entity_type": "company",
+        "entity_id": str(company.id),
+        "summary": f"Entreprise '{company.name}' supprimee.",
+    }
+
+
+def get_company_stats(ctx: RunContext[ChatDeps], company_name_or_id: str) -> dict:
+    """Get stats for a company: revenue, pipeline, deals, contacts."""
+    org_id = ctx.deps.organization_id
+    company = _find_company(org_id, company_name_or_id)
+    if not company:
+        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+    deals = Deal.objects.filter(company=company)
+    open_deals = deals.exclude(stage__name__in=["Gagne", "Perdu", "Gagné"])
+    won_deals = deals.filter(stage__name__in=["Gagne", "Gagné"])
+    return {
+        "action": "company_stats",
+        "entity_type": "company",
+        "entity_id": str(company.id),
+        "summary": f"Stats de {company.name}",
+        "stats": {
+            "contacts_count": company.contacts.count(),
+            "total_deals": deals.count(),
+            "open_deals": open_deals.count(),
+            "won_deals": won_deals.count(),
+            "open_deals_value": float(open_deals.aggregate(t=Sum("amount"))["t"] or 0),
+            "won_deals_value": float(won_deals.aggregate(t=Sum("amount"))["t"] or 0),
+            "subsidiaries_count": company.subsidiaries.count(),
+        },
+        "link": f"/companies/{company.id}",
+    }
+
+
+def get_company_contacts(ctx: RunContext[ChatDeps], company_name_or_id: str, role: str = "") -> dict:
+    """List contacts of a company, optionally filtered by decision role."""
+    org_id = ctx.deps.organization_id
+    company = _find_company(org_id, company_name_or_id)
+    if not company:
+        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+    contacts = Contact.objects.filter(company_entity=company)
+    if role:
+        contacts = contacts.filter(decision_role__iexact=role)
+    return {
+        "action": "company_contacts",
+        "entity_type": "contact_list",
+        "summary": f"{contacts.count()} contacts chez {company.name}",
+        "results": [
+            {"id": str(c.id), "name": f"{c.first_name} {c.last_name}", "job_title": c.job_title, "email": c.email, "decision_role": c.decision_role}
+            for c in contacts[:20]
+        ],
+    }
+
+
+def get_company_deals(ctx: RunContext[ChatDeps], company_name_or_id: str, stage: str = "") -> dict:
+    """List deals of a company, optionally filtered by stage."""
+    org_id = ctx.deps.organization_id
+    company = _find_company(org_id, company_name_or_id)
+    if not company:
+        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+    deals = Deal.objects.filter(company=company).select_related("stage")
+    if stage:
+        deals = deals.filter(stage__name__icontains=stage)
+    return {
+        "action": "company_deals",
+        "entity_type": "deal_list",
+        "summary": f"{deals.count()} deals chez {company.name}",
+        "results": [
+            {"id": str(d.id), "name": d.name, "amount": float(d.amount), "stage": d.stage.name if d.stage else ""}
+            for d in deals[:20]
+        ],
+    }
+
+
+def get_company_hierarchy(ctx: RunContext[ChatDeps], company_name_or_id: str) -> dict:
+    """Get the full hierarchy tree of a company (root to all descendants)."""
+    org_id = ctx.deps.organization_id
+    company = _find_company(org_id, company_name_or_id)
+    if not company:
+        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+    root = company
+    while root.parent:
+        root = root.parent
+    def _tree(node):
+        return {
+            "id": str(node.id), "name": node.name, "industry": node.industry,
+            "children": [_tree(c) for c in Company.objects.filter(parent=node, organization_id=org_id)],
+        }
+    return {
+        "action": "company_hierarchy",
+        "entity_type": "company",
+        "summary": f"Hierarchie de {company.name}",
+        "tree": _tree(root),
+    }
+
+
+def get_company_org_chart(ctx: RunContext[ChatDeps], company_name_or_id: str) -> dict:
+    """Get contacts with their relationships for a company organigramme."""
+    org_id = ctx.deps.organization_id
+    company = _find_company(org_id, company_name_or_id)
+    if not company:
+        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+    contacts = Contact.objects.filter(company_entity=company)
+    contact_ids = list(contacts.values_list("id", flat=True))
+    relationships = ContactRelationship.objects.filter(
+        organization_id=org_id,
+        from_contact_id__in=contact_ids, to_contact_id__in=contact_ids,
+    )
+    return {
+        "action": "company_org_chart",
+        "entity_type": "company",
+        "summary": f"Organigramme de {company.name} ({contacts.count()} contacts, {relationships.count()} relations)",
+        "contacts": [
+            {"id": str(c.id), "name": f"{c.first_name} {c.last_name}", "job_title": c.job_title}
+            for c in contacts
+        ],
+        "relationships": [
+            {"from": f"{r.from_contact.first_name} {r.from_contact.last_name}", "to": f"{r.to_contact.first_name} {r.to_contact.last_name}", "type": r.get_relationship_type_display()}
+            for r in relationships.select_related("from_contact", "to_contact")
+        ],
+    }
+
+
+def link_contact_to_company(ctx: RunContext[ChatDeps], contact_name_or_id: str, company_name_or_id: str) -> dict:
+    """Link a contact to a company."""
+    org_id = ctx.deps.organization_id
+    contact_id = _resolve_contact_id(org_id, contact_name_or_id)
+    if not contact_id:
+        return {"error": "Contact non trouve."}
+    company = _find_company(org_id, company_name_or_id)
+    if not company:
+        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+    Contact.objects.filter(id=contact_id).update(company_entity=company)
+    contact = Contact.objects.get(id=contact_id)
+    return {
+        "action": "linked",
+        "summary": f"{contact.first_name} {contact.last_name} lie a {company.name}.",
+        "entity_type": "contact",
+        "entity_id": str(contact.id),
+        "link": f"/contacts/{contact.id}",
+    }
+
+
+def unlink_contact_from_company(ctx: RunContext[ChatDeps], contact_name_or_id: str) -> dict:
+    """Remove a contact's company association."""
+    org_id = ctx.deps.organization_id
+    contact_id = _resolve_contact_id(org_id, contact_name_or_id)
+    if not contact_id:
+        return {"error": "Contact non trouve."}
+    contact = Contact.objects.get(id=contact_id)
+    old_name = contact.company_entity.name if contact.company_entity else "aucune"
+    contact.company_entity = None
+    contact.save(update_fields=["company_entity"])
+    return {
+        "action": "unlinked",
+        "summary": f"{contact.first_name} {contact.last_name} delie de {old_name}.",
+    }
+
+
+def create_contact_relationship_tool(
+    ctx: RunContext[ChatDeps],
+    from_contact_name_or_id: str,
+    to_contact_name_or_id: str,
+    relationship_type: str,
+    notes: str = "",
+) -> dict:
+    """Create a typed relationship between two contacts. Types: reports_to, manages, assistant_of, colleague, decision_maker, influencer, champion, blocker."""
+    org_id = ctx.deps.organization_id
+    from_id = _resolve_contact_id(org_id, from_contact_name_or_id)
+    to_id = _resolve_contact_id(org_id, to_contact_name_or_id)
+    if not from_id or not to_id:
+        return {"error": "Contact(s) non trouve(s)."}
+    rel, created = ContactRelationship.objects.get_or_create(
+        organization_id=org_id,
+        from_contact_id=from_id, to_contact_id=to_id,
+        relationship_type=relationship_type,
+        defaults={"notes": notes},
+    )
+    if not created:
+        return {"action": "exists", "summary": "Cette relation existe deja."}
+    from_c = Contact.objects.get(id=from_id)
+    to_c = Contact.objects.get(id=to_id)
+    return {
+        "action": "created",
+        "summary": f"Relation '{relationship_type}' creee: {from_c.first_name} {from_c.last_name} -> {to_c.first_name} {to_c.last_name}",
+    }
+
+
+def remove_contact_relationship(
+    ctx: RunContext[ChatDeps],
+    from_contact_name_or_id: str,
+    to_contact_name_or_id: str,
+    relationship_type: str,
+) -> dict:
+    """Remove a relationship between two contacts."""
+    org_id = ctx.deps.organization_id
+    from_id = _resolve_contact_id(org_id, from_contact_name_or_id)
+    to_id = _resolve_contact_id(org_id, to_contact_name_or_id)
+    if not from_id or not to_id:
+        return {"error": "Contact(s) non trouve(s)."}
+    deleted, _ = ContactRelationship.objects.filter(
+        organization_id=org_id,
+        from_contact_id=from_id, to_contact_id=to_id,
+        relationship_type=relationship_type,
+    ).delete()
+    return {"action": "deleted" if deleted else "not_found", "summary": f"Relation supprimee." if deleted else "Relation non trouvee."}
+
+
+def transfer_contacts(ctx: RunContext[ChatDeps], from_company: str, to_company: str) -> dict:
+    """Transfer all contacts from one company to another."""
+    org_id = ctx.deps.organization_id
+    src = _find_company(org_id, from_company)
+    dst = _find_company(org_id, to_company)
+    if not src:
+        return {"error": f"Entreprise source '{from_company}' non trouvee."}
+    if not dst:
+        return {"error": f"Entreprise destination '{to_company}' non trouvee."}
+    count = Contact.objects.filter(company_entity=src).update(company_entity=dst)
+    return {"action": "transferred", "summary": f"{count} contact(s) transfere(s) de {src.name} vers {dst.name}."}
+
+
+def set_parent_company(ctx: RunContext[ChatDeps], company_name_or_id: str, parent_name_or_id: str) -> dict:
+    """Set the parent company for hierarchy."""
+    org_id = ctx.deps.organization_id
+    company = _find_company(org_id, company_name_or_id)
+    parent = _find_company(org_id, parent_name_or_id)
+    if not company:
+        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+    if not parent:
+        return {"error": f"Entreprise parente '{parent_name_or_id}' non trouvee."}
+    company.parent = parent
+    company.save(update_fields=["parent"])
+    return {"action": "updated", "summary": f"{company.name} est maintenant filiale de {parent.name}."}
+
+
+def get_company_summary(ctx: RunContext[ChatDeps], company_name_or_id: str) -> dict:
+    """Generate a summary for a company based on its contacts, deals, and activity."""
+    org_id = ctx.deps.organization_id
+    company = _find_company(org_id, company_name_or_id)
+    if not company:
+        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+    contacts = Contact.objects.filter(company_entity=company)
+    deals = Deal.objects.filter(company=company)
+    open_deals = deals.exclude(stage__name__in=["Gagne", "Perdu", "Gagné"])
+    won_deals = deals.filter(stage__name__in=["Gagne", "Gagné"])
+    open_val = float(open_deals.aggregate(t=Sum("amount"))["t"] or 0)
+    won_val = float(won_deals.aggregate(t=Sum("amount"))["t"] or 0)
+    summary_parts = [
+        f"Entreprise: {company.name}",
+        f"Secteur: {company.industry}" if company.industry else None,
+        f"Sante: {company.health_score}",
+        f"Contacts: {contacts.count()}",
+        f"Deals ouverts: {open_deals.count()} ({open_val:.0f} EUR)",
+        f"CA gagne: {won_val:.0f} EUR",
+        f"Filiales: {company.subsidiaries.count()}" if company.subsidiaries.exists() else None,
+    ]
+    summary = "\n".join(p for p in summary_parts if p)
+    company.ai_summary = summary
+    company.save(update_fields=["ai_summary"])
+    return {
+        "action": "summary_generated",
+        "entity_type": "company",
+        "entity_id": str(company.id),
+        "summary": summary,
+        "link": f"/companies/{company.id}",
+    }
+
+
 # All tools to register on the agent
 ALL_TOOLS = [
     create_contact,
@@ -2619,4 +3099,22 @@ ALL_TOOLS = [
     navigate,
     query_contacts,
     generate_chart,
+    # Companies
+    create_company,
+    get_company,
+    search_companies,
+    update_company,
+    delete_company,
+    get_company_stats,
+    get_company_contacts,
+    get_company_deals,
+    get_company_hierarchy,
+    get_company_org_chart,
+    get_company_summary,
+    link_contact_to_company,
+    unlink_contact_from_company,
+    create_contact_relationship_tool,
+    remove_contact_relationship,
+    transfer_contacts,
+    set_parent_company,
 ]

@@ -90,7 +90,14 @@ def _build_context(org):
         f"{cf.label} ({cf.get_field_type_display()})" for cf in custom_fields
     ) if custom_fields else "Aucun"
 
-    return contacts_summary, deals_summary, tasks_summary, email_status, categories_list, custom_fields_list
+    # Companies
+    from companies.models import Company
+    companies = Company.objects.filter(organization=org).order_by("-created_at")[:5]
+    companies_summary = ", ".join(
+        f"{c.name} ({c.industry})" if c.industry else c.name for c in companies
+    ) or "Aucune entreprise"
+
+    return contacts_summary, deals_summary, tasks_summary, email_status, categories_list, custom_fields_list, companies_summary
 
 
 def _build_message_history(conversation, system_prompt: str) -> list:
@@ -340,7 +347,7 @@ def send_message(request):
     )
 
     # Build context for the system prompt
-    contacts_summary, deals_summary, tasks_summary, email_status, categories_list, custom_fields_list = _build_context(org)
+    contacts_summary, deals_summary, tasks_summary, email_status, categories_list, custom_fields_list, companies_summary = _build_context(org)
     user_name = f"{request.user.first_name} {request.user.last_name}".strip()
     formatted_prompt = SYSTEM_PROMPT.format(
         user_name=user_name or request.user.email,
@@ -348,6 +355,7 @@ def send_message(request):
         contacts_summary=contacts_summary,
         deals_summary=deals_summary,
         tasks_summary=tasks_summary,
+        companies_summary=companies_summary,
         email_status=email_status,
         categories_list=categories_list,
         custom_fields_list=custom_fields_list,
@@ -495,7 +503,7 @@ async def stream_message(request):
     )
 
     # Build context
-    contacts_summary, deals_summary, tasks_summary, email_status, categories_list, custom_fields_list = await sync_to_async(_build_context)(org)
+    contacts_summary, deals_summary, tasks_summary, email_status, categories_list, custom_fields_list, companies_summary = await sync_to_async(_build_context)(org)
     user_name = f"{user.first_name} {user.last_name}".strip()
     formatted_prompt = SYSTEM_PROMPT.format(
         user_name=user_name or user.email,
@@ -503,6 +511,7 @@ async def stream_message(request):
         contacts_summary=contacts_summary,
         deals_summary=deals_summary,
         tasks_summary=tasks_summary,
+        companies_summary=companies_summary,
         email_status=email_status,
         categories_list=categories_list,
         custom_fields_list=custom_fields_list,
