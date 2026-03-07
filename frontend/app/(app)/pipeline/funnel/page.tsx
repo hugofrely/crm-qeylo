@@ -6,6 +6,8 @@ import { fetchPipelines } from "@/services/deals"
 import { FunnelChart } from "@/components/reports/FunnelChart"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
+import { FilterBar } from "@/components/shared/FilterBar"
+import { FilterSelect, FilterPills } from "@/components/shared/FilterControls"
 import type { FunnelResponse } from "@/types"
 
 const DATE_RANGES = [
@@ -83,6 +85,35 @@ export default function FunnelPage() {
         )}
         <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
       </PageHeader>
+
+      {/* Desktop filter bar */}
+      <FilterBar activeFilterCount={activeFilterCount} onReset={resetFilters}>
+        {pipelines.length > 1 && (
+          <FilterSelect
+            label="Pipeline"
+            options={pipelines.map((p) => ({ value: p.id, label: p.name }))}
+            value={pipelineId}
+            onChange={setPipelineId}
+            placeholder="Pipeline"
+          />
+        )}
+        <FilterPills
+          label="Mode"
+          options={[
+            { value: "cohort", label: "Par cohorte d\u2019entree" },
+            { value: "activity", label: "Par activite" },
+          ]}
+          value={filterMode || null}
+          onChange={(v) => setFilterMode((v ?? "") as "" | "cohort" | "activity")}
+        />
+        <FilterSelect
+          label="Période"
+          options={DATE_RANGES.filter((d) => d.value).map((d) => ({ value: d.value, label: d.label }))}
+          value={dateRange}
+          onChange={setDateRange}
+          placeholder="Toutes les periodes"
+        />
+      </FilterBar>
 
       {/* Funnel */}
       <div className="rounded-xl border border-border bg-card p-8">

@@ -28,6 +28,8 @@ import {
   Trash2,
 } from "lucide-react"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { FilterBar } from "@/components/shared/FilterBar"
+import { FilterSearchInput, FilterSelect, FilterPills } from "@/components/shared/FilterControls"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { Pagination } from "@/components/shared/Pagination"
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
@@ -289,6 +291,36 @@ export default function ProductsPage() {
           Nouveau produit
         </Button>
       </PageHeader>
+
+      {/* Desktop filter bar */}
+      <FilterBar
+        activeFilterCount={activeFilterCount}
+        onReset={() => { setSearch(""); setSelectedCategory(""); setShowActive("active") }}
+      >
+        <FilterSearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Rechercher un produit..."
+          className="w-64"
+        />
+        <FilterSelect
+          label="Catégorie"
+          options={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
+          value={selectedCategory}
+          onChange={setSelectedCategory}
+          placeholder="Toutes catégories"
+        />
+        <FilterPills
+          label="Statut"
+          options={[
+            { value: "active", label: "Actifs" },
+            { value: "archived", label: "Archivés" },
+            { value: "all", label: "Tous" },
+          ]}
+          value={showActive}
+          onChange={(v) => setShowActive((v ?? "active") as "active" | "archived" | "all")}
+        />
+      </FilterBar>
 
       <DataTable
         columns={columns}

@@ -21,13 +21,13 @@ export function FilterPanel({ open, onOpenChange, onReset, activeFilterCount, ch
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/20 m-0 animate-in fade-in duration-200"
+        className="fixed inset-0 z-40 bg-black/20 m-0 animate-in fade-in duration-200 lg:hidden"
         onClick={() => onOpenChange(false)}
       />
 
       {/* Drawer */}
       <div
-        className="fixed inset-y-0 right-0 z-50 w-[320px] max-w-[85vw] bg-background border-l border-border overflow-y-auto shadow-xl animate-in slide-in-from-right duration-300"
+        className="fixed inset-y-0 right-0 z-50 w-[320px] max-w-[85vw] bg-background border-l border-border overflow-y-auto shadow-xl animate-in slide-in-from-right duration-300 lg:hidden"
       >
         {/* Header */}
         <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center justify-between z-10">
@@ -65,7 +65,7 @@ export function FilterTriggerButton({ open, onOpenChange, activeFilterCount }: F
     <Button
       variant="outline"
       onClick={() => onOpenChange(!open)}
-      className="gap-2"
+      className="gap-2 lg:hidden"
     >
       <SlidersHorizontal className="h-4 w-4" />
       Filtres

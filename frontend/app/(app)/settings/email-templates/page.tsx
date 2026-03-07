@@ -13,6 +13,8 @@ import { toast } from "sonner"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
+import { FilterBar } from "@/components/shared/FilterBar"
+import { FilterSearchInput, FilterPills } from "@/components/shared/FilterControls"
 
 export default function EmailTemplatesPage() {
   const router = useRouter()
@@ -129,6 +131,29 @@ export default function EmailTemplatesPage() {
           </Button>
         </Link>
       </PageHeader>
+
+      {/* Desktop filter bar */}
+      <FilterBar
+        activeFilterCount={activeFilterCount}
+        onReset={() => { setSearch(""); setFilter("all") }}
+      >
+        <FilterSearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Rechercher un template..."
+          className="w-64"
+        />
+        <FilterPills
+          label="Visibilité"
+          options={[
+            { value: "all", label: "Tous" },
+            { value: "mine", label: "Mes templates" },
+            { value: "shared", label: "Partagés" },
+          ]}
+          value={filter}
+          onChange={(v) => setFilter((v ?? "all") as "all" | "mine" | "shared")}
+        />
+      </FilterBar>
 
       <DataTable
         columns={columns}

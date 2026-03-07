@@ -21,6 +21,8 @@ import { Label } from "@/components/ui/label"
 import { Plus, Search, Loader2, Download } from "lucide-react"
 import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { FilterBar } from "@/components/shared/FilterBar"
+import { FilterSearchInput, FilterPills } from "@/components/shared/FilterControls"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { Pagination } from "@/components/shared/Pagination"
 import posthog from "posthog-js"
@@ -335,6 +337,28 @@ export default function ContactsPage() {
           </DialogContent>
         </Dialog>
       </PageHeader>
+
+      {/* Desktop filter bar */}
+      <FilterBar
+        activeFilterCount={activeFilterCount}
+        onReset={() => { setSearch(""); setSelectedCategory(null); setSelectedSegment(null) }}
+      >
+        <FilterSearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Rechercher un contact..."
+          className="w-64"
+        />
+        {categories.length > 0 && (
+          <FilterPills
+            label="Catégorie"
+            options={categories.map((cat) => ({ value: cat.id, label: cat.name, color: cat.color, count: cat.contact_count ?? undefined }))}
+            value={selectedCategory}
+            onChange={(v) => { setSelectedCategory(v); setSelectedSegment(null) }}
+            showAll
+          />
+        )}
+      </FilterBar>
 
       <DuplicateDetectionDialog
         open={showDuplicateDialog}

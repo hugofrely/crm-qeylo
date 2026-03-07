@@ -3,6 +3,7 @@ import type { Task, TasksResponse, TaskFilters } from "@/types"
 
 export async function fetchTasks(filters: TaskFilters = {}): Promise<TasksResponse> {
   const params = new URLSearchParams()
+  if (filters.search) params.set("search", filters.search)
   if (filters.page) params.set("page", String(filters.page))
   if (filters.is_done) params.set("is_done", filters.is_done)
   if (filters.priority) params.set("priority", filters.priority)

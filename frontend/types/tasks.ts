@@ -30,6 +30,7 @@ export interface TasksResponse {
 export type TaskFilterTab = "all" | "todo" | "done"
 
 export interface TaskFilters {
+  search?: string
   is_done?: "true" | "false"
   priority?: "high" | "normal" | "low"
   contact?: string

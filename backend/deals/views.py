@@ -3,7 +3,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Count
+from django.db.models import Count, Q
 from .models import Pipeline, PipelineStage, Deal, DealStageTransition, PIPELINE_TEMPLATES
 from .serializers import (
     PipelineSerializer,
@@ -268,12 +268,23 @@ def pipeline_view(request):
     if created_before:
         deal_filters["created_at__lte"] = created_before
 
+    search = request.query_params.get("search")
+
     stages = pipeline.stages.prefetch_related("deals", "deals__contact")
     result = []
     for stage in stages:
         deals = stage.deals.select_related("contact")
         if deal_filters:
             deals = deals.filter(**deal_filters)
+        if search:
+            words = search.strip().split()
+            for word in words:
+                deals = deals.filter(
+                    Q(name__icontains=word)
+                    | Q(notes__icontains=word)
+                    | Q(contact__first_name__icontains=word)
+                    | Q(contact__last_name__icontains=word)
+                )
         result.append(
             {
                 "stage": PipelineStageSerializer(stage).data,

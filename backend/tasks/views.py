@@ -1,4 +1,5 @@
 from datetime import timedelta
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -19,6 +20,17 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = self._base_queryset()
         params = self.request.query_params
+
+        search = params.get("search")
+        if search:
+            words = search.strip().split()
+            for word in words:
+                qs = qs.filter(
+                    Q(description__icontains=word)
+                    | Q(contact__first_name__icontains=word)
+                    | Q(contact__last_name__icontains=word)
+                    | Q(deal__name__icontains=word)
+                )
 
         contact_id = params.get("contact")
         if contact_id:

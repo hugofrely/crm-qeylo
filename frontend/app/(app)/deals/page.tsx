@@ -8,6 +8,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { KanbanBoard } from "@/components/deals/KanbanBoard"
 import { CreatePipelineDialog } from "@/components/deals/CreatePipelineDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
+import { FilterBar } from "@/components/shared/FilterBar"
+import { FilterSearchInput, FilterSelect, FilterNumberRange, FilterDateRange, FilterContactSearch } from "@/components/shared/FilterControls"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { usePipelines } from "@/hooks/useDeals"
 import { updatePipeline, deletePipeline } from "@/services/deals"
@@ -61,6 +63,7 @@ export default function DealsPage() {
   const [filterCreatedAfter, setFilterCreatedAfter] = useState("")
   const [filterCreatedBefore, setFilterCreatedBefore] = useState("")
   const [filterCreatedBy, setFilterCreatedBy] = useState("")
+  const [filterSearch, setFilterSearch] = useState("")
   const [filterContactLabel, setFilterContactLabel] = useState("")
   const [members, setMembers] = useState<Member[]>([])
   const contactAutocomplete = useContactAutocomplete()
@@ -77,8 +80,9 @@ export default function DealsPage() {
     if (filterCreatedAfter) f.created_after = filterCreatedAfter
     if (filterCreatedBefore) f.created_before = filterCreatedBefore
     if (filterCreatedBy) f.created_by = filterCreatedBy
+    if (filterSearch) f.search = filterSearch
     return f
-  }, [filterContact, filterAmountMin, filterAmountMax, filterProbabilityMin, filterProbabilityMax, filterExpectedCloseAfter, filterExpectedCloseBefore, filterCreatedAfter, filterCreatedBefore, filterCreatedBy])
+  }, [filterContact, filterAmountMin, filterAmountMax, filterProbabilityMin, filterProbabilityMax, filterExpectedCloseAfter, filterExpectedCloseBefore, filterCreatedAfter, filterCreatedBefore, filterCreatedBy, filterSearch])
 
   const activeFilterCount = Object.keys(filters).length
 
@@ -95,6 +99,7 @@ export default function DealsPage() {
     setFilterCreatedAfter("")
     setFilterCreatedBefore("")
     setFilterCreatedBy("")
+    setFilterSearch("")
   }
 
   // Load members for filter select
@@ -185,6 +190,55 @@ export default function DealsPage() {
             Nouveau deal
           </Button>
         </PageHeader>
+
+        {/* Desktop filter bar */}
+        <FilterBar activeFilterCount={activeFilterCount} onReset={resetFilters}>
+          <FilterSearchInput
+            value={filterSearch}
+            onChange={setFilterSearch}
+            placeholder="Rechercher un deal..."
+            className="w-64"
+          />
+          <FilterContactSearch
+            contactId={filterContact || null}
+            contactLabel={filterContactLabel || null}
+            onSelect={(id, label) => { setFilterContact(id); setFilterContactLabel(label) }}
+            onClear={() => { setFilterContact(""); setFilterContactLabel(""); contactAutocomplete.reset() }}
+            label="Contact"
+          />
+          <FilterNumberRange
+            min={filterAmountMin}
+            max={filterAmountMax}
+            onMinChange={setFilterAmountMin}
+            onMaxChange={setFilterAmountMax}
+            placeholderMin="Min"
+            placeholderMax="Max"
+            label="Montant"
+          />
+          <FilterDateRange
+            after={filterExpectedCloseAfter}
+            before={filterExpectedCloseBefore}
+            onAfterChange={setFilterExpectedCloseAfter}
+            onBeforeChange={setFilterExpectedCloseBefore}
+            label="Date de closing"
+          />
+          <FilterDateRange
+            after={filterCreatedAfter}
+            before={filterCreatedBefore}
+            onAfterChange={setFilterCreatedAfter}
+            onBeforeChange={setFilterCreatedBefore}
+            label="Date de création"
+          />
+          {members.length > 0 && (
+            <FilterSelect
+              options={members.map((m) => ({ value: m.user_id, label: `${m.first_name} ${m.last_name}` }))}
+              value={filterCreatedBy}
+              onChange={setFilterCreatedBy}
+              placeholder="Tous"
+              label="Créé par"
+            />
+          )}
+        </FilterBar>
 
         {/* Pipeline tabs */}
         <Tabs value={selectedPipelineId ?? undefined} onValueChange={setSelectedPipelineId}>
@@ -323,6 +377,9 @@ export default function DealsPage() {
       </Dialog>
 
       <FilterPanel open={filterOpen} onOpenChange={setFilterOpen} onReset={resetFilters} activeFilterCount={activeFilterCount}>
+        <FilterSection label="Recherche">
+          <FilterSearchInput value={filterSearch} onChange={setFilterSearch} placeholder="Rechercher un deal..." />
+        </FilterSection>
         <FilterSection label="Contact">
           <div ref={contactAutocomplete.wrapperRef} className="relative">
             {filterContact ? (

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { updateTask } from "@/services/tasks"
 import { useTasks } from "@/hooks/useTasks"
@@ -16,6 +16,8 @@ import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 import { useMemberAutocomplete } from "@/hooks/useMemberAutocomplete"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
+import { FilterBar } from "@/components/shared/FilterBar"
+import { FilterSearchInput, FilterPills, FilterContactSearch, FilterMemberSearch } from "@/components/shared/FilterControls"
 import { Pagination } from "@/components/shared/Pagination"
 import type { Task, TaskFilterTab, TaskFilters } from "@/types"
 
@@ -37,8 +39,9 @@ export default function TasksPage() {
   const [prefilledDate, setPrefilledDate] = useState<string | undefined>()
   const [prefilledTime, setPrefilledTime] = useState<string | undefined>()
   const [filterOpen, setFilterOpen] = useState(false)
+  const [search, setSearch] = useState("")
 
-  const activeFilterCount = [priority, dueDate, contactId, assignedTo].filter(Boolean).length
+  const activeFilterCount = [search, priority, dueDate, contactId, assignedTo].filter(Boolean).length
 
   const contactAutocomplete = useContactAutocomplete()
   const memberAutocomplete = useMemberAutocomplete()
@@ -50,10 +53,15 @@ export default function TasksPage() {
   if (dueDate) filters.due_date = dueDate as TaskFilters["due_date"]
   if (contactId) filters.contact = contactId
   if (assignedTo) filters.assigned_to = assignedTo
+  if (search) filters.search = search
 
   const { tasks, setTasks, loading, totalCount, todoCount, doneCount, refresh } = useTasks(filters)
 
   const resetPage = () => setPage(1)
+
+  useEffect(() => {
+    setPage(1)
+  }, [search])
 
   const handleTabChange = (v: string) => {
     setTab(v as TaskFilterTab)
@@ -150,6 +158,48 @@ export default function TasksPage() {
         </Button>
       </PageHeader>
 
+      {/* Desktop filter bar */}
+      <FilterBar
+        activeFilterCount={activeFilterCount}
+        onReset={() => { setSearch(""); setPriority(null); setDueDate(null); setContactId(null); setContactLabel(null); contactAutocomplete.reset(); setAssignedTo(null); setAssignedLabel(null); memberAutocomplete.reset() }}
+      >
+        <FilterSearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Rechercher une tâche..."
+          className="w-64"
+        />
+        <FilterPills
+          options={priorityOptions}
+          value={priority}
+          onChange={(v) => { setPriority(v); resetPage() }}
+          label="Priorité"
+        />
+        {viewMode === "list" && (
+          <FilterPills
+            options={dueDateOptions}
+            value={dueDate}
+            onChange={(v) => { setDueDate(v); resetPage() }}
+            label="Échéance"
+          />
+        )}
+        <FilterContactSearch
+          contactId={contactId}
+          contactLabel={contactLabel}
+          onSelect={(id, label) => { setContactId(id); setContactLabel(label); resetPage() }}
+          onClear={() => { setContactId(null); setContactLabel(null); contactAutocomplete.reset(); resetPage() }}
+          label="Contact"
+        />
+        <FilterMemberSearch
+          memberId={assignedTo}
+          memberLabel={assignedLabel}
+          onSelect={(id, label) => { setAssignedTo(id); setAssignedLabel(label); resetPage() }}
+          onClear={() => { setAssignedTo(null); setAssignedLabel(null); memberAutocomplete.reset(); resetPage() }}
+          showMyTasks
+          label="Assigné"
+        />
+      </FilterBar>
+
       {/* Status tabs */}
       <Tabs value={tab} onValueChange={handleTabChange}>
         <TabsList>
@@ -178,9 +228,12 @@ export default function TasksPage() {
       <FilterPanel
         open={filterOpen}
         onOpenChange={setFilterOpen}
-        onReset={() => { setPriority(null); setDueDate(null); setContactId(null); setContactLabel(null); contactAutocomplete.reset(); setAssignedTo(null); setAssignedLabel(null); memberAutocomplete.reset() }}
+        onReset={() => { setSearch(""); setPriority(null); setDueDate(null); setContactId(null); setContactLabel(null); contactAutocomplete.reset(); setAssignedTo(null); setAssignedLabel(null); memberAutocomplete.reset() }}
         activeFilterCount={activeFilterCount}
       >
+        <FilterSection label="Recherche">
+          <FilterSearchInput value={search} onChange={setSearch} placeholder="Rechercher une tâche..." />
+        </FilterSection>
         <FilterSection label="Priorité">
           <div className="flex flex-col gap-1">
             {priorityOptions.map((opt) => (
