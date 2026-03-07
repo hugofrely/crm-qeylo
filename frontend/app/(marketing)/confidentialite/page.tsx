@@ -15,31 +15,34 @@ export default function PolitiqueConfidentialite() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-12"
+            className="mb-14"
           >
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Politique de confidentialité
+            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
+              Legal
+            </span>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+              Politique de confidentialite
             </h1>
-            <p className="mt-2 text-muted-foreground">
-              Protection et traitement de vos données personnelles.
+            <p className="mt-3 text-muted-foreground">
+              Protection et traitement de vos donnees personnelles.
             </p>
+            <div className="mt-6 h-px bg-gradient-to-r from-primary/20 via-border to-transparent" />
           </motion.div>
 
           {/* Sections */}
           <div className="space-y-10">
-            {/* 1. Responsable du traitement */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
                 1. Responsable du traitement
               </h2>
-              <div className="space-y-1 text-sm text-muted-foreground">
+              <div className="space-y-1 text-sm text-foreground/80 leading-relaxed">
                 <p>Qeylo SASU</p>
-                <p>Siège social : Avignon, France</p>
+                <p>Siege social : Avignon, France</p>
                 <p>
                   Email :{" "}
                   <a
                     href="mailto:hello@qeylo.com"
-                    className="underline hover:text-foreground transition-colors"
+                    className="text-primary font-medium underline-offset-4 hover:underline transition-colors"
                   >
                     hello@qeylo.com
                   </a>
@@ -47,63 +50,60 @@ export default function PolitiqueConfidentialite() {
               </div>
             </section>
 
-            {/* 2. Données collectées */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                2. Données collectées
+                2. Donnees collectees
               </h2>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5">
+              <ul className="space-y-2 text-sm text-foreground/80 leading-relaxed list-disc pl-5">
                 <li>
-                  <strong>Données de compte :</strong> nom, prénom, adresse
-                  email, mot de passe (chiffré)
+                  <strong>Donnees de compte :</strong> nom, prenom, adresse
+                  email, mot de passe (chiffre)
                 </li>
                 <li>
-                  <strong>Données d&apos;utilisation :</strong> logs de
-                  connexion, adresse IP, type de navigateur, pages consultées
+                  <strong>Donnees d&apos;utilisation :</strong> logs de
+                  connexion, adresse IP, type de navigateur, pages consultees
                 </li>
                 <li>
-                  <strong>Données CRM :</strong> contacts, deals, tâches,
-                  notes, workflows créés par l&apos;utilisateur
+                  <strong>Donnees CRM :</strong> contacts, deals, taches,
+                  notes, workflows crees par l&apos;utilisateur
                 </li>
                 <li>
-                  <strong>Données de communication :</strong> emails envoyés et
-                  reçus via les intégrations
+                  <strong>Donnees de communication :</strong> emails envoyes et
+                  recus via les integrations
                 </li>
               </ul>
             </section>
 
-            {/* 3. Finalités du traitement */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                3. Finalités du traitement
+                3. Finalites du traitement
               </h2>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5">
+              <ul className="space-y-2 text-sm text-foreground/80 leading-relaxed list-disc pl-5">
                 <li>Fourniture et fonctionnement du service Qeylo</li>
                 <li>
-                  Amélioration et personnalisation de l&apos;expérience
+                  Amelioration et personnalisation de l&apos;experience
                   utilisateur
                 </li>
                 <li>
                   Communication relative au service (notifications, alertes,
                   rappels)
                 </li>
-                <li>Sécurité et prévention des fraudes</li>
+                <li>Securite et prevention des fraudes</li>
               </ul>
             </section>
 
-            {/* 4. Base légale (RGPD) */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                4. Base légale (RGPD)
+                4. Base legale (RGPD)
               </h2>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5">
+              <ul className="space-y-2 text-sm text-foreground/80 leading-relaxed list-disc pl-5">
                 <li>
-                  <strong>Exécution du contrat (Article 6.1.b) :</strong> pour
+                  <strong>Execution du contrat (Article 6.1.b) :</strong> pour
                   la fourniture du service
                 </li>
                 <li>
-                  <strong>Intérêt légitime (Article 6.1.f) :</strong> pour
-                  l&apos;amélioration du service et la sécurité
+                  <strong>Interet legitime (Article 6.1.f) :</strong> pour
+                  l&apos;amelioration du service et la securite
                 </li>
                 <li>
                   <strong>Consentement (Article 6.1.a) :</strong> pour les
@@ -112,20 +112,19 @@ export default function PolitiqueConfidentialite() {
               </ul>
             </section>
 
-            {/* 5. Durée de conservation */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                5. Durée de conservation
+                5. Duree de conservation
               </h2>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5">
+              <ul className="space-y-2 text-sm text-foreground/80 leading-relaxed list-disc pl-5">
                 <li>
-                  <strong>Données de compte :</strong> conservées pendant toute
-                  la durée de l&apos;utilisation du service
+                  <strong>Donnees de compte :</strong> conservees pendant toute
+                  la duree de l&apos;utilisation du service
                 </li>
                 <li>
-                  <strong>Après suppression du compte :</strong> les données
-                  sont conservées 3 ans à des fins légales, puis supprimées
-                  définitivement
+                  <strong>Apres suppression du compte :</strong> les donnees
+                  sont conservees 3 ans a des fins legales, puis supprimees
+                  definitivement
                 </li>
                 <li>
                   <strong>Logs de connexion :</strong> 12 mois
@@ -133,86 +132,83 @@ export default function PolitiqueConfidentialite() {
               </ul>
             </section>
 
-            {/* 6. Destinataires des données */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                6. Destinataires des données
+                6. Destinataires des donnees
               </h2>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5">
-                <li>DigitalOcean (hébergement des données)</li>
-                <li>Aucune vente ou location de données à des tiers</li>
+              <ul className="space-y-2 text-sm text-foreground/80 leading-relaxed list-disc pl-5">
+                <li>DigitalOcean (hebergement des donnees)</li>
+                <li>Aucune vente ou location de donnees a des tiers</li>
                 <li>
-                  Aucun partage de données à des fins publicitaires
+                  Aucun partage de donnees a des fins publicitaires
                 </li>
               </ul>
             </section>
 
-            {/* 7. Transferts hors Union européenne */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                7. Transferts hors Union européenne
+                7. Transferts hors Union europeenne
               </h2>
-              <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
                 <p>
-                  Les données peuvent être hébergées sur des serveurs
-                  DigitalOcean situés hors UE.
+                  Les donnees peuvent etre hebergees sur des serveurs
+                  DigitalOcean situes hors UE.
                 </p>
                 <p>
-                  Ces transferts sont encadrés par les Clauses Contractuelles
-                  Types de la Commission européenne.
+                  Ces transferts sont encadres par les Clauses Contractuelles
+                  Types de la Commission europeenne.
                 </p>
               </div>
             </section>
 
-            {/* 8. Droits des utilisateurs */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
                 8. Droits des utilisateurs
               </h2>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5">
+              <ul className="space-y-2 text-sm text-foreground/80 leading-relaxed list-disc pl-5">
                 <li>
-                  <strong>Droit d&apos;accès :</strong> obtenir une copie de vos
-                  données personnelles
+                  <strong>Droit d&apos;acces :</strong> obtenir une copie de vos
+                  donnees personnelles
                 </li>
                 <li>
-                  <strong>Droit de rectification :</strong> corriger des données
+                  <strong>Droit de rectification :</strong> corriger des donnees
                   inexactes
                 </li>
                 <li>
-                  <strong>Droit à l&apos;effacement :</strong> demander la
-                  suppression de vos données
+                  <strong>Droit a l&apos;effacement :</strong> demander la
+                  suppression de vos donnees
                 </li>
                 <li>
-                  <strong>Droit à la portabilité :</strong> recevoir vos données
-                  dans un format structuré
+                  <strong>Droit a la portabilite :</strong> recevoir vos donnees
+                  dans un format structure
                 </li>
                 <li>
                   <strong>Droit d&apos;opposition :</strong> vous opposer au
-                  traitement de vos données
+                  traitement de vos donnees
                 </li>
                 <li>
-                  <strong>Droit à la limitation :</strong> restreindre le
-                  traitement de vos données
+                  <strong>Droit a la limitation :</strong> restreindre le
+                  traitement de vos donnees
                 </li>
               </ul>
-              <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+              <div className="mt-4 space-y-2 text-sm text-foreground/80 leading-relaxed">
                 <p>
                   Pour exercer ces droits :{" "}
                   <a
                     href="mailto:hello@qeylo.com"
-                    className="underline hover:text-foreground transition-colors"
+                    className="text-primary font-medium underline-offset-4 hover:underline transition-colors"
                   >
                     hello@qeylo.com
                   </a>
                 </p>
                 <p>
-                  Vous disposez également du droit d&apos;introduire une
-                  réclamation auprès de la{" "}
+                  Vous disposez egalement du droit d&apos;introduire une
+                  reclamation aupres de la{" "}
                   <a
                     href="https://www.cnil.fr"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="underline hover:text-foreground transition-colors"
+                    className="text-primary font-medium underline-offset-4 hover:underline transition-colors"
                   >
                     CNIL
                   </a>
@@ -221,47 +217,44 @@ export default function PolitiqueConfidentialite() {
               </div>
             </section>
 
-            {/* 9. Cookies */}
             <section>
               <h2 className="text-lg font-semibold mb-3">9. Cookies</h2>
-              <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
                 <p>
-                  Qeylo utilise uniquement des cookies fonctionnels nécessaires
+                  Qeylo utilise uniquement des cookies fonctionnels necessaires
                   au bon fonctionnement du service (authentification,
-                  préférences).
+                  preferences).
                 </p>
                 <p>
                   Aucun cookie tiers publicitaire ou de tracking n&apos;est
-                  utilisé.
+                  utilise.
                 </p>
               </div>
             </section>
 
-            {/* 10. Sécurité */}
             <section>
-              <h2 className="text-lg font-semibold mb-3">10. Sécurité</h2>
-              <ul className="space-y-2 text-sm text-muted-foreground list-disc pl-5">
-                <li>Chiffrement des données en transit (HTTPS/TLS)</li>
+              <h2 className="text-lg font-semibold mb-3">10. Securite</h2>
+              <ul className="space-y-2 text-sm text-foreground/80 leading-relaxed list-disc pl-5">
+                <li>Chiffrement des donnees en transit (HTTPS/TLS)</li>
                 <li>
-                  Authentification sécurisée par JWT avec refresh token
+                  Authentification securisee par JWT avec refresh token
                 </li>
-                <li>Isolation des données par organisation</li>
-                <li>Mots de passe chiffrés (hachage bcrypt)</li>
+                <li>Isolation des donnees par organisation</li>
+                <li>Mots de passe chiffres (hachage bcrypt)</li>
               </ul>
             </section>
 
-            {/* 11. Modifications de la politique */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
                 11. Modifications de la politique
               </h2>
-              <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
                 <p>
-                  Qeylo se réserve le droit de modifier la présente politique de
-                  confidentialité.
+                  Qeylo se reserve le droit de modifier la presente politique de
+                  confidentialite.
                 </p>
                 <p>
-                  Les utilisateurs seront informés par email de tout changement
+                  Les utilisateurs seront informes par email de tout changement
                   substantiel.
                 </p>
                 <p>
@@ -271,14 +264,13 @@ export default function PolitiqueConfidentialite() {
               </div>
             </section>
 
-            {/* 12. Contact DPO */}
             <section>
               <h2 className="text-lg font-semibold mb-3">12. Contact DPO</h2>
-              <p className="text-sm text-muted-foreground">
-                Pour toute question relative à vos données personnelles :{" "}
+              <p className="text-sm text-foreground/80 leading-relaxed">
+                Pour toute question relative a vos donnees personnelles :{" "}
                 <a
                   href="mailto:hello@qeylo.com"
-                  className="underline hover:text-foreground transition-colors"
+                  className="text-primary font-medium underline-offset-4 hover:underline transition-colors"
                 >
                   hello@qeylo.com
                 </a>
@@ -286,9 +278,8 @@ export default function PolitiqueConfidentialite() {
             </section>
           </div>
 
-          {/* Date */}
           <p className="mt-16 text-xs text-muted-foreground">
-            Dernière mise à jour : 6 mars 2026
+            Derniere mise a jour : 6 mars 2026
           </p>
         </div>
       </main>

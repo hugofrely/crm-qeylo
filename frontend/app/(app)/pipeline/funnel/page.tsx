@@ -73,7 +73,7 @@ export default function FunnelPage() {
     "h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-full"
 
   return (
-    <div className="p-8 lg:p-12 max-w-5xl mx-auto space-y-8 animate-fade-in-up">
+    <div className="p-8 lg:p-12 space-y-8 animate-fade-in-up">
       <PageHeader title="Entonnoir de conversion">
         {data && (
           <div className="text-right">

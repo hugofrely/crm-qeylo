@@ -76,7 +76,7 @@
   --secondary: #F0EDE8;
   --secondary-foreground: #2D2D28;
   --muted: #F0EDE8;
-  --muted-foreground: #8A8680;
+  --muted-foreground: #64635E;
   --accent: #F0EDE8;
   --accent-foreground: #2D2D28;
   --destructive: #C44133;
@@ -123,7 +123,7 @@
   --secondary: #2D2D28;
   --secondary-foreground: #EDEDEA;
   --muted: #2D2D28;
-  --muted-foreground: #8A8680;
+  --muted-foreground: #9E9B95;
   --accent: #2D2D28;
   --accent-foreground: #EDEDEA;
   --destructive: #E5584A;
@@ -234,6 +234,65 @@
 .stagger-3 { animation-delay: 0.15s; }
 .stagger-4 { animation-delay: 0.2s; }
 .stagger-5 { animation-delay: 0.25s; }
+
+/* Landing page depth & volume */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 8s ease-in-out infinite;
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-rotate-slow { animation: rotate-slow 30s linear infinite; }
+
+@keyframes scale-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.animate-scale-pulse { animation: scale-pulse 4s ease-in-out infinite; }
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.glass-dark {
+  background: rgba(13, 31, 31, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Grain texture overlay for sections */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Dot grid pattern */
+.dot-grid {
+  background-image: radial-gradient(circle, var(--teal) 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+}
+
+/* Accent line */
+.accent-line {
+  height: 3px;
+  background: linear-gradient(90deg, var(--teal), var(--warm), var(--teal));
+  background-size: 200% 100%;
+  animation: shimmer 4s ease-in-out infinite;
+}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }

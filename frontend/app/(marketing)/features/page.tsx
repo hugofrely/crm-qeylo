@@ -30,12 +30,12 @@ const mainFeatures = [
     illustration: "chat" as const,
     title: "Chat IA — Votre assistant CRM",
     description:
-      "Parlez naturellement et l'IA exécute. Créer un contact, déplacer un deal, planifier un rappel — tout se fait en une phrase.",
+      "Parlez naturellement et l'IA execute. Creer un contact, deplacer un deal, planifier un rappel — tout se fait en une phrase.",
     details: [
-      "Compréhension du langage naturel en français",
-      "Plus de 9 outils intégrés : contacts, deals, tâches, notes, dashboard",
+      "Comprehension du langage naturel en francais",
+      "Plus de 9 outils integres : contacts, deals, taches, notes, dashboard",
       "Conversations multiples avec historique persistant",
-      "Streaming en temps réel avec rendu Markdown",
+      "Streaming en temps reel avec rendu Markdown",
     ],
   },
   {
@@ -44,13 +44,13 @@ const mainFeatures = [
     illustration: "contacts" as const,
     title: "Contacts & Segments intelligents",
     description:
-      "Vos contacts se créent et s'enrichissent automatiquement. Segmentez dynamiquement, détectez les doublons, et suivez chaque interaction.",
+      "Vos contacts se creent et s'enrichissent automatiquement. Segmentez dynamiquement, detectez les doublons, et suivez chaque interaction.",
     details: [
-      "Création automatique depuis le chat",
-      "Segments dynamiques avec règles personnalisées",
-      "Détection de doublons intelligente avec fusion assistée",
-      "Lead scoring (chaud, tiède, froid) et catégories",
-      "Timeline complète d'interactions par contact",
+      "Creation automatique depuis le chat",
+      "Segments dynamiques avec regles personnalisees",
+      "Detection de doublons intelligente avec fusion assistee",
+      "Lead scoring (chaud, tiede, froid) et categories",
+      "Timeline complete d'interactions par contact",
     ],
   },
   {
@@ -59,27 +59,27 @@ const mainFeatures = [
     illustration: "pipeline" as const,
     title: "Pipeline & Deals multi-pipeline",
     description:
-      "Suivez vos deals sur un Kanban intuitif. Créez plusieurs pipelines, visualisez votre entonnoir de conversion, et filtrez avec précision.",
+      "Suivez vos deals sur un Kanban intuitif. Creez plusieurs pipelines, visualisez votre entonnoir de conversion, et filtrez avec precision.",
     details: [
       "Multi-pipeline : Prospection, Upsell, Partenariats...",
-      "Glisser-déposer intuitif entre les étapes",
-      "Entonnoir de conversion avec taux par étape",
-      "Filtres avancés : contact, montant, probabilité, dates",
+      "Glisser-deposer intuitif entre les etapes",
+      "Entonnoir de conversion avec taux par etape",
+      "Filtres avances : contact, montant, probabilite, dates",
     ],
   },
   {
     icon: CheckSquare,
     color: "#0D4F4F",
     illustration: "tasks" as const,
-    title: "Tâches, rappels & calendrier",
+    title: "Taches, rappels & calendrier",
     description:
-      "Gérez vos tâches en liste ou en calendrier. Assignez à l'équipe, configurez des rappels automatiques, ne ratez plus rien.",
+      "Gerez vos taches en liste ou en calendrier. Assignez a l'equipe, configurez des rappels automatiques, ne ratez plus rien.",
     details: [
       "Vue liste et vue calendrier",
-      "Assignation aux membres de l'équipe",
+      "Assignation aux membres de l'equipe",
       "Rappels automatiques configurables",
-      "3 niveaux de priorité avec filtres avancés",
-      "Tâches récurrentes",
+      "3 niveaux de priorite avec filtres avances",
+      "Taches recurrentes",
     ],
   },
   {
@@ -88,12 +88,12 @@ const mainFeatures = [
     illustration: "ai" as const,
     title: "Workflows & Automations",
     description:
-      "Automatisez vos processus métier. Définissez des triggers, des conditions et des actions pour gagner du temps chaque jour.",
+      "Automatisez vos processus metier. Definissez des triggers, des conditions et des actions pour gagner du temps chaque jour.",
     details: [
-      "Triggers : deal créé, étape changée, contact mis à jour...",
-      "Conditions personnalisées et délais",
-      "Actions automatiques sur contacts, deals, tâches",
-      "Templates de workflows prêts à l'emploi",
+      "Triggers : deal cree, etape changee, contact mis a jour...",
+      "Conditions personnalisees et delais",
+      "Actions automatiques sur contacts, deals, taches",
+      "Templates de workflows prets a l'emploi",
     ],
   },
   {
@@ -102,12 +102,12 @@ const mainFeatures = [
     illustration: "dashboard" as const,
     title: "Dashboard & Rapports sur mesure",
     description:
-      "Construisez votre dashboard avec des widgets personnalisables. Créez des rapports sur mesure pour suivre votre performance.",
+      "Construisez votre dashboard avec des widgets personnalisables. Creez des rapports sur mesure pour suivre votre performance.",
     details: [
       "Dashboard personnalisable avec widgets drag-and-drop",
-      "Rapports custom : performance, pipeline, activité, sources",
-      "KPI en temps réel : CA, pipeline, taux de conversion",
-      "Templates de rapports prêts à l'emploi",
+      "Rapports custom : performance, pipeline, activite, sources",
+      "KPI en temps reel : CA, pipeline, taux de conversion",
+      "Templates de rapports prets a l'emploi",
     ],
   },
 ]
@@ -120,28 +120,28 @@ const extraFeatures = [
   },
   {
     icon: Inbox,
-    title: "Intégration email",
+    title: "Integration email",
     description: "Connectez Gmail et Outlook en un clic",
   },
   {
     icon: Building2,
     title: "Multi-organisation",
-    description: "Gérez plusieurs structures depuis un compte",
+    description: "Gerez plusieurs structures depuis un compte",
   },
   {
     icon: Package,
     title: "Produits & Catalogue",
-    description: "Gérez vos produits, tarifs et catégories",
+    description: "Gerez vos produits, tarifs et categories",
   },
   {
     icon: Search,
     title: "Recherche globale",
-    description: "Trouvez contacts, deals et tâches instantanément",
+    description: "Trouvez contacts, deals et taches instantanement",
   },
   {
     icon: Copy,
-    title: "Détection de doublons",
-    description: "Détection intelligente et fusion assistée",
+    title: "Detection de doublons",
+    description: "Detection intelligente et fusion assistee",
   },
 ]
 
@@ -150,47 +150,55 @@ export default function FeaturesPage() {
     <>
       <Navbar />
       <main className="min-h-screen">
-        {/* Header */}
-        <section className="pt-32 pb-16 lg:pt-40">
-          <div className="mx-auto max-w-6xl px-6 text-center">
+        {/* Header with depth */}
+        <section className="relative pt-32 pb-16 lg:pt-40 overflow-hidden">
+          {/* Background effects */}
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-teal-light opacity-30 blur-[100px]" />
+            <div className="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-warm-light opacity-30 blur-[80px]" />
+            <div className="absolute inset-0 dot-grid opacity-[0.02]" />
+          </div>
+
+          <div className="relative mx-auto max-w-7xl px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
+              className="max-w-3xl"
             >
-              <span className="text-sm font-medium uppercase tracking-widest text-primary">
-                Fonctionnalités
+              <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
+                Fonctionnalites
               </span>
-              <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
-                Tout pour gérer vos clients.
+              <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl leading-[1.1]">
+                Tout pour gerer vos clients.
                 <br />
                 <span className="bg-gradient-to-r from-primary via-teal to-warm bg-clip-text text-transparent">
                   En parlant.
                 </span>
               </h1>
-              <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
+              <p className="mt-6 text-lg text-muted-foreground max-w-2xl">
                 Qeylo combine la puissance d&apos;un CRM complet avec la
-                simplicité d&apos;une conversation.
+                simplicite d&apos;une conversation.
               </p>
             </motion.div>
           </div>
         </section>
 
-        {/* Main features — alternating layout */}
+        {/* Main features — alternating layout with depth */}
         <section className="pb-24">
-          <div className="mx-auto max-w-6xl px-6">
-            <div className="space-y-24">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="space-y-32">
               {mainFeatures.map((feature, index) => {
                 const Icon = feature.icon
                 const isReversed = index % 2 === 1
                 return (
                   <motion.div
                     key={feature.title}
-                    initial={{ opacity: 0, y: 32 }}
+                    initial={{ opacity: 0, y: 40 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-80px" }}
-                    transition={{ duration: 0.5 }}
-                    className={`grid items-center gap-12 md:grid-cols-2 md:gap-16 ${
+                    transition={{ duration: 0.6 }}
+                    className={`grid items-center gap-12 md:grid-cols-2 md:gap-20 ${
                       isReversed
                         ? "md:[direction:rtl] md:[&>*]:[direction:ltr]"
                         : ""
@@ -199,19 +207,23 @@ export default function FeaturesPage() {
                     <div>
                       <div
                         className="inline-flex h-14 w-14 items-center justify-center rounded-2xl"
-                        style={{ backgroundColor: `${feature.color}15` }}
+                        style={{ backgroundColor: `${feature.color}12` }}
                       >
                         <Icon
                           className="h-7 w-7"
                           style={{ color: feature.color }}
                         />
                       </div>
-                      <h2 className="mt-5 text-2xl font-bold tracking-tight sm:text-3xl">
+                      <h2 className="mt-6 text-2xl font-bold tracking-tight sm:text-3xl">
                         {feature.title}
                       </h2>
                       <p className="mt-4 leading-relaxed text-muted-foreground">
                         {feature.description}
                       </p>
+
+                      {/* Separator */}
+                      <div className="mt-6 h-px w-16 rounded-full" style={{ backgroundColor: `${feature.color}30` }} />
+
                       <ul className="mt-6 space-y-3">
                         {feature.details.map((detail) => (
                           <li
@@ -221,7 +233,7 @@ export default function FeaturesPage() {
                             <span
                               className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
                               style={{
-                                backgroundColor: `${feature.color}15`,
+                                backgroundColor: `${feature.color}10`,
                               }}
                             >
                               <span
@@ -235,9 +247,12 @@ export default function FeaturesPage() {
                       </ul>
                     </div>
 
-                    {/* Illustration */}
-                    <div className="overflow-hidden rounded-2xl">
-                      <FeaturePageIllustration variant={feature.illustration} />
+                    {/* Illustration with depth frame */}
+                    <div className="relative">
+                      <div className="absolute inset-0 -m-4 rounded-[2rem] opacity-40 blur-2xl" style={{ backgroundColor: `${feature.color}08` }} />
+                      <div className="relative overflow-hidden rounded-2xl border border-border/30 shadow-xl shadow-primary/[0.03]">
+                        <FeaturePageIllustration variant={feature.illustration} />
+                      </div>
                     </div>
                   </motion.div>
                 )
@@ -247,8 +262,11 @@ export default function FeaturesPage() {
         </section>
 
         {/* Extra features strip */}
-        <section className="border-t border-border/40 bg-muted/30 py-16">
-          <div className="mx-auto max-w-6xl px-6">
+        <section className="relative border-t border-border/30 py-20 overflow-hidden grain">
+          <div className="absolute inset-0 bg-muted/30" />
+          <div className="absolute top-0 left-0 right-0 h-[3px] accent-line" />
+
+          <div className="relative mx-auto max-w-7xl px-6">
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {extraFeatures.map((feature, index) => {
                 const Icon = feature.icon
@@ -258,13 +276,13 @@ export default function FeaturesPage() {
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className="text-center"
+                    transition={{ duration: 0.3, delay: index * 0.08 }}
+                    className="group text-center"
                   >
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/8">
-                      <Icon className="h-5 w-5 text-primary" />
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/[0.06] transition-all duration-300 group-hover:bg-primary/10 group-hover:shadow-lg group-hover:shadow-primary/[0.05]">
+                      <Icon className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110" />
                     </div>
-                    <h3 className="mt-4 font-semibold">{feature.title}</h3>
+                    <h3 className="mt-5 font-semibold">{feature.title}</h3>
                     <p className="mt-2 text-sm text-muted-foreground">
                       {feature.description}
                     </p>

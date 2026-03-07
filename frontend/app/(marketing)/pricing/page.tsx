@@ -13,89 +13,92 @@ const plans = [
     name: "Solo",
     price: "0",
     period: "Gratuit pour toujours",
-    description: "Parfait pour démarrer en solo",
+    description: "Parfait pour demarrer en solo",
     features: [
       "1 utilisateur",
       "100 contacts",
-      "1 pipeline (6 étapes)",
+      "1 pipeline (6 etapes)",
       "Chat IA — 50 messages/mois",
       "Dashboard basique",
-      "Tâches & rappels",
+      "Taches & rappels",
       "Recherche globale",
     ],
     cta: "Commencer gratuitement",
     href: "/register",
     highlight: false,
+    accent: "#3D7A7A",
   },
   {
     name: "Pro",
     price: "19",
     period: "/ mois",
-    description: "Pour les freelances qui grandissent",
+    description: "Pour les independants qui grandissent",
     features: [
       "1 utilisateur",
-      "Contacts illimités",
+      "Contacts illimites",
       "Multi-pipeline personnalisable",
-      "Chat IA illimité",
-      "Dashboard & rapports avancés",
+      "Chat IA illimite",
+      "Dashboard & rapports avances",
       "Workflows & automations",
       "Segments dynamiques",
       "Produits & catalogue",
       "Email templates",
       "Import/Export CSV",
-      "Intégration email",
+      "Integration email",
       "Support prioritaire",
     ],
     cta: "Essai gratuit 14 jours",
     href: "/register",
     highlight: true,
+    accent: "#0D4F4F",
   },
   {
-    name: "Équipe",
+    name: "Equipe",
     price: "49",
     period: "/ mois",
-    description: "Pour les équipes ambitieuses",
+    description: "Pour les equipes ambitieuses",
     features: [
-      "Utilisateurs illimités",
+      "Utilisateurs illimites",
       "Tout du plan Pro",
-      "Organisation partagée",
-      "Rôles & permissions",
-      "Assignation de tâches",
-      "Rapports d'équipe",
+      "Organisation partagee",
+      "Roles & permissions",
+      "Assignation de taches",
+      "Rapports d'equipe",
       "API access",
-      "Onboarding dédié",
+      "Onboarding dedie",
     ],
-    cta: "Contacter l'équipe",
+    cta: "Contacter l'equipe",
     href: "/register",
     highlight: false,
+    accent: "#C9946E",
   },
 ]
 
 const comparisonData = [
   {
-    category: "Général",
+    category: "General",
     features: [
-      { name: "Utilisateurs", solo: "1", pro: "1", equipe: "Illimité" },
-      { name: "Contacts", solo: "100", pro: "Illimité", equipe: "Illimité" },
+      { name: "Utilisateurs", solo: "1", pro: "1", equipe: "Illimite" },
+      { name: "Contacts", solo: "100", pro: "Illimite", equipe: "Illimite" },
     ],
   },
   {
     category: "CRM",
     features: [
-      { name: "Pipelines", solo: "1", pro: "Illimité", equipe: "Illimité" },
-      { name: "Étapes personnalisables", solo: false, pro: true, equipe: true },
-      { name: "Deals", solo: "Illimité", pro: "Illimité", equipe: "Illimité" },
+      { name: "Pipelines", solo: "1", pro: "Illimite", equipe: "Illimite" },
+      { name: "Etapes personnalisables", solo: false, pro: true, equipe: true },
+      { name: "Deals", solo: "Illimite", pro: "Illimite", equipe: "Illimite" },
       { name: "Segments dynamiques", solo: false, pro: true, equipe: true },
       { name: "Produits & catalogue", solo: false, pro: true, equipe: true },
-      { name: "Détection de doublons", solo: false, pro: true, equipe: true },
+      { name: "Detection de doublons", solo: false, pro: true, equipe: true },
     ],
   },
   {
-    category: "Productivité",
+    category: "Productivite",
     features: [
-      { name: "Tâches & rappels", solo: true, pro: true, equipe: true },
+      { name: "Taches & rappels", solo: true, pro: true, equipe: true },
       { name: "Vue calendrier", solo: true, pro: true, equipe: true },
-      { name: "Assignation d'équipe", solo: false, pro: false, equipe: true },
+      { name: "Assignation d'equipe", solo: false, pro: false, equipe: true },
       { name: "Workflows & automations", solo: false, pro: true, equipe: true },
       { name: "Email templates", solo: false, pro: true, equipe: true },
     ],
@@ -103,21 +106,21 @@ const comparisonData = [
   {
     category: "IA",
     features: [
-      { name: "Chat IA", solo: "50 msg/mois", pro: "Illimité", equipe: "Illimité" },
+      { name: "Chat IA", solo: "50 msg/mois", pro: "Illimite", equipe: "Illimite" },
     ],
   },
   {
     category: "Analytics",
     features: [
-      { name: "Dashboard", solo: "Basique", pro: "Avancé", equipe: "Avancé" },
-      { name: "Rapports personnalisés", solo: false, pro: true, equipe: true },
+      { name: "Dashboard", solo: "Basique", pro: "Avance", equipe: "Avance" },
+      { name: "Rapports personnalises", solo: false, pro: true, equipe: true },
       { name: "Entonnoir de conversion", solo: false, pro: true, equipe: true },
     ],
   },
   {
-    category: "Intégrations",
+    category: "Integrations",
     features: [
-      { name: "Intégration email", solo: false, pro: true, equipe: true },
+      { name: "Integration email", solo: false, pro: true, equipe: true },
       { name: "Import/Export CSV", solo: false, pro: true, equipe: true },
       { name: "API access", solo: false, pro: false, equipe: true },
     ],
@@ -127,31 +130,31 @@ const comparisonData = [
     features: [
       { name: "Email", solo: true, pro: true, equipe: true },
       { name: "Support prioritaire", solo: false, pro: true, equipe: true },
-      { name: "Onboarding dédié", solo: false, pro: false, equipe: true },
+      { name: "Onboarding dedie", solo: false, pro: false, equipe: true },
     ],
   },
 ]
 
 const faqs = [
   {
-    question: "Puis-je changer de plan à tout moment ?",
+    question: "Puis-je changer de plan a tout moment ?",
     answer:
-      "Oui, vous pouvez upgrader ou downgrader votre plan à tout moment. Le changement prend effet immédiatement.",
+      "Oui, vous pouvez upgrader ou downgrader votre plan a tout moment. Le changement prend effet immediatement.",
   },
   {
     question: "Y a-t-il un engagement ?",
     answer:
-      "Aucun engagement. Vous pouvez annuler à tout moment. Le plan gratuit reste disponible sans limite de temps.",
+      "Aucun engagement. Vous pouvez annuler a tout moment. Le plan gratuit reste disponible sans limite de temps.",
   },
   {
-    question: "Mes données sont-elles sécurisées ?",
+    question: "Mes donnees sont-elles securisees ?",
     answer:
-      "Absolument. Vos données sont chiffrées, isolées par organisation, et hébergées en Europe. Authentification JWT avec refresh token.",
+      "Absolument. Vos donnees sont chiffrees, isolees par organisation, et hebergees en Europe. Authentification JWT avec refresh token.",
   },
   {
-    question: "Quel modèle d'IA est utilisé ?",
+    question: "Quel modele d'IA est utilise ?",
     answer:
-      "Claude (Anthropic) par défaut, avec GPT en fallback. Vous pouvez configurer le modèle de votre choix via les paramètres.",
+      "Claude (Anthropic) par defaut, avec GPT en fallback. Vous pouvez configurer le modele de votre choix via les parametres.",
   },
   {
     question: "Puis-je importer mes contacts existants ?",
@@ -159,14 +162,14 @@ const faqs = [
       "Oui, vous pouvez importer et exporter vos contacts au format CSV depuis la page Contacts. L'import inclut un mapping de colonnes intelligent.",
   },
   {
-    question: "Quelles automations puis-je créer ?",
+    question: "Quelles automations puis-je creer ?",
     answer:
-      "Vous pouvez créer des workflows automatisés basés sur des triggers : deal créé, étape changée, contact mis à jour, tâche en retard, etc. Ajoutez des conditions et des actions automatiques comme envoyer un email, créer une tâche, ou mettre à jour un champ.",
+      "Vous pouvez creer des workflows automatises bases sur des triggers : deal cree, etape changee, contact mis a jour, tache en retard, etc. Ajoutez des conditions et des actions automatiques comme envoyer un email, creer une tache, ou mettre a jour un champ.",
   },
   {
     question: "Puis-je connecter mon email ?",
     answer:
-      "Oui ! Qeylo s'intègre avec Gmail et Outlook via OAuth. Connectez votre boîte mail en un clic depuis les paramètres pour centraliser vos communications.",
+      "Oui ! Qeylo s'integre avec Gmail et Outlook via OAuth. Connectez votre boite mail en un clic depuis les parametres pour centraliser vos communications.",
   },
 ]
 
@@ -175,22 +178,27 @@ export default function PricingPage() {
     <>
       <Navbar />
       <main className="min-h-screen">
-        {/* Header */}
-        <section className="pt-32 pb-16 lg:pt-40">
-          <div className="mx-auto max-w-6xl px-6 text-center">
+        {/* Header with depth */}
+        <section className="relative pt-32 pb-16 lg:pt-40 overflow-hidden">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[500px] w-[600px] rounded-full bg-teal-light opacity-25 blur-[100px]" />
+            <div className="absolute inset-0 dot-grid opacity-[0.02]" />
+          </div>
+
+          <div className="relative mx-auto max-w-7xl px-6 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <span className="text-sm font-medium uppercase tracking-widest text-primary">
+              <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
                 Tarifs
               </span>
-              <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
+              <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl leading-[1.1]">
                 Simple et transparent
               </h1>
-              <p className="mx-auto mt-5 max-w-lg text-lg text-muted-foreground">
-                Commencez gratuitement. Évoluez quand vous êtes prêt.
+              <p className="mx-auto mt-6 max-w-lg text-lg text-muted-foreground">
+                Commencez gratuitement. Evoluez quand vous etes pret.
                 <br />
                 Aucune carte bancaire requise.
               </p>
@@ -199,69 +207,83 @@ export default function PricingPage() {
         </section>
 
         {/* Pricing cards */}
-        <section className="pb-24">
-          <div className="mx-auto max-w-5xl px-6">
-            <div className="grid gap-8 md:grid-cols-3">
+        <section className="pb-28">
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="grid gap-6 md:grid-cols-3 items-start">
               {plans.map((plan, index) => (
                 <motion.div
                   key={plan.name}
-                  initial={{ opacity: 0, y: 24 }}
+                  initial={{ opacity: 0, y: 28 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className={`relative flex flex-col rounded-2xl border p-8 transition-all ${
+                  transition={{ duration: 0.45, delay: index * 0.1 }}
+                  className={`group relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-500 ${
                     plan.highlight
-                      ? "border-primary/30 bg-gradient-to-b from-teal-light/40 to-transparent shadow-xl shadow-primary/5 scale-[1.02]"
-                      : "border-border/60 bg-card/50"
+                      ? "border-primary/20 bg-card shadow-2xl shadow-primary/[0.06] scale-[1.03] z-10"
+                      : "border-border/50 bg-card/80 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/[0.03]"
                   }`}
                 >
+                  {/* Gradient top bar */}
+                  <div
+                    className="h-1 w-full"
+                    style={{
+                      background: `linear-gradient(90deg, ${plan.accent}, ${plan.accent}60)`,
+                    }}
+                  />
+
                   {plan.highlight && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground">
+                    <div className="absolute -top-0 left-1/2 -translate-x-1/2 translate-y-3 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/20">
                       Populaire
                     </div>
                   )}
 
-                  <div>
-                    <h3 className="text-lg font-semibold">{plan.name}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {plan.description}
-                    </p>
-                    <div className="mt-5 flex items-baseline gap-1">
-                      <span className="text-4xl font-bold tracking-tight">
-                        {plan.price}€
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {plan.period}
-                      </span>
+                  <div className={`p-8 ${plan.highlight ? "pt-10" : ""}`}>
+                    <div>
+                      <h3 className="text-lg font-semibold">{plan.name}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {plan.description}
+                      </p>
+                      <div className="mt-6 flex items-baseline gap-1">
+                        <span className="text-5xl font-bold tracking-tight">
+                          {plan.price}&euro;
+                        </span>
+                        <span className="text-sm text-muted-foreground ml-1">
+                          {plan.period}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <ul className="mt-8 flex-1 space-y-3">
-                    {plan.features.map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-3 text-sm"
+                    <div className="mt-8 h-px bg-gradient-to-r from-border via-border to-transparent" />
+
+                    <ul className="mt-8 flex-1 space-y-3.5">
+                      {plan.features.map((feature) => (
+                        <li
+                          key={feature}
+                          className="flex items-start gap-3 text-sm"
+                        >
+                          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5" style={{ backgroundColor: plan.accent + '10' }}>
+                            <Check className="h-3 w-3" style={{ color: plan.accent }} />
+                          </div>
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="mt-10">
+                      <Button
+                        asChild
+                        className={`w-full rounded-full h-12 text-sm font-medium transition-all ${
+                          plan.highlight
+                            ? "shadow-lg shadow-primary/15 hover:shadow-xl hover:shadow-primary/20 hover:scale-[1.01]"
+                            : ""
+                        }`}
+                        variant={plan.highlight ? "default" : "outline"}
                       >
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="mt-8">
-                    <Button
-                      asChild
-                      className={`w-full rounded-full ${
-                        plan.highlight
-                          ? "shadow-lg shadow-primary/15"
-                          : ""
-                      }`}
-                      variant={plan.highlight ? "default" : "outline"}
-                    >
-                      <Link href={plan.href}>
-                        {plan.cta}
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
+                        <Link href={plan.href}>
+                          {plan.cta}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -270,33 +292,33 @@ export default function PricingPage() {
         </section>
 
         {/* Comparison grid */}
-        <section className="pb-24">
-          <div className="mx-auto max-w-5xl px-6">
+        <section className="pb-28">
+          <div className="mx-auto max-w-6xl px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="text-center mb-12"
+              className="text-center mb-14"
             >
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                Comparaison détaillée
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                Comparaison detaillee
               </h2>
-              <p className="mt-3 text-muted-foreground">
-                Toutes les fonctionnalités, plan par plan.
+              <p className="mt-4 text-muted-foreground">
+                Toutes les fonctionnalites, plan par plan.
               </p>
             </motion.div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-2xl border border-border/40 bg-card/50 backdrop-blur-sm">
               <table className="w-full min-w-[600px]">
                 <thead>
-                  <tr className="border-b border-border/60">
-                    <th className="py-4 pr-4 text-left text-sm font-medium text-muted-foreground w-[40%]">
-                      Fonctionnalité
+                  <tr className="border-b border-border/40">
+                    <th className="py-5 pl-6 pr-4 text-left text-sm font-medium text-muted-foreground w-[40%]">
+                      Fonctionnalite
                     </th>
-                    <th className="py-4 px-4 text-center text-sm font-semibold w-[20%]">Solo</th>
-                    <th className="py-4 px-4 text-center text-sm font-semibold text-primary w-[20%]">Pro</th>
-                    <th className="py-4 px-4 text-center text-sm font-semibold w-[20%]">Équipe</th>
+                    <th className="py-5 px-4 text-center text-sm font-semibold w-[20%]">Solo</th>
+                    <th className="py-5 px-4 text-center text-sm font-semibold text-primary w-[20%]">Pro</th>
+                    <th className="py-5 px-4 text-center text-sm font-semibold w-[20%]">Equipe</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -305,22 +327,22 @@ export default function PricingPage() {
                       <tr>
                         <td
                           colSpan={4}
-                          className="pt-8 pb-3 text-xs font-bold uppercase tracking-widest text-primary"
+                          className="pt-8 pb-3 pl-6 text-xs font-bold uppercase tracking-[0.15em] text-primary"
                         >
                           {group.category}
                         </td>
                       </tr>
                       {group.features.map((feature) => (
-                        <tr key={feature.name} className="border-b border-border/30">
-                          <td className="py-3 pr-4 text-sm">{feature.name}</td>
+                        <tr key={feature.name} className="border-b border-border/20 hover:bg-muted/20 transition-colors">
+                          <td className="py-3.5 pl-6 pr-4 text-sm">{feature.name}</td>
                           {(["solo", "pro", "equipe"] as const).map((plan) => {
                             const value = feature[plan]
                             return (
-                              <td key={plan} className="py-3 px-4 text-center">
+                              <td key={plan} className="py-3.5 px-4 text-center">
                                 {value === true ? (
                                   <Check className="mx-auto h-4 w-4 text-primary" />
                                 ) : value === false ? (
-                                  <X className="mx-auto h-4 w-4 text-muted-foreground/30" />
+                                  <X className="mx-auto h-4 w-4 text-muted-foreground/50" />
                                 ) : (
                                   <span className="text-sm font-medium">{value}</span>
                                 )}
@@ -338,8 +360,11 @@ export default function PricingPage() {
         </section>
 
         {/* FAQ */}
-        <section className="border-t border-border/40 bg-muted/30 py-24">
-          <div className="mx-auto max-w-3xl px-6">
+        <section className="relative border-t border-border/30 py-28 overflow-hidden grain">
+          <div className="absolute inset-0 bg-muted/30" />
+          <div className="absolute top-0 left-0 right-0 h-[3px] accent-line" />
+
+          <div className="relative mx-auto max-w-3xl px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -347,12 +372,12 @@ export default function PricingPage() {
               transition={{ duration: 0.5 }}
               className="text-center"
             >
-              <h2 className="text-3xl font-bold tracking-tight">
-                Questions fréquentes
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                Questions frequentes
               </h2>
             </motion.div>
 
-            <div className="mt-12 space-y-6">
+            <div className="mt-14 space-y-4">
               {faqs.map((faq, index) => (
                 <motion.div
                   key={faq.question}
@@ -360,25 +385,27 @@ export default function PricingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className="rounded-xl border border-border/60 bg-card/50 p-6"
+                  className="group rounded-2xl border border-border/40 bg-card/70 backdrop-blur-sm p-6 transition-all duration-300 hover:border-primary/15 hover:shadow-lg hover:shadow-primary/[0.03]"
                 >
                   <h3 className="flex items-center gap-3 font-semibold">
-                    <HelpCircle className="h-4 w-4 text-primary" />
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/[0.06]">
+                      <HelpCircle className="h-4 w-4 text-primary" />
+                    </div>
                     {faq.question}
                   </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground pl-7">
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground pl-10">
                     {faq.answer}
                   </p>
                 </motion.div>
               ))}
             </div>
 
-            <div className="mt-12 text-center">
+            <div className="mt-14 text-center">
               <p className="text-muted-foreground">
                 Une autre question ?{" "}
                 <a
                   href="mailto:hello@qeylo.com"
-                  className="text-primary underline-offset-4 hover:underline"
+                  className="text-primary font-medium underline-offset-4 hover:underline"
                 >
                   Contactez-nous
                 </a>

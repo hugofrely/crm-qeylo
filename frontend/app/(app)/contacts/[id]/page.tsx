@@ -238,6 +238,7 @@ export default function ContactDetailPage() {
       timezone: contact.timezone || "",
       language: contact.language || "",
       interests: contact.interests || [],
+      tags: contact.tags || [],
       birthday: contact.birthday || "",
       category_ids: (contact.categories || []).map((c) => c.id),
       custom_fields: contact.custom_fields || {},

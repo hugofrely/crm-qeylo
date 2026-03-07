@@ -15,89 +15,89 @@ export default function CGU() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="mb-12"
+            className="mb-14"
           >
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Conditions Générales d&apos;Utilisation
+            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
+              Legal
+            </span>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+              Conditions Generales d&apos;Utilisation
             </h1>
-            <p className="mt-2 text-muted-foreground">
-              Conditions régissant l&apos;accès et l&apos;utilisation du service
+            <p className="mt-3 text-muted-foreground">
+              Conditions regissant l&apos;acces et l&apos;utilisation du service
               Qeylo.
             </p>
+            <div className="mt-6 h-px bg-gradient-to-r from-primary/20 via-border to-transparent" />
           </motion.div>
 
           {/* Sections */}
           <div className="space-y-10">
-            {/* Article 1 – Objet */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
                 Article 1 – Objet
               </h2>
-              <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
                 <p>
-                  Les présentes Conditions Générales d&apos;Utilisation (CGU)
-                  régissent l&apos;accès et l&apos;utilisation du service Qeylo,
-                  un CRM conversationnel propulsé par l&apos;intelligence
-                  artificielle, édité par Qeylo SASU.
+                  Les presentes Conditions Generales d&apos;Utilisation (CGU)
+                  regissent l&apos;acces et l&apos;utilisation du service Qeylo,
+                  un CRM conversationnel propulse par l&apos;intelligence
+                  artificielle, edite par Qeylo SASU.
                 </p>
                 <p>
-                  En créant un compte sur Qeylo, l&apos;utilisateur accepte sans
-                  réserve les présentes CGU.
+                  En creant un compte sur Qeylo, l&apos;utilisateur accepte sans
+                  reserve les presentes CGU.
                 </p>
               </div>
             </section>
 
-            {/* Article 2 – Définitions */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                Article 2 – Définitions
+                Article 2 – Definitions
               </h2>
-              <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+              <ul className="list-disc list-inside space-y-2 text-sm text-foreground/80 leading-relaxed">
                 <li>
-                  « Service » : la plateforme Qeylo accessible à l&apos;adresse
+                  &laquo; Service &raquo; : la plateforme Qeylo accessible a l&apos;adresse
                   qeylo.com et ses applications
                 </li>
                 <li>
-                  « Utilisateur » : toute personne physique ou morale inscrite au
+                  &laquo; Utilisateur &raquo; : toute personne physique ou morale inscrite au
                   Service
                 </li>
                 <li>
-                  « Contenu Utilisateur » : l&apos;ensemble des données saisies
-                  par l&apos;Utilisateur (contacts, deals, tâches, notes, etc.)
+                  &laquo; Contenu Utilisateur &raquo; : l&apos;ensemble des donnees saisies
+                  par l&apos;Utilisateur (contacts, deals, taches, notes, etc.)
                 </li>
               </ul>
             </section>
 
-            {/* Article 3 – Inscription et compte */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
                 Article 3 – Inscription et compte
               </h2>
-              <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+              <ul className="list-disc list-inside space-y-2 text-sm text-foreground/80 leading-relaxed">
                 <li>
-                  L&apos;inscription nécessite une adresse email valide et un mot
-                  de passe sécurisé (minimum 8 caractères)
+                  L&apos;inscription necessite une adresse email valide et un mot
+                  de passe securise (minimum 8 caracteres)
                 </li>
                 <li>
-                  L&apos;Utilisateur est responsable de la confidentialité de ses
+                  L&apos;Utilisateur est responsable de la confidentialite de ses
                   identifiants
                 </li>
                 <li>
-                  Chaque compte est personnel et ne peut être partagé
+                  Chaque compte est personnel et ne peut etre partage
                 </li>
                 <li>
-                  L&apos;Utilisateur s&apos;engage à fournir des informations
-                  exactes et à les maintenir à jour
+                  L&apos;Utilisateur s&apos;engage a fournir des informations
+                  exactes et a les maintenir a jour
                 </li>
               </ul>
             </section>
 
-            {/* Article 4 – Description du service */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
                 Article 4 – Description du service
               </h2>
-              <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
                 <p>Qeylo propose trois formules :</p>
                 <ul className="list-disc list-inside space-y-2 ml-2">
                   <li>
@@ -105,42 +105,41 @@ export default function CGU() {
                     1 pipeline, 50 messages IA/mois
                   </li>
                   <li>
-                    Plan Pro (19€/mois) : 1 utilisateur, contacts illimités,
-                    multi-pipeline, IA illimitée, workflows, segments, rapports
-                    avancés
+                    Plan Pro (19&euro;/mois) : 1 utilisateur, contacts illimites,
+                    multi-pipeline, IA illimitee, workflows, segments, rapports
+                    avances
                   </li>
                   <li>
-                    Plan Équipe (49€/mois) : utilisateurs illimités, tout du plan
-                    Pro, organisation partagée, rôles & permissions, API access
+                    Plan Equipe (49&euro;/mois) : utilisateurs illimites, tout du plan
+                    Pro, organisation partagee, roles & permissions, API access
                   </li>
                 </ul>
                 <p>
-                  Les fonctionnalités détaillées de chaque plan sont décrites sur
+                  Les fonctionnalites detaillees de chaque plan sont decrites sur
                   la page Tarifs du site.
                 </p>
               </div>
             </section>
 
-            {/* Article 5 – Obligations de l'utilisateur */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
                 Article 5 – Obligations de l&apos;utilisateur
               </h2>
-              <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+              <ul className="list-disc list-inside space-y-2 text-sm text-foreground/80 leading-relaxed">
                 <li>
-                  Utiliser le Service conformément à sa destination et aux lois
+                  Utiliser le Service conformement a sa destination et aux lois
                   en vigueur
                 </li>
                 <li>
-                  Ne pas utiliser le Service à des fins illicites, frauduleuses
+                  Ne pas utiliser le Service a des fins illicites, frauduleuses
                   ou portant atteinte aux droits de tiers
                 </li>
                 <li>
-                  Ne pas tenter d&apos;accéder de manière non autorisée aux
-                  systèmes de Qeylo
+                  Ne pas tenter d&apos;acceder de maniere non autorisee aux
+                  systemes de Qeylo
                 </li>
                 <li>
-                  Ne pas effectuer de scraping, extraction automatisée ou reverse
+                  Ne pas effectuer de scraping, extraction automatisee ou reverse
                   engineering du Service
                 </li>
                 <li>
@@ -149,173 +148,165 @@ export default function CGU() {
               </ul>
             </section>
 
-            {/* Article 6 – Propriété intellectuelle */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                Article 6 – Propriété intellectuelle
+                Article 6 – Propriete intellectuelle
               </h2>
-              <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
                 <p>
                   Le Service, son code source, son design, ses marques et logos
-                  sont la propriété exclusive de Qeylo SASU.
+                  sont la propriete exclusive de Qeylo SASU.
                 </p>
                 <p>
-                  L&apos;Utilisateur conserve l&apos;intégralité des droits sur
+                  L&apos;Utilisateur conserve l&apos;integralite des droits sur
                   son Contenu Utilisateur.
                 </p>
                 <p>
-                  L&apos;Utilisateur accorde à Qeylo une licence limitée
+                  L&apos;Utilisateur accorde a Qeylo une licence limitee
                   d&apos;utilisation de son Contenu Utilisateur aux seules fins
                   de fourniture du Service.
                 </p>
               </div>
             </section>
 
-            {/* Article 7 – Données personnelles */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                Article 7 – Données personnelles
+                Article 7 – Donnees personnelles
               </h2>
-              <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
                 <p>
-                  Le traitement des données personnelles est décrit dans notre
-                  Politique de Confidentialité accessible à l&apos;adresse{" "}
+                  Le traitement des donnees personnelles est decrit dans notre
+                  Politique de Confidentialite accessible a l&apos;adresse{" "}
                   <a
                     href="/confidentialite"
-                    className="underline hover:text-foreground transition-colors"
+                    className="text-primary font-medium underline-offset-4 hover:underline transition-colors"
                   >
                     /confidentialite
                   </a>
                   .
                 </p>
                 <p>
-                  En utilisant le Service, l&apos;Utilisateur reconnaît avoir
+                  En utilisant le Service, l&apos;Utilisateur reconnait avoir
                   pris connaissance de cette politique.
                 </p>
               </div>
             </section>
 
-            {/* Article 8 – Disponibilité et maintenance */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                Article 8 – Disponibilité et maintenance
+                Article 8 – Disponibilite et maintenance
               </h2>
-              <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
                 <p>
-                  Qeylo s&apos;engage à fournir ses meilleurs efforts pour
-                  assurer la disponibilité du Service 24h/24.
+                  Qeylo s&apos;engage a fournir ses meilleurs efforts pour
+                  assurer la disponibilite du Service 24h/24.
                 </p>
                 <p>
                   Des interruptions temporaires peuvent survenir pour
-                  maintenance, mises à jour ou en cas de force majeure.
+                  maintenance, mises a jour ou en cas de force majeure.
                 </p>
                 <p>
                   Qeylo s&apos;efforcera de notifier les utilisateurs en amont
-                  des maintenances planifiées.
+                  des maintenances planifiees.
                 </p>
               </div>
             </section>
 
-            {/* Article 9 – Responsabilité */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                Article 9 – Responsabilité
+                Article 9 – Responsabilite
               </h2>
-              <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+              <ul className="list-disc list-inside space-y-2 text-sm text-foreground/80 leading-relaxed">
                 <li>
-                  Qeylo est tenue à une obligation de moyens dans la fourniture
+                  Qeylo est tenue a une obligation de moyens dans la fourniture
                   du Service
                 </li>
                 <li>
-                  Qeylo ne saurait être tenue responsable des dommages indirects
-                  (perte de données, perte de chiffre d&apos;affaires, manque à
+                  Qeylo ne saurait etre tenue responsable des dommages indirects
+                  (perte de donnees, perte de chiffre d&apos;affaires, manque a
                   gagner)
                 </li>
                 <li>
-                  La responsabilité totale de Qeylo est limitée au montant des
-                  sommes versées par l&apos;Utilisateur au cours des 12 derniers
+                  La responsabilite totale de Qeylo est limitee au montant des
+                  sommes versees par l&apos;Utilisateur au cours des 12 derniers
                   mois
                 </li>
                 <li>
-                  Qeylo ne saurait être tenue responsable en cas de force
+                  Qeylo ne saurait etre tenue responsable en cas de force
                   majeure
                 </li>
               </ul>
             </section>
 
-            {/* Article 10 – Résiliation */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                Article 10 – Résiliation
+                Article 10 – Resiliation
               </h2>
-              <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+              <ul className="list-disc list-inside space-y-2 text-sm text-foreground/80 leading-relaxed">
                 <li>
-                  L&apos;Utilisateur peut résilier son compte à tout moment
-                  depuis les paramètres de son compte
+                  L&apos;Utilisateur peut resilier son compte a tout moment
+                  depuis les parametres de son compte
                 </li>
                 <li>
-                  Qeylo se réserve le droit de suspendre ou résilier un compte en
-                  cas de violation des présentes CGU, après notification
+                  Qeylo se reserve le droit de suspendre ou resilier un compte en
+                  cas de violation des presentes CGU, apres notification
                 </li>
                 <li>
-                  En cas de résiliation, les données de l&apos;Utilisateur sont
-                  conservées pendant 30 jours, puis supprimées conformément à
-                  notre politique de confidentialité
+                  En cas de resiliation, les donnees de l&apos;Utilisateur sont
+                  conservees pendant 30 jours, puis supprimees conformement a
+                  notre politique de confidentialite
                 </li>
               </ul>
             </section>
 
-            {/* Article 11 – Modification des CGU */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
                 Article 11 – Modification des CGU
               </h2>
-              <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
                 <p>
-                  Qeylo se réserve le droit de modifier les présentes CGU à tout
+                  Qeylo se reserve le droit de modifier les presentes CGU a tout
                   moment.
                 </p>
                 <p>
-                  Les Utilisateurs seront informés par email de tout changement
-                  substantiel au moins 30 jours avant l&apos;entrée en vigueur.
+                  Les Utilisateurs seront informes par email de tout changement
+                  substantiel au moins 30 jours avant l&apos;entree en vigueur.
                 </p>
                 <p>
-                  La poursuite de l&apos;utilisation du Service après la date
+                  La poursuite de l&apos;utilisation du Service apres la date
                   d&apos;effet vaut acceptation des nouvelles CGU.
                 </p>
               </div>
             </section>
 
-            {/* Article 12 – Droit applicable et litiges */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
                 Article 12 – Droit applicable et litiges
               </h2>
-              <div className="space-y-3 text-sm text-muted-foreground">
+              <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
                 <p>
-                  Les présentes CGU sont régies par le droit français.
+                  Les presentes CGU sont regies par le droit francais.
                 </p>
                 <p>
-                  En cas de litige, les parties s&apos;engagent à rechercher une
+                  En cas de litige, les parties s&apos;engagent a rechercher une
                   solution amiable.
                 </p>
                 <p>
-                  À défaut d&apos;accord amiable, compétence est attribuée au
+                  A defaut d&apos;accord amiable, competence est attribuee au
                   Tribunal de commerce d&apos;Avignon.
                 </p>
               </div>
             </section>
 
-            {/* Article 13 – Contact */}
             <section>
               <h2 className="text-lg font-semibold mb-3">
                 Article 13 – Contact
               </h2>
-              <p className="text-sm text-muted-foreground">
-                Pour toute question relative aux présentes CGU :{" "}
+              <p className="text-sm text-foreground/80 leading-relaxed">
+                Pour toute question relative aux presentes CGU :{" "}
                 <a
                   href="mailto:hello@qeylo.com"
-                  className="underline hover:text-foreground transition-colors"
+                  className="text-primary font-medium underline-offset-4 hover:underline transition-colors"
                 >
                   hello@qeylo.com
                 </a>
@@ -323,9 +314,8 @@ export default function CGU() {
             </section>
           </div>
 
-          {/* Date */}
           <p className="mt-16 text-xs text-muted-foreground">
-            Dernière mise à jour : 6 mars 2026
+            Derniere mise a jour : 6 mars 2026
           </p>
         </div>
       </main>

@@ -24,7 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Qeylo CRM",
-  description: "CRM intelligent pour freelances",
+  description: "CRM intelligent pour independants, PME et entreprises",
 }
 
 export default function RootLayout({

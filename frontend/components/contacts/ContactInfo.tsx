@@ -323,6 +323,20 @@ export function ContactInfo({
               <Input type="date" value={editForm.birthday as string} onChange={(e) => onEditFormChange("birthday", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
+              <Label className="text-xs font-[family-name:var(--font-body)]">Tags (virgules)</Label>
+              <Input
+                value={(editForm.tags as string[])?.join(", ") || ""}
+                onChange={(e) =>
+                  onEditFormChange(
+                    "tags",
+                    e.target.value.split(",").map((s) => s.trim()).filter(Boolean)
+                  )
+                }
+                placeholder="VIP, Prospect, Partenaire"
+                className={inputClass}
+              />
+            </div>
+            <div className="space-y-1">
               <Label className="text-xs font-[family-name:var(--font-body)]">Interets (virgules)</Label>
               <Input
                 value={(editForm.interests as string[])?.join(", ") || ""}
