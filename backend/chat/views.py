@@ -235,7 +235,7 @@ def _extract_actions(messages) -> list[dict]:
     return actions
 
 
-async def _generate_title_async(user_message: str, assistant_message: str) -> str:
+async def _generate_title_async(user_message: str, assistant_message: str, org=None, user_obj=None, conv=None) -> str:
     """Generate a short conversation title using the LLM."""
     from .prompts import TITLE_GENERATION_PROMPT
     try:
@@ -246,6 +246,17 @@ async def _generate_title_async(user_message: str, assistant_message: str) -> st
                 assistant_message=assistant_message[:200],
             ),
         )
+        if org and user_obj:
+            usage = result.usage()
+            await alog_ai_usage(
+                organization=org,
+                user=user_obj,
+                call_type=AIUsageLog.CallType.TITLE_GENERATION,
+                model=settings.AI_MODEL,
+                input_tokens=usage.input_tokens,
+                output_tokens=usage.output_tokens,
+                conversation=conv,
+            )
         title = result.output.strip()[:200]
         return title if title else "Nouvelle conversation"
     except Exception:
@@ -253,7 +264,7 @@ async def _generate_title_async(user_message: str, assistant_message: str) -> st
         return "Nouvelle conversation"
 
 
-def _generate_title_sync(user_message: str, assistant_message: str) -> str:
+def _generate_title_sync(user_message: str, assistant_message: str, org=None, user_obj=None, conv=None) -> str:
     """Generate a short conversation title using the LLM (sync version)."""
     from .prompts import TITLE_GENERATION_PROMPT
     try:
@@ -264,6 +275,17 @@ def _generate_title_sync(user_message: str, assistant_message: str) -> str:
                 assistant_message=assistant_message[:200],
             ),
         )
+        if org and user_obj:
+            usage = result.usage()
+            log_ai_usage(
+                organization=org,
+                user=user_obj,
+                call_type=AIUsageLog.CallType.TITLE_GENERATION,
+                model=settings.AI_MODEL,
+                input_tokens=usage.input_tokens,
+                output_tokens=usage.output_tokens,
+                conversation=conv,
+            )
         title = result.output.strip()[:200]
         return title if title else "Nouvelle conversation"
     except Exception:
@@ -382,7 +404,7 @@ def send_message(request):
 
     # Generate title if this is the first exchange
     if conv.messages.count() == 2:
-        conv.title = _generate_title_sync(user_message, ai_text)
+        conv.title = _generate_title_sync(user_message, ai_text, org=org, user_obj=request.user, conv=conv)
         conv.save(update_fields=["title"])
 
     return Response(ChatMessageSerializer(assistant_msg).data)
@@ -505,6 +527,10 @@ async def stream_message(request):
         else:
             run_kwargs["instructions"] = formatted_prompt
 
+        from pydantic_ai.usage import RunUsage
+        run_usage = RunUsage()
+        run_kwargs["usage"] = run_usage
+
         try:
             async for event in agent.run_stream_events(
                 user_message,
@@ -561,10 +587,21 @@ async def stream_message(request):
                 actions=actions,
             )
 
+            # Log AI usage
+            await alog_ai_usage(
+                organization=org,
+                user=user,
+                call_type=AIUsageLog.CallType.CHAT,
+                model=settings.AI_MODEL,
+                input_tokens=run_usage.input_tokens,
+                output_tokens=run_usage.output_tokens,
+                conversation=conv,
+            )
+
             # Generate title if this is the first exchange
             msg_count = await conv.messages.acount()
             if msg_count == 2:
-                title = await _generate_title_async(user_message, full_text)
+                title = await _generate_title_async(user_message, full_text, org=org, user_obj=user, conv=conv)
                 conv.title = title
                 await conv.asave(update_fields=["title"])
 
