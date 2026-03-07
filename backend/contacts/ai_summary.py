@@ -5,6 +5,9 @@ from django.conf import settings
 from django.utils import timezone
 from pydantic_ai import Agent
 
+from ai_usage.models import AIUsageLog
+from ai_usage.tracking import log_ai_usage
+
 logger = logging.getLogger(__name__)
 
 SUMMARY_PROMPT = """Tu es un assistant CRM. Genere un resume concis (3-5 phrases) de ce contact en francais.
@@ -83,6 +86,15 @@ def generate_ai_summary(contact_id: str) -> None:
     try:
         agent = Agent(model=settings.AI_MODEL)
         result = agent.run_sync(prompt)
+        usage = result.usage()
+        log_ai_usage(
+            organization=contact.organization,
+            user=contact.organization.memberships.first().user,
+            call_type=AIUsageLog.CallType.CONTACT_SUMMARY,
+            model=settings.AI_MODEL,
+            input_tokens=usage.input_tokens,
+            output_tokens=usage.output_tokens,
+        )
         contact.ai_summary = result.output.strip()
         contact.ai_summary_updated_at = timezone.now()
         contact.save(update_fields=["ai_summary", "ai_summary_updated_at"])
