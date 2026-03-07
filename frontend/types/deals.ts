@@ -98,3 +98,13 @@ export interface QuoteListItem {
   valid_until: string | null
   created_at: string
 }
+
+export interface SalesQuota {
+  id: string
+  user: string
+  user_name: string
+  month: string
+  target_amount: string | number
+  created_at: string
+  updated_at: string
+}

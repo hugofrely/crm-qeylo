@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/api"
-import type { Deal, Pipeline, PipelineStage, Stage, DealLossReason } from "@/types"
+import type { Deal, Pipeline, PipelineStage, Stage, DealLossReason, SalesQuota } from "@/types"
 
 // Pipeline CRUD
 export async function fetchPipelines(): Promise<Pipeline[]> {
@@ -79,4 +79,18 @@ export async function deletePipelineStage(id: string | number, migrateTo?: strin
 // Loss Reasons
 export async function fetchLossReasons(): Promise<DealLossReason[]> {
   return apiFetch<DealLossReason[]>(`/deals/loss-reasons/`)
+}
+
+// Sales Quotas
+export async function fetchQuotas(month?: string): Promise<SalesQuota[]> {
+  const params = month ? `?month=${month}` : ""
+  return apiFetch<SalesQuota[]>(`/quotas/${params}`)
+}
+
+export async function upsertQuota(data: { user: string; month: string; target_amount: number }): Promise<SalesQuota> {
+  return apiFetch<SalesQuota>(`/quotas/`, { method: "POST", json: data })
+}
+
+export async function bulkUpdateQuotas(quotas: { user: string; month: string; target_amount: number }[]): Promise<SalesQuota[]> {
+  return apiFetch<SalesQuota[]>(`/quotas/bulk/`, { method: "POST", json: { quotas } })
 }

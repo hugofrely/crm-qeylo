@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Pipeline, PipelineStage, Deal, DealLossReason
+from .models import Pipeline, PipelineStage, Deal, DealLossReason, SalesQuota
 
 
 class PipelineSerializer(serializers.ModelSerializer):
@@ -153,3 +153,15 @@ class QuoteListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quote
         fields = ["id", "deal", "number", "status", "total_ttc", "line_count", "valid_until", "created_at"]
+
+
+class SalesQuotaSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SalesQuota
+        fields = ["id", "user", "user_name", "month", "target_amount", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def get_user_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}".strip()

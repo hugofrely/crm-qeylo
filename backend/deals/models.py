@@ -370,3 +370,33 @@ class QuoteLine(models.Model):
     @property
     def line_ttc(self):
         return self.line_ht + self.line_tax
+
+
+class SalesQuota(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="sales_quotas",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="sales_quotas",
+    )
+    month = models.DateField(help_text="First day of the month")
+    target_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["month"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "user", "month"],
+                name="unique_quota_per_user_month",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.month} - {self.target_amount}"

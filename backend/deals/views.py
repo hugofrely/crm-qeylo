@@ -4,13 +4,14 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Count, Q
-from .models import Pipeline, PipelineStage, Deal, DealStageTransition, DealLossReason, PIPELINE_TEMPLATES
+from .models import Pipeline, PipelineStage, Deal, DealStageTransition, DealLossReason, PIPELINE_TEMPLATES, SalesQuota
 from .serializers import (
     PipelineSerializer,
     PipelineStageSerializer,
     DealSerializer,
     DealLossReasonSerializer,
     PipelineDealSerializer,
+    SalesQuotaSerializer,
 )
 
 
@@ -406,3 +407,50 @@ def quote_status_change(request, pk, new_status):
         quote.deal.amount = quote.total_ttc
         quote.deal.save(update_fields=["amount", "updated_at"])
     return Response(QuoteSerializer(quote).data)
+
+
+class SalesQuotaViewSet(viewsets.ModelViewSet):
+    serializer_class = SalesQuotaSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        qs = SalesQuota.objects.filter(organization=self.request.organization)
+        month = self.request.query_params.get("month")
+        if month:
+            qs = qs.filter(month=month)
+        return qs.select_related("user")
+
+    def perform_create(self, serializer):
+        serializer.save(organization=self.request.organization)
+
+    def create(self, request, *args, **kwargs):
+        # Upsert: if quota exists for user+month, update it
+        user_id = request.data.get("user")
+        month = request.data.get("month")
+        target = request.data.get("target_amount")
+        if user_id and month:
+            existing = SalesQuota.objects.filter(
+                organization=request.organization, user_id=user_id, month=month
+            ).first()
+            if existing:
+                existing.target_amount = target
+                existing.save(update_fields=["target_amount", "updated_at"])
+                return Response(SalesQuotaSerializer(existing).data)
+        return super().create(request, *args, **kwargs)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def quota_bulk_update(request):
+    quotas_data = request.data.get("quotas", [])
+    results = []
+    for item in quotas_data:
+        obj, _ = SalesQuota.objects.update_or_create(
+            organization=request.organization,
+            user_id=item["user"],
+            month=item["month"],
+            defaults={"target_amount": item["target_amount"]},
+        )
+        results.append(SalesQuotaSerializer(obj).data)
+    return Response(results)
