@@ -18,6 +18,14 @@ import {
 import type { WidgetConfig, AggregateResponse, FunnelResponse } from "@/types"
 import { fetchAggregate, fetchFunnel } from "@/services/reports"
 import { FunnelChart } from "./FunnelChart"
+import {
+  ForecastWidget,
+  WinLossWidget,
+  LossReasonsWidget,
+  VelocityWidget,
+  LeaderboardWidget,
+  QuotaProgressWidget,
+} from "./AnalyticsWidgets"
 
 const COLORS = [
   "#6366F1", "#10B981", "#F59E0B", "#3B82F6", "#EF4444", "#64748B",
@@ -123,6 +131,17 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
       </div>
     )
+  }
+
+  // Analytics widgets — delegate to specialized components
+  const analyticsTypes = ["forecast_chart", "win_loss_chart", "loss_reasons_chart", "velocity_chart", "leaderboard_table", "quota_progress"]
+  if (analyticsTypes.includes(widget.type)) {
+    if (widget.type === "forecast_chart") return <ForecastWidget filters={widget.filters} />
+    if (widget.type === "win_loss_chart") return <WinLossWidget filters={widget.filters} />
+    if (widget.type === "loss_reasons_chart") return <LossReasonsWidget filters={widget.filters} />
+    if (widget.type === "velocity_chart") return <VelocityWidget filters={widget.filters} />
+    if (widget.type === "leaderboard_table") return <LeaderboardWidget filters={widget.filters} />
+    if (widget.type === "quota_progress") return <QuotaProgressWidget filters={widget.filters} />
   }
 
   if (!data || data.data.length === 0) {

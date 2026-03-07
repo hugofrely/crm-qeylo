@@ -15,6 +15,7 @@ import {
   X,
   GitMerge,
   Activity,
+  Target,
 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { apiFetch } from "@/lib/api"
@@ -335,6 +336,26 @@ export default function SettingsPage() {
                 <p className="text-sm font-medium">Templates d&apos;email</p>
                 <p className="text-xs text-muted-foreground">
                   Créer et gérer des modèles d&apos;emails réutilisables
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          </div>
+        </div>
+      </Link>
+
+      {/* Quotas link */}
+      <Link href="/settings/quotas" className="block">
+        <div className="rounded-xl border border-border bg-card hover:bg-secondary/20 transition-colors">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary/8 text-primary">
+                <Target className="h-5 w-5" />
+              </div>
+              <div className="font-[family-name:var(--font-body)]">
+                <p className="text-sm font-medium">Quotas de vente</p>
+                <p className="text-xs text-muted-foreground">
+                  Définir les objectifs mensuels par commercial
                 </p>
               </div>
             </div>

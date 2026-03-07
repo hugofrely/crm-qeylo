@@ -26,6 +26,7 @@ import {
   User,
 } from "lucide-react"
 import { EntityLink } from "@/components/shared/EntityLink"
+import { NextActions } from "@/components/deals/NextActions"
 import type { Deal, Stage, QuoteListItem, Quote } from "@/types"
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
