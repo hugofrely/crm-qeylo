@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import {
   DndContext,
   DragOverlay,
@@ -37,6 +37,22 @@ export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange, filter
   const { pipeline, setPipeline, loading, refresh } = usePipeline(pipelineId, filters)
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null)
   const [dealDialogOpen, setDealDialogOpen] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [showLeftFade, setShowLeftFade] = useState(false)
+  const [showRightFade, setShowRightFade] = useState(false)
+
+  const updateScrollFades = useCallback(() => {
+    if (!scrollRef.current) return
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+    setShowLeftFade(scrollLeft > 10)
+    setShowRightFade(scrollLeft + clientWidth < scrollWidth - 10)
+  }, [])
+
+  useEffect(() => {
+    updateScrollFades()
+    window.addEventListener("resize", updateScrollFades)
+    return () => window.removeEventListener("resize", updateScrollFades)
+  }, [updateScrollFades])
 
   // Sync external dialog control (for the "+ Nouveau deal" button in the page header)
   useEffect(() => {
@@ -202,16 +218,28 @@ export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange, filter
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4 h-full">
-        {pipeline.map((stageData) => (
-          <KanbanColumn
-            key={stageData.stage.id}
-            stage={stageData.stage}
-            deals={stageData.deals}
-            totalAmount={stageData.total_amount}
-            onDealClick={handleDealClick}
-          />
-        ))}
+      <div className="relative flex-1 min-h-0">
+        {/* Left fade */}
+        <div className={`absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none transition-opacity duration-200 ${showLeftFade ? 'opacity-100' : 'opacity-0'}`} />
+
+        <div
+          ref={scrollRef}
+          onScroll={updateScrollFades}
+          className="flex gap-4 overflow-x-auto pb-4 h-full"
+        >
+          {pipeline.map((stageData) => (
+            <KanbanColumn
+              key={stageData.stage.id}
+              stage={stageData.stage}
+              deals={stageData.deals}
+              totalAmount={stageData.total_amount}
+              onDealClick={handleDealClick}
+            />
+          ))}
+        </div>
+
+        {/* Right fade */}
+        <div className={`absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none transition-opacity duration-200 ${showRightFade ? 'opacity-100' : 'opacity-0'}`} />
       </div>
 
       <DragOverlay>

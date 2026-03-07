@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { Card, CardContent } from "@/components/ui/card"
-import { User, DollarSign } from "lucide-react"
+import { User } from "lucide-react"
 import { EntityLink } from "@/components/shared/EntityLink"
 import type { Deal } from "@/types"
 
@@ -67,10 +67,9 @@ export function DealCard({ deal, onClick }: DealCardProps) {
       <CardContent className="p-3 space-y-2">
         <p className="font-medium text-sm leading-tight">{deal.name}</p>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-sm font-semibold text-green-700">
-            <DollarSign className="h-3.5 w-3.5" />
+          <span className="text-sm font-semibold text-primary">
             {formatAmount(deal.amount)}
-          </div>
+          </span>
           {deal.contact_name && deal.contact && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <User className="h-3 w-3" />
