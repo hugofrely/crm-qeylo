@@ -17,14 +17,14 @@ export async function fetchUsageSummary(): Promise<UsageSummary> {
 export async function createCheckoutSession(plan: string): Promise<{ url: string }> {
   return apiFetch<{ url: string }>("/subscriptions/checkout/", {
     method: "POST",
-    body: JSON.stringify({ plan }),
+    json: { plan },
   })
 }
 
 export async function downgradeSubscription(plan: string): Promise<{ detail: string }> {
   return apiFetch<{ detail: string }>("/subscriptions/downgrade/", {
     method: "POST",
-    body: JSON.stringify({ plan }),
+    json: { plan },
   })
 }
 
@@ -45,7 +45,9 @@ export async function fetchInvoices(): Promise<Invoice[]> {
 }
 
 export async function fetchPaymentMethod(): Promise<PaymentMethod | null> {
-  return apiFetch<PaymentMethod | null>("/subscriptions/payment-method/")
+  const res = await apiFetch<{ payment_method: PaymentMethod | null } | PaymentMethod>("/subscriptions/payment-method/")
+  if (res && "payment_method" in res) return res.payment_method
+  return res as PaymentMethod
 }
 
 export async function updatePaymentMethod(): Promise<{ url: string }> {

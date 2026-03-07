@@ -209,11 +209,11 @@ def payment_method(request):
 
     sub = Subscription.objects.filter(organization=request.organization).first()
     if not sub or not sub.stripe_customer_id:
-        return Response(None)
+        return Response({"payment_method": None})
 
     methods = stripe.PaymentMethod.list(customer=sub.stripe_customer_id, type="card")
     if not methods.data:
-        return Response(None)
+        return Response({"payment_method": None})
 
     card = methods.data[0].card
     return Response({

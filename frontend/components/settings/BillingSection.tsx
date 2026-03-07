@@ -41,18 +41,19 @@ export default function BillingSection({ orgId }: BillingSectionProps) {
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      const [sub, usg, inv, pm] = await Promise.all([
-        fetchSubscription(),
-        fetchUsageSummary(),
-        fetchInvoices(),
-        fetchPaymentMethod(),
-      ])
+      const sub = await fetchSubscription()
       setSubscription(sub)
+
+      const [usg, inv, pm] = await Promise.all([
+        fetchUsageSummary().catch(() => null),
+        fetchInvoices().catch(() => []),
+        fetchPaymentMethod().catch(() => null),
+      ])
       setUsage(usg)
-      setInvoices(inv)
+      setInvoices(inv ?? [])
       setPaymentMethod(pm)
     } catch {
-      toast.error("Erreur lors du chargement des donnees d'abonnement")
+      toast.error("Impossible de charger les informations d'abonnement")
     } finally {
       setLoading(false)
     }
