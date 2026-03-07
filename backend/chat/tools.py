@@ -3041,6 +3041,126 @@ def get_company_summary(ctx: RunContext[ChatDeps], company_name_or_id: str) -> d
     }
 
 
+# ---------------------------------------------------------------------------
+# Sales Analytics Tools
+# ---------------------------------------------------------------------------
+
+def get_forecast(
+    ctx: RunContext[ChatDeps],
+    period: str = "this_quarter",
+    pipeline_name: str = "",
+) -> dict:
+    """Get revenue forecast categorized by commit/best case/pipeline for a period.
+    Period options: this_month, this_quarter, next_quarter, this_year."""
+    from deals.analytics import compute_forecast
+    org_id = ctx.deps.organization_id
+    pipeline_id = None
+    if pipeline_name:
+        p = Pipeline.objects.filter(organization_id=org_id, name__icontains=pipeline_name).first()
+        if p:
+            pipeline_id = str(p.id)
+    result = compute_forecast(
+        Organization.objects.get(id=org_id),
+        period=period,
+        pipeline_id=pipeline_id,
+        user_id=None,
+    )
+    return result
+
+
+def get_win_loss_analysis(
+    ctx: RunContext[ChatDeps],
+    period: str = "this_quarter",
+) -> dict:
+    """Get win/loss analysis with win rate, loss reasons breakdown, and monthly trend.
+    Period options: this_month, this_quarter, last_quarter, this_year."""
+    from deals.analytics import compute_win_loss
+    org_id = ctx.deps.organization_id
+    return compute_win_loss(Organization.objects.get(id=org_id), period=period)
+
+
+def get_deal_velocity(
+    ctx: RunContext[ChatDeps],
+    pipeline_name: str = "",
+    period: str = "last_6_months",
+) -> dict:
+    """Get deal velocity: average cycle time, time per stage, stagnant deals.
+    Period options: last_3_months, last_6_months, this_year."""
+    from deals.analytics import compute_velocity
+    org_id = ctx.deps.organization_id
+    pipeline = Pipeline.objects.filter(organization_id=org_id)
+    if pipeline_name:
+        pipeline = pipeline.filter(name__icontains=pipeline_name)
+    p = pipeline.first()
+    if not p:
+        return {"error": "No pipeline found"}
+    return compute_velocity(Organization.objects.get(id=org_id), str(p.id), period=period)
+
+
+def get_leaderboard(
+    ctx: RunContext[ChatDeps],
+    period: str = "this_month",
+) -> dict:
+    """Get team leaderboard ranked by quota attainment.
+    Period options: this_month, this_quarter, this_year."""
+    from deals.analytics import compute_leaderboard
+    org_id = ctx.deps.organization_id
+    return compute_leaderboard(Organization.objects.get(id=org_id), period=period)
+
+
+def get_quota_progress(
+    ctx: RunContext[ChatDeps],
+    user_name: str = "",
+    period: str = "this_month",
+) -> dict:
+    """Get quota progress for a specific sales rep or the current user.
+    Returns quota target, revenue closed, and attainment percentage."""
+    from deals.analytics import compute_leaderboard
+    org_id = ctx.deps.organization_id
+    result = compute_leaderboard(Organization.objects.get(id=org_id), period=period)
+    if user_name:
+        for r in result.get("rankings", []):
+            full_name = f"{r['user']['first_name']} {r['user']['last_name']}".lower()
+            if user_name.lower() in full_name:
+                return r
+        return {"error": f"User '{user_name}' not found in leaderboard"}
+    # Return current user's progress
+    user_id = ctx.deps.user_id
+    for r in result.get("rankings", []):
+        if r["user"]["id"] == user_id:
+            return r
+    return {"error": "User not found in leaderboard"}
+
+
+def get_next_actions(
+    ctx: RunContext[ChatDeps],
+    deal_name_or_id: str = "",
+) -> dict:
+    """Get recommended next actions for a deal (heuristic-based suggestions).
+    Pass the deal name or ID."""
+    org_id = ctx.deps.organization_id
+    deal_id = _resolve_deal_id(org_id, deal_name_or_id)
+    if not deal_id:
+        # Try by name
+        deal = Deal.objects.filter(
+            organization_id=org_id, name__icontains=deal_name_or_id
+        ).first()
+        if not deal:
+            return {"error": f"Deal '{deal_name_or_id}' not found"}
+        deal_id = str(deal.id)
+    else:
+        deal = Deal.objects.filter(id=deal_id, organization_id=org_id).select_related("stage").first()
+        if not deal:
+            return {"error": "Deal not found"}
+
+    from deals.next_actions import compute_heuristic_actions
+    actions = compute_heuristic_actions(deal, Organization.objects.get(id=org_id))
+    return {
+        "deal": deal.name,
+        "actions": actions,
+    }
+
+
 # All tools to register on the agent
 ALL_TOOLS = [
     create_contact,
@@ -3117,4 +3237,11 @@ ALL_TOOLS = [
     remove_contact_relationship,
     transfer_contacts,
     set_parent_company,
+    # Sales Analytics
+    get_forecast,
+    get_win_loss_analysis,
+    get_deal_velocity,
+    get_leaderboard,
+    get_quota_progress,
+    get_next_actions,
 ]
