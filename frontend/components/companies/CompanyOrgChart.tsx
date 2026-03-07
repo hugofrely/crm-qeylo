@@ -40,8 +40,8 @@ interface Props {
 }
 
 export function CompanyOrgChart({ companyId }: Props) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
   const [loading, setLoading] = useState(true)
   const [showDialog, setShowDialog] = useState(false)
 
