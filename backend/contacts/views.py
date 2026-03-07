@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Q, Count
 from .models import Contact, ContactCategory, CustomFieldDefinition
-from .serializers import ContactSerializer, ContactCategorySerializer, CustomFieldDefinitionSerializer
+from .serializers import ContactSerializer, ContactCategorySerializer, CustomFieldDefinitionSerializer, BulkActionSerializer
 from notes.models import TimelineEntry
 
 ALLOWED_ORDERING = {
@@ -174,6 +174,73 @@ def reorder_custom_fields(request):
             organization=request.organization,
         ).update(order=index)
     return Response({"status": "ok"})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def bulk_actions(request):
+    serializer = BulkActionSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    action = serializer.validated_data["action"]
+    ids = serializer.validated_data["ids"]
+    params = serializer.validated_data["params"]
+
+    qs = Contact.objects.filter(
+        organization=request.organization,
+        id__in=ids,
+    )
+
+    if action == "delete":
+        from django.utils import timezone
+        count = qs.count()
+        qs.update(deleted_at=timezone.now(), deleted_by=request.user)
+        return Response({"status": "ok", "count": count})
+
+    elif action == "export":
+        from .export import _rows
+        from django.http import StreamingHttpResponse
+        from datetime import date
+        export_qs = qs.prefetch_related("categories")
+        filename = f"contacts-export-{date.today().isoformat()}.csv"
+        response = StreamingHttpResponse(
+            _rows(export_qs), content_type="text/csv; charset=utf-8"
+        )
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+    elif action == "categorize":
+        category_ids = params.get("category_ids", [])
+        if not category_ids:
+            return Response(
+                {"error": "category_ids required"}, status=400
+            )
+        categories = ContactCategory.objects.filter(
+            id__in=category_ids,
+            organization=request.organization,
+        )
+        count = 0
+        for contact in qs:
+            contact.categories.add(*categories)
+            count += 1
+        return Response({"status": "ok", "count": count})
+
+    elif action == "assign_company":
+        company_entity_id = params.get("company_entity_id")
+        if not company_entity_id:
+            return Response(
+                {"error": "company_entity_id required"}, status=400
+            )
+        from companies.models import Company
+        try:
+            company = Company.objects.get(
+                id=company_entity_id,
+                organization=request.organization,
+            )
+        except Company.DoesNotExist:
+            return Response({"error": "Company not found"}, status=404)
+        count = qs.update(company_entity=company, company=company.name)
+        return Response({"status": "ok", "count": count})
 
 
 @api_view(["GET"])

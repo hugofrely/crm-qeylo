@@ -112,3 +112,15 @@ class DuplicateDetectionSettingsSerializer(serializers.ModelSerializer):
             "enabled", "match_email", "match_name", "match_phone",
             "match_siret", "match_company", "similarity_threshold",
         ]
+
+
+class BulkActionSerializer(serializers.Serializer):
+    action = serializers.ChoiceField(
+        choices=["delete", "export", "categorize", "assign_company"]
+    )
+    ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        min_length=1,
+        max_length=500,
+    )
+    params = serializers.DictField(required=False, default=dict)
