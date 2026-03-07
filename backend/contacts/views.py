@@ -7,6 +7,13 @@ from .models import Contact, ContactCategory, CustomFieldDefinition
 from .serializers import ContactSerializer, ContactCategorySerializer, CustomFieldDefinitionSerializer
 from notes.models import TimelineEntry
 
+ALLOWED_ORDERING = {
+    "last_name", "-last_name",
+    "created_at", "-created_at",
+    "lead_score", "-lead_score",
+    "company", "-company",
+}
+
 
 class ContactViewSet(viewsets.ModelViewSet):
     serializer_class = ContactSerializer
@@ -14,9 +21,47 @@ class ContactViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Contact.objects.filter(organization=self.request.organization)
+
+        # Category filter (existing)
         category_id = self.request.query_params.get("category")
         if category_id:
             qs = qs.filter(categories__id=category_id)
+
+        # Date filters
+        created_after = self.request.query_params.get("created_after")
+        if created_after:
+            qs = qs.filter(created_at__date__gte=created_after)
+
+        created_before = self.request.query_params.get("created_before")
+        if created_before:
+            qs = qs.filter(created_at__date__lte=created_before)
+
+        # Lead score filter
+        lead_score = self.request.query_params.get("lead_score")
+        if lead_score:
+            qs = qs.filter(lead_score=lead_score)
+
+        # Source filter
+        source = self.request.query_params.get("source")
+        if source:
+            qs = qs.filter(source=source)
+
+        # Tags filter (OR between tags)
+        tags_param = self.request.query_params.get("tags")
+        if tags_param:
+            tag_list = [t.strip() for t in tags_param.split(",") if t.strip()]
+            if tag_list:
+                tag_q = Q()
+                for tag in tag_list:
+                    tag_q |= Q(tags__contains=[tag])
+                qs = qs.filter(tag_q)
+
+        # Sorting
+        ordering = self.request.query_params.get("ordering", "-created_at")
+        if ordering not in ALLOWED_ORDERING:
+            ordering = "-created_at"
+        qs = qs.order_by(ordering)
+
         return qs.distinct()
 
     def perform_create(self, serializer):
