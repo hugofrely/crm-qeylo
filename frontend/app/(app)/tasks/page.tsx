@@ -91,6 +91,11 @@ export default function TasksPage() {
   }
 
   const handleEdit = (task: Task) => {
+    setEditingTask(task)
+    setDialogOpen(true)
+  }
+
+  const handleViewDetails = (task: Task) => {
     router.push(`/tasks/${task.id}`)
   }
 
@@ -160,7 +165,7 @@ export default function TasksPage() {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <TaskList tasks={tasks} onToggle={handleToggle} onEdit={handleEdit} />
+            <TaskList tasks={tasks} onToggle={handleToggle} onEdit={handleEdit} onViewDetails={handleViewDetails} />
           )}
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </>
@@ -271,6 +276,10 @@ export default function TasksPage() {
         onSuccess={refresh}
         prefilledDate={prefilledDate}
         prefilledTime={prefilledTime}
+        onViewDetails={editingTask ? () => {
+          setDialogOpen(false)
+          router.push(`/tasks/${editingTask.id}`)
+        } : undefined}
       />
     </div>
   )

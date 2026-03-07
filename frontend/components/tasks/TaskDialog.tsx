@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Loader2, Trash2, Search, X } from "lucide-react"
+import { Loader2, Trash2, Search, X, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -26,6 +26,7 @@ interface TaskDialogProps {
   onSuccess: () => void
   prefilledDate?: string
   prefilledTime?: string
+  onViewDetails?: () => void
 }
 
 export function TaskDialog({
@@ -35,6 +36,7 @@ export function TaskDialog({
   onSuccess,
   prefilledDate,
   prefilledTime,
+  onViewDetails,
 }: TaskDialogProps) {
   const isEditing = !!task
 
@@ -340,13 +342,24 @@ export function TaskDialog({
           ) : (
             <div />
           )}
-          <Button
-            onClick={handleSave}
-            disabled={!description.trim() || saving}
-          >
-            {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {isEditing ? "Enregistrer" : "Créer"}
-          </Button>
+          <div className="flex items-center gap-2">
+            {isEditing && onViewDetails && (
+              <Button
+                variant="outline"
+                onClick={onViewDetails}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Voir détails
+              </Button>
+            )}
+            <Button
+              onClick={handleSave}
+              disabled={!description.trim() || saving}
+            >
+              {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isEditing ? "Enregistrer" : "Créer"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

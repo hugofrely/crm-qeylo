@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { EntityLink } from "@/components/shared/EntityLink"
 import { ContactNotes } from "@/components/contacts/ContactNotes"
 import { ContactTimeline } from "@/components/contacts/ContactTimeline"
@@ -12,6 +14,8 @@ import { fetchTask, updateTask, deleteTask } from "@/services/tasks"
 import { fetchContact, fetchContactTimeline } from "@/services/contacts"
 import { fetchDeal, fetchPipelineStages } from "@/services/deals"
 import { restoreItems } from "@/services/trash"
+import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
+import { useMemberAutocomplete } from "@/hooks/useMemberAutocomplete"
 import { toast } from "sonner"
 import {
   ArrowLeft,
@@ -25,6 +29,9 @@ import {
   Building2,
   TrendingUp,
   DollarSign,
+  Pencil,
+  Search,
+  X,
 } from "lucide-react"
 import type { Task, Contact, Deal, Stage, TimelineEntry } from "@/types"
 
@@ -93,6 +100,18 @@ export default function TaskDetailPage() {
   const [timeline, setTimeline] = useState<TimelineEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [editDescription, setEditDescription] = useState("")
+  const [editDueDate, setEditDueDate] = useState("")
+  const [editDueTime, setEditDueTime] = useState("")
+  const [editPriority, setEditPriority] = useState("normal")
+  const [editContactId, setEditContactId] = useState("")
+  const [editContactLabel, setEditContactLabel] = useState("")
+  const [editAssigneeIds, setEditAssigneeIds] = useState<string[]>([])
+
+  const contactAutocomplete = useContactAutocomplete()
+  const memberAutocomplete = useMemberAutocomplete()
 
   const loadTask = useCallback(async () => {
     try {
@@ -173,6 +192,57 @@ export default function TaskDetailPage() {
     }
   }
 
+  const startEditing = () => {
+    if (!task) return
+    setEditDescription(task.description)
+    setEditDueDate(task.due_date ? task.due_date.split("T")[0] : "")
+    const timeMatch = task.due_date?.match(/T(\d{2}:\d{2})/)
+    setEditDueTime(timeMatch && timeMatch[1] !== "23:59" ? timeMatch[1] : "")
+    setEditPriority(task.priority)
+    setEditContactId(task.contact || "")
+    setEditContactLabel(task.contact_name || "")
+    setEditAssigneeIds(task.assignees ? task.assignees.map((a) => a.user_id) : [])
+    contactAutocomplete.reset()
+    memberAutocomplete.reset()
+    setEditing(true)
+  }
+
+  const cancelEditing = () => {
+    setEditing(false)
+    contactAutocomplete.reset()
+    memberAutocomplete.reset()
+  }
+
+  const handleSave = async () => {
+    if (!editDescription.trim()) return
+    setSaving(true)
+    try {
+      await updateTask(id, {
+        description: editDescription.trim(),
+        due_date: editDueDate
+          ? new Date(`${editDueDate}T${editDueTime || "23:59"}:00`).toISOString()
+          : null,
+        priority: editPriority,
+        contact: editContactId || null,
+        assigned_to: editAssigneeIds,
+      })
+      setEditing(false)
+      const t = await loadTask()
+      if (t) {
+        // Reload contact/deal if changed
+        if (t.contact) {
+          fetchContact(t.contact).then(setContact).catch(console.error)
+        } else {
+          setContact(null)
+        }
+      }
+    } catch (err) {
+      console.error("Failed to save task:", err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -206,52 +276,249 @@ export default function TaskDetailPage() {
 
       {/* Task Header */}
       <div className="rounded-xl border border-border bg-card p-5 mb-6">
-        <div className="flex items-start gap-3">
-          <Checkbox
-            checked={task.is_done}
-            onCheckedChange={handleToggle}
-            className="mt-1"
-          />
-          <div className="flex-1 min-w-0">
-            <p className={`text-lg font-semibold ${task.is_done ? "line-through text-muted-foreground" : ""}`}>
-              {task.description}
-            </p>
-            <div className="flex items-center gap-3 mt-2 flex-wrap">
-              <Badge className={priorityConfig.className}>{priorityConfig.label}</Badge>
-              <Badge className={task.is_done ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}>
-                {task.is_done ? "Terminee" : "A faire"}
-              </Badge>
-              {task.due_date && (
-                <div className={`flex items-center gap-1 text-sm ${!task.is_done && isOverdue(task.due_date) ? "text-red-600 font-medium" : "text-muted-foreground"}`}>
-                  <Calendar className="h-3.5 w-3.5" />
-                  {formatDate(task.due_date)}
+        {editing ? (
+          <div className="space-y-4">
+            {/* Description */}
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-description">Description</Label>
+              <Input
+                id="edit-description"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Ex: Appeler le client pour le devis"
+              />
+            </div>
+
+            {/* Date + Heure + Priorité */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-due-date">Date d&apos;échéance</Label>
+                <Input
+                  id="edit-due-date"
+                  type="date"
+                  value={editDueDate}
+                  onChange={(e) => setEditDueDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-due-time">Heure</Label>
+                <Input
+                  id="edit-due-time"
+                  type="time"
+                  value={editDueTime}
+                  onChange={(e) => setEditDueTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-priority">Priorité</Label>
+                <select
+                  id="edit-priority"
+                  value={editPriority}
+                  onChange={(e) => setEditPriority(e.target.value)}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                >
+                  <option value="high">Haute</option>
+                  <option value="normal">Normale</option>
+                  <option value="low">Basse</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Contact autocomplete */}
+            <div className="space-y-1.5">
+              <Label>Contact associé</Label>
+              <div ref={contactAutocomplete.wrapperRef} className="relative">
+                {editContactId ? (
+                  <div className="flex h-9 items-center justify-between rounded-md border border-input bg-transparent px-3 text-sm">
+                    <span>{editContactLabel}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditContactId("")
+                        setEditContactLabel("")
+                        contactAutocomplete.reset()
+                      }}
+                      className="ml-2 rounded-sm p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      value={contactAutocomplete.query}
+                      onChange={(e) => contactAutocomplete.search(e.target.value)}
+                      onFocus={() => {
+                        if (contactAutocomplete.results.length > 0) contactAutocomplete.setOpen(true)
+                      }}
+                      placeholder="Rechercher un contact…"
+                      className="pl-8"
+                    />
+                    {contactAutocomplete.searching && (
+                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
+                )}
+                {contactAutocomplete.open && contactAutocomplete.results.length > 0 && (
+                  <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg max-h-48 overflow-y-auto">
+                    {contactAutocomplete.results.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setEditContactId(c.id)
+                          setEditContactLabel(`${c.first_name} ${c.last_name}`)
+                          contactAutocomplete.reset()
+                        }}
+                        className="flex w-full items-center px-3 py-2 text-sm hover:bg-secondary/50 transition-colors text-left"
+                      >
+                        {c.first_name} {c.last_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {contactAutocomplete.open && contactAutocomplete.query && !contactAutocomplete.searching && contactAutocomplete.results.length === 0 && (
+                  <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg px-3 py-3 text-sm text-muted-foreground text-center">
+                    Aucun contact trouvé
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Assignés */}
+            <div className="space-y-1.5">
+              <Label>Assignés</Label>
+              {editAssigneeIds.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {editAssigneeIds.map((uid) => {
+                    const member = memberAutocomplete.allMembers.find((m) => m.user_id === uid)
+                    if (!member) return null
+                    return (
+                      <span
+                        key={uid}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs font-medium"
+                      >
+                        {member.first_name} {member.last_name}
+                        <button
+                          type="button"
+                          onClick={() => setEditAssigneeIds((prev) => prev.filter((i) => i !== uid))}
+                          className="ml-0.5 rounded-full p-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    )
+                  })}
+                </div>
+              )}
+              <div ref={memberAutocomplete.wrapperRef} className="relative">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    value={memberAutocomplete.query}
+                    onChange={(e) => memberAutocomplete.search(e.target.value)}
+                    onFocus={() => memberAutocomplete.search(memberAutocomplete.query)}
+                    placeholder="Rechercher un membre…"
+                    className="pl-8"
+                  />
+                </div>
+                {memberAutocomplete.open && (
+                  <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg max-h-48 overflow-y-auto">
+                    {memberAutocomplete.results
+                      .filter((m) => !editAssigneeIds.includes(m.user_id))
+                      .map((m) => (
+                        <button
+                          key={m.user_id}
+                          type="button"
+                          onClick={() => {
+                            setEditAssigneeIds((prev) => [...prev, m.user_id])
+                            memberAutocomplete.reset()
+                          }}
+                          className="flex w-full items-center px-3 py-2 text-sm hover:bg-secondary/50 transition-colors text-left"
+                        >
+                          {m.first_name} {m.last_name}
+                          <span className="ml-auto text-xs text-muted-foreground">{m.email}</span>
+                        </button>
+                      ))}
+                    {memberAutocomplete.results.filter((m) => !editAssigneeIds.includes(m.user_id)).length === 0 && (
+                      <div className="px-3 py-3 text-sm text-muted-foreground text-center">
+                        {memberAutocomplete.query ? "Aucun membre trouvé" : "Tous les membres sont déjà assignés"}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Boutons Annuler / Enregistrer */}
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={cancelEditing} disabled={saving}>
+                Annuler
+              </Button>
+              <Button onClick={handleSave} disabled={!editDescription.trim() || saving}>
+                {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Enregistrer
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-start gap-3">
+            <Checkbox
+              checked={task.is_done}
+              onCheckedChange={handleToggle}
+              className="mt-1"
+            />
+            <div className="flex-1 min-w-0">
+              <p className={`text-lg font-semibold ${task.is_done ? "line-through text-muted-foreground" : ""}`}>
+                {task.description}
+              </p>
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                <Badge className={priorityConfig.className}>{priorityConfig.label}</Badge>
+                <Badge className={task.is_done ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}>
+                  {task.is_done ? "Terminee" : "A faire"}
+                </Badge>
+                {task.due_date && (
+                  <div className={`flex items-center gap-1 text-sm ${!task.is_done && isOverdue(task.due_date) ? "text-red-600 font-medium" : "text-muted-foreground"}`}>
+                    <Calendar className="h-3.5 w-3.5" />
+                    {formatDate(task.due_date)}
+                  </div>
+                )}
+              </div>
+              {task.assignees && task.assignees.length > 0 && (
+                <div className="flex items-center gap-1.5 mt-3">
+                  {task.assignees.map((a) => (
+                    <span
+                      key={a.user_id}
+                      title={`${a.first_name} ${a.last_name}`}
+                      className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-primary/10 text-primary text-xs font-medium"
+                    >
+                      {a.first_name[0]}{a.last_name[0]}
+                    </span>
+                  ))}
                 </div>
               )}
             </div>
-            {task.assignees && task.assignees.length > 0 && (
-              <div className="flex items-center gap-1.5 mt-3">
-                {task.assignees.map((a) => (
-                  <span
-                    key={a.user_id}
-                    title={`${a.first_name} ${a.last_name}`}
-                    className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-primary/10 text-primary text-xs font-medium"
-                  >
-                    {a.first_name[0]}{a.last_name[0]}
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={startEditing}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={handleDelete}
+                disabled={deleting}
+              >
+                {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-            onClick={handleDelete}
-            disabled={deleting}
-          >
-            {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-          </Button>
-        </div>
+        )}
       </div>
 
       {/* 2-column layout */}

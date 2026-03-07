@@ -2,7 +2,8 @@
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, User, Briefcase } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Calendar, User, Briefcase, Eye } from "lucide-react"
 import type { Task } from "@/types"
 import { EntityLink } from "@/components/shared/EntityLink"
 
@@ -10,6 +11,7 @@ interface TaskListProps {
   tasks: Task[]
   onToggle: (taskId: string, isDone: boolean) => void
   onEdit: (task: Task) => void
+  onViewDetails: (task: Task) => void
 }
 
 function formatDate(dateStr: string): string {
@@ -58,7 +60,7 @@ function isOverdue(dueDateStr: string | null): boolean {
   return dueDate < today
 }
 
-export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
+export function TaskList({ tasks, onToggle, onEdit, onViewDetails }: TaskListProps) {
   if (tasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -143,8 +145,20 @@ export function TaskList({ tasks, onToggle, onEdit }: TaskListProps) {
               </div>
             )}
           </div>
-          <div className="shrink-0">
+          <div className="shrink-0 flex flex-col items-center gap-2">
             {getPriorityBadge(task.priority)}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation()
+                onViewDetails(task)
+              }}
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              title="Voir les détails"
+            >
+              <Eye className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
       ))}
