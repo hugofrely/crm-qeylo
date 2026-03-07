@@ -22,25 +22,25 @@ interface Suggestion {
 }
 
 const simpleSuggestions: Suggestion[] = [
-  { icon: UserPlus, text: "Cree un contact pour Marie Dupont de chez Acme" },
+  { icon: UserPlus, text: "Crée un contact pour Marie Dupont de chez Acme" },
   { icon: Handshake, text: "Ajoute un deal de 5000\u20AC pour le projet refonte site" },
-  { icon: ListChecks, text: "Montre-moi mes taches de la semaine" },
-  { icon: Mail, text: "Envoie un email de suivi a Jean Martin" },
+  { icon: ListChecks, text: "Montre-moi mes tâches de la semaine" },
+  { icon: Mail, text: "Envoie un email de suivi à Jean Martin" },
   { icon: BarChart3, text: "Combien de deals ai-je en cours ?" },
 ]
 
 const intermediateSuggestions: Suggestion[] = [
-  { icon: UserPlus, text: "Cree un contact pour Sophie Blanc et ajoute-lui un deal de 12000\u20AC" },
-  { icon: PenLine, text: "Modifie le telephone de Marie Dupont en 06 12 34 56 78" },
-  { icon: StickyNote, text: "Ajoute une note de suivi au deal Refonte Site : reunion prevue vendredi" },
-  { icon: ArrowRightLeft, text: "Deplace le deal Acme en phase de negociation" },
+  { icon: UserPlus, text: "Crée un contact pour Sophie Blanc et ajoute-lui un deal de 12000\u20AC" },
+  { icon: PenLine, text: "Modifie le téléphone de Marie Dupont en 06 12 34 56 78" },
+  { icon: StickyNote, text: "Ajoute une note de suivi au deal Refonte Site : réunion prévue vendredi" },
+  { icon: ArrowRightLeft, text: "Déplace le deal Acme en phase de négociation" },
 ]
 
 const advancedSuggestions: Suggestion[] = [
-  { icon: UserPlus, text: "Cree un contact pour Pierre Noir chez TechCorp, ajoute un deal de 25000\u20AC et planifie un appel pour demain" },
-  { icon: Users, text: "Montre-moi tous les contacts sans activite depuis 30 jours" },
-  { icon: TrendingUp, text: "Donne-moi un resume de mon pipeline avec un graphique par etape" },
-  { icon: BarChart3, text: "Quels deals de plus de 10000\u20AC sont bloques depuis plus de 2 semaines ?" },
+  { icon: UserPlus, text: "Crée un contact pour Pierre Noir chez TechCorp, ajoute un deal de 25000\u20AC et planifie un appel pour demain" },
+  { icon: Users, text: "Montre-moi tous les contacts sans activité depuis 30 jours" },
+  { icon: TrendingUp, text: "Donne-moi un résumé de mon pipeline avec un graphique par étape" },
+  { icon: BarChart3, text: "Quels deals de plus de 10000\u20AC sont bloqués depuis plus de 2 semaines ?" },
 ]
 
 interface ChatSuggestionsProps {

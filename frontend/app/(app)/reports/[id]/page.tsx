@@ -12,13 +12,13 @@ import { ReportWidget } from "@/components/reports/ReportWidget"
 import { WidgetEditor } from "@/components/reports/WidgetEditor"
 
 const DATE_RANGES = [
-  { value: "", label: "Toutes les periodes" },
+  { value: "", label: "Toutes les périodes" },
   { value: "this_month", label: "Ce mois" },
   { value: "last_month", label: "Mois dernier" },
   { value: "last_3_months", label: "3 derniers mois" },
   { value: "last_6_months", label: "6 derniers mois" },
   { value: "last_12_months", label: "12 derniers mois" },
-  { value: "this_year", label: "Cette annee" },
+  { value: "this_year", label: "Cette année" },
 ]
 
 const SIZE_CLASSES: Record<string, string> = {

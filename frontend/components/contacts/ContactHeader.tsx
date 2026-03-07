@@ -105,7 +105,7 @@ export function ContactHeader({
             </p>
           )}
           <p className="text-muted-foreground text-xs mt-1 font-[family-name:var(--font-body)]">
-            Cree le {formatDate(contact.created_at)}
+            Créé le {formatDate(contact.created_at)}
           </p>
         </div>
 

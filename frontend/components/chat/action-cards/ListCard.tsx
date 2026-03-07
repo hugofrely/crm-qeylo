@@ -41,7 +41,7 @@ export function ListCard({ action }: { action: EnrichedAction }) {
           )}
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground">Aucun resultat</p>
+        <p className="text-xs text-muted-foreground">Aucun résultat</p>
       )}
     </CardShell>
   )

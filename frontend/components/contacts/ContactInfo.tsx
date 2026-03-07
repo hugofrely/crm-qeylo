@@ -178,9 +178,9 @@ export function ContactInfo({
           </div>
         </div>
 
-        {/* Coordonnees */}
+        {/* Coordonnées */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          <h3 className={labelClass}>Coordonnees</h3>
+          <h3 className={labelClass}>Coordonnées</h3>
           <div className="space-y-3">
             <div className="space-y-1">
               <Label className="text-xs font-[family-name:var(--font-body)]">Email</Label>
@@ -417,10 +417,10 @@ export function ContactInfo({
   /* ── VIEW MODE ── */
   return (
     <div className="space-y-4">
-      {/* Coordonnees */}
+      {/* Coordonnées */}
       <div className="bg-card border border-border rounded-xl p-5 space-y-3">
         <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-          Coordonnees
+          Coordonnées
         </h3>
         <div className="space-y-2">
           {contact.email && (

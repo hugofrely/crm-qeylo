@@ -326,7 +326,7 @@ export default function ContactsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lead_score" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Lead score</Label>
+                <Label htmlFor="lead_score" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Score</Label>
                 <select
                   id="lead_score"
                   value={formData.lead_score}

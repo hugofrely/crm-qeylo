@@ -12,12 +12,12 @@ import { FilterSelect, FilterPills } from "@/components/shared/FilterControls"
 import type { FunnelResponse } from "@/types"
 
 const DATE_RANGES = [
-  { value: "", label: "Toutes les periodes" },
+  { value: "", label: "Toutes les périodes" },
   { value: "this_month", label: "Ce mois" },
   { value: "last_month", label: "Mois dernier" },
   { value: "last_3_months", label: "3 derniers mois" },
   { value: "last_6_months", label: "6 derniers mois" },
-  { value: "this_year", label: "Cette annee" },
+  { value: "this_year", label: "Cette année" },
 ]
 
 function formatDurationTable(iso: string): string {
@@ -113,7 +113,7 @@ export default function FunnelPage() {
           options={DATE_RANGES.filter((d) => d.value).map((d) => ({ value: d.value, label: d.label }))}
           value={dateRange}
           onChange={setDateRange}
-          placeholder="Toutes les periodes"
+          placeholder="Toutes les périodes"
         />
       </FilterBar>
 

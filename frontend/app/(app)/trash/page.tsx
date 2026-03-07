@@ -19,7 +19,7 @@ import type { TrashItem } from "@/types/trash"
 const TYPE_LABELS: Record<string, string> = {
   contact: "Contacts",
   deal: "Deals",
-  task: "Taches",
+  task: "Tâches",
 }
 
 function TrashTable({
@@ -60,7 +60,7 @@ function TrashTable({
               />
             </th>
             <th className="p-3">Nom</th>
-            <th className="p-3">Supprime par</th>
+            <th className="p-3">Supprimé par</th>
             <th className="p-3">Date de suppression</th>
             <th className="p-3">Source</th>
             <th className="p-3 text-right">Actions</th>
@@ -113,7 +113,7 @@ function TrashTable({
                   size="icon-sm"
                   className="text-destructive hover:text-destructive"
                   onClick={() => onPermanentDelete([item.id])}
-                  title="Supprimer definitivement"
+                  title="Supprimer définitivement"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -153,7 +153,7 @@ export default function TrashPage() {
   const handleRestore = async (ids: string[]) => {
     try {
       await restoreItems(activeTab, ids)
-      toast.success(`${ids.length} element(s) restaure(s)`)
+      toast.success(`${ids.length} élément(s) restauré(s)`)
       setSelectedIds(new Set())
       refresh()
     } catch {
@@ -164,7 +164,7 @@ export default function TrashPage() {
   const handlePermanentDelete = async (ids: string[]) => {
     try {
       await permanentDeleteItems(activeTab, ids)
-      toast.success(`${ids.length} element(s) supprime(s) definitivement`)
+      toast.success(`${ids.length} élément(s) supprimé(s) définitivement`)
       setSelectedIds(new Set())
       refresh()
     } catch {
@@ -176,7 +176,7 @@ export default function TrashPage() {
     setEmptying(true)
     try {
       await emptyTrash()
-      toast.success("Corbeille videe")
+      toast.success("Corbeille vidée")
       setEmptyDialogOpen(false)
       setSelectedIds(new Set())
       refresh()
@@ -188,7 +188,7 @@ export default function TrashPage() {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       <PageHeader title="Corbeille">
         {counts.total > 0 && (
           <Button
@@ -203,14 +203,14 @@ export default function TrashPage() {
         )}
       </PageHeader>
 
-      <div className="px-6 pb-2">
+      <div>
         <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/20 p-3 text-sm text-amber-800 dark:text-amber-200 flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 shrink-0" />
-          Les elements sont supprimes definitivement apres 30 jours.
+          Les éléments sont supprimés définitivement après 30 jours.
         </div>
       </div>
 
-      <div className="flex-1 px-6 pb-6">
+      <div>
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setSelectedIds(new Set()) }}>
           <div className="flex items-center justify-between mb-4">
             <TabsList>
@@ -229,7 +229,7 @@ export default function TrashPage() {
             {selectedIds.size > 0 && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
-                  {selectedIds.size} selectionne(s)
+                  {selectedIds.size} sélectionné(s)
                 </span>
                 <Button
                   variant="outline"
@@ -279,8 +279,8 @@ export default function TrashPage() {
             <DialogTitle>Vider la corbeille</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Cette action est irreversible. Tous les elements de la corbeille
-            ({counts.total}) seront supprimes definitivement.
+            Cette action est irréversible. Tous les éléments de la corbeille
+            ({counts.total}) seront supprimés définitivement.
           </p>
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setEmptyDialogOpen(false)}>
@@ -288,7 +288,7 @@ export default function TrashPage() {
             </Button>
             <Button variant="destructive" onClick={handleEmpty} disabled={emptying}>
               {emptying && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Vider definitivement
+              Vider définitivement
             </Button>
           </div>
         </DialogContent>

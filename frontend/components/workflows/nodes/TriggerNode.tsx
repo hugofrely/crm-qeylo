@@ -9,7 +9,7 @@ const TRIGGER_LABELS: Record<string, string> = {
   "deal.lost": "Deal perdu",
   "contact.created": "Contact créé",
   "contact.updated": "Contact mis à jour",
-  "contact.lead_score_changed": "Lead score changé",
+  "contact.lead_score_changed": "Score changé",
   "task.created": "Tâche créée",
   "task.completed": "Tâche complétée",
   "task.overdue": "Tâche en retard",

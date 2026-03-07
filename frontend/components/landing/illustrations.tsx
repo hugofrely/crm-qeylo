@@ -275,7 +275,7 @@ export function FeaturePageIllustration({ variant }: { variant: "chat" | "contac
         {/* User msg */}
         <g className="animate-float">
           <rect x="200" y="88" width="210" height="38" rx="19" fill={TEAL} />
-          <text x="305" y="112" fill="white" fontSize="11.5" textAnchor="middle" style={{ fontFamily: 'system-ui' }}>Cree un deal pour Acme, 15k</text>
+          <text x="305" y="112" fill="white" fontSize="11.5" textAnchor="middle" style={{ fontFamily: 'system-ui' }}>Crée un deal pour Acme, 15k</text>
           <circle cx="424" cy="107" r="13" fill={WARM} />
           <text x="424" y="111" fill="white" fontSize="8.5" fontWeight="600" textAnchor="middle" style={{ fontFamily: 'system-ui' }}>HF</text>
         </g>

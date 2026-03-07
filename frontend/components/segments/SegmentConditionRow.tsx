@@ -7,22 +7,22 @@ import type { SegmentCondition } from "@/types"
 
 const FIELD_OPTIONS = [
   { group: "Contact", fields: [
-    { value: "first_name", label: "Prenom" },
+    { value: "first_name", label: "Prénom" },
     { value: "last_name", label: "Nom" },
     { value: "email", label: "Email" },
-    { value: "phone", label: "Telephone" },
+    { value: "phone", label: "Téléphone" },
     { value: "company", label: "Entreprise" },
     { value: "job_title", label: "Poste" },
     { value: "source", label: "Source" },
-    { value: "lead_score", label: "Lead score" },
+    { value: "lead_score", label: "Score" },
     { value: "city", label: "Ville" },
     { value: "country", label: "Pays" },
     { value: "industry", label: "Industrie" },
     { value: "language", label: "Langue" },
-    { value: "preferred_channel", label: "Canal prefere" },
-    { value: "decision_role", label: "Role de decision" },
+    { value: "preferred_channel", label: "Canal préféré" },
+    { value: "decision_role", label: "Rôle de décision" },
     { value: "tags", label: "Tags" },
-    { value: "categories", label: "Categories" },
+    { value: "categories", label: "Catégories" },
     { value: "estimated_budget", label: "Budget estime" },
   ]},
   { group: "Dates", fields: [
@@ -89,7 +89,7 @@ const LEAD_SCORE_OPTIONS = [
 
 const CHANNEL_OPTIONS = [
   { value: "email", label: "Email" },
-  { value: "phone", label: "Telephone" },
+  { value: "phone", label: "Téléphone" },
   { value: "linkedin", label: "LinkedIn" },
   { value: "other", label: "Autre" },
 ]

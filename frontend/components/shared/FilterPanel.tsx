@@ -36,7 +36,7 @@ export function FilterPanel({ open, onOpenChange, onReset, activeFilterCount, ch
             {activeFilterCount > 0 && (
               <Button variant="ghost" size="xs" onClick={onReset} className="gap-1 text-muted-foreground">
                 <RotateCcw className="h-3 w-3" />
-                Reinitialiser
+                Réinitialiser
               </Button>
             )}
             <Button variant="ghost" size="icon-xs" onClick={() => onOpenChange(false)}>

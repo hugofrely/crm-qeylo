@@ -11,7 +11,7 @@ const TRIGGER_OPTIONS = [
   { value: "deal.lost", label: "Deal perdu" },
   { value: "contact.created", label: "Contact créé" },
   { value: "contact.updated", label: "Contact mis à jour" },
-  { value: "contact.lead_score_changed", label: "Lead score changé" },
+  { value: "contact.lead_score_changed", label: "Score changé" },
   { value: "task.created", label: "Tâche créée" },
   { value: "task.completed", label: "Tâche complétée" },
   { value: "task.overdue", label: "Tâche en retard" },

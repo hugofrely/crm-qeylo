@@ -32,8 +32,8 @@ const CHART_TYPES = [
 const SOURCES = [
   { value: "deals", label: "Deals" },
   { value: "contacts", label: "Contacts" },
-  { value: "tasks", label: "Taches" },
-  { value: "activities", label: "Activites" },
+  { value: "tasks", label: "Tâches" },
+  { value: "activities", label: "Activités" },
   { value: "quotes", label: "Devis" },
 ] as const
 
@@ -60,12 +60,12 @@ const GROUP_BY_OPTIONS: Record<string, { value: string; label: string }[]> = {
     { value: "month", label: "Par mois" },
     { value: "week", label: "Par semaine" },
     { value: "source", label: "Par source" },
-    { value: "lead_score", label: "Par lead score" },
+    { value: "lead_score", label: "Par score" },
   ],
   tasks: [
     { value: "month", label: "Par mois" },
     { value: "week", label: "Par semaine" },
-    { value: "priority", label: "Par priorite" },
+    { value: "priority", label: "Par priorité" },
     { value: "is_done", label: "Par statut" },
   ],
   activities: [
@@ -89,7 +89,7 @@ const DATE_RANGES = [
   { value: "last_3_months", label: "3 derniers mois" },
   { value: "last_6_months", label: "6 derniers mois" },
   { value: "last_12_months", label: "12 derniers mois" },
-  { value: "this_year", label: "Cette annee" },
+  { value: "this_year", label: "Cette année" },
 ]
 
 const SIZES = [
