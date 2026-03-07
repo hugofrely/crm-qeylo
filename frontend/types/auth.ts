@@ -4,6 +4,7 @@ export interface User {
   first_name: string
   last_name: string
   email_notifications: boolean
+  is_superuser: boolean
 }
 
 export interface AuthContextType {
