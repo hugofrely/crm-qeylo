@@ -25,5 +25,7 @@ urlpatterns = [
     path("<uuid:pk>/relationships/", contact_relationships),
     path("<uuid:pk>/merge/", merge_contacts),
     path("export/", export_contacts),
+    path("tags/", views.list_tags),
+    path("sources/", views.list_sources),
     path("", include(router.urls)),
 ]

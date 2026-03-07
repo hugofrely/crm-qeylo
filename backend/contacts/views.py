@@ -174,3 +174,30 @@ def reorder_custom_fields(request):
             organization=request.organization,
         ).update(order=index)
     return Response({"status": "ok"})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_tags(request):
+    """Return all distinct tags used across contacts in this organization."""
+    contacts = Contact.objects.filter(
+        organization=request.organization
+    ).exclude(tags=[]).values_list("tags", flat=True)
+    all_tags = set()
+    for tag_list in contacts:
+        if isinstance(tag_list, list):
+            all_tags.update(tag_list)
+    return Response(sorted(all_tags))
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_sources(request):
+    """Return all distinct source values used across contacts in this organization."""
+    sources = (
+        Contact.objects.filter(organization=request.organization)
+        .exclude(source="")
+        .values_list("source", flat=True)
+        .distinct()
+    )
+    return Response(sorted(set(sources)))
