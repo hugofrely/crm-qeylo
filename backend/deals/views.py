@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from django.db.models import Count, Q
 from .models import Pipeline, PipelineStage, Deal, DealStageTransition, DealLossReason, PIPELINE_TEMPLATES, SalesQuota
 from .analytics import compute_forecast, compute_win_loss, compute_velocity, compute_leaderboard
+from .next_actions import compute_heuristic_actions
 from .serializers import (
     PipelineSerializer,
     PipelineStageSerializer,
@@ -500,6 +501,90 @@ def velocity_view(request):
     if "error" in result:
         return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
     return Response(result)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def next_actions_view(request, pk):
+    try:
+        deal = Deal.objects.select_related("stage", "contact").get(
+            pk=pk, organization=request.organization
+        )
+    except Deal.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+    actions = compute_heuristic_actions(deal, request.organization)
+    return Response({"heuristic_actions": actions, "ai_analysis_available": True})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def next_actions_ai_view(request, pk):
+    try:
+        deal = Deal.objects.select_related("stage", "contact", "company").get(
+            pk=pk, organization=request.organization
+        )
+    except Deal.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    from notes.models import TimelineEntry
+    from tasks.models import Task as TaskModel
+    recent_activities = TimelineEntry.objects.filter(
+        organization=request.organization, deal=deal
+    ).order_by("-created_at")[:10]
+    tasks = TaskModel.objects.filter(deal=deal).order_by("-created_at")[:5]
+
+    context_parts = [
+        f"Deal: {deal.name}",
+        f"Montant: {deal.amount} EUR",
+        f"Stage: {deal.stage.name}",
+        f"Probabilite: {deal.probability}%" if deal.probability else None,
+        f"Date de cloture prevue: {deal.expected_close}" if deal.expected_close else None,
+        f"Contact: {deal.contact.first_name} {deal.contact.last_name}" if deal.contact else None,
+        f"Entreprise: {deal.company.name}" if deal.company else None,
+        f"Notes: {deal.notes[:500]}" if deal.notes else None,
+    ]
+    context_str = "\n".join(p for p in context_parts if p)
+
+    if recent_activities:
+        context_str += "\n\nActivites recentes:\n"
+        for a in recent_activities:
+            context_str += f"- [{a.created_at.strftime('%d/%m')}] {a.entry_type}: {a.content[:200]}\n"
+
+    if tasks:
+        context_str += "\nTaches:\n"
+        for t in tasks:
+            status_str = "done" if t.is_done else "todo"
+            context_str += f"- {status_str} {t.description} (echeance: {t.due_date})\n"
+
+    prompt = f"""Analyse ce deal CRM et suggere 2-3 prochaines actions concretes pour le faire avancer.
+
+{context_str}
+
+Reponds en JSON avec ce format exact (un tableau JSON, rien d'autre):
+[{{"action": "description concrete", "reasoning": "pourquoi cette action", "priority": "high"}}]
+
+Sois concis et actionnable."""
+
+    try:
+        from django.conf import settings
+        from pydantic_ai import Agent
+        import json
+
+        agent = Agent(model=settings.AI_MODEL)
+        result = agent.run_sync(prompt)
+        # Try to parse JSON from response
+        text = result.data
+        # Find JSON array in response
+        start_idx = text.find("[")
+        end_idx = text.rfind("]") + 1
+        if start_idx >= 0 and end_idx > start_idx:
+            suggestions = json.loads(text[start_idx:end_idx])
+        else:
+            suggestions = [{"action": text, "reasoning": "", "priority": "medium"}]
+    except Exception as e:
+        suggestions = [{"action": "Analyse non disponible", "reasoning": str(e), "priority": "medium"}]
+
+    return Response({"suggestions": suggestions})
 
 
 @api_view(["GET"])

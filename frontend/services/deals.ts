@@ -121,6 +121,34 @@ export async function fetchVelocity(params: { pipeline: string; period?: string;
   return apiFetch<VelocityResponse>(`/deals/velocity/?${sp.toString()}`)
 }
 
+// Next Best Actions
+export interface NextAction {
+  type: string
+  priority: "high" | "medium" | "low"
+  message: string
+  suggested_action: string
+  days_since_activity?: number
+}
+
+export interface NextActionsResponse {
+  heuristic_actions: NextAction[]
+  ai_analysis_available: boolean
+}
+
+export interface AiSuggestion {
+  action: string
+  reasoning: string
+  priority: "high" | "medium" | "low"
+}
+
+export async function fetchNextActions(dealId: string): Promise<NextActionsResponse> {
+  return apiFetch<NextActionsResponse>(`/deals/${dealId}/next-actions/`)
+}
+
+export async function fetchAiNextActions(dealId: string): Promise<{ suggestions: AiSuggestion[] }> {
+  return apiFetch<{ suggestions: AiSuggestion[] }>(`/deals/${dealId}/next-actions/ai/`, { method: "POST" })
+}
+
 export async function fetchLeaderboard(params?: { period?: string; pipeline?: string }): Promise<LeaderboardResponse> {
   const sp = new URLSearchParams()
   if (params?.period) sp.set("period", params.period)

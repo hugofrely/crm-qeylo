@@ -15,5 +15,7 @@ urlpatterns = [
     path("velocity/", views.velocity_view),
     path("leaderboard/", views.leaderboard_view),
     path("loss-reasons/", include(loss_reason_router.urls)),
+    path("<uuid:pk>/next-actions/", views.next_actions_view),
+    path("<uuid:pk>/next-actions/ai/", views.next_actions_ai_view),
     path("", include(router.urls)),
 ]
