@@ -23,8 +23,16 @@ export interface TaskResult {
   contact_name: string
 }
 
+export interface CompanyResult {
+  id: string
+  name: string
+  industry: string
+  city: string
+}
+
 export interface SearchResults {
   contacts: ContactResult[]
   deals: DealResult[]
   tasks: TaskResult[]
+  companies: CompanyResult[]
 }

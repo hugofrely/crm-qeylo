@@ -14,6 +14,7 @@ import {
   Trash2,
   Check,
 } from "lucide-react"
+import Link from "next/link"
 import {
   Dialog,
   DialogContent,
@@ -99,9 +100,17 @@ export function ContactHeader({
           <h1 className="text-lg font-semibold font-[family-name:var(--font-body)]">
             {contact.first_name} {contact.last_name}
           </h1>
-          {(contact.job_title || contact.company) && (
+          {(contact.job_title || contact.company || contact.company_entity_name) && (
             <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">
-              {contact.job_title}{contact.job_title && contact.company ? " @ " : ""}{contact.company}
+              {contact.job_title}
+              {contact.job_title && (contact.company_entity_name || contact.company) ? " @ " : ""}
+              {contact.company_entity && contact.company_entity_name ? (
+                <Link href={`/companies/${contact.company_entity}`} className="text-primary hover:underline">
+                  {contact.company_entity_name}
+                </Link>
+              ) : (
+                contact.company
+              )}
             </p>
           )}
           <p className="text-muted-foreground text-xs mt-1 font-[family-name:var(--font-body)]">

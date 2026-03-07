@@ -33,6 +33,8 @@ export interface Contact {
   mobile_phone: string
   twitter_url: string
   siret: string
+  company_entity: string | null
+  company_entity_name: string | null
   ai_summary: string
   ai_summary_updated_at: string | null
   created_at: string

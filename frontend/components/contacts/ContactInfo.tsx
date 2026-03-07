@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import type { Contact, CustomFieldDefinition } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -171,6 +172,12 @@ export function ContactInfo({
           <div className="space-y-1">
             <Label className="text-xs font-[family-name:var(--font-body)]">Entreprise</Label>
             <Input value={editForm.company as string} onChange={(e) => onEditFormChange("company", e.target.value)} className={inputClass} />
+            {/* Text field kept for backward compatibility — company_entity link is managed separately */}
+            {contact.company_entity_name && (
+              <p className="text-[11px] text-muted-foreground font-[family-name:var(--font-body)]">
+                Liee a <Link href={`/companies/${contact.company_entity}`} className="text-primary hover:underline">{contact.company_entity_name}</Link>
+              </p>
+            )}
           </div>
           <div className="space-y-1">
             <Label className="text-xs font-[family-name:var(--font-body)]">Poste</Label>
@@ -527,6 +534,16 @@ export function ContactInfo({
             Profil
           </h3>
           <div className="space-y-2">
+            {(contact.company_entity_name || contact.company) && (
+              <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                {contact.company_entity && contact.company_entity_name ? (
+                  <Link href={`/companies/${contact.company_entity}`} className="truncate text-primary hover:underline">{contact.company_entity_name}</Link>
+                ) : (
+                  <span className="truncate">{contact.company}</span>
+                )}
+              </div>
+            )}
             {contact.industry && (
               <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
                 <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />

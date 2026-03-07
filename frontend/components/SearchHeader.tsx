@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Users, Kanban, CheckSquare, X } from "lucide-react"
+import { Search, Users, Kanban, CheckSquare, Building2, X } from "lucide-react"
 import { NotificationBell } from "@/components/NotificationBell"
 import { useSearch } from "@/hooks/useSearch"
 
@@ -46,7 +46,7 @@ export function SearchHeader() {
   }
 
   const hasResults = results &&
-    (results.contacts.length > 0 || results.deals.length > 0 || results.tasks.length > 0)
+    (results.contacts.length > 0 || results.deals.length > 0 || results.tasks.length > 0 || (results.companies && results.companies.length > 0))
   const noResults = results && !hasResults && query.trim().length >= 2
 
   return (
@@ -124,6 +124,34 @@ export function SearchHeader() {
                             {c.company && (
                               <p className="text-[11px] text-muted-foreground truncate font-[family-name:var(--font-body)]">
                                 {c.company}
+                              </p>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Companies */}
+                  {results.companies && results.companies.length > 0 && (
+                    <div>
+                      <div className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)] border-t border-border/50">
+                        Entreprises
+                      </div>
+                      {results.companies.map((company) => (
+                        <button
+                          key={company.id}
+                          onClick={() => navigate(`/companies/${company.id}`)}
+                          className="flex w-full items-center gap-3 px-3 py-2 hover:bg-secondary/50 transition-colors"
+                        >
+                          <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <div className="min-w-0 text-left">
+                            <p className="text-sm font-medium truncate font-[family-name:var(--font-body)]">
+                              {company.name}
+                            </p>
+                            {(company.industry || company.city) && (
+                              <p className="text-[11px] text-muted-foreground truncate font-[family-name:var(--font-body)]">
+                                {[company.industry, company.city].filter(Boolean).join(" · ")}
                               </p>
                             )}
                           </div>
