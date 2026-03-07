@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { fetchFunnel } from "@/services/reports"
 import { fetchPipelines } from "@/services/deals"
 import { FunnelChart } from "@/components/reports/FunnelChart"
+import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { FilterBar } from "@/components/shared/FilterBar"
@@ -36,6 +37,7 @@ export default function FunnelPage() {
   const [data, setData] = useState<FunnelResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [showTable, setShowTable] = useState(false)
 
   const activeFilterCount = [filterMode, dateRange].filter(Boolean).length
 
@@ -132,43 +134,58 @@ export default function FunnelPage() {
 
       {/* Summary table */}
       {data && data.stages.length > 0 && (
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Etape</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Entres</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Sortis vers suivant</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Conversion</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Duree moy.</th>
-                <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Montant</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.stages.map((stage) => (
-                <tr key={stage.stage_id} className="border-b last:border-0">
-                  <td className="py-3 px-4 flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: stage.color }} />
-                    {stage.stage_name}
-                  </td>
-                  <td className="py-3 px-4 text-right font-medium">{stage.entered}</td>
-                  <td className="py-3 px-4 text-right">{stage.exited_to_next}</td>
-                  <td className="py-3 px-4 text-right">
-                    <span className={stage.conversion_rate >= 50 ? "text-emerald-600" : stage.conversion_rate >= 25 ? "text-amber-600" : "text-red-600"}>
-                      {stage.conversion_rate}%
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right text-muted-foreground">
-                    {stage.avg_duration ? formatDurationTable(stage.avg_duration) : "-"}
-                  </td>
-                  <td className="py-3 px-4 text-right font-medium">
-                    {stage.total_amount.toLocaleString("fr-FR")} EUR
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <div className="flex justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowTable(!showTable)}
+              className="gap-2 text-muted-foreground"
+            >
+              {showTable ? "Masquer les détails" : "Voir les détails"}
+            </Button>
+          </div>
+
+          <div className={`overflow-hidden transition-all duration-300 ease-out ${showTable ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"}`}>
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Etape</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Entres</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Sortis vers suivant</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Conversion</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Duree moy.</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Montant</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.stages.map((stage) => (
+                    <tr key={stage.stage_id} className="border-b last:border-0">
+                      <td className="py-3 px-4 flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: stage.color }} />
+                        {stage.stage_name}
+                      </td>
+                      <td className="py-3 px-4 text-right font-medium">{stage.entered}</td>
+                      <td className="py-3 px-4 text-right">{stage.exited_to_next}</td>
+                      <td className="py-3 px-4 text-right">
+                        <span className={stage.conversion_rate >= 50 ? "text-emerald-600" : stage.conversion_rate >= 25 ? "text-amber-600" : "text-red-600"}>
+                          {stage.conversion_rate}%
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right text-muted-foreground">
+                        {stage.avg_duration ? formatDurationTable(stage.avg_duration) : "-"}
+                      </td>
+                      <td className="py-3 px-4 text-right font-medium">
+                        {stage.total_amount.toLocaleString("fr-FR")} EUR
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       <FilterPanel open={filterOpen} onOpenChange={setFilterOpen} onReset={resetFilters} activeFilterCount={activeFilterCount}>
