@@ -30,6 +30,7 @@ export function ChatWindow() {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const skipNextLoadRef = useRef(false)
 
   const userInitials = user
     ? `${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase()
@@ -67,6 +68,11 @@ export function ChatWindow() {
     if (!activeConversationId) {
       setMessages([])
       setIsHistoryLoaded(true)
+      return
+    }
+
+    if (skipNextLoadRef.current) {
+      skipNextLoadRef.current = false
       return
     }
 
@@ -148,6 +154,7 @@ export function ChatWindow() {
           const conv = await createConversation()
           setConversations((prev) => [conv, ...prev])
           convId = conv.id
+          skipNextLoadRef.current = true
           setActiveConversationId(conv.id)
         } catch {
           return
