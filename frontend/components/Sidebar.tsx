@@ -36,17 +36,35 @@ import {
 } from "lucide-react"
 import { CreateOrgDialog } from "@/components/organizations/CreateOrgDialog"
 
-const navigation = [
-  { name: "Chat", href: "/chat", icon: MessageSquare },
-  { name: "Contacts", href: "/contacts", icon: Users },
-  { name: "Segments", href: "/segments", icon: ListFilter },
-  { name: "Pipeline", href: "/deals", icon: Kanban },
-  { name: "Entonnoir", href: "/pipeline/funnel", icon: Filter },
-  { name: "Produits", href: "/products", icon: Package },
-  { name: "Tâches", href: "/tasks", icon: CheckSquare },
-  { name: "Workflows", href: "/workflows", icon: Workflow },
-  { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
-  { name: "Rapports", href: "/reports", icon: FileBarChart },
+const navigationGroups = [
+  {
+    label: "CRM",
+    items: [
+      { name: "Chat", href: "/chat", icon: MessageSquare },
+      { name: "Contacts", href: "/contacts", icon: Users },
+      { name: "Segments", href: "/segments", icon: ListFilter },
+      { name: "Pipeline", href: "/deals", icon: Kanban },
+      { name: "Entonnoir", href: "/pipeline/funnel", icon: Filter },
+    ],
+  },
+  {
+    label: "Gestion",
+    items: [
+      { name: "Produits", href: "/products", icon: Package },
+      { name: "Tâches", href: "/tasks", icon: CheckSquare },
+      { name: "Workflows", href: "/workflows", icon: Workflow },
+    ],
+  },
+  {
+    label: "Analyse",
+    items: [
+      { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
+      { name: "Rapports", href: "/reports", icon: FileBarChart },
+    ],
+  },
+]
+
+const utilityItems = [
   { name: "Corbeille", href: "/trash", icon: Trash2 },
 ]
 
@@ -146,8 +164,39 @@ export function Sidebar() {
         <div className="mx-5 h-px bg-[var(--sidebar-border)]" />
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-5 space-y-0.5">
-          {navigation.map((item) => {
+        <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
+          {navigationGroups.map((group) => (
+            <div key={group.label}>
+              <span className="block text-[10px] font-medium uppercase tracking-wider text-[var(--sidebar-foreground)]/40 px-3 pt-3 pb-1 font-[family-name:var(--font-body)]">
+                {group.label}
+              </span>
+              {group.items.map((item) => {
+                const isActive = pathname.startsWith(item.href)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200 font-[family-name:var(--font-body)]",
+                      isActive
+                        ? "bg-[var(--sidebar-accent)] text-[var(--sidebar-primary)] shadow-sm"
+                        : "text-[var(--sidebar-foreground)]/80 hover:text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]/50"
+                    )}
+                  >
+                    <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive && "text-[var(--sidebar-primary)]")} />
+                    {item.name}
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
+        </nav>
+
+        {/* Bottom section */}
+        <div className="mx-5 h-px bg-[var(--sidebar-border)]" />
+        <div className="px-3 py-2 space-y-0.5">
+          {utilityItems.map((item) => {
             const isActive = pathname.startsWith(item.href)
             return (
               <Link
@@ -155,32 +204,25 @@ export function Sidebar() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200 font-[family-name:var(--font-body)]",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200 font-[family-name:var(--font-body)]",
                   isActive
-                    ? "bg-[var(--sidebar-accent)] text-[var(--sidebar-primary)] shadow-sm"
-                    : "text-[var(--sidebar-foreground)]/60 hover:text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]/50"
+                    ? "bg-[var(--sidebar-accent)] text-[var(--sidebar-primary)]"
+                    : "text-[var(--sidebar-foreground)]/80 hover:text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]/50"
                 )}
               >
-                <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive && "text-[var(--sidebar-primary)]")} />
+                <item.icon className="h-[18px] w-[18px] shrink-0" />
                 {item.name}
               </Link>
             )
           })}
-        </nav>
-
-        {/* Bottom section */}
-        <div className="mx-5 h-px bg-[var(--sidebar-border)]" />
-
-        {/* Settings link */}
-        <div className="px-3 py-2">
           <Link
             href="/settings"
             onClick={() => setMobileOpen(false)}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200 font-[family-name:var(--font-body)]",
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200 font-[family-name:var(--font-body)]",
               pathname.startsWith("/settings")
                 ? "bg-[var(--sidebar-accent)] text-[var(--sidebar-primary)]"
-                : "text-[var(--sidebar-foreground)]/60 hover:text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]/50"
+                : "text-[var(--sidebar-foreground)]/80 hover:text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)]/50"
             )}
           >
             <Settings className="h-[18px] w-[18px] shrink-0" />
@@ -198,7 +240,7 @@ export function Sidebar() {
               <p className="truncate text-sm font-medium text-[var(--sidebar-foreground)] font-[family-name:var(--font-body)]">
                 {fullName}
               </p>
-              <p className="truncate text-[11px] text-[var(--sidebar-foreground)]/40 font-[family-name:var(--font-body)]">
+              <p className="truncate text-[11px] text-[var(--sidebar-foreground)]/60 font-[family-name:var(--font-body)]">
                 {user?.email}
               </p>
             </div>
