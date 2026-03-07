@@ -6,6 +6,7 @@ import { useEffect } from "react"
 import { Sidebar } from "@/components/Sidebar"
 import { SearchHeader } from "@/components/SearchHeader"
 import { OrganizationProvider } from "@/lib/organization"
+import { QuickCreateFAB } from "@/components/shared/QuickCreateFAB"
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -35,6 +36,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <SearchHeader />
           <main className="flex-1 min-h-0 overflow-auto bg-background [&>*]:min-h-full">{children}</main>
         </div>
+        <QuickCreateFAB />
       </div>
     </OrganizationProvider>
   )
