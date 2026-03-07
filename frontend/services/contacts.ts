@@ -145,3 +145,51 @@ export async function exportContactsCSV(params?: {
   document.body.removeChild(a)
   URL.revokeObjectURL(downloadUrl)
 }
+
+export async function fetchContactTags(): Promise<string[]> {
+  return apiFetch<string[]>(`/contacts/tags/`)
+}
+
+export async function fetchContactSources(): Promise<string[]> {
+  return apiFetch<string[]>(`/contacts/sources/`)
+}
+
+export interface BulkActionParams {
+  action: "delete" | "export" | "categorize" | "assign_company"
+  ids: string[]
+  params?: Record<string, unknown>
+}
+
+export async function bulkContactAction(data: BulkActionParams): Promise<void> {
+  if (data.action === "export") {
+    // Export needs special handling — returns a file
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+    const token = (await import("js-cookie")).default.get("access_token")
+    const orgId = (await import("js-cookie")).default.get("organization_id")
+
+    const response = await fetch(`${API_URL}/contacts/bulk-actions/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(orgId ? { "X-Organization": orgId } : {}),
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) throw new Error("Export failed")
+
+    const blob = await response.blob()
+    const downloadUrl = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = downloadUrl
+    a.download = `contacts-export-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(downloadUrl)
+    return
+  }
+
+  await apiFetch(`/contacts/bulk-actions/`, { method: "POST", json: data })
+}
