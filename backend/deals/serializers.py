@@ -15,7 +15,7 @@ class PipelineSerializer(serializers.ModelSerializer):
 class PipelineStageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PipelineStage
-        fields = ["id", "name", "order", "color", "pipeline"]
+        fields = ["id", "name", "order", "color", "pipeline", "is_won", "is_lost"]
         read_only_fields = ["id"]
 
 

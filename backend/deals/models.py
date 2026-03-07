@@ -8,8 +8,8 @@ DEFAULT_STAGES = [
     {"name": "En discussion", "color": "#F59E0B", "order": 2},
     {"name": "Devis envoyé", "color": "#3B82F6", "order": 3},
     {"name": "Négociation", "color": "#8B5CF6", "order": 4},
-    {"name": "Gagné", "color": "#10B981", "order": 5},
-    {"name": "Perdu", "color": "#EF4444", "order": 6},
+    {"name": "Gagné", "color": "#10B981", "order": 5, "is_won": True},
+    {"name": "Perdu", "color": "#EF4444", "order": 6, "is_lost": True},
 ]
 
 PIPELINE_TEMPLATES = {
@@ -18,22 +18,22 @@ PIPELINE_TEMPLATES = {
         {"name": "Qualification", "color": "#F59E0B", "order": 2},
         {"name": "Proposition", "color": "#3B82F6", "order": 3},
         {"name": "Négociation", "color": "#8B5CF6", "order": 4},
-        {"name": "Gagné", "color": "#10B981", "order": 5},
-        {"name": "Perdu", "color": "#EF4444", "order": 6},
+        {"name": "Gagné", "color": "#10B981", "order": 5, "is_won": True},
+        {"name": "Perdu", "color": "#EF4444", "order": 6, "is_lost": True},
     ],
     "upsell": [
         {"name": "Identification", "color": "#6366F1", "order": 1},
         {"name": "Proposition", "color": "#F59E0B", "order": 2},
         {"name": "Décision", "color": "#3B82F6", "order": 3},
-        {"name": "Gagné", "color": "#10B981", "order": 4},
-        {"name": "Perdu", "color": "#EF4444", "order": 5},
+        {"name": "Gagné", "color": "#10B981", "order": 4, "is_won": True},
+        {"name": "Perdu", "color": "#EF4444", "order": 5, "is_lost": True},
     ],
     "partenariats": [
         {"name": "Prise de contact", "color": "#6366F1", "order": 1},
         {"name": "Évaluation", "color": "#F59E0B", "order": 2},
         {"name": "Négociation", "color": "#3B82F6", "order": 3},
-        {"name": "Signé", "color": "#10B981", "order": 4},
-        {"name": "Abandonné", "color": "#EF4444", "order": 5},
+        {"name": "Signé", "color": "#10B981", "order": 4, "is_won": True},
+        {"name": "Abandonné", "color": "#EF4444", "order": 5, "is_lost": True},
     ],
 }
 
@@ -96,6 +96,8 @@ class PipelineStage(models.Model):
     name = models.CharField(max_length=100)
     order = models.IntegerField(default=0)
     color = models.CharField(max_length=7, default="#6366F1")
+    is_won = models.BooleanField(default=False)
+    is_lost = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["order"]

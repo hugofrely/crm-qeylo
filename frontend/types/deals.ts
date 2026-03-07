@@ -28,6 +28,8 @@ export interface Stage {
   order: number
   color: string
   pipeline?: string
+  is_won?: boolean
+  is_lost?: boolean
 }
 
 export interface PipelineStage {
