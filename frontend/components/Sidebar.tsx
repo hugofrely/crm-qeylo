@@ -35,6 +35,7 @@ import {
   Trash2,
 } from "lucide-react"
 import { CreateOrgDialog } from "@/components/organizations/CreateOrgDialog"
+import { useOverdueCount } from "@/hooks/useOverdueCount"
 
 const navigationGroups = [
   {
@@ -74,6 +75,7 @@ export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { organizations, currentOrganization, switchOrganization } = useOrganization()
   const [showCreateOrg, setShowCreateOrg] = useState(false)
+  const overdueCount = useOverdueCount()
 
   const initials = user
     ? `${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase()
@@ -186,6 +188,11 @@ export function Sidebar() {
                   >
                     <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive && "text-[var(--sidebar-primary)]")} />
                     {item.name}
+                    {item.name === "Tâches" && overdueCount > 0 && (
+                      <span className="ml-auto inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold">
+                        {overdueCount}
+                      </span>
+                    )}
                   </Link>
                 )
               })}
