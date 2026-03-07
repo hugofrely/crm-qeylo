@@ -71,16 +71,17 @@ interface FilterPillsProps {
 }
 
 export function FilterPills({ options, value, onChange, allLabel = "Tous", showAll = false, label }: FilterPillsProps) {
+  const activeClass = "bg-primary text-primary-foreground shadow-sm"
+  const inactiveClass = "bg-background text-muted-foreground border border-border hover:bg-secondary/80 hover:text-foreground"
+
   return (
     <FilterGroup label={label}>
       <div className="flex flex-wrap gap-1.5">
         {showAll && (
           <button
             onClick={() => onChange(null)}
-            className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
-              value === null
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+            className={`px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors font-[family-name:var(--font-body)] ${
+              value === null ? activeClass : inactiveClass
             }`}
           >
             {allLabel}
@@ -90,10 +91,8 @@ export function FilterPills({ options, value, onChange, allLabel = "Tous", showA
           <button
             key={opt.value}
             onClick={() => onChange(value === opt.value ? null : opt.value)}
-            className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 font-[family-name:var(--font-body)] ${
-              value === opt.value
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+            className={`px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1 font-[family-name:var(--font-body)] ${
+              value === opt.value ? activeClass : inactiveClass
             }`}
           >
             {opt.color && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: opt.color }} />}
@@ -265,8 +264,8 @@ export function FilterMemberSearch({ memberId, memberLabel, onSelect, onClear, s
             onClick={() => {
               if (memberId === "me") { onClear() } else { onSelect("me", myTasksLabel) }
             }}
-            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors text-left font-[family-name:var(--font-body)] ${
-              memberId === "me" ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
+            className={`px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors text-left font-[family-name:var(--font-body)] ${
+              memberId === "me" ? "bg-primary text-primary-foreground shadow-sm" : "bg-background text-muted-foreground border border-border hover:bg-secondary/80 hover:text-foreground"
             }`}
           >
             {myTasksLabel}
