@@ -20,6 +20,7 @@ import {
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar"
 import { ChatSuggestions } from "@/components/chat/ChatSuggestions"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { handleQuotaError } from "@/lib/quota-error"
 
 export function ChatWindow() {
   const { user } = useAuth()
@@ -295,21 +296,23 @@ export function ChatWindow() {
           convId
         )
       } catch (error) {
-        setMessages((prev) =>
-          prev.map((msg) => {
-            if (msg.id !== assistantId) return msg
-            return {
-              ...msg,
-              parts: [
-                {
-                  type: "text",
-                  content: "Désolé, une erreur est survenue. Veuillez réessayer.",
-                },
-              ],
-              isStreaming: false,
-            }
-          })
-        )
+        if (!handleQuotaError(error)) {
+          setMessages((prev) =>
+            prev.map((msg) => {
+              if (msg.id !== assistantId) return msg
+              return {
+                ...msg,
+                parts: [
+                  {
+                    type: "text",
+                    content: "Désolé, une erreur est survenue. Veuillez réessayer.",
+                  },
+                ],
+                isStreaming: false,
+              }
+            })
+          )
+        }
         console.error("Chat error:", error)
       } finally {
         setIsLoading(false)

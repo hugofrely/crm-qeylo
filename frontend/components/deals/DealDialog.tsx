@@ -19,6 +19,7 @@ import { toast } from "sonner"
 import posthog from "posthog-js"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
+import { handleQuotaError } from "@/lib/quota-error"
 import type { Deal, Stage } from "@/types"
 
 interface DealDialogProps {
@@ -104,6 +105,7 @@ export function DealDialog({
       onOpenChange(false)
       onSuccess()
     } catch (err) {
+      if (handleQuotaError(err)) return
       console.error("Failed to save deal:", err)
     } finally {
       setSaving(false)

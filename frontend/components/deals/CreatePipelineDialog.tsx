@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { createPipeline } from "@/services/deals"
+import { handleQuotaError } from "@/lib/quota-error"
 import type { Pipeline } from "@/types"
 
 const TEMPLATES = [
@@ -45,6 +46,7 @@ export function CreatePipelineDialog({ open, onOpenChange, onCreated }: CreatePi
       onOpenChange(false)
       onCreated(pipeline)
     } catch (err) {
+      if (handleQuotaError(err)) return
       console.error("Failed to create pipeline:", err)
     } finally {
       setCreating(false)

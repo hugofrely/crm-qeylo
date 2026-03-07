@@ -24,6 +24,7 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { Pagination } from "@/components/shared/Pagination"
 import posthog from "posthog-js"
+import { handleQuotaError } from "@/lib/quota-error"
 import type { Contact, ContactCategory } from "@/types"
 
 interface ContactsResponse {
@@ -139,6 +140,7 @@ export default function ContactsPage() {
       setDuplicates([])
       fetchContacts()
     } catch (err) {
+      if (handleQuotaError(err)) return
       console.error("Failed to create contact:", err)
     } finally {
       setCreating(false)
