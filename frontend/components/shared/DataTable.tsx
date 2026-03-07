@@ -62,7 +62,7 @@ export function DataTable<T>({
     <div className="rounded-xl border border-border overflow-hidden bg-card">
       <Table>
         <TableHeader>
-          <TableRow className="bg-secondary/30 hover:bg-secondary/30">
+          <TableRow className="bg-table-header-bg hover:bg-table-header-bg">
             {columns.map((col) => (
               <TableHead
                 key={col.key}

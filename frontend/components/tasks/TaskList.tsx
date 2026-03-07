@@ -34,19 +34,19 @@ function getPriorityBadge(priority: string) {
   switch (priority) {
     case "high":
       return (
-        <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
+        <Badge className="bg-red-50 text-red-800 hover:bg-red-50">
           Haute
         </Badge>
       )
     case "normal":
       return (
-        <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
+        <Badge className="bg-blue-50 text-blue-800 hover:bg-blue-50">
           Normale
         </Badge>
       )
     case "low":
       return (
-        <Badge className="bg-gray-100 text-gray-600 hover:bg-gray-100">
+        <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100">
           Basse
         </Badge>
       )
@@ -84,7 +84,7 @@ export function TaskList({ tasks, onToggle, onEdit, onViewDetails }: TaskListPro
     <div className="rounded-xl border border-border overflow-hidden bg-card">
       <Table>
         <TableHeader>
-          <TableRow className="bg-secondary/30 hover:bg-secondary/30">
+          <TableRow className="bg-table-header-bg hover:bg-table-header-bg">
             <TableHead className={`w-10 ${thClass}`} />
             <TableHead className={thClass}>Tâche</TableHead>
             <TableHead className={`hidden md:table-cell ${thClass}`}>Échéance</TableHead>
@@ -118,6 +118,14 @@ export function TaskList({ tasks, onToggle, onEdit, onViewDetails }: TaskListPro
                 >
                   {task.description}
                 </p>
+                {task.due_date && (
+                  <span className={`md:hidden text-xs mt-0.5 block font-[family-name:var(--font-body)] ${
+                    !task.is_done && isOverdue(task.due_date) ? "text-red-600 font-medium" : "text-muted-foreground"
+                  }`}>
+                    {!task.is_done && isOverdue(task.due_date) && "\u26A0 "}
+                    {formatDate(task.due_date)}
+                  </span>
+                )}
               </TableCell>
               <TableCell className="hidden md:table-cell">
                 {task.due_date ? (

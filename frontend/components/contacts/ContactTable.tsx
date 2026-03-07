@@ -42,7 +42,7 @@ export function ContactTable({ contacts }: ContactTableProps) {
     <div className="rounded-xl border border-border overflow-hidden bg-card">
       <Table>
         <TableHeader>
-          <TableRow className="bg-secondary/30 hover:bg-secondary/30">
+          <TableRow className="bg-table-header-bg hover:bg-table-header-bg">
             <TableHead className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Nom</TableHead>
             <TableHead className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Entreprise</TableHead>
             <TableHead className="hidden md:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Email</TableHead>
@@ -58,62 +58,49 @@ export function ContactTable({ contacts }: ContactTableProps) {
               onClick={() => router.push(`/contacts/${contact.id}`)}
             >
               <TableCell>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-medium text-sm font-[family-name:var(--font-body)]">
-                    {contact.first_name} {contact.last_name}
-                  </span>
-                  {contact.lead_score && (
-                    <span
-                      className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${
-                        contact.lead_score === "hot"
-                          ? "bg-rose-500"
-                          : contact.lead_score === "warm"
-                            ? "bg-amber-500"
-                            : "bg-blue-500"
-                      }`}
-                      title={`Lead score: ${contact.lead_score}`}
-                    />
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-sm font-[family-name:var(--font-body)]">
+                      {contact.first_name} {contact.last_name}
+                    </span>
+                    {contact.lead_score && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full shrink-0 ${
+                            contact.lead_score === "hot"
+                              ? "bg-rose-500"
+                              : contact.lead_score === "warm"
+                                ? "bg-amber-500"
+                                : "bg-blue-500"
+                          }`}
+                        />
+                        {contact.lead_score === "hot" ? "Chaud" : contact.lead_score === "warm" ? "Tiède" : "Froid"}
+                      </span>
+                    )}
+                  </div>
+                  {contact.categories && contact.categories.length > 0 && (
+                    <div className="hidden sm:flex items-center gap-1">
+                      {contact.categories.slice(0, 2).map((cat) => (
+                        <span
+                          key={cat.id}
+                          className="inline-flex items-center gap-1 px-1.5 py-0 rounded-full text-[10px] font-medium"
+                          style={{ backgroundColor: cat.color + "20", color: cat.color }}
+                        >
+                          {cat.name}
+                        </span>
+                      ))}
+                      {contact.categories.length > 2 && (
+                        <span className="text-[10px] text-muted-foreground" title={contact.categories.slice(2).map(c => c.name).join(", ")}>
+                          +{contact.categories.length - 2}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
                 {contact.job_title && (
-                  <p className="text-xs text-muted-foreground mt-0.5 font-[family-name:var(--font-body)]">
+                  <p className="text-xs text-muted-foreground font-[family-name:var(--font-body)]">
                     {contact.job_title}
                   </p>
-                )}
-                {contact.categories && contact.categories.length > 0 && (
-                  <div className="flex items-center gap-1 mt-1">
-                    {contact.categories.slice(0, 3).map((cat) => (
-                      <span
-                        key={cat.id}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium"
-                        style={{
-                          backgroundColor: cat.color + "20",
-                          color: cat.color,
-                        }}
-                      >
-                        {cat.name}
-                      </span>
-                    ))}
-                    {contact.categories.length > 3 && (
-                      <span className="text-[10px] text-muted-foreground">
-                        +{contact.categories.length - 3}
-                      </span>
-                    )}
-                  </div>
-                )}
-                {contact.tags && contact.tags.length > 0 && (
-                  <div className="flex gap-1 mt-1.5">
-                    {contact.tags.slice(0, 2).map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-[10px] font-normal px-1.5 py-0">
-                        {tag}
-                      </Badge>
-                    ))}
-                    {contact.tags.length > 2 && (
-                      <Badge variant="secondary" className="text-[10px] font-normal px-1.5 py-0">
-                        +{contact.tags.length - 2}
-                      </Badge>
-                    )}
-                  </div>
                 )}
               </TableCell>
               <TableCell className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
