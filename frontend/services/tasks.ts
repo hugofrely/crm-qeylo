@@ -1,5 +1,6 @@
 import { apiFetch } from "@/lib/api"
 import type { Task, TasksResponse, TaskFilters } from "@/types"
+import { emitTaskMutation } from "@/hooks/useOverdueCount"
 
 export async function fetchTasks(filters: TaskFilters = {}): Promise<TasksResponse> {
   const params = new URLSearchParams()
@@ -21,13 +22,18 @@ export async function fetchTask(id: string): Promise<Task> {
 }
 
 export async function createTask(data: Record<string, unknown>): Promise<Task> {
-  return apiFetch<Task>(`/tasks/`, { method: "POST", json: data })
+  const result = await apiFetch<Task>(`/tasks/`, { method: "POST", json: data })
+  emitTaskMutation()
+  return result
 }
 
 export async function updateTask(id: string, data: Record<string, unknown>): Promise<Task> {
-  return apiFetch<Task>(`/tasks/${id}/`, { method: "PATCH", json: data })
+  const result = await apiFetch<Task>(`/tasks/${id}/`, { method: "PATCH", json: data })
+  emitTaskMutation()
+  return result
 }
 
 export async function deleteTask(id: string): Promise<void> {
   await apiFetch(`/tasks/${id}/`, { method: "DELETE" })
+  emitTaskMutation()
 }

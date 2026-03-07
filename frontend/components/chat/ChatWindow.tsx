@@ -11,6 +11,7 @@ import {
 import posthog from "posthog-js"
 import type { Conversation } from "@/types"
 import { MessageSquare, Plus, X } from "lucide-react"
+import { emitTaskMutation } from "@/hooks/useOverdueCount"
 import { ChatInput } from "@/components/chat/ChatInput"
 import {
   ChatMessage,
@@ -229,6 +230,10 @@ export function ChatWindow() {
             },
 
             onToolResult: (data) => {
+              const action = data.result?.action as string | undefined
+              if (action && action.startsWith("task_")) {
+                emitTaskMutation()
+              }
               setMessages((prev) =>
                 prev.map((msg) => {
                   if (msg.id !== assistantId) return msg

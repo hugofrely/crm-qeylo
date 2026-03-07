@@ -453,9 +453,11 @@ async def stream_message(request):
 
     # Get organization
     from organizations.models import Membership
-    membership = await Membership.objects.select_related("organization").filter(
-        user=user
-    ).afirst()
+    org_id = request.headers.get("X-Organization")
+    qs = Membership.objects.select_related("organization").filter(user=user)
+    if org_id:
+        qs = qs.filter(organization_id=org_id)
+    membership = await qs.afirst()
     if not membership:
         return StreamingHttpResponse(status=400)
     org = membership.organization
