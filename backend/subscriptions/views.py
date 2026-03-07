@@ -19,10 +19,13 @@ PRICE_MAP = {
 
 
 def _check_owner_or_admin(request):
-    membership = Membership.objects.filter(
-        organization=request.organization, user=request.user
-    ).first()
-    return membership and membership.role in ("owner", "admin")
+    if not request.organization:
+        return False
+    return Membership.objects.filter(
+        organization=request.organization,
+        user=request.user,
+        role__in=["owner", "admin"],
+    ).exists()
 
 
 @api_view(["GET"])
