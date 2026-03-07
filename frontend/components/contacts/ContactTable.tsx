@@ -10,10 +10,14 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import type { Contact } from "@/types"
 
 interface ContactTableProps {
   contacts: Contact[]
+  selectedIds?: Set<string>
+  onToggleSelect?: (id: string) => void
+  onToggleAll?: () => void
 }
 
 function formatDate(dateStr: string): string {
@@ -25,7 +29,7 @@ function formatDate(dateStr: string): string {
   }).format(date)
 }
 
-export function ContactTable({ contacts }: ContactTableProps) {
+export function ContactTable({ contacts, selectedIds, onToggleSelect, onToggleAll }: ContactTableProps) {
   const router = useRouter()
 
   if (contacts.length === 0) {
@@ -43,6 +47,14 @@ export function ContactTable({ contacts }: ContactTableProps) {
       <Table>
         <TableHeader>
           <TableRow className="bg-table-header-bg hover:bg-table-header-bg">
+            {onToggleSelect && (
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={contacts.length > 0 && selectedIds?.size === contacts.length}
+                  onCheckedChange={() => onToggleAll?.()}
+                />
+              </TableHead>
+            )}
             <TableHead className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Nom</TableHead>
             <TableHead className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Entreprise</TableHead>
             <TableHead className="hidden md:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Email</TableHead>
@@ -57,6 +69,14 @@ export function ContactTable({ contacts }: ContactTableProps) {
               className="cursor-pointer hover:bg-secondary/30 transition-colors"
               onClick={() => router.push(`/contacts/${contact.id}`)}
             >
+              {onToggleSelect && (
+                <TableCell className="w-10" onClick={(e) => e.stopPropagation()}>
+                  <Checkbox
+                    checked={selectedIds?.has(contact.id) ?? false}
+                    onCheckedChange={() => onToggleSelect(contact.id)}
+                  />
+                </TableCell>
+              )}
               <TableCell>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1.5">

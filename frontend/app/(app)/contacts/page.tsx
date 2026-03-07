@@ -53,6 +53,24 @@ export default function ContactsPage() {
   const [selectedSegment, setSelectedSegment] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === contacts.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(contacts.map((c) => c.id)))
+    }
+  }
 
   const activeFilterCount = [search, selectedCategory, selectedSegment].filter(Boolean).length
 
@@ -77,12 +95,14 @@ export default function ContactsPage() {
       if (selectedSegment) {
         const data = await fetchSegmentContacts(selectedSegment, page)
         setContacts(data.results)
+        setSelectedIds(new Set())
         setTotalCount(data.count)
       } else if (search.trim()) {
         const results = await apiFetch<Contact[]>(
           `/contacts/search/?q=${encodeURIComponent(search.trim())}`
         )
         setContacts(results)
+        setSelectedIds(new Set())
         setTotalCount(results.length)
       } else {
         const categoryParam = selectedCategory ? `&category=${selectedCategory}` : ""
@@ -90,6 +110,7 @@ export default function ContactsPage() {
           `/contacts/?page=${page}${categoryParam}`
         )
         setContacts(data.results)
+        setSelectedIds(new Set())
         setTotalCount(data.count)
       }
     } catch (err) {
@@ -374,13 +395,45 @@ export default function ContactsPage() {
         }}
       />
 
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="sticky bottom-4 z-30 flex items-center justify-between gap-4 bg-card border border-border rounded-lg px-4 py-3 shadow-lg">
+          <span className="text-sm font-medium">
+            {selectedIds.size} contact{selectedIds.size > 1 ? "s" : ""} sélectionné{selectedIds.size > 1 ? "s" : ""}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>
+              Annuler
+            </Button>
+            <Button variant="destructive" size="sm" onClick={async () => {
+              try {
+                for (const id of selectedIds) {
+                  await apiFetch(`/contacts/${id}/`, { method: "DELETE" })
+                }
+                setSelectedIds(new Set())
+                fetchContacts()
+              } catch (err) {
+                console.error("Bulk delete failed:", err)
+              }
+            }}>
+              Supprimer ({selectedIds.size})
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Loading / ContactTable */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <ContactTable contacts={contacts} />
+        <ContactTable
+          contacts={contacts}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
+          onToggleAll={toggleSelectAll}
+        />
       )}
 
       {/* Pagination */}
