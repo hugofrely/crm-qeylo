@@ -184,6 +184,23 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
       return
     }
 
+    if (ANALYTICS_TYPES.includes(chartType)) {
+      if (pipelineId) filters.pipeline_id = pipelineId
+      if (dateRange) filters.period = dateRange
+      onSave({
+        id: widget?.id || crypto.randomUUID(),
+        type: chartType,
+        title: title.trim(),
+        source: "deals",
+        metric: "count",
+        group_by: null,
+        filters,
+        size,
+      })
+      onOpenChange(false)
+      return
+    }
+
     onSave({
       id: widget?.id || crypto.randomUUID(),
       type: chartType,

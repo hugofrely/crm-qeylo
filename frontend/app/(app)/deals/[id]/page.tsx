@@ -267,6 +267,11 @@ export default function DealDetailPage() {
               </div>
             </div>
 
+            {/* Next best actions */}
+            <div className="p-5 border-b border-border">
+              <NextActions dealId={id} />
+            </div>
+
             {/* Deal fields */}
             <div className="p-5 space-y-4">
               <div className="space-y-1.5">
