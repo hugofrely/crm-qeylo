@@ -119,10 +119,10 @@ export function ChatMessage({
       <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground">
         <Bot className="h-3.5 w-3.5" />
       </div>
-      <div className="flex max-w-[80%] flex-col gap-1">
+      <div className="flex min-w-0 max-w-[85%] sm:max-w-[80%] flex-col gap-1">
         <div
           className={cn(
-            "rounded-2xl rounded-bl-sm border border-border/50 bg-card px-4 py-3 text-sm shadow-sm"
+            "rounded-2xl rounded-bl-sm border border-border/50 bg-card px-4 py-3 text-sm shadow-sm overflow-hidden [word-break:break-word]"
           )}
         >
           {message.parts.map((part, index) => {

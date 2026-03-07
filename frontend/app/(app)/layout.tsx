@@ -1,7 +1,7 @@
 "use client"
 
 import { useAuth } from "@/lib/auth"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
 import { Sidebar } from "@/components/Sidebar"
 import { SearchHeader } from "@/components/SearchHeader"
@@ -11,6 +11,8 @@ import { QuickCreateFAB } from "@/components/shared/QuickCreateFAB"
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
+  const isChatPage = pathname === "/chat"
 
   useEffect(() => {
     if (!loading && !user) {
@@ -30,13 +32,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <OrganizationProvider>
-      <div className="h-screen flex overflow-hidden bg-background">
+      <div className="h-dvh flex overflow-hidden bg-background">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
           <SearchHeader />
           <main className="flex-1 min-h-0 overflow-auto bg-background [&>*]:min-h-full">{children}</main>
         </div>
-        <QuickCreateFAB />
+        {!isChatPage && <QuickCreateFAB />}
       </div>
     </OrganizationProvider>
   )

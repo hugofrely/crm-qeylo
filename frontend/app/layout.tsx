@@ -23,6 +23,13 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500"],
 })
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+
 export const metadata: Metadata = {
   title: "Qeylo CRM",
   description: "CRM intelligent pour independants, PME et entreprises",

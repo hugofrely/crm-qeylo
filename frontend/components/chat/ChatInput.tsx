@@ -66,7 +66,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
             disabled={disabled}
             rows={1}
             className={cn(
-              "flex-1 resize-none bg-transparent text-sm leading-6 placeholder:text-muted-foreground font-[family-name:var(--font-body)]",
+              "flex-1 resize-none bg-transparent text-base sm:text-sm leading-6 placeholder:text-muted-foreground font-[family-name:var(--font-body)]",
               "focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
               "max-h-[200px] min-h-[24px]"
             )}

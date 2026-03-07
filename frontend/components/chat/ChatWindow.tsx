@@ -334,7 +334,7 @@ export function ChatWindow() {
   }, [])
 
   return (
-    <div className="flex h-full min-h-0">
+    <div className="flex h-full min-h-0 overflow-hidden">
       {/* Mobile conversation drawer */}
       {showConversations && (
         <>
@@ -367,7 +367,7 @@ export function ChatWindow() {
       )}
 
       {/* Chat area */}
-      <div className="flex flex-1 flex-col min-h-0">
+      <div className="flex flex-1 flex-col min-h-0 min-w-0">
         {/* Mobile conversation toggle */}
         <div className="flex items-center gap-2 px-4 py-2 lg:hidden">
           <button
@@ -377,8 +377,8 @@ export function ChatWindow() {
             <MessageSquare className="h-4 w-4" />
           </button>
         </div>
-        <ScrollArea className="flex-1 min-h-0" ref={scrollRef}>
-          <div className="mx-auto max-w-3xl px-6 py-8">
+        <ScrollArea className="flex-1 min-h-0 [&>div>div]:!block" ref={scrollRef}>
+          <div className="mx-auto max-w-3xl px-3 sm:px-6 py-8">
             {isHistoryLoaded && messages.length === 0 && (
               <div className="flex flex-col items-center justify-center py-24 text-center animate-fade-in-up">
                 <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/8">
