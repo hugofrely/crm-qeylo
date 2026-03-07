@@ -130,7 +130,7 @@ export default function TasksPage() {
   if (assignedTo) calendarFilters.assigned_to = assignedTo
 
   return (
-    <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
+    <div className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       <PageHeader
         title="Tâches"
         subtitle={`${todoCount} à faire, ${doneCount} terminée${doneCount !== 1 ? "s" : ""}`}

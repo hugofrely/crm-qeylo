@@ -2,8 +2,15 @@
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Calendar, User, Briefcase, Eye } from "lucide-react"
+import { Calendar, User, Briefcase } from "lucide-react"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import type { Task } from "@/types"
 import { EntityLink } from "@/components/shared/EntityLink"
 
@@ -60,108 +67,124 @@ function isOverdue(dueDateStr: string | null): boolean {
   return dueDate < today
 }
 
+const thClass = "text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]"
+
 export function TaskList({ tasks, onToggle, onEdit, onViewDetails }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-muted-foreground text-sm">
-          Aucune t&acirc;che trouv&eacute;e.
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
+          Aucune tâche trouvée.
         </p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-2">
-      {tasks.map((task) => (
-        <div
-          key={task.id}
-          className={`flex items-start gap-3 p-4 rounded-lg border transition-colors hover:bg-muted/50 cursor-pointer ${
-            task.is_done ? "opacity-60" : ""
-          }`}
-          onClick={() => onEdit(task)}
-        >
-          <Checkbox
-            checked={task.is_done}
-            onCheckedChange={(checked) =>
-              onToggle(task.id, checked === true)
-            }
-            className="mt-0.5"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <div className="flex-1 min-w-0 space-y-1">
-            <p
-              className={`text-sm font-medium ${
-                task.is_done ? "line-through text-muted-foreground" : ""
+    <div className="rounded-xl border border-border overflow-hidden bg-card">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-secondary/30 hover:bg-secondary/30">
+            <TableHead className={`w-10 ${thClass}`} />
+            <TableHead className={thClass}>Tâche</TableHead>
+            <TableHead className={`hidden md:table-cell ${thClass}`}>Échéance</TableHead>
+            <TableHead className={`hidden md:table-cell ${thClass}`}>Contact / Deal</TableHead>
+            <TableHead className={`hidden lg:table-cell ${thClass}`}>Assigné</TableHead>
+            <TableHead className={thClass}>Priorité</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {tasks.map((task) => (
+            <TableRow
+              key={task.id}
+              className={`cursor-pointer hover:bg-secondary/30 transition-colors ${
+                task.is_done ? "opacity-60" : ""
               }`}
+              onClick={() => onViewDetails(task)}
             >
-              {task.description}
-            </p>
-            <div className="flex items-center gap-3 flex-wrap">
-              {task.due_date && (
-                <div
-                  className={`flex items-center gap-1 text-xs ${
-                    !task.is_done && isOverdue(task.due_date)
-                      ? "text-red-600 font-medium"
-                      : "text-muted-foreground"
+              <TableCell className="w-10" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={task.is_done}
+                  onCheckedChange={(checked) =>
+                    onToggle(task.id, checked === true)
+                  }
+                />
+              </TableCell>
+              <TableCell>
+                <p
+                  className={`text-sm font-medium font-[family-name:var(--font-body)] ${
+                    task.is_done ? "line-through text-muted-foreground" : ""
                   }`}
                 >
-                  <Calendar className="h-3 w-3" />
-                  {formatDate(task.due_date)}
-                </div>
-              )}
-              {task.contact_name && task.contact && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <User className="h-3 w-3" />
-                  <EntityLink type="contact" id={task.contact} name={task.contact_name} />
-                </div>
-              )}
-              {task.deal_name && task.deal && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Briefcase className="h-3 w-3" />
-                  <EntityLink type="deal" id={task.deal} name={task.deal_name} />
-                </div>
-              )}
-            </div>
-            {task.assignees && task.assignees.length > 0 && (
-              <div className="flex items-center gap-1">
-                {task.assignees.slice(0, 3).map((a) => (
+                  {task.description}
+                </p>
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                {task.due_date ? (
                   <span
-                    key={a.user_id}
-                    title={`${a.first_name} ${a.last_name}`}
-                    className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-[10px] font-medium shrink-0"
+                    className={`text-sm font-[family-name:var(--font-body)] ${
+                      !task.is_done && isOverdue(task.due_date)
+                        ? "text-red-600 font-medium"
+                        : "text-muted-foreground"
+                    }`}
                   >
-                    {a.first_name[0]}{a.last_name[0]}
+                    {formatDate(task.due_date)}
                   </span>
-                ))}
-                {task.assignees.length > 3 && (
-                  <span
-                    title={task.assignees.slice(3).map((a) => `${a.first_name} ${a.last_name}`).join(", ")}
-                    className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-muted text-muted-foreground text-[10px] font-medium shrink-0"
-                  >
-                    +{task.assignees.length - 3}
-                  </span>
+                ) : (
+                  <span className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">&mdash;</span>
                 )}
-              </div>
-            )}
-          </div>
-          <div className="shrink-0 flex flex-col items-center gap-2">
-            {getPriorityBadge(task.priority)}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => {
-                e.stopPropagation()
-                onViewDetails(task)
-              }}
-              className="h-7 w-7 text-muted-foreground hover:text-foreground"
-              title="Voir les détails"
-            >
-              <Eye className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
-      ))}
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                <div className="flex flex-col gap-1">
+                  {task.contact_name && task.contact && (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground font-[family-name:var(--font-body)]">
+                      <User className="h-3 w-3 shrink-0" />
+                      <EntityLink type="contact" id={task.contact} name={task.contact_name} />
+                    </div>
+                  )}
+                  {task.deal_name && task.deal && (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground font-[family-name:var(--font-body)]">
+                      <Briefcase className="h-3 w-3 shrink-0" />
+                      <EntityLink type="deal" id={task.deal} name={task.deal_name} />
+                    </div>
+                  )}
+                  {!task.contact_name && !task.deal_name && (
+                    <span className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">&mdash;</span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="hidden lg:table-cell">
+                {task.assignees && task.assignees.length > 0 ? (
+                  <div className="flex items-center gap-1">
+                    {task.assignees.slice(0, 3).map((a) => (
+                      <span
+                        key={a.user_id}
+                        title={`${a.first_name} ${a.last_name}`}
+                        className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary text-[10px] font-medium shrink-0"
+                      >
+                        {a.first_name[0]}{a.last_name[0]}
+                      </span>
+                    ))}
+                    {task.assignees.length > 3 && (
+                      <span
+                        title={task.assignees.slice(3).map((a) => `${a.first_name} ${a.last_name}`).join(", ")}
+                        className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-muted text-muted-foreground text-[10px] font-medium shrink-0"
+                      >
+                        +{task.assignees.length - 3}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">&mdash;</span>
+                )}
+              </TableCell>
+              <TableCell>
+                {getPriorityBadge(task.priority)}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   )
 }
