@@ -224,13 +224,15 @@ export default function ProductsPage() {
     }
   }
 
+  const hasReferences = products.some((p) => p.reference && p.reference !== "-" && p.reference.trim() !== "")
+
   const columns: DataTableColumn<Product>[] = [
-    {
-      key: "reference",
+    ...(hasReferences ? [{
+      key: "reference" as const,
       header: "Reference",
       className: "text-muted-foreground text-sm font-[family-name:var(--font-body)]",
-      render: (p) => p.reference || "-",
-    },
+      render: (p: Product) => p.reference || "-",
+    }] : []),
     {
       key: "name",
       header: "Nom",
