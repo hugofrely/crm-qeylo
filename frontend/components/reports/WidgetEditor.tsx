@@ -239,7 +239,7 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
             </select>
           </div>
 
-          {chartType === "funnel_chart" ? (
+          {chartType === "funnel_chart" || ANALYTICS_TYPES.includes(chartType) ? (
             <>
               <div className="space-y-1.5">
                 <Label>Pipeline</Label>
