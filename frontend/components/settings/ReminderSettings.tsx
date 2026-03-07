@@ -76,7 +76,7 @@ export default function ReminderSettings({ orgId }: ReminderSettingsProps) {
   const availablePresets = PRESET_OPTIONS.filter((p) => !offsets.includes(p.value))
 
   return (
-    <div className="rounded-lg border p-6 space-y-4">
+    <div className="rounded-xl border border-border bg-card p-6 space-y-4">
       <div className="flex items-center gap-2">
         <Bell className="h-5 w-5 text-primary" />
         <h2 className="text-lg font-semibold tracking-tight">Rappels de tâches</h2>
