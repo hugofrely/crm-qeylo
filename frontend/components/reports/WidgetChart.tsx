@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import {
   BarChart,
   Bar,
@@ -20,14 +20,36 @@ import { fetchAggregate, fetchFunnel } from "@/services/reports"
 import { FunnelChart } from "./FunnelChart"
 
 const COLORS = [
-  "#6366F1", "#F59E0B", "#10B981", "#EF4444", "#3B82F6",
-  "#8B5CF6", "#EC4899", "#14B8A6", "#F97316", "#64748B",
+  "#6366F1", "#10B981", "#F59E0B", "#3B82F6", "#EF4444", "#64748B",
 ]
 
 function formatValue(value: number): string {
   if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`
   if (value >= 1000) return `${(value / 1000).toFixed(1)}k`
   return value.toLocaleString("fr-FR")
+}
+
+function metricLabel(metric: string): string {
+  if (metric === "sum:amount") return "Montant"
+  if (metric === "avg:amount") return "Moyenne"
+  return "Nombre"
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function CustomTooltip({ active, payload, label, metric }: { active?: boolean; payload?: readonly any[]; label?: string | number; metric?: string }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
+      {label && <p className="mb-1 font-medium">{label}</p>}
+      {payload.map((entry: { value?: number; name?: string; color?: string }, i: number) => (
+        <div key={i} className="flex items-center gap-2">
+          <span className="inline-block h-2 w-2 rounded-sm" style={{ backgroundColor: entry.color }} />
+          <span>{formatValue(entry.value ?? 0)}</span>
+          {metric && <span className="text-muted-foreground">{metric}</span>}
+        </div>
+      ))}
+    </div>
+  )
 }
 
 interface WidgetChartProps {
@@ -40,6 +62,10 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
   const [data, setData] = useState<AggregateResponse | null>(null)
   const [funnelData, setFunnelData] = useState<FunnelResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
+
+  const onLegendEnter = useCallback((i: number) => setActiveIndex(i), [])
+  const onLegendLeave = useCallback(() => setActiveIndex(null), [])
 
   useEffect(() => {
     if (widget.type !== "funnel_chart") return
@@ -107,13 +133,6 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
     )
   }
 
-  const tooltipStyle = {
-    backgroundColor: "hsl(var(--popover))",
-    border: "1px solid hsl(var(--border))",
-    borderRadius: "8px",
-    fontSize: "12px",
-  }
-
   if (widget.type === "funnel_chart") {
     if (loading) {
       return (
@@ -168,21 +187,45 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
     )
   }
 
+  const metric = metricLabel(widget.metric)
+
   if (widget.type === "bar_chart") {
     return (
-      <ResponsiveContainer width="100%" height={250}>
-        <BarChart data={data.data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-          <XAxis dataKey="label" tick={{ fontSize: 11 }} className="text-muted-foreground" />
-          <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" tickFormatter={formatValue} />
-          <Tooltip formatter={(value?: number) => [formatValue(value ?? 0), ""]} contentStyle={tooltipStyle} />
-          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-            {data.data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <div className="relative">
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={data.data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+            <XAxis dataKey="label" tick={{ fontSize: 11 }} className="text-muted-foreground" />
+            <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" tickFormatter={formatValue} />
+            <Tooltip
+              content={({ active, payload, label }) => (
+                <CustomTooltip active={active} payload={payload} label={label} metric={metric} />
+              )}
+              cursor={{ fill: "hsl(var(--muted))", opacity: 0.5 }}
+              isAnimationActive={false}
+            />
+            <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+              {data.data.map((_, i) => (
+                <Cell
+                  key={i}
+                  fill={COLORS[i % COLORS.length]}
+                  style={{
+                    opacity: activeIndex !== null && activeIndex !== i ? 0.3 : 1,
+                    transition: "opacity 150ms ease",
+                  }}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+        <ChartLegend
+          items={data.data.map((d, i) => ({ label: d.label, value: formatValue(d.value), color: COLORS[i % COLORS.length] }))}
+          activeIndex={activeIndex}
+          onEnter={onLegendEnter}
+          onLeave={onLegendLeave}
+          metric={metric}
+        />
+      </div>
     )
   }
 
@@ -193,7 +236,12 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
           <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
           <XAxis dataKey="label" tick={{ fontSize: 11 }} className="text-muted-foreground" />
           <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" tickFormatter={formatValue} />
-          <Tooltip formatter={(value?: number) => [formatValue(value ?? 0), ""]} contentStyle={tooltipStyle} />
+          <Tooltip
+            content={({ active, payload, label }) => (
+              <CustomTooltip active={active} payload={payload} label={label} metric={metric} />
+            )}
+            isAnimationActive={false}
+          />
           <Line type="monotone" dataKey="value" stroke="#6366F1" strokeWidth={2} dot={{ r: 4, fill: "#6366F1" }} activeDot={{ r: 6 }} />
         </LineChart>
       </ResponsiveContainer>
@@ -202,25 +250,59 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
 
   if (widget.type === "pie_chart") {
     return (
-      <ResponsiveContainer width="100%" height={250}>
-        <PieChart>
-          <Pie
-            data={data.data}
-            dataKey="value"
-            nameKey="label"
-            cx="50%"
-            cy="50%"
-            innerRadius={50}
-            outerRadius={90}
-            paddingAngle={2}
-          >
-            {data.data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip formatter={(value?: number) => [formatValue(value ?? 0), ""]} contentStyle={tooltipStyle} />
-        </PieChart>
-      </ResponsiveContainer>
+      <div className="relative">
+        <ResponsiveContainer width="100%" height={260}>
+          <PieChart>
+            <Pie
+              data={data.data}
+              dataKey="value"
+              nameKey="label"
+              cx="50%"
+              cy="50%"
+              innerRadius={50}
+              outerRadius={90}
+              paddingAngle={2}
+              isAnimationActive={false}
+            >
+              {data.data.map((_, i) => (
+                <Cell
+                  key={i}
+                  fill={COLORS[i % COLORS.length]}
+                  name={data.data[i].label}
+                  style={{
+                    opacity: activeIndex !== null && activeIndex !== i ? 0.3 : 1,
+                    transition: "opacity 150ms ease",
+                  }}
+                  stroke={activeIndex === i ? COLORS[i % COLORS.length] : undefined}
+                  strokeWidth={activeIndex === i ? 2 : 0}
+                />
+              ))}
+            </Pie>
+            <Tooltip
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null
+                const entry = payload[0]
+                return (
+                  <div className="rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-sm" style={{ backgroundColor: entry.payload?.fill }} />
+                      <span className="font-medium">{entry.name}</span>
+                      <span>{formatValue(Number(entry.value) ?? 0)}</span>
+                    </div>
+                  </div>
+                )
+              }}
+              isAnimationActive={false}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        <ChartLegend
+          items={data.data.map((d, i) => ({ label: d.label, value: formatValue(d.value), color: COLORS[i % COLORS.length] }))}
+          activeIndex={activeIndex}
+          onEnter={onLegendEnter}
+          onLeave={onLegendLeave}
+        />
+      </div>
     )
   }
 
@@ -248,4 +330,82 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
   }
 
   return null
+}
+
+function ChartLegend({
+  items,
+  activeIndex,
+  onEnter,
+  onLeave,
+  metric,
+}: {
+  items: { label: string; value: string; color: string }[]
+  activeIndex: number | null
+  onEnter: (i: number) => void
+  onLeave: () => void
+  metric?: string
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
+
+  const handleEnter = useCallback((i: number, e: React.MouseEvent<HTMLSpanElement>) => {
+    onEnter(i)
+    if (containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect()
+      const itemRect = e.currentTarget.getBoundingClientRect()
+      setTooltipPos({
+        x: itemRect.left - containerRect.left + itemRect.width / 2,
+        y: itemRect.top - containerRect.top,
+      })
+    }
+  }, [onEnter])
+
+  const handleLeave = useCallback(() => {
+    onLeave()
+    setTooltipPos(null)
+  }, [onLeave])
+
+  const activeItem = activeIndex !== null ? items[activeIndex] : null
+
+  return (
+    <div ref={containerRef} className="relative pt-2 px-2">
+      {/* Tooltip positioned above the hovered legend item */}
+      {activeItem && tooltipPos && (
+        <div
+          className="absolute z-10 pointer-events-none"
+          style={{
+            left: tooltipPos.x,
+            top: tooltipPos.y,
+            transform: "translate(-50%, -100%)",
+          }}
+        >
+          <div className="rounded-lg border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md whitespace-nowrap mb-1">
+            <div className="flex items-center gap-2">
+              <span className="inline-block h-2 w-2 rounded-sm" style={{ backgroundColor: activeItem.color }} />
+              <span className="font-medium">{activeItem.label}</span>
+              <span>{activeItem.value}</span>
+              {metric && <span className="text-muted-foreground">{metric}</span>}
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
+        {items.map((item, i) => (
+          <span
+            key={i}
+            className="inline-flex items-center gap-1.5 text-[11px] cursor-pointer select-none"
+            style={{
+              opacity: activeIndex !== null && activeIndex !== i ? 0.35 : 1,
+              transition: "opacity 150ms ease",
+            }}
+            onMouseEnter={(e) => handleEnter(i, e)}
+            onMouseLeave={handleLeave}
+          >
+            <span className="inline-block w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: item.color }} />
+            {item.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
 }

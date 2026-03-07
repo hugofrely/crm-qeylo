@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useCallback, useRef } from "react"
 import {
   BarChart,
   Bar,
@@ -18,6 +19,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
   FunnelChart,
   Funnel,
@@ -29,17 +31,50 @@ const FALLBACK_COLORS = [
   "#6366f1",
   "#10b981",
   "#f59e0b",
-  "#ef4444",
   "#3b82f6",
-  "#8b5cf6",
-  "#ec4899",
-  "#14b8a6",
-  "#f97316",
-  "#0ea5e9",
+  "#ef4444",
+  "#64748b",
 ]
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: readonly any[]; label?: string | number }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
+      {label && <p className="mb-1 font-medium">{label}</p>}
+      {payload.map((entry: { value?: number; name?: string; color?: string }, i: number) => (
+        <div key={i} className="flex items-center gap-2">
+          {entry.color && <span className="inline-block h-2 w-2 rounded-sm" style={{ backgroundColor: entry.color }} />}
+          {entry.name && <span className="text-muted-foreground">{entry.name}</span>}
+          <span>{entry.value ?? 0}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export function DynamicChart({ config }: { config: ChartConfig }) {
   const { type, title, data, xKey, series } = config
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
+  const legendRef = useRef<HTMLDivElement>(null)
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
+
+  const handleLegendEnter = useCallback((i: number, e: React.MouseEvent<HTMLSpanElement>) => {
+    setActiveIndex(i)
+    if (legendRef.current) {
+      const containerRect = legendRef.current.getBoundingClientRect()
+      const itemRect = e.currentTarget.getBoundingClientRect()
+      setTooltipPos({
+        x: itemRect.left - containerRect.left + itemRect.width / 2,
+        y: itemRect.top - containerRect.top,
+      })
+    }
+  }, [])
+
+  const handleLegendLeave = useCallback(() => {
+    setActiveIndex(null)
+    setTooltipPos(null)
+  }, [])
 
   if (!data || data.length === 0) return null
 
@@ -51,7 +86,8 @@ export function DynamicChart({ config }: { config: ChartConfig }) {
             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
             <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} />
-            <Tooltip />
+            <Tooltip content={({ active, payload, label }) => <ChartTooltip active={active} payload={payload} label={label} />} isAnimationActive={false} />
+            {series.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} iconSize={8} />}
             {series.map((s) => (
               <Bar
                 key={s.key}
@@ -70,7 +106,8 @@ export function DynamicChart({ config }: { config: ChartConfig }) {
             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
             <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} />
-            <Tooltip />
+            <Tooltip content={({ active, payload, label }) => <ChartTooltip active={active} payload={payload} label={label} />} isAnimationActive={false} />
+            {series.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} iconSize={8} />}
             {series.map((s) => (
               <Line
                 key={s.key}
@@ -91,7 +128,8 @@ export function DynamicChart({ config }: { config: ChartConfig }) {
             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
             <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} />
-            <Tooltip />
+            <Tooltip content={({ active, payload, label }) => <ChartTooltip active={active} payload={payload} label={label} />} isAnimationActive={false} />
+            {series.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} iconSize={8} />}
             {series.map((s) => (
               <Area
                 key={s.key}
@@ -115,25 +153,46 @@ export function DynamicChart({ config }: { config: ChartConfig }) {
               nameKey={xKey}
               cx="50%"
               cy="50%"
+              innerRadius={40}
               outerRadius={80}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              label={(props: any) => `${props.name ?? ""}: ${props.value ?? ""}`}
+              paddingAngle={2}
+              isAnimationActive={false}
             >
-              {data.map((_, i) => (
+              {data.map((entry, i) => (
                 <Cell
                   key={i}
                   fill={FALLBACK_COLORS[i % FALLBACK_COLORS.length]}
+                  name={String(entry[xKey] ?? "")}
+                  style={{
+                    opacity: activeIndex !== null && activeIndex !== i ? 0.3 : 1,
+                    transition: "opacity 150ms ease",
+                  }}
                 />
               ))}
             </Pie>
-            <Tooltip />
+            <Tooltip
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null
+                const entry = payload[0]
+                return (
+                  <div className="rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-sm" style={{ backgroundColor: entry.payload?.fill }} />
+                      <span className="font-medium">{entry.name}</span>
+                      <span>{entry.value ?? 0}</span>
+                    </div>
+                  </div>
+                )
+              }}
+              isAnimationActive={false}
+            />
           </PieChart>
         )
 
       case "funnel":
         return (
           <FunnelChart>
-            <Tooltip />
+            <Tooltip content={({ active, payload }) => <ChartTooltip active={active} payload={payload} />} isAnimationActive={false} />
             <Funnel
               dataKey={series[0]?.key || "value"}
               data={data}
@@ -161,7 +220,7 @@ export function DynamicChart({ config }: { config: ChartConfig }) {
           <RadarChart cx="50%" cy="50%" outerRadius={80} data={data}>
             <PolarGrid />
             <PolarAngleAxis dataKey={xKey} tick={{ fontSize: 11 }} />
-            <Tooltip />
+            <Tooltip content={({ active, payload }) => <ChartTooltip active={active} payload={payload} />} isAnimationActive={false} />
             {series.map((s) => (
               <Radar
                 key={s.key}
@@ -181,7 +240,7 @@ export function DynamicChart({ config }: { config: ChartConfig }) {
             <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
             <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} />
-            <Tooltip />
+            <Tooltip content={({ active, payload, label }) => <ChartTooltip active={active} payload={payload} label={label} />} isAnimationActive={false} />
             {series.map((s) => (
               <Bar
                 key={s.key}
@@ -196,12 +255,54 @@ export function DynamicChart({ config }: { config: ChartConfig }) {
     }
   }
 
+  const isPie = type === "pie"
+  const activeItem = isPie && activeIndex !== null ? data[activeIndex] : null
+
   return (
     <div className="w-full">
       {title && <p className="mb-2 text-sm font-medium">{title}</p>}
-      <ResponsiveContainer width="100%" height={250}>
+      <ResponsiveContainer width="100%" height={isPie ? 220 : 250}>
         {renderChart()}
       </ResponsiveContainer>
+      {isPie && (
+        <div ref={legendRef} className="relative pt-2 px-2">
+          {activeItem && tooltipPos && (
+            <div
+              className="absolute z-10 pointer-events-none"
+              style={{
+                left: tooltipPos.x,
+                top: tooltipPos.y,
+                transform: "translate(-50%, -100%)",
+              }}
+            >
+              <div className="rounded-lg border bg-popover px-3 py-1.5 text-xs text-popover-foreground shadow-md whitespace-nowrap mb-1">
+                <div className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-2 rounded-sm" style={{ backgroundColor: FALLBACK_COLORS[activeIndex! % FALLBACK_COLORS.length] }} />
+                  <span className="font-medium">{String(activeItem[xKey] ?? "")}</span>
+                  <span>{activeItem[series[0]?.key || "value"] as number ?? 0}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
+            {data.map((entry, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1.5 text-[11px] cursor-pointer select-none"
+                style={{
+                  opacity: activeIndex !== null && activeIndex !== i ? 0.35 : 1,
+                  transition: "opacity 150ms ease",
+                }}
+                onMouseEnter={(e) => handleLegendEnter(i, e)}
+                onMouseLeave={handleLegendLeave}
+              >
+                <span className="inline-block w-2 h-2 rounded-sm shrink-0" style={{ backgroundColor: FALLBACK_COLORS[i % FALLBACK_COLORS.length] }} />
+                {String(entry[xKey] ?? "")}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
