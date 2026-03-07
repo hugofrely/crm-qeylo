@@ -65,7 +65,7 @@ export function FilterTriggerButton({ open, onOpenChange, activeFilterCount }: F
     <Button
       variant="outline"
       onClick={() => onOpenChange(!open)}
-      className="gap-2 lg:hidden"
+      className="gap-2"
     >
       <SlidersHorizontal className="h-4 w-4" />
       Filtres

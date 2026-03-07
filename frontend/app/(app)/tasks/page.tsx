@@ -160,6 +160,7 @@ export default function TasksPage() {
 
       {/* Desktop filter bar */}
       <FilterBar
+        open={filterOpen}
         activeFilterCount={activeFilterCount}
         onReset={() => { setSearch(""); setPriority(null); setDueDate(null); setContactId(null); setContactLabel(null); contactAutocomplete.reset(); setAssignedTo(null); setAssignedLabel(null); memberAutocomplete.reset() }}
       >

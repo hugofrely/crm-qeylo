@@ -87,7 +87,7 @@ export default function FunnelPage() {
       </PageHeader>
 
       {/* Desktop filter bar */}
-      <FilterBar activeFilterCount={activeFilterCount} onReset={resetFilters}>
+      <FilterBar open={filterOpen} activeFilterCount={activeFilterCount} onReset={resetFilters}>
         {pipelines.length > 1 && (
           <FilterSelect
             label="Pipeline"

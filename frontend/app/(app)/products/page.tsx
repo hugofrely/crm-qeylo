@@ -294,6 +294,7 @@ export default function ProductsPage() {
 
       {/* Desktop filter bar */}
       <FilterBar
+        open={filterOpen}
         activeFilterCount={activeFilterCount}
         onReset={() => { setSearch(""); setSelectedCategory(""); setShowActive("active") }}
       >

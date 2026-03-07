@@ -192,7 +192,7 @@ export default function DealsPage() {
         </PageHeader>
 
         {/* Desktop filter bar */}
-        <FilterBar activeFilterCount={activeFilterCount} onReset={resetFilters}>
+        <FilterBar open={filterOpen} activeFilterCount={activeFilterCount} onReset={resetFilters}>
           <FilterSearchInput
             value={filterSearch}
             onChange={setFilterSearch}

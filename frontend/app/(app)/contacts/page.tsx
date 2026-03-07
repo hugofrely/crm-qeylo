@@ -340,6 +340,7 @@ export default function ContactsPage() {
 
       {/* Desktop filter bar */}
       <FilterBar
+        open={filterOpen}
         activeFilterCount={activeFilterCount}
         onReset={() => { setSearch(""); setSelectedCategory(null); setSelectedSegment(null) }}
       >
