@@ -19,7 +19,6 @@ import {
   Clock,
   Languages,
   Cake,
-  Sparkles,
   Thermometer,
   Wallet,
   MessageCircle,
@@ -27,7 +26,6 @@ import {
   Smartphone,
   Twitter,
 } from "lucide-react"
-import { Separator } from "@/components/ui/separator"
 
 /* ── Helpers ── */
 
@@ -37,17 +35,6 @@ function formatDate(dateStr: string): string {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(date)
-}
-
-function formatDateTime(dateStr: string): string {
-  const date = new Date(dateStr)
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
   }).format(date)
 }
 
@@ -429,10 +416,9 @@ export function ContactInfo({
 
   /* ── VIEW MODE ── */
   return (
-    <>
+    <div className="space-y-4">
       {/* Coordonnees */}
-      <Separator />
-      <div className="p-5 space-y-3">
+      <div className="bg-card border border-border rounded-xl p-5 space-y-3">
         <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
           Coordonnees
         </h3>
@@ -499,122 +485,116 @@ export function ContactInfo({
 
       {/* Qualification */}
       {(contact.lead_score || contact.estimated_budget || contact.decision_role || contact.identified_needs) && (
-        <>
-          <Separator />
-          <div className="p-5 space-y-3">
-            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-              Qualification
-            </h3>
-            <div className="space-y-2">
-              {contact.lead_score && (
-                <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                  <Thermometer className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${getLeadScoreStyle(contact.lead_score)}`}>
-                    {getLeadScoreLabel(contact.lead_score)}
-                  </span>
-                </div>
-              )}
-              {contact.estimated_budget && (
-                <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                  <Wallet className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="truncate">{formatCurrency(contact.estimated_budget)}</span>
-                </div>
-              )}
-              {contact.decision_role && (
-                <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                  <Target className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="truncate">{getDecisionRoleLabel(contact.decision_role)}</span>
-                </div>
-              )}
-              {contact.identified_needs && (
-                <div className="flex items-start gap-2 text-sm font-[family-name:var(--font-body)]">
-                  <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                  <span className="whitespace-pre-wrap leading-relaxed">{contact.identified_needs}</span>
-                </div>
-              )}
-            </div>
+        <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+            Qualification
+          </h3>
+          <div className="space-y-2">
+            {contact.lead_score && (
+              <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                <Thermometer className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${getLeadScoreStyle(contact.lead_score)}`}>
+                  {getLeadScoreLabel(contact.lead_score)}
+                </span>
+              </div>
+            )}
+            {contact.estimated_budget && (
+              <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                <Wallet className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="truncate">{formatCurrency(contact.estimated_budget)}</span>
+              </div>
+            )}
+            {contact.decision_role && (
+              <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                <Target className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="truncate">{getDecisionRoleLabel(contact.decision_role)}</span>
+              </div>
+            )}
+            {contact.identified_needs && (
+              <div className="flex items-start gap-2 text-sm font-[family-name:var(--font-body)]">
+                <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                <span className="whitespace-pre-wrap leading-relaxed">{contact.identified_needs}</span>
+              </div>
+            )}
           </div>
-        </>
+        </div>
       )}
 
       {/* Profil info */}
       {(contact.industry || contact.source || (contact.tags && contact.tags.length > 0) || contact.preferred_channel || contact.language || contact.timezone || contact.birthday || (contact.interests && contact.interests.length > 0) || contact.siret) && (
-        <>
-          <Separator />
-          <div className="p-5 space-y-3">
-            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-              Profil
-            </h3>
-            <div className="space-y-2">
-              {contact.industry && (
-                <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                  <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="truncate">{contact.industry}</span>
+        <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+            Profil
+          </h3>
+          <div className="space-y-2">
+            {contact.industry && (
+              <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="truncate">{contact.industry}</span>
+              </div>
+            )}
+            {contact.source && (
+              <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="truncate">{contact.source}</span>
+              </div>
+            )}
+            {contact.preferred_channel && (
+              <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                <MessageCircle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <Badge variant="secondary" className="font-normal text-xs">{getChannelLabel(contact.preferred_channel)}</Badge>
+              </div>
+            )}
+            {contact.language && (
+              <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                <Languages className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="truncate">{contact.language}</span>
+              </div>
+            )}
+            {contact.timezone && (
+              <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="truncate">{contact.timezone}</span>
+              </div>
+            )}
+            {contact.birthday && (
+              <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                <Cake className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="truncate">{formatBirthday(contact.birthday)}</span>
+              </div>
+            )}
+            {contact.siret && (
+              <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <span className="truncate">SIRET: {contact.siret}</span>
+              </div>
+            )}
+            {contact.tags && contact.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {contact.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className="font-normal text-xs font-[family-name:var(--font-body)]">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            {contact.interests && contact.interests.length > 0 && (
+              <div className="pt-1">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Heart className="h-3 w-3 text-muted-foreground" />
+                  <p className="text-[11px] text-muted-foreground font-[family-name:var(--font-body)]">Centres d&apos;interet</p>
                 </div>
-              )}
-              {contact.source && (
-                <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                  <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="truncate">{contact.source}</span>
-                </div>
-              )}
-              {contact.preferred_channel && (
-                <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                  <MessageCircle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <Badge variant="secondary" className="font-normal text-xs">{getChannelLabel(contact.preferred_channel)}</Badge>
-                </div>
-              )}
-              {contact.language && (
-                <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                  <Languages className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="truncate">{contact.language}</span>
-                </div>
-              )}
-              {contact.timezone && (
-                <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                  <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="truncate">{contact.timezone}</span>
-                </div>
-              )}
-              {contact.birthday && (
-                <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                  <Cake className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="truncate">{formatBirthday(contact.birthday)}</span>
-                </div>
-              )}
-              {contact.siret && (
-                <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                  <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  <span className="truncate">SIRET: {contact.siret}</span>
-                </div>
-              )}
-              {contact.tags && contact.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {contact.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="font-normal text-xs font-[family-name:var(--font-body)]">
-                      {tag}
+                <div className="flex flex-wrap gap-1.5">
+                  {contact.interests.map((interest) => (
+                    <Badge key={interest} variant="secondary" className="font-normal text-xs font-[family-name:var(--font-body)]">
+                      {interest}
                     </Badge>
                   ))}
                 </div>
-              )}
-              {contact.interests && contact.interests.length > 0 && (
-                <div className="pt-1">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <Heart className="h-3 w-3 text-muted-foreground" />
-                    <p className="text-[11px] text-muted-foreground font-[family-name:var(--font-body)]">Centres d&apos;interet</p>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {contact.interests.map((interest) => (
-                      <Badge key={interest} variant="secondary" className="font-normal text-xs font-[family-name:var(--font-body)]">
-                        {interest}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        </>
+        </div>
       )}
 
       {/* Custom fields */}
@@ -626,72 +606,43 @@ export function ContactInfo({
         })
         if (filledFields.length === 0) return null
         return (
-          <>
-            <Separator />
-            <div className="p-5 space-y-3">
-              <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                Champs personnalises
-              </h3>
-              <div className="space-y-2">
-                {filledFields.map((def) => {
-                  const val = cf[def.id]
-                  let displayVal = String(val)
-                  if (def.field_type === "checkbox") {
-                    displayVal = val === true || val === "true" ? "Oui" : "Non"
-                  } else if (def.field_type === "date" && val) {
-                    displayVal = formatDate(String(val))
-                  }
-                  return (
-                    <div key={def.id} className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
-                      <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <span className="text-muted-foreground text-xs">{def.label}:</span>
-                      <span className="truncate">{displayVal}</span>
-                    </div>
-                  )
-                })}
-              </div>
+          <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+              Champs personnalises
+            </h3>
+            <div className="space-y-2">
+              {filledFields.map((def) => {
+                const val = cf[def.id]
+                let displayVal = String(val)
+                if (def.field_type === "checkbox") {
+                  displayVal = val === true || val === "true" ? "Oui" : "Non"
+                } else if (def.field_type === "date" && val) {
+                  displayVal = formatDate(String(val))
+                }
+                return (
+                  <div key={def.id} className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
+                    <Tag className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground text-xs">{def.label}:</span>
+                    <span className="truncate">{displayVal}</span>
+                  </div>
+                )
+              })}
             </div>
-          </>
+          </div>
         )
       })()}
 
       {/* Notes */}
       {contact.notes && (
-        <>
-          <Separator />
-          <div className="p-5 space-y-3">
-            <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-              Notes
-            </h3>
-            <p className="text-sm whitespace-pre-wrap leading-relaxed font-[family-name:var(--font-body)]">
-              {contact.notes}
-            </p>
-          </div>
-        </>
+        <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+          <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+            Notes
+          </h3>
+          <p className="text-sm whitespace-pre-wrap leading-relaxed font-[family-name:var(--font-body)]">
+            {contact.notes}
+          </p>
+        </div>
       )}
-
-      {/* AI Summary */}
-      {contact.ai_summary && (
-        <>
-          <Separator />
-          <div className="bg-primary/5 p-5 space-y-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                Resume IA
-              </h3>
-            </div>
-            <p className="text-sm font-[family-name:var(--font-body)] whitespace-pre-wrap leading-relaxed">
-              {contact.ai_summary}
-            </p>
-            {contact.ai_summary_updated_at && (
-              <p className="text-xs text-muted-foreground font-[family-name:var(--font-body)]">
-                Derniere mise a jour : {formatDateTime(contact.ai_summary_updated_at)}
-              </p>
-            )}
-          </div>
-        </>
-      )}
-    </>
+    </div>
   )
 }

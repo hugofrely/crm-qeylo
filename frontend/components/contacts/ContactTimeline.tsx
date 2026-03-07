@@ -150,37 +150,34 @@ function TimelineList({ entries, emptyMessage }: { entries: TimelineEntry[]; emp
   }
 
   return (
-    <div className="space-y-0">
-      {entries.map((entry, index) => (
-        <div key={entry.id} className="flex gap-4">
-          <div className="flex flex-col items-center">
+    <div className="space-y-2">
+      {entries.map((entry) => (
+        <div key={entry.id} className="bg-card rounded-lg p-3 border border-border/50">
+          <div className="flex gap-3">
             <div
               className={`flex items-center justify-center h-7 w-7 rounded-full shrink-0 ${getTimelineColor(entry.entry_type)}`}
             >
               {getTimelineIcon(entry.entry_type)}
             </div>
-            {index < entries.length - 1 && (
-              <div className="w-px flex-1 bg-border min-h-[20px]" />
-            )}
-          </div>
-          <div className="pb-6 flex-1 min-w-0 font-[family-name:var(--font-body)]">
-            <div className="flex items-baseline justify-between gap-2">
-              <Badge variant="outline" className="text-[10px] capitalize font-normal">
-                {getEntryTypeLabel(entry.entry_type)}
-              </Badge>
-              <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                {formatDateTime(entry.created_at)}
-              </span>
-            </div>
-            {entry.subject && (
-              <p className="text-sm font-medium mt-1">{entry.subject}</p>
-            )}
-            {entry.content && (
-              <div className="mt-1.5 text-sm">
-                <MarkdownContent content={entry.content} />
+            <div className="flex-1 min-w-0 font-[family-name:var(--font-body)]">
+              <div className="flex items-baseline justify-between gap-2">
+                <Badge variant="outline" className="text-[10px] capitalize font-normal">
+                  {getEntryTypeLabel(entry.entry_type)}
+                </Badge>
+                <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                  {formatDateTime(entry.created_at)}
+                </span>
               </div>
-            )}
-            <ActivityMetadata entry={entry} />
+              {entry.subject && (
+                <p className="text-sm font-medium mt-1">{entry.subject}</p>
+              )}
+              {entry.content && (
+                <div className="mt-1.5 text-sm">
+                  <MarkdownContent content={entry.content} />
+                </div>
+              )}
+              <ActivityMetadata entry={entry} />
+            </div>
           </div>
         </div>
       ))}

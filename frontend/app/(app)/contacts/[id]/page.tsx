@@ -20,6 +20,7 @@ import {
   Clock,
   MessageCircle,
   Plus,
+  Sparkles,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ActivityDialog } from "@/components/activities/ActivityDialog"
@@ -324,21 +325,23 @@ export default function ContactDetailPage() {
               />
             </div>
           ) : (
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
-              <ContactHeader
-                contact={contact}
-                availableCategories={availableCategories}
-                editing={false}
-                saving={saving}
-                hasEmailAccount={hasEmailAccount}
-                onToggleEdit={startEditing}
-                onSave={handleSave}
-                onCancelEdit={() => setEditing(false)}
-                onDelete={handleDelete}
-                onToggleCategory={toggleCategory}
-                onOpenActivityDialog={() => setActivityDialogOpen(true)}
-                onOpenEmailDialog={() => setEmailDialogOpen(true)}
-              />
+            <div className="space-y-4">
+              <div className="rounded-xl border border-border bg-card overflow-hidden">
+                <ContactHeader
+                  contact={contact}
+                  availableCategories={availableCategories}
+                  editing={false}
+                  saving={saving}
+                  hasEmailAccount={hasEmailAccount}
+                  onToggleEdit={startEditing}
+                  onSave={handleSave}
+                  onCancelEdit={() => setEditing(false)}
+                  onDelete={handleDelete}
+                  onToggleCategory={toggleCategory}
+                  onOpenActivityDialog={() => setActivityDialogOpen(true)}
+                  onOpenEmailDialog={() => setEmailDialogOpen(true)}
+                />
+              </div>
               <ContactInfo
                 contact={contact}
                 editing={false}
@@ -354,30 +357,34 @@ export default function ContactDetailPage() {
         <div className="flex-1 min-w-0 rounded-xl border border-border bg-card overflow-hidden pt-2 w-full">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="px-2">
-              <TabsList className="w-full">
-                <TabsTrigger value="activities" className="group/tab">
+              <TabsList className="w-full justify-start overflow-x-auto scrollbar-hide">
+                <TabsTrigger value="activities" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <MessageCircle className="h-3.5 w-3.5" />
-                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Activites</span>
+                  <span>Activites</span>
                 </TabsTrigger>
-                <TabsTrigger value="notes" className="group/tab">
+                <TabsTrigger value="notes" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <FileText className="h-3.5 w-3.5" />
-                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Notes</span>
+                  <span>Notes</span>
                 </TabsTrigger>
-                <TabsTrigger value="emails" className="group/tab">
+                <TabsTrigger value="emails" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Mail className="h-3.5 w-3.5" />
-                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Emails</span>
+                  <span>Emails</span>
                 </TabsTrigger>
-                <TabsTrigger value="tasks" className="group/tab">
+                <TabsTrigger value="tasks" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Target className="h-3.5 w-3.5" />
-                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Taches</span>
+                  <span>Taches</span>
                 </TabsTrigger>
-                <TabsTrigger value="deals" className="group/tab">
+                <TabsTrigger value="deals" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Briefcase className="h-3.5 w-3.5" />
-                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Deals</span>
+                  <span>Deals</span>
                 </TabsTrigger>
-                <TabsTrigger value="history" className="group/tab">
+                <TabsTrigger value="history" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Clock className="h-3.5 w-3.5" />
-                  <span className="hidden xl:inline group-data-[state=active]/tab:inline">Historique</span>
+                  <span>Historique</span>
+                </TabsTrigger>
+                <TabsTrigger value="ai-summary" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Resume IA</span>
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -460,6 +467,33 @@ export default function ContactDetailPage() {
                   </h2>
                 </div>
                 <ContactTimeline entries={history} />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="ai-summary" className="p-6">
+              <div>
+                <div className="flex items-center gap-2 mb-6">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
+                    Resume IA
+                  </h2>
+                </div>
+                {contact.ai_summary ? (
+                  <div className="bg-primary/5 rounded-xl p-5 space-y-3">
+                    <p className="text-sm font-[family-name:var(--font-body)] whitespace-pre-wrap leading-relaxed">
+                      {contact.ai_summary}
+                    </p>
+                    {contact.ai_summary_updated_at && (
+                      <p className="text-xs text-muted-foreground font-[family-name:var(--font-body)]">
+                        Derniere mise a jour : {new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(contact.ai_summary_updated_at))}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
+                    Aucun resume IA disponible pour ce contact.
+                  </p>
+                )}
               </div>
             </TabsContent>
           </Tabs>
