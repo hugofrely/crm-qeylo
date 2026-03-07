@@ -57,6 +57,8 @@
   --color-warm-light: var(--warm-light);
   --color-cream: var(--cream);
   --color-stone: var(--stone-custom);
+  --color-table-header-bg: var(--table-header-bg);
+  --color-border-strong: var(--border-strong);
 }
 
 :root {
@@ -76,7 +78,7 @@
   --secondary: #F0EDE8;
   --secondary-foreground: #2D2D28;
   --muted: #F0EDE8;
-  --muted-foreground: #64635E;
+  --muted-foreground: #504F4A;
   --accent: #F0EDE8;
   --accent-foreground: #2D2D28;
   --destructive: #C44133;
@@ -92,6 +94,8 @@
   --warm-light: #F7EFEA;
   --cream: #FAFAF7;
   --stone-custom: #E5E2DC;
+  --table-header-bg: #F0EDE8;
+  --border-strong: #C8C5BF;
 
   /* Charts */
   --chart-1: #0D4F4F;
@@ -138,6 +142,8 @@
   --warm-light: #2D2218;
   --cream: #111110;
   --stone-custom: #2D2D28;
+  --table-header-bg: #2D2D28;
+  --border-strong: #4A4A44;
 
   --chart-1: #3DD9D9;
   --chart-2: #D4A574;
