@@ -36,6 +36,8 @@ from .models import ChatMessage, Conversation
 from .prompts import SYSTEM_PROMPT
 from .serializers import ChatInputSerializer, ChatMessageSerializer, ConversationSerializer
 from .tools import ChatDeps
+from ai_usage.tracking import log_ai_usage, alog_ai_usage
+from ai_usage.models import AIUsageLog
 
 logger = logging.getLogger(__name__)
 
@@ -351,6 +353,17 @@ def send_message(request):
             **run_kwargs,
         )
         ai_text = result.output
+        # Log AI usage
+        usage = result.usage()
+        log_ai_usage(
+            organization=org,
+            user=request.user,
+            call_type=AIUsageLog.CallType.CHAT,
+            model=settings.AI_MODEL,
+            input_tokens=usage.input_tokens,
+            output_tokens=usage.output_tokens,
+            conversation=conv,
+        )
         actions = _extract_actions(result.all_messages())
     except Exception:
         logger.exception("AI agent error")
