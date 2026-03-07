@@ -14,6 +14,7 @@ import {
   Plug,
   X,
   GitMerge,
+  Activity,
 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { apiFetch } from "@/lib/api"
@@ -361,6 +362,28 @@ export default function SettingsPage() {
           </div>
         </div>
       </Link>
+
+      {/* AI Usage dashboard link (superuser only) */}
+      {user?.is_superuser && (
+        <Link href="/settings/ai-usage" className="block">
+          <div className="rounded-xl border border-border bg-card hover:bg-secondary/20 transition-colors">
+            <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary/8 text-primary">
+                  <Activity className="h-5 w-5" />
+                </div>
+                <div className="font-[family-name:var(--font-body)]">
+                  <p className="text-sm font-medium">Consommation IA</p>
+                  <p className="text-xs text-muted-foreground">
+                    Suivre les couts et tokens par organisation et utilisateur
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </div>
+        </Link>
+      )}
     </div>
   )
 }
