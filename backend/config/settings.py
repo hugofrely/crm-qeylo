@@ -255,3 +255,12 @@ CACHES = {
 if _cache_url.startswith("rediss://"):
     import ssl
     CACHES["default"]["OPTIONS"] = {"ssl_cert_reqs": ssl.CERT_NONE}
+
+# ---------------------------------------------------------------------------
+# Stripe
+# ---------------------------------------------------------------------------
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
+STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRO_PRICE_ID = os.environ.get("STRIPE_PRO_PRICE_ID", "")
+STRIPE_TEAM_PRICE_ID = os.environ.get("STRIPE_TEAM_PRICE_ID", "")
