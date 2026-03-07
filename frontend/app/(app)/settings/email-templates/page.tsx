@@ -134,6 +134,7 @@ export default function EmailTemplatesPage() {
 
       {/* Desktop filter bar */}
       <FilterBar
+        open={filterOpen}
         activeFilterCount={activeFilterCount}
         onReset={() => { setSearch(""); setFilter("all") }}
       >
