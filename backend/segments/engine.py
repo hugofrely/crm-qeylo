@@ -13,7 +13,6 @@ FIELD_MAP = {
     "last_name": "last_name",
     "email": "email",
     "phone": "phone",
-    "company": "company",
     "source": "source",
     "lead_score": "lead_score",
     "job_title": "job_title",
@@ -45,6 +44,20 @@ FIELD_MAP = {
 DATE_FIELDS = {"created_at", "updated_at", "birthday"}
 NUMERIC_FIELDS = {"estimated_budget"}
 
+COMPANY_FIELD_MAP = {
+    "company.name": "company_entity__name",
+    "company.industry": "company_entity__industry",
+    "company.annual_revenue": "company_entity__annual_revenue",
+    "company.employee_count": "company_entity__employee_count",
+    "company.health_score": "company_entity__health_score",
+    "company.city": "company_entity__city",
+    "company.country": "company_entity__country",
+    "company.source": "company_entity__source",
+}
+
+COMPANY_NUMERIC_FIELDS = {"company.annual_revenue", "company.employee_count"}
+COMPANY_SELECT_FIELDS = {"company.health_score"}
+
 UNIT_MAP = {
     "days": lambda v: timedelta(days=v),
     "weeks": lambda v: timedelta(weeks=v),
@@ -62,6 +75,9 @@ def build_condition_q(condition: dict) -> Q:
     if field.startswith("custom_field."):
         field_id = field.split(".", 1)[1]
         return _build_custom_field_q(field_id, operator, value)
+
+    if field.startswith("company."):
+        return _build_company_field_q(field, operator, value)
 
     if field in ("deals_count", "open_deals_count", "tasks_count", "open_tasks_count"):
         return _build_relation_count_q(field, operator, value)
@@ -251,6 +267,29 @@ def _build_deal_closing_q(value, unit: str) -> Q:
         expected_close__gte=now.date(),
     ).values("contact_id")
     return Q(id__in=Subquery(closing_deal_contacts))
+
+
+def _build_company_field_q(field: str, operator: str, value) -> Q:
+    """Build Q for company.* prefixed fields."""
+    if field == "company.name" and operator == "is_empty":
+        return Q(company_entity__isnull=True)
+    if field == "company.name" and operator == "is_not_empty":
+        return Q(company_entity__isnull=False)
+    if field == "company.name" and operator in ("equals", "not_equals"):
+        # value is a company UUID
+        if operator == "equals":
+            return Q(company_entity__id=value)
+        return ~Q(company_entity__id=value)
+
+    orm_field = COMPANY_FIELD_MAP.get(field)
+    if not orm_field:
+        return Q()
+
+    if field in COMPANY_NUMERIC_FIELDS:
+        return _build_numeric_q(orm_field, operator, value)
+    if field in COMPANY_SELECT_FIELDS:
+        return _build_text_q(orm_field, operator, value)
+    return _build_text_q(orm_field, operator, value)
 
 
 def build_group_q(group: dict) -> Q:
