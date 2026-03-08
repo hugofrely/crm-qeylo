@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
 import { Search, Users, Kanban, CheckSquare, Building2, X } from "lucide-react"
 import { NotificationBell } from "@/components/NotificationBell"
 import { useSearch } from "@/hooks/useSearch"

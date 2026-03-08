@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import Link from "next/link"
+import { useParams } from "next/navigation"
+import { Link } from "@/i18n/navigation"
+import { useRouter } from "@/i18n/navigation"
 import { apiFetch } from "@/lib/api"
 import { useAuth } from "@/lib/auth"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"

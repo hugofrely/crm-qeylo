@@ -17,7 +17,7 @@ import {
 import { ComposeEmailDialog } from "@/components/emails/ComposeEmailDialog"
 import { cn } from "@/lib/utils"
 import type { EmailThread, Email, SyncStatus, EmailAccount } from "@/types/emails"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { useTranslations, useLocale } from "next-intl"
 
 function formatRelativeTime(dateStr: string): string {

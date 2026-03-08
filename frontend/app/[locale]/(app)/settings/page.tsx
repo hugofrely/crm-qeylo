@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { Badge } from "@/components/ui/badge"
 import {
   User,

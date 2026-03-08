@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
 import { Bell } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Notification } from "@/types"

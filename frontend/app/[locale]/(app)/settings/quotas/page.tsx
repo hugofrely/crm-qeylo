@@ -8,7 +8,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Save, Copy, Loader2 } from "lucid
 import { fetchMembers } from "@/services/organizations"
 import { fetchQuotas, bulkUpdateQuotas } from "@/services/deals"
 import { toast } from "sonner"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { PageHeader } from "@/components/shared/PageHeader"
 
 interface MemberQuota {

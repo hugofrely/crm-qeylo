@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,7 +17,7 @@ import {
 } from "@/services/emails"
 import { toast } from "sonner"
 import { ArrowLeft, Eye, Save, X } from "lucide-react"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import {
   Dialog,
   DialogContent,

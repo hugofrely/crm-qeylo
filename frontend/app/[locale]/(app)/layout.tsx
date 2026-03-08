@@ -1,7 +1,7 @@
 "use client"
 
 import { useAuth } from "@/lib/auth"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter, usePathname } from "@/i18n/navigation"
 import { useEffect } from "react"
 import { Sidebar } from "@/components/Sidebar"
 import { SearchHeader } from "@/components/SearchHeader"
