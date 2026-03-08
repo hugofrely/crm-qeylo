@@ -18,7 +18,35 @@
   },
   "notifications": {
     "emailNotifications": "Notifications email",
-    "emailNotificationsDesc": "Recevoir les rappels et alertes par email"
+    "emailNotificationsDesc": "Interrupteur principal — désactiver pour arrêter tous les emails",
+    "categories": {
+      "tasks": "Tâches",
+      "activity": "Activité",
+      "crm": "CRM",
+      "general": "Général"
+    },
+    "taskReminder": "Rappels de tâches",
+    "taskReminderDesc": "Rappels avant l'échéance des tâches",
+    "taskAssigned": "Tâche assignée",
+    "taskAssignedDesc": "Lorsqu'une tâche vous est assignée",
+    "taskDue": "Tâches en retard",
+    "taskDueDesc": "Alertes lorsque des tâches sont en retard",
+    "dailyDigest": "Résumé quotidien",
+    "dailyDigestDesc": "Résumé quotidien des deals inactifs, tâches et contacts",
+    "dealUpdate": "Mises à jour de deals",
+    "dealUpdateDesc": "Notifications sur les changements de deals",
+    "mention": "Mentions",
+    "mentionDesc": "Lorsque quelqu'un vous mentionne dans un commentaire",
+    "newComment": "Nouveaux commentaires",
+    "newCommentDesc": "Commentaires sur les éléments que vous suivez",
+    "reaction": "Réactions",
+    "reactionDesc": "Lorsque quelqu'un réagit à votre commentaire",
+    "importComplete": "Import terminé",
+    "importCompleteDesc": "Lorsqu'un import de contacts est terminé",
+    "invitation": "Invitations",
+    "invitationDesc": "Emails d'invitation à une organisation",
+    "workflow": "Notifications de workflow",
+    "workflowDesc": "Notifications déclenchées par les workflows automatisés"
   },
   "emailAccounts": {
     "title": "Comptes email connectés",

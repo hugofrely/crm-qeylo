@@ -10,7 +10,7 @@ from tasks.models import Task
 from contacts.models import Contact
 from notes.models import TimelineEntry
 from notifications.models import Notification
-from notifications.helpers import create_notification
+from notifications.helpers import create_notification, should_send_email
 from notifications.email import send_reminder_email
 
 
@@ -120,7 +120,7 @@ class Command(BaseCommand):
                             total_created += 1
 
                 # Send email digest if any reminders and user wants emails
-                if reminders and getattr(user, "email_notifications", True):
+                if reminders and should_send_email(user, "daily_digest"):
                     send_reminder_email(user.email, reminders, user=user)
 
         self.stdout.write(

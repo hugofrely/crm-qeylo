@@ -21,5 +21,14 @@ class RegisterSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "email", "first_name", "last_name", "email_notifications", "preferred_language", "date_joined", "is_superuser"]
+        fields = [
+            "id", "email", "first_name", "last_name",
+            "email_notifications", "preferred_language", "date_joined", "is_superuser",
+            "email_notify_task_reminder", "email_notify_task_assigned",
+            "email_notify_task_due", "email_notify_daily_digest",
+            "email_notify_deal_update", "email_notify_mention",
+            "email_notify_new_comment", "email_notify_reaction",
+            "email_notify_import_complete", "email_notify_invitation",
+            "email_notify_workflow",
+        ]
         read_only_fields = fields

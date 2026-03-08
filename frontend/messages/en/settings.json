@@ -18,7 +18,35 @@
   },
   "notifications": {
     "emailNotifications": "Email notifications",
-    "emailNotificationsDesc": "Receive reminders and alerts by email"
+    "emailNotificationsDesc": "Master switch — disable to stop all notification emails",
+    "categories": {
+      "tasks": "Tasks",
+      "activity": "Activity",
+      "crm": "CRM",
+      "general": "General"
+    },
+    "taskReminder": "Task reminders",
+    "taskReminderDesc": "Reminders before task deadlines",
+    "taskAssigned": "Task assigned",
+    "taskAssignedDesc": "When a task is assigned to you",
+    "taskDue": "Overdue tasks",
+    "taskDueDesc": "Alerts when tasks are overdue",
+    "dailyDigest": "Daily digest",
+    "dailyDigestDesc": "Daily summary of inactive deals, tasks, and contacts",
+    "dealUpdate": "Deal updates",
+    "dealUpdateDesc": "Notifications about deal changes",
+    "mention": "Mentions",
+    "mentionDesc": "When someone mentions you in a comment",
+    "newComment": "New comments",
+    "newCommentDesc": "Comments on items you follow",
+    "reaction": "Reactions",
+    "reactionDesc": "When someone reacts to your comment",
+    "importComplete": "Import completed",
+    "importCompleteDesc": "When a contact import finishes",
+    "invitation": "Invitations",
+    "invitationDesc": "Organization invitation emails",
+    "workflow": "Workflow notifications",
+    "workflowDesc": "Notifications triggered by automated workflows"
   },
   "emailAccounts": {
     "title": "Connected email accounts",

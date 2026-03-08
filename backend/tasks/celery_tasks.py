@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from notifications.email import send_notification_email
+from notifications.helpers import should_send_email
 from notifications.models import Notification
 from organizations.models import Organization, OrganizationSettings
 from .models import Task, TaskReminder
@@ -74,7 +75,7 @@ def check_task_reminders():
                         message=_("Rappel : {description}").format(description=task.description),
                         link="/tasks",
                     )
-                    if getattr(user, "email_notifications", True):
+                    if should_send_email(user, "task_reminder"):
                         send_notification_email(
                             user.email, title, _("Rappel : {description}").format(description=task.description),
                             user=user,

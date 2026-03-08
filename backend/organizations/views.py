@@ -13,7 +13,7 @@ from rest_framework.response import Response
 
 from contacts.models import ContactCategory
 from notifications.email import send_invitation_email
-from notifications.helpers import create_notification
+from notifications.helpers import create_notification, should_send_email
 
 from subscriptions.models import Subscription
 
@@ -119,7 +119,8 @@ def invite_member(request, org_id):
         expires_at=timezone.now() + timedelta(days=7),
     )
     invite_link = f"{django_settings.FRONTEND_URL}/invite/accept/{invitation.token}"
-    send_invitation_email(email, org.name, invite_link, user=existing_user)
+    if not existing_user or should_send_email(existing_user, "invitation"):
+        send_invitation_email(email, org.name, invite_link, user=existing_user)
     return Response(InvitationSerializer(invitation).data, status=status.HTTP_201_CREATED)
 
 

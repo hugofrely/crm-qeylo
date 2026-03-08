@@ -112,11 +112,21 @@ def login(request):
 def me(request):
     if request.method == "PATCH":
         user = request.user
-        if "email_notifications" in request.data:
-            user.email_notifications = request.data["email_notifications"]
-            user.save(update_fields=["email_notifications"])
-        if "preferred_language" in request.data:
-            user.preferred_language = request.data["preferred_language"]
-            user.save(update_fields=["preferred_language"])
+        allowed_fields = [
+            "email_notifications", "preferred_language",
+            "email_notify_task_reminder", "email_notify_task_assigned",
+            "email_notify_task_due", "email_notify_daily_digest",
+            "email_notify_deal_update", "email_notify_mention",
+            "email_notify_new_comment", "email_notify_reaction",
+            "email_notify_import_complete", "email_notify_invitation",
+            "email_notify_workflow",
+        ]
+        update_fields = []
+        for field in allowed_fields:
+            if field in request.data:
+                setattr(user, field, request.data[field])
+                update_fields.append(field)
+        if update_fields:
+            user.save(update_fields=update_fields)
         return Response(UserSerializer(user).data)
     return Response(UserSerializer(request.user).data)
