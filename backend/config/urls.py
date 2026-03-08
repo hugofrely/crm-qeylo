@@ -19,6 +19,7 @@ urlpatterns = [
     path("api/timeline/", include("notes.urls")),
     path("api/notes/", include("notes.note_urls")),
     path("api/activities/", include("notes.activity_urls")),
+    path("api/calls/", include("notes.call_urls")),
     path("api/chat/", include("chat.urls")),
     path("api/dashboard/", include("dashboard.urls")),
     path("api/reports/", include("reports.urls")),
