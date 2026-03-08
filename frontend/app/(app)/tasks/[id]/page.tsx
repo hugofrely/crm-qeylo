@@ -32,8 +32,10 @@ import {
   Pencil,
   Search,
   X,
+  Users,
 } from "lucide-react"
 import type { Task, Contact, Deal, Stage, TimelineEntry } from "@/types"
+import { CommentSection } from "@/components/collaboration/CommentSection"
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("fr-FR", {
@@ -650,6 +652,19 @@ export default function TaskDetailPage() {
               <p className="text-sm text-muted-foreground">Aucun contact associe — les notes et l&apos;historique s&apos;afficheront ici quand un contact sera lie.</p>
             </div>
           )}
+
+          {/* Comments */}
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="p-4 border-b border-border">
+              <h2 className="text-sm font-semibold flex items-center gap-1.5">
+                <Users className="h-4 w-4" />
+                Commentaires
+              </h2>
+            </div>
+            <div className="p-4">
+              <CommentSection entityType="task" entityId={id} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

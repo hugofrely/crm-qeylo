@@ -31,6 +31,7 @@ import {
   Sparkles,
   Phone,
   Calendar,
+  Users,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -44,6 +45,7 @@ import { ContactTimeline } from "@/components/contacts/ContactTimeline"
 import { ContactNotes } from "@/components/contacts/ContactNotes"
 import { ContactTasks } from "@/components/contacts/ContactTasks"
 import { ContactDeals } from "@/components/contacts/ContactDeals"
+import { CommentSection } from "@/components/collaboration/CommentSection"
 
 export default function ContactDetailPage() {
   const params = useParams()
@@ -427,6 +429,10 @@ export default function ContactDetailPage() {
                   <FileText className="h-3.5 w-3.5" />
                   <span>Notes</span>
                 </TabsTrigger>
+                <TabsTrigger value="comments" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
+                  <Users className="h-3.5 w-3.5" />
+                  <span>Commentaires</span>
+                </TabsTrigger>
                 <TabsTrigger value="emails" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Mail className="h-3.5 w-3.5" />
                   <span>Emails</span>
@@ -471,6 +477,10 @@ export default function ContactDetailPage() {
                 contactId={id}
                 onNoteAdded={() => fetchTabData()}
               />
+            </TabsContent>
+
+            <TabsContent value="comments" className="p-6">
+              <CommentSection entityType="contact" entityId={id} />
             </TabsContent>
 
             <TabsContent value="emails" className="p-6">

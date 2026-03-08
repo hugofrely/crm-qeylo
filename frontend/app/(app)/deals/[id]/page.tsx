@@ -26,8 +26,10 @@ import {
   User,
   Phone,
   Calendar,
+  Users,
 } from "lucide-react"
 import { EntityLink } from "@/components/shared/EntityLink"
+import { CommentSection } from "@/components/collaboration/CommentSection"
 import { NextActions } from "@/components/deals/NextActions"
 import { LogCallDialog } from "@/components/calls/LogCallDialog"
 import { CreateMeetingDialog } from "@/components/calendar/CreateMeetingDialog"
@@ -399,6 +401,10 @@ export default function DealDetailPage() {
                 <TabsTrigger value="notes">
                   Notes
                 </TabsTrigger>
+                <TabsTrigger value="comments">
+                  <Users className="h-3.5 w-3.5" />
+                  Commentaires
+                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -497,6 +503,10 @@ export default function DealDetailPage() {
                   Enregistrer les notes
                 </Button>
               </div>
+            </TabsContent>
+            {/* Comments tab */}
+            <TabsContent value="comments" className="p-6">
+              <CommentSection entityType="deal" entityId={id} />
             </TabsContent>
           </Tabs>
         </div>
