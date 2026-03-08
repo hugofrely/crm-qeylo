@@ -3,14 +3,15 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Q, Count
-from .models import Contact, ContactCategory, CustomFieldDefinition
-from .serializers import ContactSerializer, ContactCategorySerializer, CustomFieldDefinitionSerializer, BulkActionSerializer
+from .models import Contact, ContactCategory, CustomFieldDefinition, ScoringRule
+from .serializers import ContactSerializer, ContactCategorySerializer, CustomFieldDefinitionSerializer, BulkActionSerializer, ScoringRuleSerializer
 from notes.models import TimelineEntry
 
 ALLOWED_ORDERING = {
     "last_name", "-last_name",
     "created_at", "-created_at",
     "lead_score", "-lead_score",
+    "numeric_score", "-numeric_score",
     "company", "-company",
 }
 
@@ -268,3 +269,15 @@ def list_sources(request):
         .distinct()
     )
     return Response(sorted(set(sources)))
+
+
+class ScoringRuleViewSet(viewsets.ModelViewSet):
+    serializer_class = ScoringRuleSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        return ScoringRule.objects.filter(organization=self.request.organization)
+
+    def perform_create(self, serializer):
+        serializer.save(organization=self.request.organization)

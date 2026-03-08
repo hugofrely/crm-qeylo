@@ -14,6 +14,9 @@ category_router.register("", views.ContactCategoryViewSet, basename="contact-cat
 custom_field_router = DefaultRouter()
 custom_field_router.register("", views.CustomFieldDefinitionViewSet, basename="custom-field")
 
+scoring_router = DefaultRouter()
+scoring_router.register("", views.ScoringRuleViewSet, basename="scoring-rule")
+
 urlpatterns = [
     path("duplicate-settings/", duplicate_settings),
     path("check-duplicates/", check_duplicates),
@@ -28,5 +31,6 @@ urlpatterns = [
     path("bulk-actions/", views.bulk_actions),
     path("tags/", views.list_tags),
     path("sources/", views.list_sources),
+    path("scoring-rules/", include(scoring_router.urls)),
     path("", include(router.urls)),
 ]

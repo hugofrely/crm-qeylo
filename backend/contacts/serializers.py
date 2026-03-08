@@ -38,7 +38,7 @@ class ContactSerializer(serializers.ModelSerializer):
             # Profile
             "job_title", "linkedin_url", "website", "address", "industry",
             # Qualification
-            "lead_score", "estimated_budget", "identified_needs", "decision_role",
+            "lead_score", "numeric_score", "estimated_budget", "identified_needs", "decision_role",
             # Preferences
             "preferred_channel", "timezone", "language", "interests", "birthday",
             # AI Summary
@@ -102,7 +102,14 @@ class ContactSerializer(serializers.ModelSerializer):
         return instance
 
 
-from .models import DuplicateDetectionSettings
+from .models import DuplicateDetectionSettings, ScoringRule
+
+
+class ScoringRuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ScoringRule
+        fields = ["id", "event_type", "points", "is_active", "created_at"]
+        read_only_fields = ["id", "created_at"]
 
 
 class DuplicateDetectionSettingsSerializer(serializers.ModelSerializer):
