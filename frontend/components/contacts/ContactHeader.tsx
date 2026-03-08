@@ -45,6 +45,7 @@ export interface ContactHeaderProps {
   onToggleCategory: (categoryId: string) => void
   onOpenActivityDialog: () => void
   onOpenEmailDialog: () => void
+  onOpenCallDialog?: () => void
 }
 
 export function ContactHeader({
@@ -59,6 +60,7 @@ export function ContactHeader({
   onDelete,
   onToggleCategory,
   onOpenEmailDialog,
+  onOpenCallDialog,
 }: ContactHeaderProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -132,6 +134,12 @@ export function ContactHeader({
                 <Phone className="h-4 w-4" />
                 <span className="font-[family-name:var(--font-body)]">Appeler</span>
               </a>
+            </Button>
+          )}
+          {onOpenCallDialog && (
+            <Button variant="outline" size="sm" onClick={onOpenCallDialog} className="gap-1.5">
+              <Phone className="h-4 w-4" />
+              <span className="font-[family-name:var(--font-body)]">Log appel</span>
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={onToggleEdit}>

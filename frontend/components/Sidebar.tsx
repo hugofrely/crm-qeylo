@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  Mail,
   MessageSquare,
   Users,
   Building2,
@@ -34,6 +35,8 @@ import {
   Filter,
   FileBarChart,
   Trash2,
+  Zap,
+  Calendar,
 } from "lucide-react"
 import { CreateOrgDialog } from "@/components/organizations/CreateOrgDialog"
 import { useOverdueCount } from "@/hooks/useOverdueCount"
@@ -43,6 +46,7 @@ const navigationGroups = [
     label: "CRM",
     items: [
       { name: "Chat", href: "/chat", icon: MessageSquare },
+      { name: "Inbox", href: "/inbox", icon: Mail },
       { name: "Contacts", href: "/contacts", icon: Users },
       { name: "Entreprises", href: "/companies", icon: Building2 },
       { name: "Segments", href: "/segments", icon: ListFilter },
@@ -56,6 +60,8 @@ const navigationGroups = [
       { name: "Produits", href: "/products", icon: Package },
       { name: "Tâches", href: "/tasks", icon: CheckSquare },
       { name: "Workflows", href: "/workflows", icon: Workflow },
+      { name: "Séquences", href: "/sequences", icon: Zap },
+      { name: "Calendrier", href: "/calendar", icon: Calendar },
     ],
   },
   {

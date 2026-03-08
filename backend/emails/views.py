@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import EmailAccount, EmailTemplate
+from .models import EmailAccount, EmailTemplate, Email, EmailThread
 from .oauth import (
     get_gmail_auth_url,
     get_outlook_auth_url,
@@ -17,8 +17,11 @@ from .oauth import (
 )
 from .serializers import (
     EmailAccountSerializer,
+    EmailSerializer,
+    EmailSyncStateSerializer,
     EmailTemplateRenderSerializer,
     EmailTemplateSerializer,
+    EmailThreadSerializer,
     SendEmailSerializer,
 )
 from .template_rendering import build_template_context, render_email_template
@@ -279,3 +282,139 @@ def template_render(request, template_id):
         "subject": rendered_subject,
         "body_html": rendered_body,
     })
+
+
+# ---------------------------------------------------------------------------
+# Inbox endpoints
+# ---------------------------------------------------------------------------
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def inbox_threads(request):
+    org = request.organization
+    if not org:
+        return Response([], status=status.HTTP_200_OK)
+
+    threads = EmailThread.objects.filter(
+        organization=org,
+        email_account__user=request.user,
+    ).prefetch_related("emails")
+
+    account_id = request.query_params.get("account")
+    if account_id:
+        threads = threads.filter(email_account_id=account_id)
+
+    is_unread = request.query_params.get("unread")
+    if is_unread == "true":
+        threads = threads.filter(emails__is_read=False).distinct()
+
+    contact_id = request.query_params.get("contact")
+    if contact_id:
+        threads = threads.filter(contacts__id=contact_id)
+
+    search = request.query_params.get("search", "").strip()
+    if search:
+        threads = threads.filter(
+            Q(subject__icontains=search)
+            | Q(emails__snippet__icontains=search)
+            | Q(emails__from_address__icontains=search)
+        ).distinct()
+
+    page = int(request.query_params.get("page", 1))
+    page_size = 20
+    total = threads.count()
+    threads = threads[(page - 1) * page_size : page * page_size]
+
+    return Response({
+        "count": total,
+        "results": EmailThreadSerializer(threads, many=True).data,
+    })
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def thread_emails(request, thread_id):
+    org = request.organization
+    if not org:
+        return Response([], status=status.HTTP_200_OK)
+
+    try:
+        thread = EmailThread.objects.get(
+            id=thread_id, organization=org, email_account__user=request.user,
+        )
+    except EmailThread.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    emails = thread.emails.all().order_by("sent_at")
+    return Response(EmailSerializer(emails, many=True).data)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def mark_email_read(request, email_id):
+    org = request.organization
+    try:
+        email = Email.objects.get(
+            id=email_id, organization=org, email_account__user=request.user,
+        )
+    except Email.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    is_read = request.data.get("is_read", True)
+    email.is_read = is_read
+    email.save(update_fields=["is_read", "updated_at"])
+    return Response({"is_read": email.is_read})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def contact_emails(request, contact_id):
+    org = request.organization
+    if not org:
+        return Response([], status=status.HTTP_200_OK)
+
+    emails = Email.objects.filter(
+        organization=org,
+        email_account__user=request.user,
+        contact_id=contact_id,
+    )
+    return Response(EmailSerializer(emails, many=True).data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def trigger_sync(request):
+    org = request.organization
+    if not org:
+        return Response({"detail": "No organization."}, status=status.HTTP_400_BAD_REQUEST)
+
+    accounts = EmailAccount.objects.filter(user=request.user, organization=org, is_active=True)
+    from .tasks import sync_email_account
+    for account in accounts:
+        sync_email_account.delay(str(account.id))
+
+    return Response({"detail": "Sync started."})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def sync_status(request):
+    org = request.organization
+    if not org:
+        return Response([], status=status.HTTP_200_OK)
+
+    from .models import EmailSyncState
+    states = EmailSyncState.objects.filter(
+        email_account__user=request.user,
+        email_account__organization=org,
+    ).select_related("email_account")
+
+    result = []
+    for state in states:
+        result.append({
+            "account_id": str(state.email_account.id),
+            "email": state.email_account.email_address,
+            "provider": state.email_account.provider,
+            **EmailSyncStateSerializer(state).data,
+        })
+    return Response(result)

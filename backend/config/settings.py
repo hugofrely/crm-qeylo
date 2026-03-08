@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     "trash",
     "ai_usage",
     "subscriptions",
+    "sequences",
+    "calendars",
 ]
 
 # ---------------------------------------------------------------------------
@@ -241,6 +243,18 @@ CELERY_BEAT_SCHEDULE = {
     "purge-trash": {
         "task": "trash.tasks.purge_trash",
         "schedule": 86400,
+    },
+    "sync-email-accounts": {
+        "task": "emails.tasks.sync_all_email_accounts",
+        "schedule": 180,  # every 3 minutes
+    },
+    "process-sequence-emails": {
+        "task": "sequences.tasks.process_sequence_emails",
+        "schedule": 60,
+    },
+    "check-sequence-replies": {
+        "task": "sequences.tasks.check_sequence_replies",
+        "schedule": 180,
     },
 }
 

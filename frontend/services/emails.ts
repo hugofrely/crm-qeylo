@@ -1,5 +1,12 @@
 import { apiFetch } from "@/lib/api"
-import type { EmailAccount, EmailTemplate, RenderedTemplate } from "@/types"
+import type {
+  EmailAccount,
+  EmailTemplate,
+  RenderedTemplate,
+  Email,
+  EmailThread,
+  SyncStatus,
+} from "@/types"
 
 export async function fetchEmailAccounts(): Promise<EmailAccount[]> {
   return apiFetch<EmailAccount[]>(`/email/accounts/`)
@@ -64,4 +71,50 @@ export async function renderEmailTemplate(
     method: "POST",
     json: data,
   })
+}
+
+export async function fetchInboxThreads(params?: {
+  account?: string
+  unread?: boolean
+  contact?: string
+  search?: string
+  page?: number
+}): Promise<{ count: number; results: EmailThread[] }> {
+  const query = new URLSearchParams()
+  if (params?.account) query.set("account", params.account)
+  if (params?.unread) query.set("unread", "true")
+  if (params?.contact) query.set("contact", params.contact)
+  if (params?.search) query.set("search", params.search)
+  if (params?.page) query.set("page", String(params.page))
+  return apiFetch(`/email/inbox/threads/?${query.toString()}`)
+}
+
+export async function fetchThreadEmails(
+  threadId: string
+): Promise<Email[]> {
+  return apiFetch(`/email/inbox/threads/${threadId}/`)
+}
+
+export async function markEmailRead(
+  emailId: string,
+  isRead: boolean
+): Promise<void> {
+  return apiFetch(`/email/inbox/emails/${emailId}/read/`, {
+    method: "PATCH",
+    body: JSON.stringify({ is_read: isRead }),
+  })
+}
+
+export async function fetchContactEmails(
+  contactId: string
+): Promise<Email[]> {
+  return apiFetch(`/email/inbox/contacts/${contactId}/`)
+}
+
+export async function triggerSync(): Promise<void> {
+  return apiFetch("/email/inbox/sync/", { method: "POST" })
+}
+
+export async function fetchSyncStatus(): Promise<SyncStatus[]> {
+  return apiFetch("/email/inbox/sync/status/")
 }

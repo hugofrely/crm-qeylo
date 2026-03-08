@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TimelineEntry
+from .models import TimelineEntry, Call
 
 
 class TimelineEntrySerializer(serializers.ModelSerializer):
@@ -63,3 +63,31 @@ class ActivityCreateSerializer(serializers.Serializer):
                 raise serializers.ValidationError({"metadata": "Le champ 'custom_type_label' est requis pour un type custom."})
 
         return data
+
+
+class CallSerializer(serializers.ModelSerializer):
+    contact_name = serializers.SerializerMethodField()
+    duration_formatted = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Call
+        fields = [
+            "id", "contact", "contact_name", "deal",
+            "direction", "outcome", "duration_seconds", "duration_formatted",
+            "started_at", "notes", "logged_by",
+            "created_at", "updated_at",
+        ]
+        read_only_fields = ["id", "logged_by", "duration_formatted", "created_at", "updated_at"]
+
+    def get_contact_name(self, obj):
+        return f"{obj.contact.first_name} {obj.contact.last_name}".strip()
+
+
+class CallCreateSerializer(serializers.Serializer):
+    contact = serializers.UUIDField()
+    deal = serializers.UUIDField(required=False, allow_null=True)
+    direction = serializers.ChoiceField(choices=Call.Direction.choices)
+    outcome = serializers.ChoiceField(choices=Call.Outcome.choices)
+    duration_seconds = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+    started_at = serializers.DateTimeField()
+    notes = serializers.CharField(required=False, allow_blank=True, default="")

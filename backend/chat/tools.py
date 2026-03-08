@@ -3161,6 +3161,167 @@ def get_next_actions(
     }
 
 
+def log_call(
+    ctx: RunContext[ChatDeps],
+    contact_id: str,
+    direction: str,
+    outcome: str,
+    duration_seconds: int | None = None,
+    notes: str = "",
+) -> str:
+    """Log a phone call with a contact.
+
+    Args:
+        contact_id: UUID of the contact
+        direction: "inbound" or "outbound"
+        outcome: "answered", "voicemail", "no_answer", "busy", or "wrong_number"
+        duration_seconds: Duration of the call in seconds (optional)
+        notes: Notes about the call (optional)
+    """
+    from notes.models import Call
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+
+    contact = Contact.objects.filter(id=contact_id, organization_id=org_id).first()
+    if not contact:
+        return f"Contact {contact_id} introuvable."
+
+    timeline_entry = TimelineEntry.objects.create(
+        organization_id=org_id,
+        created_by_id=user_id,
+        contact=contact,
+        entry_type=TimelineEntry.EntryType.CALL,
+        subject=f"Appel {direction}",
+        content=notes,
+        metadata={
+            "direction": direction,
+            "outcome": outcome,
+            "duration_seconds": duration_seconds,
+        },
+    )
+
+    Call.objects.create(
+        organization_id=org_id,
+        contact=contact,
+        direction=direction,
+        outcome=outcome,
+        duration_seconds=duration_seconds,
+        started_at=timezone.now(),
+        notes=notes,
+        logged_by_id=user_id,
+        timeline_entry=timeline_entry,
+    )
+
+    return f"Appel {direction} loggé avec {contact.first_name} {contact.last_name} - {outcome}"
+
+
+def schedule_meeting(
+    ctx: RunContext[ChatDeps],
+    contact_id: str,
+    title: str,
+    start_at: str,
+    end_at: str,
+    description: str = "",
+    location: str = "",
+) -> str:
+    """Schedule a meeting with a contact.
+
+    Args:
+        contact_id: UUID of the contact
+        title: Title of the meeting
+        start_at: Start date/time in ISO format
+        end_at: End date/time in ISO format
+        description: Description/agenda (optional)
+        location: Location (optional)
+    """
+    from calendars.models import Meeting
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+
+    contact = Contact.objects.filter(id=contact_id, organization_id=org_id).first()
+    if not contact:
+        return f"Contact {contact_id} introuvable."
+
+    start = datetime.fromisoformat(start_at)
+    end = datetime.fromisoformat(end_at)
+
+    timeline_entry = TimelineEntry.objects.create(
+        organization_id=org_id,
+        created_by_id=user_id,
+        contact=contact,
+        entry_type=TimelineEntry.EntryType.MEETING,
+        subject=title,
+        content=description,
+        metadata={
+            "scheduled_at": start_at,
+            "end_at": end_at,
+            "location": location,
+            "title": title,
+        },
+    )
+
+    Meeting.objects.create(
+        organization_id=org_id,
+        title=title,
+        description=description,
+        location=location,
+        start_at=start,
+        end_at=end,
+        contact=contact,
+        created_by_id=user_id,
+        timeline_entry=timeline_entry,
+    )
+
+    return f"Meeting '{title}' planifié avec {contact.first_name} {contact.last_name} le {start.strftime('%d/%m/%Y à %H:%M')}"
+
+
+def enroll_in_sequence(
+    ctx: RunContext[ChatDeps],
+    contact_id: str,
+    sequence_id: str,
+) -> str:
+    """Enroll a contact in an email sequence.
+
+    Args:
+        contact_id: UUID of the contact
+        sequence_id: UUID of the sequence
+    """
+    from sequences.models import Sequence, SequenceEnrollment
+    from sequences.tasks import enroll_contact_in_sequence
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+
+    contact = Contact.objects.filter(id=contact_id, organization_id=org_id).first()
+    if not contact:
+        return f"Contact {contact_id} introuvable."
+
+    try:
+        sequence = Sequence.objects.get(id=sequence_id, organization_id=org_id)
+    except Sequence.DoesNotExist:
+        return f"Séquence {sequence_id} introuvable."
+
+    if sequence.status != Sequence.Status.ACTIVE:
+        return f"La séquence '{sequence.name}' n'est pas active."
+
+    enrollment, created = SequenceEnrollment.objects.get_or_create(
+        sequence=sequence,
+        contact=contact,
+        defaults={
+            "enrolled_by_id": user_id,
+            "status": SequenceEnrollment.Status.ACTIVE,
+        },
+    )
+
+    if not created:
+        return f"{contact.first_name} {contact.last_name} est déjà inscrit dans la séquence '{sequence.name}'."
+
+    enroll_contact_in_sequence.delay(str(enrollment.id))
+    return f"{contact.first_name} {contact.last_name} inscrit dans la séquence '{sequence.name}'."
+
+
 # All tools to register on the agent
 ALL_TOOLS = [
     create_contact,
@@ -3244,4 +3405,8 @@ ALL_TOOLS = [
     get_leaderboard,
     get_quota_progress,
     get_next_actions,
+    # Communication
+    log_call,
+    schedule_meeting,
+    enroll_in_sequence,
 ]

@@ -3,6 +3,12 @@
 import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { fetchContact as fetchContactApi, updateContact, deleteContact as deleteContactApi, fetchContactCategories, fetchCustomFieldDefinitions, checkEmailAccount, fetchContactTimeline, fetchContactTasks, fetchContactDeals } from "@/services/contacts"
+import { fetchContactEmails } from "@/services/emails"
+import { fetchMeetings } from "@/services/calendar"
+import { fetchEnrollments, fetchSequences } from "@/services/sequences"
+import type { Email } from "@/types/emails"
+import type { Meeting } from "@/types/calendar"
+import type { SequenceEnrollment, Sequence } from "@/types/sequences"
 import { restoreItems } from "@/services/trash"
 import { toast } from "sonner"
 import posthog from "posthog-js"
@@ -12,6 +18,8 @@ import type { Contact, ContactCategory, CustomFieldDefinition, TimelineEntry, Ta
 import { Button } from "@/components/ui/button"
 import {
   ArrowLeft,
+  ArrowUpRight,
+  ArrowDownLeft,
   Mail,
   Loader2,
   FileText,
@@ -21,10 +29,14 @@ import {
   MessageCircle,
   Plus,
   Sparkles,
+  Phone,
+  Calendar,
 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ActivityDialog } from "@/components/activities/ActivityDialog"
 import { ComposeEmailDialog } from "@/components/emails/ComposeEmailDialog"
+import { LogCallDialog } from "@/components/calls/LogCallDialog"
 
 import { ContactHeader } from "@/components/contacts/ContactHeader"
 import { ContactInfo } from "@/components/contacts/ContactInfo"
@@ -55,15 +67,20 @@ export default function ContactDetailPage() {
   // Tab data
   const [activities, setActivities] = useState<TimelineEntry[]>([])
   const [notes, setNotes] = useState<TimelineEntry[]>([])
-  const [emails, setEmails] = useState<TimelineEntry[]>([])
+  const [emails, setEmails] = useState<Email[]>([])
+  const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [deals, setDeals] = useState<Deal[]>([])
   const [stages, setStages] = useState<Stage[]>([])
   const [history, setHistory] = useState<TimelineEntry[]>([])
+  const [meetings, setMeetings] = useState<Meeting[]>([])
+  const [enrollments, setEnrollments] = useState<SequenceEnrollment[]>([])
+  const [enrollmentSequences, setEnrollmentSequences] = useState<Sequence[]>([])
 
   // Dialogs
   const [activityDialogOpen, setActivityDialogOpen] = useState(false)
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+  const [callDialogOpen, setCallDialogOpen] = useState(false)
   const [hasEmailAccount, setHasEmailAccount] = useState(false)
 
   /* ── Fetch contact ── */
@@ -97,6 +114,31 @@ export default function ContactDetailPage() {
     fetchContact().finally(() => setLoading(false))
   }, [fetchContact])
 
+  /* ── Fetch meetings & sequence enrollments ── */
+  useEffect(() => {
+    if (!id) return
+    fetchMeetings({ contact: id })
+      .then(setMeetings)
+      .catch(() => {})
+    // Fetch all sequences, then check enrollments for this contact
+    fetchSequences()
+      .then(async (sequences) => {
+        setEnrollmentSequences(sequences)
+        const allEnrollments: SequenceEnrollment[] = []
+        for (const seq of sequences) {
+          try {
+            const enrolls = await fetchEnrollments(seq.id, "active")
+            const matching = enrolls.filter((e) => e.contact === id)
+            allEnrollments.push(...matching)
+          } catch {
+            // ignore
+          }
+        }
+        setEnrollments(allEnrollments)
+      })
+      .catch(() => {})
+  }, [id])
+
   /* ── Fetch tab data when tab or contact changes ── */
   const fetchTabData = useCallback(async () => {
     if (!contact) return
@@ -114,10 +156,8 @@ export default function ContactDetailPage() {
           .catch(() => {})
         break
       case "emails":
-        fetchContactTimeline(id, "interactions")
-          .then(data => {
-            setEmails(data.filter(e => e.entry_type === "email_sent" || e.entry_type === "email_received"))
-          })
+        fetchContactEmails(contact.id)
+          .then(data => setEmails(data))
           .catch(() => {})
         break
       case "tasks":
@@ -317,6 +357,7 @@ export default function ContactDetailPage() {
                 onToggleCategory={toggleCategory}
                 onOpenActivityDialog={() => setActivityDialogOpen(true)}
                 onOpenEmailDialog={() => setEmailDialogOpen(true)}
+                onOpenCallDialog={() => setCallDialogOpen(true)}
               />
               <ContactInfo
                 contact={contact}
@@ -357,6 +398,24 @@ export default function ContactDetailPage() {
 
         {/* RIGHT PANEL (TABS) */}
         <div className="flex-1 min-w-0 rounded-xl border border-border bg-card overflow-hidden pt-2 w-full">
+          {/* Sequence enrollment banner */}
+          {enrollments.length > 0 && (
+            <div className="mx-4 mt-2 mb-1 px-3 py-2 bg-primary/10 rounded-lg flex items-center gap-2 flex-wrap">
+              <Mail className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span className="text-xs font-medium font-[family-name:var(--font-body)] text-primary">
+                Inscrit dans la sequence :
+              </span>
+              {enrollments.map((enrollment) => {
+                const seq = enrollmentSequences.find((s) => s.id === enrollment.sequence)
+                return (
+                  <Badge key={enrollment.id} variant="secondary" className="text-xs">
+                    {seq?.name || "Sequence"}
+                  </Badge>
+                )
+              })}
+            </div>
+          )}
+
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="px-2">
               <TabsList responsive className="w-full justify-start overflow-x-auto scrollbar-hide">
@@ -427,7 +486,57 @@ export default function ContactDetailPage() {
                     </Button>
                   )}
                 </div>
-                <ContactTimeline entries={emails} />
+                {emails.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                    <Mail className="h-8 w-8 mb-3" />
+                    <p className="text-sm font-[family-name:var(--font-body)]">Aucun email</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border rounded-lg border border-border overflow-hidden">
+                    {emails.map((email) => (
+                      <div
+                        key={email.id}
+                        className="border-b border-border p-4 hover:bg-muted/50 cursor-pointer"
+                        onClick={() => setExpandedEmailId(expandedEmailId === email.id ? null : email.id)}
+                      >
+                        <div className="flex items-start gap-3">
+                          {email.direction === "outbound" ? (
+                            <ArrowUpRight className="h-4 w-4 mt-0.5 shrink-0 text-blue-500" />
+                          ) : (
+                            <ArrowDownLeft className="h-4 w-4 mt-0.5 shrink-0 text-green-500" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className={`font-medium text-sm truncate ${!email.is_read ? "font-bold" : ""}`}>
+                                {email.subject || "(sans objet)"}
+                              </span>
+                              <span className="text-xs text-muted-foreground shrink-0">
+                                {new Intl.DateTimeFormat("fr-FR", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }).format(new Date(email.sent_at))}
+                              </span>
+                            </div>
+                            {expandedEmailId !== email.id && (
+                              <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                                {email.snippet}
+                              </p>
+                            )}
+                            {expandedEmailId === email.id && (
+                              <div
+                                className="mt-3 prose prose-sm max-w-none"
+                                dangerouslySetInnerHTML={{ __html: email.body_html }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </TabsContent>
 
@@ -522,6 +631,14 @@ export default function ContactDetailPage() {
           onSent={() => fetchTabData()}
         />
       )}
+
+      <LogCallDialog
+        open={callDialogOpen}
+        onOpenChange={setCallDialogOpen}
+        contactId={id}
+        contactName={contact ? `${contact.first_name} ${contact.last_name}` : undefined}
+        onSuccess={() => fetchTabData()}
+      />
     </div>
   )
 }
