@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Link, usePathname } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
 import { useAuth } from "@/lib/auth"
 import { useOrganization } from "@/lib/organization"
