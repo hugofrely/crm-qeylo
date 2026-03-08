@@ -57,6 +57,7 @@ class Contact(SoftDeleteModel):
     lead_score = models.CharField(
         max_length=10, choices=LeadScore.choices, blank=True, default=""
     )
+    numeric_score = models.IntegerField(default=0)
     estimated_budget = models.DecimalField(
         max_digits=12, decimal_places=2, null=True, blank=True
     )
@@ -249,3 +250,35 @@ class DuplicateDetectionSettings(models.Model):
 
     def __str__(self):
         return f"DuplicateDetectionSettings({self.organization})"
+
+
+class ScoringRule(models.Model):
+    class EventType(models.TextChoices):
+        EMAIL_SENT = "email_sent", "Email envoyé"
+        EMAIL_OPENED = "email_opened", "Email ouvert"
+        EMAIL_CLICKED = "email_clicked", "Email cliqué"
+        CALL_MADE = "call_made", "Appel effectué"
+        CALL_ANSWERED = "call_answered", "Appel décroché"
+        DEAL_CREATED = "deal_created", "Deal créé"
+        DEAL_WON = "deal_won", "Deal gagné"
+        MEETING = "meeting", "Réunion"
+        NOTE_ADDED = "note_added", "Note ajoutée"
+        TASK_COMPLETED = "task_completed", "Tâche terminée"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="scoring_rules",
+    )
+    event_type = models.CharField(max_length=30, choices=EventType.choices)
+    points = models.IntegerField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("organization", "event_type")
+        ordering = ["event_type"]
+
+    def __str__(self):
+        return f"{self.event_type}: {self.points:+d} pts"
