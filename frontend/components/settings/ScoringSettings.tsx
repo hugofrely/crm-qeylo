@@ -40,8 +40,8 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
       fetchOrgSettings(orgId),
     ]).then(([rulesData, settings]) => {
       setRules(rulesData)
-      setHotThreshold((settings as Record<string, number>).scoring_hot_threshold ?? 70)
-      setWarmThreshold((settings as Record<string, number>).scoring_warm_threshold ?? 30)
+      setHotThreshold(settings.scoring_hot_threshold ?? 70)
+      setWarmThreshold(settings.scoring_warm_threshold ?? 30)
     }).catch(() => {
       toast.error("Erreur lors du chargement des règles de scoring")
     }).finally(() => setLoading(false))
@@ -77,7 +77,7 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
       await updateOrgSettings(orgId, {
         scoring_hot_threshold: hotThreshold,
         scoring_warm_threshold: warmThreshold,
-      } as Record<string, unknown>)
+      })
       toast.success("Seuils mis à jour")
     } catch {
       toast.error("Erreur lors de la mise à jour")
