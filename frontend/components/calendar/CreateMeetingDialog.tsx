@@ -66,7 +66,13 @@ export function CreateMeetingDialog({
   useEffect(() => {
     if (open) {
       fetchCalendarAccounts()
-        .then(setCalendarAccounts)
+        .then((accounts) => {
+          setCalendarAccounts(accounts)
+          // Auto-select the first account if available
+          if (accounts.length > 0 && !calendarAccountId) {
+            setCalendarAccountId(accounts[0].id)
+          }
+        })
         .catch(() => setCalendarAccounts([]))
 
       // Set default start/end times
@@ -272,7 +278,7 @@ export function CreateMeetingDialog({
                 <SelectContent>
                   {calendarAccounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
-                      {account.email_account} ({account.provider})
+                      {account.email_address || account.email_account} ({account.provider === "google" ? "Google" : "Outlook"})
                     </SelectItem>
                   ))}
                 </SelectContent>

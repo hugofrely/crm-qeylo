@@ -4,6 +4,7 @@ export interface CalendarAccount {
   calendar_id: string
   is_active: boolean
   email_account: string
+  email_address: string | null
   created_at: string
 }
 

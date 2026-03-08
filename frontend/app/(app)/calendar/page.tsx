@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { ChevronLeft, ChevronRight, Plus, Clock, MapPin, User } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { fetchMeetings } from "@/services/calendar"
 import { CreateMeetingDialog } from "@/components/calendar/CreateMeetingDialog"
+import { MeetingDetailDialog } from "@/components/calendar/MeetingDetailDialog"
 import type { Meeting } from "@/types/calendar"
 
 const DAY_LABELS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
@@ -63,6 +63,8 @@ export default function CalendarPage() {
   const [meetings, setMeetings] = useState<Meeting[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<string | undefined>(undefined)
+  const [detailMeeting, setDetailMeeting] = useState<Meeting | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   const days = useMemo(() => getMonthDays(currentYear, currentMonth), [currentYear, currentMonth])
 
@@ -183,48 +185,21 @@ export default function CalendarPage() {
 
                 <div className="mt-1 space-y-0.5">
                   {dayMeetings.slice(0, 3).map((meeting) => (
-                    <Popover key={meeting.id}>
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          className="w-full text-left text-xs px-1 py-0.5 rounded bg-primary/10 text-primary truncate cursor-pointer hover:bg-primary/20 transition-colors"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {!meeting.is_all_day && (
-                            <span className="font-medium">{formatTime(meeting.start_at)} </span>
-                          )}
-                          {meeting.title}
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-72 p-4" align="start">
-                        <div className="space-y-2">
-                          <h4 className="font-semibold text-sm">{meeting.title}</h4>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Clock className="h-3.5 w-3.5" />
-                            {meeting.is_all_day
-                              ? "Journ\u00e9e enti\u00e8re"
-                              : `${formatTime(meeting.start_at)} - ${formatTime(meeting.end_at)}`}
-                          </div>
-                          {meeting.location && (
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <MapPin className="h-3.5 w-3.5" />
-                              {meeting.location}
-                            </div>
-                          )}
-                          {meeting.contact_name && (
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <User className="h-3.5 w-3.5" />
-                              {meeting.contact_name}
-                            </div>
-                          )}
-                          {meeting.description && (
-                            <p className="text-xs text-muted-foreground mt-2 line-clamp-3">
-                              {meeting.description}
-                            </p>
-                          )}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                    <button
+                      key={meeting.id}
+                      type="button"
+                      className="w-full text-left text-xs px-1 py-0.5 rounded bg-primary/10 text-primary truncate cursor-pointer hover:bg-primary/20 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setDetailMeeting(meeting)
+                        setDetailOpen(true)
+                      }}
+                    >
+                      {!meeting.is_all_day && (
+                        <span className="font-medium">{formatTime(meeting.start_at)} </span>
+                      )}
+                      {meeting.title}
+                    </button>
                   ))}
                   {dayMeetings.length > 3 && (
                     <span className="text-[10px] text-muted-foreground pl-1">
@@ -243,6 +218,13 @@ export default function CalendarPage() {
         onOpenChange={setDialogOpen}
         defaultDate={selectedDate}
         onSuccess={loadMeetings}
+      />
+
+      <MeetingDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        meeting={detailMeeting}
+        onUpdated={loadMeetings}
       />
     </div>
   )

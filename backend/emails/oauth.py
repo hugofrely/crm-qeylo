@@ -93,6 +93,16 @@ def exchange_gmail_code(code: str, state: str) -> EmailAccount:
             "is_active": True,
         },
     )
+
+    # Auto-create CalendarAccount for this email account
+    from calendars.models import CalendarAccount
+    CalendarAccount.objects.get_or_create(
+        user_id=claims["user_id"],
+        organization_id=claims["org_id"],
+        provider=CalendarAccount.Provider.GOOGLE,
+        defaults={"email_account": account, "calendar_id": "primary"},
+    )
+
     return account
 
 
@@ -151,6 +161,16 @@ def exchange_outlook_code(code: str, state: str) -> EmailAccount:
             "is_active": True,
         },
     )
+
+    # Auto-create CalendarAccount for this email account
+    from calendars.models import CalendarAccount
+    CalendarAccount.objects.get_or_create(
+        user_id=claims["user_id"],
+        organization_id=claims["org_id"],
+        provider=CalendarAccount.Provider.OUTLOOK,
+        defaults={"email_account": account, "calendar_id": "primary"},
+    )
+
     return account
 
 

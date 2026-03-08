@@ -1456,10 +1456,13 @@ def log_interaction(
     resolved_deal = _resolve_deal_id(org_id, deal_id)
 
     metadata = {}
+    parsed_date = None
     if occurred_at:
         try:
-            parsed = datetime.fromisoformat(occurred_at)
-            metadata["occurred_at"] = parsed.isoformat()
+            parsed_date = datetime.fromisoformat(occurred_at)
+            if parsed_date.tzinfo is None:
+                parsed_date = timezone.make_aware(parsed_date)
+            metadata["occurred_at"] = parsed_date.isoformat()
         except (ValueError, TypeError):
             pass
 
@@ -1473,6 +1476,10 @@ def log_interaction(
         content=content,
         metadata=metadata,
     )
+    # Backdate the entry if a date was provided
+    if parsed_date:
+        entry.created_at = parsed_date
+        entry.save(update_fields=["created_at"])
 
     # Refresh AI summary for the contact
     from contacts.ai_summary import trigger_summary_generation
@@ -3168,6 +3175,7 @@ def log_call(
     outcome: str,
     duration_seconds: int | None = None,
     notes: str = "",
+    started_at: str | None = None,
 ) -> str:
     """Log a phone call with a contact.
 
@@ -3177,6 +3185,7 @@ def log_call(
         outcome: "answered", "voicemail", "no_answer", "busy", or "wrong_number"
         duration_seconds: Duration of the call in seconds (optional)
         notes: Notes about the call (optional)
+        started_at: When the call happened in ISO format, e.g. "2026-03-08T14:30" (optional, defaults to now)
     """
     from notes.models import Call
 
@@ -3186,6 +3195,16 @@ def log_call(
     contact = Contact.objects.filter(id=contact_id, organization_id=org_id).first()
     if not contact:
         return f"Contact {contact_id} introuvable."
+
+    # Parse date or default to now
+    call_time = timezone.now()
+    if started_at:
+        try:
+            call_time = datetime.fromisoformat(started_at)
+            if call_time.tzinfo is None:
+                call_time = timezone.make_aware(call_time)
+        except (ValueError, TypeError):
+            pass
 
     timeline_entry = TimelineEntry.objects.create(
         organization_id=org_id,
@@ -3198,6 +3217,7 @@ def log_call(
             "direction": direction,
             "outcome": outcome,
             "duration_seconds": duration_seconds,
+            "started_at": call_time.isoformat(),
         },
     )
 
@@ -3207,13 +3227,14 @@ def log_call(
         direction=direction,
         outcome=outcome,
         duration_seconds=duration_seconds,
-        started_at=timezone.now(),
+        started_at=call_time,
         notes=notes,
         logged_by_id=user_id,
         timeline_entry=timeline_entry,
     )
 
-    return f"Appel {direction} loggé avec {contact.first_name} {contact.last_name} - {outcome}"
+    date_str = call_time.strftime('%d/%m/%Y à %H:%M')
+    return f"Appel {direction} loggé avec {contact.first_name} {contact.last_name} - {outcome} (le {date_str})"
 
 
 def schedule_meeting(
@@ -3235,7 +3256,8 @@ def schedule_meeting(
         description: Description/agenda (optional)
         location: Location (optional)
     """
-    from calendars.models import Meeting
+    from calendars.models import CalendarAccount, Meeting
+    from calendars.tasks import sync_meeting_to_calendar
 
     org_id = ctx.deps.organization_id
     user_id = ctx.deps.user_id
@@ -3246,6 +3268,11 @@ def schedule_meeting(
 
     start = datetime.fromisoformat(start_at)
     end = datetime.fromisoformat(end_at)
+
+    # Auto-detect calendar account for sync
+    calendar_account = CalendarAccount.objects.filter(
+        user_id=user_id, organization_id=org_id, is_active=True
+    ).first()
 
     timeline_entry = TimelineEntry.objects.create(
         organization_id=org_id,
@@ -3262,7 +3289,7 @@ def schedule_meeting(
         },
     )
 
-    Meeting.objects.create(
+    meeting = Meeting.objects.create(
         organization_id=org_id,
         title=title,
         description=description,
@@ -3271,10 +3298,16 @@ def schedule_meeting(
         end_at=end,
         contact=contact,
         created_by_id=user_id,
+        calendar_account=calendar_account,
+        sync_status=Meeting.SyncStatus.PENDING if calendar_account else Meeting.SyncStatus.NOT_SYNCED,
         timeline_entry=timeline_entry,
     )
 
-    return f"Meeting '{title}' planifié avec {contact.first_name} {contact.last_name} le {start.strftime('%d/%m/%Y à %H:%M')}"
+    if calendar_account:
+        sync_meeting_to_calendar.delay(str(meeting.id))
+
+    sync_info = " (sync Gmail activée)" if calendar_account else ""
+    return f"Meeting '{title}' planifié avec {contact.first_name} {contact.last_name} le {start.strftime('%d/%m/%Y à %H:%M')}{sync_info}"
 
 
 def enroll_in_sequence(
@@ -3303,8 +3336,8 @@ def enroll_in_sequence(
     except Sequence.DoesNotExist:
         return f"Séquence {sequence_id} introuvable."
 
-    if sequence.status != Sequence.Status.ACTIVE:
-        return f"La séquence '{sequence.name}' n'est pas active."
+    if sequence.status == Sequence.Status.ARCHIVED:
+        return f"La séquence '{sequence.name}' est archivée. Impossible d'inscrire des contacts."
 
     enrollment, created = SequenceEnrollment.objects.get_or_create(
         sequence=sequence,
@@ -3318,8 +3351,1002 @@ def enroll_in_sequence(
     if not created:
         return f"{contact.first_name} {contact.last_name} est déjà inscrit dans la séquence '{sequence.name}'."
 
-    enroll_contact_in_sequence.delay(str(enrollment.id))
-    return f"{contact.first_name} {contact.last_name} inscrit dans la séquence '{sequence.name}'."
+    # Only trigger processing if the sequence is active
+    if sequence.status == Sequence.Status.ACTIVE:
+        enroll_contact_in_sequence.delay(str(enrollment.id))
+
+    status_note = "" if sequence.status == Sequence.Status.ACTIVE else f" (les emails seront envoyés quand la séquence sera activée)"
+    return f"{contact.first_name} {contact.last_name} inscrit dans la séquence '{sequence.name}'.{status_note}"
+
+
+# ---------------------------------------------------------------------------
+# Inbox (read emails, threads, sync)
+# ---------------------------------------------------------------------------
+
+def list_inbox_threads(
+    ctx: RunContext[ChatDeps],
+    search: str = "",
+    unread_only: bool = False,
+    limit: int = 20,
+) -> dict:
+    """List email threads from the inbox. Can search by subject/sender and filter unread only.
+
+    Use this when the user asks to check their inbox, see recent emails, or search for emails.
+    """
+    from emails.models import EmailThread, Email
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+
+    accounts = EmailAccount.objects.filter(user_id=user_id, organization_id=org_id, is_active=True)
+    if not accounts.exists():
+        return {"action": "error", "message": "Aucun compte email connecté."}
+
+    qs = EmailThread.objects.filter(
+        email_account__in=accounts,
+        organization_id=org_id,
+    )
+    if search:
+        qs = qs.filter(
+            Q(subject__icontains=search)
+            | Q(emails__from_name__icontains=search)
+            | Q(emails__from_address__icontains=search)
+            | Q(emails__snippet__icontains=search)
+        ).distinct()
+    if unread_only:
+        qs = qs.filter(emails__is_read=False).distinct()
+
+    threads = qs.order_by("-last_message_at")[:limit]
+    results = []
+    for t in threads:
+        last_email = t.emails.order_by("-sent_at").first()
+        unread_count = t.emails.filter(is_read=False).count()
+        results.append({
+            "id": str(t.id),
+            "subject": t.subject,
+            "message_count": t.message_count,
+            "unread_count": unread_count,
+            "last_message_at": str(t.last_message_at) if t.last_message_at else None,
+            "from_name": last_email.from_name if last_email else "",
+            "from_address": last_email.from_address if last_email else "",
+            "snippet": last_email.snippet if last_email else "",
+        })
+
+    return {
+        "action": "list_inbox_threads",
+        "entity_type": "email_thread_list",
+        "summary": f"{len(results)} conversation(s) trouvée(s)",
+        "count": len(results),
+        "results": results,
+    }
+
+
+def get_thread_emails(
+    ctx: RunContext[ChatDeps],
+    thread_id: str,
+) -> dict:
+    """Get all emails in a specific thread. Use this to read the full conversation.
+
+    Args:
+        thread_id: UUID of the email thread
+    """
+    from emails.models import EmailThread, Email
+
+    org_id = ctx.deps.organization_id
+
+    try:
+        thread = EmailThread.objects.get(id=thread_id, organization_id=org_id)
+    except EmailThread.DoesNotExist:
+        return {"action": "error", "message": "Thread introuvable."}
+
+    emails = thread.emails.order_by("sent_at")
+    results = []
+    for e in emails:
+        results.append({
+            "id": str(e.id),
+            "direction": e.direction,
+            "from_name": e.from_name,
+            "from_address": e.from_address,
+            "to": e.to_addresses,
+            "subject": e.subject,
+            "body_text": e.body_text[:2000] if e.body_text else "",
+            "snippet": e.snippet,
+            "sent_at": str(e.sent_at),
+            "is_read": e.is_read,
+            "has_attachments": e.has_attachments,
+            "contact_id": str(e.contact_id) if e.contact_id else None,
+        })
+
+    return {
+        "action": "get_thread_emails",
+        "entity_type": "email_list",
+        "summary": f"{len(results)} email(s) dans le thread '{thread.subject}'",
+        "thread_subject": thread.subject,
+        "count": len(results),
+        "results": results,
+    }
+
+
+def get_contact_emails(
+    ctx: RunContext[ChatDeps],
+    contact_id: str,
+    limit: int = 20,
+) -> dict:
+    """Get all emails exchanged with a specific contact.
+
+    Args:
+        contact_id: UUID of the contact
+    """
+    from emails.models import Email
+
+    org_id = ctx.deps.organization_id
+    resolved_id = _resolve_contact_id(org_id, contact_id)
+    if not resolved_id:
+        return {"action": "error", "message": "Contact introuvable."}
+
+    contact = Contact.objects.get(id=resolved_id, organization_id=org_id)
+    emails = Email.objects.filter(
+        contact_id=resolved_id, organization_id=org_id,
+    ).order_by("-sent_at")[:limit]
+
+    results = []
+    for e in emails:
+        results.append({
+            "id": str(e.id),
+            "direction": e.direction,
+            "from_name": e.from_name,
+            "from_address": e.from_address,
+            "subject": e.subject,
+            "snippet": e.snippet,
+            "sent_at": str(e.sent_at),
+            "is_read": e.is_read,
+        })
+
+    return {
+        "action": "get_contact_emails",
+        "entity_type": "email_list",
+        "summary": f"{len(results)} email(s) avec {contact.first_name} {contact.last_name}",
+        "contact": f"{contact.first_name} {contact.last_name}",
+        "count": len(results),
+        "results": results,
+    }
+
+
+def trigger_email_sync(ctx: RunContext[ChatDeps]) -> dict:
+    """Trigger an email sync for all connected accounts. Use when the user wants fresh emails."""
+    from emails.tasks import sync_email_account
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+
+    accounts = EmailAccount.objects.filter(user_id=user_id, organization_id=org_id, is_active=True)
+    if not accounts.exists():
+        return {"action": "error", "message": "Aucun compte email connecté."}
+
+    for acc in accounts:
+        sync_email_account.delay(str(acc.id))
+
+    return {
+        "action": "sync_triggered",
+        "summary": f"Synchronisation lancée pour {accounts.count()} compte(s)",
+        "count": accounts.count(),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Sequences (full CRUD + management)
+# ---------------------------------------------------------------------------
+
+def list_sequences(ctx: RunContext[ChatDeps], status: str = "") -> dict:
+    """List all email sequences. Optionally filter by status (draft, active, paused, archived).
+
+    Use when the user asks to see their sequences or check sequence status.
+    """
+    from sequences.models import Sequence, SequenceEnrollment
+
+    org_id = ctx.deps.organization_id
+    qs = Sequence.objects.filter(organization_id=org_id)
+    if status:
+        qs = qs.filter(status=status)
+
+    sequences = qs[:20]
+    results = []
+    for s in sequences:
+        enrolled = s.enrollments.count()
+        active = s.enrollments.filter(status=SequenceEnrollment.Status.ACTIVE).count()
+        replied = s.enrollments.filter(status=SequenceEnrollment.Status.REPLIED).count()
+        results.append({
+            "id": str(s.id),
+            "name": s.name,
+            "description": s.description,
+            "status": s.status,
+            "step_count": s.steps.count(),
+            "enrolled_count": enrolled,
+            "active_count": active,
+            "replied_count": replied,
+            "email_account": s.email_account.email_address if s.email_account else None,
+        })
+
+    return {
+        "action": "list_sequences",
+        "entity_type": "sequence_list",
+        "summary": f"{len(results)} séquence(s) trouvée(s)",
+        "count": len(results),
+        "results": results,
+    }
+
+
+def get_sequence(ctx: RunContext[ChatDeps], sequence_id: str) -> dict:
+    """Get detailed info about a sequence including all its steps.
+
+    Args:
+        sequence_id: UUID of the sequence
+    """
+    from sequences.models import Sequence, SequenceEnrollment
+
+    org_id = ctx.deps.organization_id
+    try:
+        seq = Sequence.objects.get(id=sequence_id, organization_id=org_id)
+    except Sequence.DoesNotExist:
+        return {"action": "error", "message": "Séquence introuvable."}
+
+    steps = []
+    for step in seq.steps.order_by("order"):
+        steps.append({
+            "id": str(step.id),
+            "order": step.order,
+            "step_type": step.step_type,
+            "subject": step.subject,
+            "body_text": step.body_text[:500] if step.body_text else "",
+            "delay_days": step.delay_days,
+            "delay_hours": step.delay_hours,
+        })
+
+    enrolled = seq.enrollments.count()
+    active = seq.enrollments.filter(status=SequenceEnrollment.Status.ACTIVE).count()
+    replied = seq.enrollments.filter(status=SequenceEnrollment.Status.REPLIED).count()
+    completed = seq.enrollments.filter(status=SequenceEnrollment.Status.COMPLETED).count()
+
+    return {
+        "action": "get_sequence",
+        "entity_type": "sequence",
+        "entity_id": str(seq.id),
+        "entity_preview": {
+            "name": seq.name,
+            "status": seq.status,
+            "step_count": len(steps),
+        },
+        "name": seq.name,
+        "description": seq.description,
+        "status": seq.status,
+        "steps": steps,
+        "stats": {
+            "enrolled": enrolled,
+            "active": active,
+            "replied": replied,
+            "completed": completed,
+        },
+        "link": f"/sequences/{seq.id}",
+    }
+
+
+def create_sequence_tool(
+    ctx: RunContext[ChatDeps],
+    name: str,
+    description: str = "",
+    email_account_email: str = "",
+) -> dict:
+    """Create a new email sequence.
+
+    Args:
+        name: Name of the sequence
+        description: Description (optional)
+        email_account_email: Email address of the account to use (optional, picks first if not specified)
+    """
+    from sequences.models import Sequence
+
+    org_id = ctx.deps.organization_id
+    user_id = ctx.deps.user_id
+
+    email_account = None
+    if email_account_email:
+        email_account = EmailAccount.objects.filter(
+            organization_id=org_id, email_address__iexact=email_account_email, is_active=True,
+        ).first()
+    if not email_account:
+        email_account = EmailAccount.objects.filter(
+            user_id=user_id, organization_id=org_id, is_active=True,
+        ).first()
+
+    seq = Sequence.objects.create(
+        organization_id=org_id,
+        created_by_id=user_id,
+        name=name,
+        description=description,
+        email_account=email_account,
+    )
+
+    return {
+        "action": "sequence_created",
+        "entity_type": "sequence",
+        "entity_id": str(seq.id),
+        "summary": f"Séquence '{name}' créée",
+        "entity_preview": {"name": name, "status": "draft"},
+        "link": f"/sequences/{seq.id}",
+    }
+
+
+def add_sequence_step(
+    ctx: RunContext[ChatDeps],
+    sequence_id: str,
+    subject: str,
+    body_html: str,
+    delay_days: int = 1,
+    delay_hours: int = 0,
+    step_type: str = "email",
+) -> dict:
+    """Add a step to an email sequence.
+
+    Args:
+        sequence_id: UUID of the sequence
+        subject: Email subject line
+        body_html: Email body in HTML (can be plain text wrapped in <p> tags)
+        delay_days: Days to wait before sending (default 1)
+        delay_hours: Additional hours to wait (default 0)
+        step_type: "email" or "manual_task" (default "email")
+    """
+    from sequences.models import Sequence, SequenceStep
+
+    org_id = ctx.deps.organization_id
+    try:
+        seq = Sequence.objects.get(id=sequence_id, organization_id=org_id)
+    except Sequence.DoesNotExist:
+        return {"action": "error", "message": "Séquence introuvable."}
+
+    last_step = seq.steps.order_by("-order").first()
+    order = (last_step.order + 1) if last_step else 1
+
+    # Convert plain text to HTML if needed
+    if body_html and not body_html.strip().startswith("<"):
+        body_html = "".join(f"<p>{line}</p>" for line in body_html.split("\n") if line.strip())
+
+    step = SequenceStep.objects.create(
+        sequence=seq,
+        order=order,
+        subject=subject,
+        body_html=body_html,
+        body_text=body_html.replace("<p>", "").replace("</p>", "\n").strip() if body_html else "",
+        delay_days=delay_days,
+        delay_hours=delay_hours,
+        step_type=step_type,
+    )
+
+    return {
+        "action": "sequence_step_added",
+        "entity_type": "sequence_step",
+        "entity_id": str(step.id),
+        "summary": f"Étape {order} ajoutée à '{seq.name}': {subject}",
+        "step": {
+            "order": order,
+            "subject": subject,
+            "delay_days": delay_days,
+            "delay_hours": delay_hours,
+            "step_type": step_type,
+        },
+    }
+
+
+def update_sequence_step(
+    ctx: RunContext[ChatDeps],
+    sequence_id: str,
+    step_id: str,
+    subject: Optional[str] = None,
+    body_html: Optional[str] = None,
+    delay_days: Optional[int] = None,
+    delay_hours: Optional[int] = None,
+) -> dict:
+    """Update an existing step in an email sequence.
+
+    Args:
+        sequence_id: UUID of the sequence
+        step_id: UUID of the step to update
+        subject: New email subject (optional)
+        body_html: New email body in HTML (optional)
+        delay_days: New delay in days before sending (optional)
+        delay_hours: New delay in hours (optional)
+    """
+    from sequences.models import Sequence, SequenceStep
+
+    org_id = ctx.deps.organization_id
+    try:
+        seq = Sequence.objects.get(id=sequence_id, organization_id=org_id)
+    except Sequence.DoesNotExist:
+        return {"action": "error", "message": "Séquence introuvable."}
+
+    try:
+        step = SequenceStep.objects.get(id=step_id, sequence=seq)
+    except SequenceStep.DoesNotExist:
+        return {"action": "error", "message": "Étape introuvable."}
+
+    changes = []
+    if subject is not None and subject != step.subject:
+        changes.append({"field": "subject", "from": step.subject, "to": subject})
+        step.subject = subject
+    if body_html is not None:
+        if body_html and not body_html.strip().startswith("<"):
+            body_html = "".join(f"<p>{line}</p>" for line in body_html.split("\n") if line.strip())
+        changes.append({"field": "body_html", "from": "...", "to": "..."})
+        step.body_html = body_html
+        step.body_text = body_html.replace("<p>", "").replace("</p>", "\n").strip() if body_html else ""
+    if delay_days is not None and delay_days != step.delay_days:
+        changes.append({"field": "delay_days", "from": str(step.delay_days), "to": str(delay_days)})
+        step.delay_days = delay_days
+    if delay_hours is not None and delay_hours != step.delay_hours:
+        changes.append({"field": "delay_hours", "from": str(step.delay_hours), "to": str(delay_hours)})
+        step.delay_hours = delay_hours
+
+    if not changes:
+        return {"action": "error", "message": "Aucun champ à mettre à jour."}
+
+    step.save()
+
+    return {
+        "action": "sequence_step_updated",
+        "entity_type": "sequence_step",
+        "entity_id": str(step.id),
+        "summary": f"Étape {step.order} de '{seq.name}' mise à jour",
+        "changes": changes,
+    }
+
+
+def delete_sequence_step(
+    ctx: RunContext[ChatDeps],
+    sequence_id: str,
+    step_id: str,
+) -> dict:
+    """Delete a step from an email sequence.
+
+    Args:
+        sequence_id: UUID of the sequence
+        step_id: UUID of the step to delete
+    """
+    from sequences.models import Sequence, SequenceStep
+
+    org_id = ctx.deps.organization_id
+    try:
+        seq = Sequence.objects.get(id=sequence_id, organization_id=org_id)
+    except Sequence.DoesNotExist:
+        return {"action": "error", "message": "Séquence introuvable."}
+
+    try:
+        step = SequenceStep.objects.get(id=step_id, sequence=seq)
+    except SequenceStep.DoesNotExist:
+        return {"action": "error", "message": "Étape introuvable."}
+
+    order = step.order
+    subject = step.subject
+    step.delete()
+
+    # Reorder remaining steps
+    for i, s in enumerate(seq.steps.order_by("order"), start=1):
+        if s.order != i:
+            s.order = i
+            s.save(update_fields=["order"])
+
+    return {
+        "action": "sequence_step_deleted",
+        "entity_type": "sequence_step",
+        "entity_id": step_id,
+        "summary": f"Étape {order} ('{subject}') supprimée de '{seq.name}'",
+    }
+
+
+def update_sequence_tool(
+    ctx: RunContext[ChatDeps],
+    sequence_id: str,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    status: Optional[str] = None,
+) -> dict:
+    """Update a sequence's name, description, or status.
+
+    Args:
+        sequence_id: UUID of the sequence
+        name: New name (optional)
+        description: New description (optional)
+        status: New status - "draft", "active", "paused", or "archived" (optional)
+    """
+    from sequences.models import Sequence
+
+    org_id = ctx.deps.organization_id
+    try:
+        seq = Sequence.objects.get(id=sequence_id, organization_id=org_id)
+    except Sequence.DoesNotExist:
+        return {"action": "error", "message": "Séquence introuvable."}
+
+    changes = []
+    if name is not None and name != seq.name:
+        changes.append({"field": "name", "from": seq.name, "to": name})
+        seq.name = name
+    if description is not None and description != seq.description:
+        changes.append({"field": "description", "from": seq.description[:50], "to": description[:50]})
+        seq.description = description
+    if status is not None and status != seq.status:
+        valid = ["draft", "active", "paused", "archived"]
+        if status not in valid:
+            return {"action": "error", "message": f"Statut invalide. Options: {', '.join(valid)}"}
+        if status == "active" and not seq.email_account:
+            return {"action": "error", "message": "Impossible d'activer: aucun compte email associé."}
+        if status == "active" and seq.steps.count() == 0:
+            return {"action": "error", "message": "Impossible d'activer: aucune étape dans la séquence."}
+        changes.append({"field": "status", "from": seq.status, "to": status})
+        seq.status = status
+
+    if not changes:
+        return {"action": "error", "message": "Aucun champ à mettre à jour."}
+
+    seq.save()
+
+    return {
+        "action": "sequence_updated",
+        "entity_type": "sequence",
+        "entity_id": str(seq.id),
+        "summary": f"Séquence '{seq.name}' mise à jour",
+        "changes": changes,
+        "entity_preview": {"name": seq.name, "status": seq.status},
+        "link": f"/sequences/{seq.id}",
+    }
+
+
+def delete_sequence_tool(ctx: RunContext[ChatDeps], sequence_id: str) -> dict:
+    """Delete a sequence and all its steps/enrollments.
+
+    Args:
+        sequence_id: UUID of the sequence
+    """
+    from sequences.models import Sequence
+
+    org_id = ctx.deps.organization_id
+    try:
+        seq = Sequence.objects.get(id=sequence_id, organization_id=org_id)
+    except Sequence.DoesNotExist:
+        return {"action": "error", "message": "Séquence introuvable."}
+
+    name = seq.name
+    active_enrollments = seq.enrollments.filter(status="active").count()
+    if active_enrollments > 0:
+        return {
+            "action": "error",
+            "message": f"Impossible de supprimer: {active_enrollments} contact(s) actif(s) dans la séquence. Mettez-la en pause d'abord.",
+        }
+
+    seq.delete()
+    return {
+        "action": "sequence_deleted",
+        "entity_type": "sequence",
+        "entity_id": sequence_id,
+        "summary": f"Séquence '{name}' supprimée",
+    }
+
+
+def get_sequence_enrollments(
+    ctx: RunContext[ChatDeps],
+    sequence_id: str,
+    status: str = "",
+) -> dict:
+    """List contacts enrolled in a sequence. Optionally filter by status.
+
+    Args:
+        sequence_id: UUID of the sequence
+        status: Filter by enrollment status - "active", "completed", "replied", "bounced", "opted_out", "paused", "unenrolled" (optional)
+    """
+    from sequences.models import Sequence, SequenceEnrollment
+
+    org_id = ctx.deps.organization_id
+    try:
+        seq = Sequence.objects.get(id=sequence_id, organization_id=org_id)
+    except Sequence.DoesNotExist:
+        return {"action": "error", "message": "Séquence introuvable."}
+
+    qs = seq.enrollments.select_related("contact", "current_step")
+    if status:
+        qs = qs.filter(status=status)
+
+    enrollments = qs[:30]
+    results = []
+    for e in enrollments:
+        results.append({
+            "id": str(e.id),
+            "contact_id": str(e.contact_id),
+            "contact_name": f"{e.contact.first_name} {e.contact.last_name}",
+            "contact_email": e.contact.email,
+            "status": e.status,
+            "current_step": e.current_step.order if e.current_step else None,
+            "enrolled_at": str(e.enrolled_at),
+        })
+
+    return {
+        "action": "get_sequence_enrollments",
+        "entity_type": "enrollment_list",
+        "summary": f"{len(results)} inscription(s) dans '{seq.name}'",
+        "sequence_name": seq.name,
+        "count": len(results),
+        "results": results,
+    }
+
+
+def unenroll_from_sequence(
+    ctx: RunContext[ChatDeps],
+    contact_id: str,
+    sequence_id: str,
+) -> dict:
+    """Unenroll a contact from a sequence.
+
+    Args:
+        contact_id: UUID of the contact
+        sequence_id: UUID of the sequence
+    """
+    from sequences.models import SequenceEnrollment
+
+    org_id = ctx.deps.organization_id
+    resolved_id = _resolve_contact_id(org_id, contact_id)
+    if not resolved_id:
+        return {"action": "error", "message": "Contact introuvable."}
+
+    try:
+        enrollment = SequenceEnrollment.objects.get(
+            sequence_id=sequence_id,
+            contact_id=resolved_id,
+        )
+    except SequenceEnrollment.DoesNotExist:
+        return {"action": "error", "message": "Le contact n'est pas inscrit dans cette séquence."}
+
+    contact = Contact.objects.get(id=resolved_id, organization_id=org_id)
+    enrollment.status = SequenceEnrollment.Status.UNENROLLED
+    enrollment.save()
+
+    return {
+        "action": "unenrolled",
+        "summary": f"{contact.first_name} {contact.last_name} désinscrit de la séquence",
+        "contact": f"{contact.first_name} {contact.last_name}",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Calls (list, get, update, delete)
+# ---------------------------------------------------------------------------
+
+def list_calls(
+    ctx: RunContext[ChatDeps],
+    contact_id: Optional[str] = None,
+    limit: int = 20,
+) -> dict:
+    """List recent call logs. Optionally filter by contact.
+
+    Args:
+        contact_id: UUID of the contact (optional)
+        limit: Max number of calls to return (default 20)
+    """
+    from notes.models import Call
+
+    org_id = ctx.deps.organization_id
+    qs = Call.objects.filter(organization_id=org_id).select_related("contact")
+    if contact_id:
+        resolved_id = _resolve_contact_id(org_id, contact_id)
+        if resolved_id:
+            qs = qs.filter(contact_id=resolved_id)
+
+    calls = qs.order_by("-started_at")[:limit]
+    results = []
+    for c in calls:
+        results.append({
+            "id": str(c.id),
+            "contact_name": f"{c.contact.first_name} {c.contact.last_name}" if c.contact else "",
+            "contact_id": str(c.contact_id) if c.contact_id else None,
+            "direction": c.direction,
+            "outcome": c.outcome,
+            "duration_seconds": c.duration_seconds,
+            "started_at": str(c.started_at),
+            "notes": c.notes[:200] if c.notes else "",
+        })
+
+    return {
+        "action": "list_calls",
+        "entity_type": "call_list",
+        "summary": f"{len(results)} appel(s) trouvé(s)",
+        "count": len(results),
+        "results": results,
+    }
+
+
+def update_call(
+    ctx: RunContext[ChatDeps],
+    call_id: str,
+    outcome: Optional[str] = None,
+    duration_seconds: Optional[int] = None,
+    notes: Optional[str] = None,
+) -> dict:
+    """Update a call log.
+
+    Args:
+        call_id: UUID of the call
+        outcome: New outcome - "answered", "voicemail", "no_answer", "busy", "wrong_number" (optional)
+        duration_seconds: New duration in seconds (optional)
+        notes: New notes (optional)
+    """
+    from notes.models import Call
+
+    org_id = ctx.deps.organization_id
+    try:
+        call = Call.objects.select_related("contact").get(id=call_id, organization_id=org_id)
+    except Call.DoesNotExist:
+        return {"action": "error", "message": "Appel introuvable."}
+
+    changes = []
+    if outcome is not None and outcome != call.outcome:
+        changes.append({"field": "outcome", "from": call.outcome, "to": outcome})
+        call.outcome = outcome
+    if duration_seconds is not None and duration_seconds != call.duration_seconds:
+        changes.append({"field": "duration_seconds", "from": str(call.duration_seconds), "to": str(duration_seconds)})
+        call.duration_seconds = duration_seconds
+    if notes is not None and notes != call.notes:
+        changes.append({"field": "notes", "from": call.notes[:50] if call.notes else "", "to": notes[:50]})
+        call.notes = notes
+
+    if not changes:
+        return {"action": "error", "message": "Aucun champ à mettre à jour."}
+
+    call.save()
+    contact_name = f"{call.contact.first_name} {call.contact.last_name}" if call.contact else ""
+
+    return {
+        "action": "call_updated",
+        "entity_type": "call",
+        "entity_id": str(call.id),
+        "summary": f"Appel avec {contact_name} mis à jour",
+        "changes": changes,
+    }
+
+
+def delete_call(ctx: RunContext[ChatDeps], call_id: str) -> dict:
+    """Delete a call log.
+
+    Args:
+        call_id: UUID of the call
+    """
+    from notes.models import Call
+
+    org_id = ctx.deps.organization_id
+    try:
+        call = Call.objects.select_related("contact").get(id=call_id, organization_id=org_id)
+    except Call.DoesNotExist:
+        return {"action": "error", "message": "Appel introuvable."}
+
+    contact_name = f"{call.contact.first_name} {call.contact.last_name}" if call.contact else ""
+    if call.timeline_entry:
+        call.timeline_entry.delete()
+    call.delete()
+
+    return {
+        "action": "call_deleted",
+        "entity_type": "call",
+        "entity_id": call_id,
+        "summary": f"Appel avec {contact_name} supprimé",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Calendar / Meetings (full CRUD)
+# ---------------------------------------------------------------------------
+
+def list_meetings(
+    ctx: RunContext[ChatDeps],
+    contact_id: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    limit: int = 20,
+) -> dict:
+    """List meetings/events. Filter by contact, date range.
+
+    Args:
+        contact_id: UUID of the contact (optional)
+        start_date: Only meetings after this date - ISO format YYYY-MM-DD (optional, defaults to today)
+        end_date: Only meetings before this date - ISO format YYYY-MM-DD (optional)
+        limit: Max number of meetings (default 20)
+    """
+    from calendars.models import Meeting
+
+    org_id = ctx.deps.organization_id
+    qs = Meeting.objects.filter(organization_id=org_id).select_related("contact")
+
+    if contact_id:
+        resolved_id = _resolve_contact_id(org_id, contact_id)
+        if resolved_id:
+            qs = qs.filter(Q(contact_id=resolved_id) | Q(contacts__id=resolved_id)).distinct()
+
+    if start_date:
+        try:
+            qs = qs.filter(start_at__gte=datetime.fromisoformat(start_date))
+        except ValueError:
+            pass
+    else:
+        qs = qs.filter(start_at__gte=timezone.now())
+
+    if end_date:
+        try:
+            qs = qs.filter(start_at__lte=datetime.fromisoformat(end_date))
+        except ValueError:
+            pass
+
+    meetings = qs.order_by("start_at")[:limit]
+    results = []
+    for m in meetings:
+        results.append({
+            "id": str(m.id),
+            "title": m.title,
+            "description": m.description[:200] if m.description else "",
+            "location": m.location,
+            "start_at": str(m.start_at),
+            "end_at": str(m.end_at),
+            "is_all_day": m.is_all_day,
+            "contact_name": f"{m.contact.first_name} {m.contact.last_name}" if m.contact else "",
+            "contact_id": str(m.contact_id) if m.contact_id else None,
+            "sync_status": m.sync_status,
+        })
+
+    return {
+        "action": "list_meetings",
+        "entity_type": "meeting_list",
+        "summary": f"{len(results)} meeting(s) trouvé(s)",
+        "count": len(results),
+        "results": results,
+    }
+
+
+def get_meeting(ctx: RunContext[ChatDeps], meeting_id: str) -> dict:
+    """Get detailed info about a specific meeting.
+
+    Args:
+        meeting_id: UUID of the meeting
+    """
+    from calendars.models import Meeting
+
+    org_id = ctx.deps.organization_id
+    try:
+        m = Meeting.objects.select_related("contact").get(id=meeting_id, organization_id=org_id)
+    except Meeting.DoesNotExist:
+        return {"action": "error", "message": "Meeting introuvable."}
+
+    attendee_contacts = list(m.contacts.values_list("first_name", "last_name", "email"))
+
+    return {
+        "action": "get_meeting",
+        "entity_type": "meeting",
+        "entity_id": str(m.id),
+        "entity_preview": {
+            "title": m.title,
+            "start_at": str(m.start_at),
+            "end_at": str(m.end_at),
+        },
+        "title": m.title,
+        "description": m.description,
+        "location": m.location,
+        "start_at": str(m.start_at),
+        "end_at": str(m.end_at),
+        "is_all_day": m.is_all_day,
+        "contact": f"{m.contact.first_name} {m.contact.last_name}" if m.contact else None,
+        "attendees": m.attendees,
+        "attendee_contacts": [
+            {"name": f"{fn} {ln}", "email": e} for fn, ln, e in attendee_contacts
+        ],
+        "sync_status": m.sync_status,
+        "reminder_minutes": m.reminder_minutes,
+        "link": "/calendar",
+    }
+
+
+def update_meeting_tool(
+    ctx: RunContext[ChatDeps],
+    meeting_id: str,
+    title: Optional[str] = None,
+    description: Optional[str] = None,
+    location: Optional[str] = None,
+    start_at: Optional[str] = None,
+    end_at: Optional[str] = None,
+) -> dict:
+    """Update a meeting's details.
+
+    Args:
+        meeting_id: UUID of the meeting
+        title: New title (optional)
+        description: New description (optional)
+        location: New location (optional)
+        start_at: New start date/time in ISO format (optional)
+        end_at: New end date/time in ISO format (optional)
+    """
+    from calendars.models import Meeting
+
+    org_id = ctx.deps.organization_id
+    try:
+        m = Meeting.objects.get(id=meeting_id, organization_id=org_id)
+    except Meeting.DoesNotExist:
+        return {"action": "error", "message": "Meeting introuvable."}
+
+    changes = []
+    if title is not None and title != m.title:
+        changes.append({"field": "title", "from": m.title, "to": title})
+        m.title = title
+    if description is not None and description != m.description:
+        changes.append({"field": "description", "from": m.description[:50], "to": description[:50]})
+        m.description = description
+    if location is not None and location != m.location:
+        changes.append({"field": "location", "from": m.location, "to": location})
+        m.location = location
+    if start_at is not None:
+        try:
+            new_start = datetime.fromisoformat(start_at)
+            changes.append({"field": "start_at", "from": str(m.start_at), "to": str(new_start)})
+            m.start_at = new_start
+        except ValueError:
+            return {"action": "error", "message": "Format de date start_at invalide."}
+    if end_at is not None:
+        try:
+            new_end = datetime.fromisoformat(end_at)
+            changes.append({"field": "end_at", "from": str(m.end_at), "to": str(new_end)})
+            m.end_at = new_end
+        except ValueError:
+            return {"action": "error", "message": "Format de date end_at invalide."}
+
+    if not changes:
+        return {"action": "error", "message": "Aucun champ à mettre à jour."}
+
+    m.save()
+
+    # Trigger calendar sync if connected
+    if m.calendar_account:
+        from calendars.tasks import sync_meeting_to_calendar
+        sync_meeting_to_calendar.delay(str(m.id))
+
+    return {
+        "action": "meeting_updated",
+        "entity_type": "meeting",
+        "entity_id": str(m.id),
+        "summary": f"Meeting '{m.title}' mis à jour",
+        "changes": changes,
+        "link": "/calendar",
+    }
+
+
+def delete_meeting_tool(ctx: RunContext[ChatDeps], meeting_id: str) -> dict:
+    """Delete a meeting.
+
+    Args:
+        meeting_id: UUID of the meeting
+    """
+    from calendars.models import Meeting
+
+    org_id = ctx.deps.organization_id
+    try:
+        m = Meeting.objects.get(id=meeting_id, organization_id=org_id)
+    except Meeting.DoesNotExist:
+        return {"action": "error", "message": "Meeting introuvable."}
+
+    title = m.title
+    # Delete from external calendar if synced
+    if m.calendar_account and m.provider_event_id:
+        from calendars.tasks import delete_meeting_from_calendar
+        delete_meeting_from_calendar.delay(str(m.id))
+
+    if m.timeline_entry:
+        m.timeline_entry.delete()
+    m.delete()
+
+    return {
+        "action": "meeting_deleted",
+        "entity_type": "meeting",
+        "entity_id": meeting_id,
+        "summary": f"Meeting '{title}' supprimé",
+    }
 
 
 # All tools to register on the agent
@@ -3409,4 +4436,29 @@ ALL_TOOLS = [
     log_call,
     schedule_meeting,
     enroll_in_sequence,
+    # Inbox
+    list_inbox_threads,
+    get_thread_emails,
+    get_contact_emails,
+    trigger_email_sync,
+    # Sequences (full CRUD)
+    list_sequences,
+    get_sequence,
+    create_sequence_tool,
+    add_sequence_step,
+    update_sequence_step,
+    delete_sequence_step,
+    update_sequence_tool,
+    delete_sequence_tool,
+    get_sequence_enrollments,
+    unenroll_from_sequence,
+    # Calls (list, update, delete)
+    list_calls,
+    update_call,
+    delete_call,
+    # Calendar / Meetings (full CRUD)
+    list_meetings,
+    get_meeting,
+    update_meeting_tool,
+    delete_meeting_tool,
 ]

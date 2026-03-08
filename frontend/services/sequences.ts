@@ -2,7 +2,8 @@ import { apiFetch } from "@/lib/api"
 import type { Sequence, SequenceStep, SequenceEnrollment } from "@/types/sequences"
 
 export async function fetchSequences(): Promise<Sequence[]> {
-  return apiFetch<Sequence[]>("/sequences/")
+  const data = await apiFetch<{ results: Sequence[] }>("/sequences/")
+  return data.results
 }
 
 export async function fetchSequence(id: string): Promise<Sequence> {

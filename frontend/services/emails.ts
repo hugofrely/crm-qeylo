@@ -101,7 +101,7 @@ export async function markEmailRead(
 ): Promise<void> {
   return apiFetch(`/email/inbox/emails/${emailId}/read/`, {
     method: "PATCH",
-    body: JSON.stringify({ is_read: isRead }),
+    json: { is_read: isRead },
   })
 }
 

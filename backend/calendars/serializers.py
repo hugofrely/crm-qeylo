@@ -3,10 +3,17 @@ from .models import CalendarAccount, Meeting
 
 
 class CalendarAccountSerializer(serializers.ModelSerializer):
+    email_address = serializers.SerializerMethodField()
+
     class Meta:
         model = CalendarAccount
-        fields = ["id", "provider", "calendar_id", "is_active", "email_account", "created_at"]
+        fields = ["id", "provider", "calendar_id", "is_active", "email_account", "email_address", "created_at"]
         read_only_fields = ["id", "created_at"]
+
+    def get_email_address(self, obj):
+        if obj.email_account:
+            return obj.email_account.email_address
+        return None
 
 
 class MeetingSerializer(serializers.ModelSerializer):

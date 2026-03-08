@@ -52,7 +52,7 @@ def meeting_list_create(request):
         return Response([], status=status.HTTP_200_OK)
 
     if request.method == "GET":
-        meetings = Meeting.objects.filter(organization=org, created_by=request.user)
+        meetings = Meeting.objects.filter(organization=org, created_by=request.user).select_related("contact")
         contact_id = request.query_params.get("contact")
         if contact_id:
             meetings = meetings.filter(contact_id=contact_id)
