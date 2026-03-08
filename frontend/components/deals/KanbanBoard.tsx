@@ -14,7 +14,8 @@ import {
   rectIntersection,
   type CollisionDetection,
 } from "@dnd-kit/core"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { updateDeal } from "@/services/deals"
 import posthog from "posthog-js"
 import { usePipeline } from "@/hooks/useDeals"
@@ -35,6 +36,7 @@ interface KanbanBoardProps {
 
 export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange, filters }: KanbanBoardProps) {
   const router = useRouter()
+  const t = useTranslations("deals")
   const { pipeline, setPipeline, loading, refresh } = usePipeline(pipelineId, filters)
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null)
   const [pendingLoss, setPendingLoss] = useState<{dealId: string; stageId: string} | null>(null)
@@ -211,8 +213,7 @@ export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange, filter
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-16">
           <p className="text-muted-foreground text-sm">
-            Aucune &eacute;tape de pipeline configur&eacute;e. Cr&eacute;ez des &eacute;tapes dans
-            les param&egrave;tres.
+            {t("noStagesConfigured")}
           </p>
         </CardContent>
       </Card>

@@ -7,6 +7,7 @@ import {
 } from "@dnd-kit/sortable"
 import { DealCard } from "./DealCard"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useTranslations } from "next-intl"
 import type { Deal, Stage } from "@/types"
 
 interface KanbanColumnProps {
@@ -27,6 +28,7 @@ function formatAmount(amount: string | number): string {
 }
 
 export function KanbanColumn({ stage, deals, totalAmount, onDealClick }: KanbanColumnProps) {
+  const t = useTranslations("deals")
   const { setNodeRef, isOver } = useDroppable({
     id: `stage-${stage.id}`,
     data: {
@@ -73,7 +75,7 @@ export function KanbanColumn({ stage, deals, totalAmount, onDealClick }: KanbanC
               ))}
               {deals.length === 0 && (
                 <p className="text-center text-xs text-muted-foreground py-8">
-                  Aucun deal
+                  {t("noDeal")}
                 </p>
               )}
             </div>

@@ -1,1 +1,26 @@
-{}
+{
+  "title": "Entonnoir de conversion",
+  "overallConversion": "Conversion globale",
+  "selectPipeline": "Selectionnez un pipeline",
+  "hideDetails": "Masquer les détails",
+  "showDetails": "Voir les détails",
+  "tableStage": "Etape",
+  "tableEntered": "Entres",
+  "tableExitedToNext": "Sortis vers suivant",
+  "tableConversion": "Conversion",
+  "tableAvgDuration": "Duree moy.",
+  "tableAmount": "Montant",
+  "filterPipeline": "Pipeline",
+  "filterMode": "Mode",
+  "filterModeCohort": "Par cohorte d'entree",
+  "filterModeActivity": "Par activite",
+  "filterPeriod": "Période",
+  "filterModeLabel": "Mode de filtre",
+  "allDeals": "Tous les deals",
+  "allPeriods": "Toutes les périodes",
+  "thisMonth": "Ce mois",
+  "lastMonth": "Mois dernier",
+  "last3Months": "3 derniers mois",
+  "last6Months": "6 derniers mois",
+  "thisYear": "Cette année"
+}

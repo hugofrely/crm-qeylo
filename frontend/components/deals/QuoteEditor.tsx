@@ -23,6 +23,7 @@ import {
   acceptQuote,
   refuseQuote,
 } from "@/services/quotes"
+import { useTranslations } from "next-intl"
 import type { Quote, QuoteLine } from "@/types"
 
 interface QuoteEditorProps {
@@ -30,23 +31,6 @@ interface QuoteEditorProps {
   onUpdate: () => void
   onDelete: () => void
 }
-
-const STATUS_CONFIG: Record<
-  Quote["status"],
-  { label: string; className: string }
-> = {
-  draft: { label: "Brouillon", className: "bg-gray-100 text-gray-700" },
-  sent: { label: "Envoyé", className: "bg-blue-100 text-blue-700" },
-  accepted: { label: "Accepté", className: "bg-green-100 text-green-700" },
-  refused: { label: "Refusé", className: "bg-red-100 text-red-700" },
-}
-
-const UNIT_OPTIONS: { value: QuoteLine["unit"]; label: string }[] = [
-  { value: "unit", label: "Unité" },
-  { value: "hour", label: "Heure" },
-  { value: "day", label: "Jour" },
-  { value: "fixed", label: "Forfait" },
-]
 
 function toNum(v: string | number): number {
   const n = typeof v === "string" ? parseFloat(v) : v
@@ -76,6 +60,25 @@ function emptyLine(order: number): QuoteLine {
 }
 
 export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
+  const t = useTranslations("deals")
+
+  const STATUS_CONFIG: Record<
+    Quote["status"],
+    { label: string; className: string }
+  > = {
+    draft: { label: t("statusDraft"), className: "bg-gray-100 text-gray-700" },
+    sent: { label: t("statusSent"), className: "bg-blue-100 text-blue-700" },
+    accepted: { label: t("statusAccepted"), className: "bg-green-100 text-green-700" },
+    refused: { label: t("statusRefused"), className: "bg-red-100 text-red-700" },
+  }
+
+  const UNIT_OPTIONS: { value: QuoteLine["unit"]; label: string }[] = [
+    { value: "unit", label: t("unitUnit") },
+    { value: "hour", label: t("unitHour") },
+    { value: "day", label: t("unitDay") },
+    { value: "fixed", label: t("unitFixed") },
+  ]
+
   const [lines, setLines] = useState<QuoteLine[]>(
     quote.lines.length > 0 ? quote.lines : [emptyLine(0)]
   )
@@ -183,7 +186,7 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
   ) => {
     if (
       action === "delete" &&
-      !window.confirm("Supprimer ce devis ? Cette action est irréversible.")
+      !window.confirm(t("quoteConfirmDelete"))
     )
       return
     setActionLoading(action)
@@ -211,7 +214,7 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
         </div>
         <div className="flex items-center gap-2">
           <Label htmlFor={`valid-${quote.id}`} className="text-xs text-muted-foreground whitespace-nowrap">
-            Valide jusqu&apos;au
+            {t("quoteValidUntil")}
           </Label>
           <Input
             id={`valid-${quote.id}`}
@@ -228,13 +231,13 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b text-left text-xs text-muted-foreground">
-              <th className="pb-2 pr-2 min-w-[200px]">Description</th>
-              <th className="pb-2 px-2 w-20">Qté</th>
-              <th className="pb-2 px-2 w-28">Prix unit.</th>
-              <th className="pb-2 px-2 w-24">Unité</th>
-              <th className="pb-2 px-2 w-20">TVA%</th>
-              <th className="pb-2 px-2 w-20">Remise%</th>
-              <th className="pb-2 px-2 w-28 text-right">Total HT</th>
+              <th className="pb-2 pr-2 min-w-[200px]">{t("quoteDescription")}</th>
+              <th className="pb-2 px-2 w-20">{t("quoteQty")}</th>
+              <th className="pb-2 px-2 w-28">{t("quoteUnitPrice")}</th>
+              <th className="pb-2 px-2 w-24">{t("quoteUnit")}</th>
+              <th className="pb-2 px-2 w-20">{t("quoteVat")}</th>
+              <th className="pb-2 px-2 w-20">{t("quoteDiscount")}</th>
+              <th className="pb-2 px-2 w-28 text-right">{t("quoteTotalHt")}</th>
               <th className="pb-2 pl-2 w-10"></th>
             </tr>
           </thead>
@@ -245,7 +248,7 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
                   <Input
                     value={line.description}
                     onChange={(e) => updateLine(index, "description", e.target.value)}
-                    placeholder="Description du produit/service"
+                    placeholder={t("quoteDescriptionPlaceholder")}
                     className="h-8 text-xs"
                   />
                 </td>
@@ -330,13 +333,13 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
 
       <Button variant="outline" size="sm" onClick={addLine} className="text-xs">
         <Plus className="h-3.5 w-3.5 mr-1" />
-        Ajouter une ligne
+        {t("quoteAddLine")}
       </Button>
 
       {/* Global discount + totals */}
       <div className="flex flex-col items-end gap-2">
         <div className="flex items-center gap-2">
-          <Label className="text-xs text-muted-foreground">Remise globale (%)</Label>
+          <Label className="text-xs text-muted-foreground">{t("quoteGlobalDiscount")}</Label>
           <Input
             type="number"
             min="0"
@@ -350,25 +353,25 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
 
         <div className="w-64 space-y-1 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Sous-total HT</span>
+            <span className="text-muted-foreground">{t("quoteSubtotalHt")}</span>
             <span>{formatEur(calculations.subtotalHt)}</span>
           </div>
           {globalDiscountPercent > 0 && (
             <div className="flex justify-between text-orange-600">
-              <span>Remise globale</span>
+              <span>{t("quoteGlobalDiscountLabel")}</span>
               <span>-{formatEur(calculations.globalDiscount)}</span>
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Total HT</span>
+            <span className="text-muted-foreground">{t("quoteTotalHtLabel")}</span>
             <span className="font-medium">{formatEur(calculations.totalHt)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">TVA</span>
+            <span className="text-muted-foreground">{t("quoteVatLabel")}</span>
             <span>{formatEur(calculations.totalTax)}</span>
           </div>
           <div className="flex justify-between border-t pt-1 font-semibold">
-            <span>Total TTC</span>
+            <span>{t("quoteTotalTtc")}</span>
             <span>{formatEur(calculations.totalTtc)}</span>
           </div>
         </div>
@@ -376,11 +379,11 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
 
       {/* Notes */}
       <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground">Notes</Label>
+        <Label className="text-xs text-muted-foreground">{t("quoteNotesLabel")}</Label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Notes du devis..."
+          placeholder={t("quoteNotesPlaceholder")}
           rows={3}
           className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 resize-y"
         />
@@ -395,7 +398,7 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
             ) : (
               <Save className="h-3.5 w-3.5 mr-1" />
             )}
-            Enregistrer
+            {t("quoteSave")}
           </Button>
           <Button
             variant="outline"
@@ -408,7 +411,7 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
             ) : (
               <Copy className="h-3.5 w-3.5 mr-1" />
             )}
-            Dupliquer
+            {t("quoteDuplicate")}
           </Button>
           {quote.status === "draft" && (
             <Button
@@ -422,7 +425,7 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
               ) : (
                 <Send className="h-3.5 w-3.5 mr-1" />
               )}
-              Envoyer
+              {t("quoteSend")}
             </Button>
           )}
           {quote.status === "sent" && (
@@ -439,7 +442,7 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
                 ) : (
                   <Check className="h-3.5 w-3.5 mr-1" />
                 )}
-                Accepter
+                {t("quoteAccept")}
               </Button>
               <Button
                 variant="outline"
@@ -453,7 +456,7 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
                 ) : (
                   <X className="h-3.5 w-3.5 mr-1" />
                 )}
-                Refuser
+                {t("quoteRefuse")}
               </Button>
             </>
           )}
@@ -470,7 +473,7 @@ export function QuoteEditor({ quote, onUpdate, onDelete }: QuoteEditorProps) {
           ) : (
             <Trash2 className="h-3.5 w-3.5 mr-1" />
           )}
-          Supprimer
+          {t("quoteDelete")}
         </Button>
       </div>
     </div>

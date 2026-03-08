@@ -9,16 +9,8 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterPanel, FilterTriggerButton, FilterSection } from "@/components/shared/FilterPanel"
 import { FilterBar } from "@/components/shared/FilterBar"
 import { FilterSelect, FilterPills } from "@/components/shared/FilterControls"
+import { useTranslations } from "next-intl"
 import type { FunnelResponse } from "@/types"
-
-const DATE_RANGES = [
-  { value: "", label: "Toutes les périodes" },
-  { value: "this_month", label: "Ce mois" },
-  { value: "last_month", label: "Mois dernier" },
-  { value: "last_3_months", label: "3 derniers mois" },
-  { value: "last_6_months", label: "6 derniers mois" },
-  { value: "this_year", label: "Cette année" },
-]
 
 function formatDurationTable(iso: string): string {
   const match = iso.match(/P(\d+)DT(\d+)H/)
@@ -30,6 +22,17 @@ function formatDurationTable(iso: string): string {
 }
 
 export default function FunnelPage() {
+  const t = useTranslations("pipeline")
+
+  const DATE_RANGES = [
+    { value: "", label: t("allPeriods") },
+    { value: "this_month", label: t("thisMonth") },
+    { value: "last_month", label: t("lastMonth") },
+    { value: "last_3_months", label: t("last3Months") },
+    { value: "last_6_months", label: t("last6Months") },
+    { value: "this_year", label: t("thisYear") },
+  ]
+
   const [pipelines, setPipelines] = useState<{ id: string; name: string }[]>([])
   const [pipelineId, setPipelineId] = useState("")
   const [filterMode, setFilterMode] = useState<"" | "cohort" | "activity">("")
@@ -78,11 +81,11 @@ export default function FunnelPage() {
 
   return (
     <div className="p-8 lg:p-12 space-y-8 animate-fade-in-up">
-      <PageHeader title="Entonnoir de conversion">
+      <PageHeader title={t("title")}>
         {data && (
           <div className="text-right">
             <div className="text-3xl font-light tracking-tight">{data.overall_conversion}%</div>
-            <div className="text-xs text-muted-foreground">Conversion globale</div>
+            <div className="text-xs text-muted-foreground">{t("overallConversion")}</div>
           </div>
         )}
         <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
@@ -92,28 +95,28 @@ export default function FunnelPage() {
       <FilterBar open={filterOpen} activeFilterCount={activeFilterCount} onReset={resetFilters}>
         {pipelines.length > 1 && (
           <FilterSelect
-            label="Pipeline"
+            label={t("filterPipeline")}
             options={pipelines.map((p) => ({ value: p.id, label: p.name }))}
             value={pipelineId}
             onChange={setPipelineId}
-            placeholder="Pipeline"
+            placeholder={t("filterPipeline")}
           />
         )}
         <FilterPills
-          label="Mode"
+          label={t("filterMode")}
           options={[
-            { value: "cohort", label: "Par cohorte d\u2019entree" },
-            { value: "activity", label: "Par activite" },
+            { value: "cohort", label: t("filterModeCohort") },
+            { value: "activity", label: t("filterModeActivity") },
           ]}
           value={filterMode || null}
           onChange={(v) => setFilterMode((v ?? "") as "" | "cohort" | "activity")}
         />
         <FilterSelect
-          label="Période"
+          label={t("filterPeriod")}
           options={DATE_RANGES.filter((d) => d.value).map((d) => ({ value: d.value, label: d.label }))}
           value={dateRange}
           onChange={setDateRange}
-          placeholder="Toutes les périodes"
+          placeholder={t("allPeriods")}
         />
       </FilterBar>
 
@@ -127,7 +130,7 @@ export default function FunnelPage() {
           <FunnelChart stages={data.stages} />
         ) : (
           <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
-            Selectionnez un pipeline
+            {t("selectPipeline")}
           </div>
         )}
       </div>
@@ -142,7 +145,7 @@ export default function FunnelPage() {
               onClick={() => setShowTable(!showTable)}
               className="gap-2 text-muted-foreground"
             >
-              {showTable ? "Masquer les détails" : "Voir les détails"}
+              {showTable ? t("hideDetails") : t("showDetails")}
             </Button>
           </div>
 
@@ -151,12 +154,12 @@ export default function FunnelPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Etape</th>
-                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Entres</th>
-                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Sortis vers suivant</th>
-                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Conversion</th>
-                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Duree moy.</th>
-                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Montant</th>
+                    <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">{t("tableStage")}</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">{t("tableEntered")}</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">{t("tableExitedToNext")}</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">{t("tableConversion")}</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">{t("tableAvgDuration")}</th>
+                    <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">{t("tableAmount")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -189,21 +192,21 @@ export default function FunnelPage() {
       )}
 
       <FilterPanel open={filterOpen} onOpenChange={setFilterOpen} onReset={resetFilters} activeFilterCount={activeFilterCount}>
-        <FilterSection label="Pipeline">
+        <FilterSection label={t("filterPipeline")}>
           <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className={selectClass}>
             {pipelines.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
         </FilterSection>
-        <FilterSection label="Mode de filtre">
+        <FilterSection label={t("filterModeLabel")}>
           <select value={filterMode} onChange={(e) => setFilterMode(e.target.value as "" | "cohort" | "activity")} className={selectClass}>
-            <option value="">Tous les deals</option>
-            <option value="cohort">Par cohorte d&apos;entree</option>
-            <option value="activity">Par activite</option>
+            <option value="">{t("allDeals")}</option>
+            <option value="cohort">{t("filterModeCohort")}</option>
+            <option value="activity">{t("filterModeActivity")}</option>
           </select>
         </FilterSection>
-        <FilterSection label="Periode">
+        <FilterSection label={t("filterPeriod")}>
           <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className={selectClass}>
             {DATE_RANGES.map((d) => (
               <option key={d.value} value={d.value}>{d.label}</option>

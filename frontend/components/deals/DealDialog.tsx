@@ -20,6 +20,7 @@ import posthog from "posthog-js"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
 import { handleQuotaError } from "@/lib/quota-error"
+import { useTranslations } from "next-intl"
 import type { Deal, Stage } from "@/types"
 
 interface DealDialogProps {
@@ -39,6 +40,7 @@ export function DealDialog({
   defaultStageId,
   onSuccess,
 }: DealDialogProps) {
+  const t = useTranslations("deals")
   const isEditing = !!deal
 
   const [name, setName] = useState("")
@@ -114,22 +116,22 @@ export function DealDialog({
 
   const handleDelete = async () => {
     if (!deal) return
-    if (!window.confirm("Supprimer ce deal ? Cette action est irréversible.")) return
+    if (!window.confirm(t("confirmDeleteDeal"))) return
     setDeleting(true)
     try {
       const dealId = deal.id
       await deleteDeal(dealId)
       posthog.capture("deal_deleted")
-      toast("Element supprime", {
+      toast(t("elementDeleted"), {
         action: {
-          label: "Annuler",
+          label: t("cancel"),
           onClick: async () => {
             try {
               await restoreItems("deal", [dealId])
-              toast.success("Element restaure")
+              toast.success(t("elementRestored"))
               onSuccess()
             } catch {
-              toast.error("Erreur lors de la restauration")
+              toast.error(t("restoreError"))
             }
           },
         },
@@ -149,26 +151,26 @@ export function DealDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Modifier le deal" : "Nouveau deal"}
+            {isEditing ? t("dialogTitleEdit") : t("dialogTitleNew")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 font-[family-name:var(--font-body)]">
           {/* Nom */}
           <div className="space-y-1.5">
-            <Label htmlFor="deal-name">Nom du deal</Label>
+            <Label htmlFor="deal-name">{t("dialogDealName")}</Label>
             <Input
               id="deal-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Contrat entreprise X"
+              placeholder={t("dialogDealNamePlaceholder")}
             />
           </div>
 
           {/* Montant + Stage */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="deal-amount">Montant (€)</Label>
+              <Label htmlFor="deal-amount">{t("dialogAmount")}</Label>
               <Input
                 id="deal-amount"
                 type="number"
@@ -180,7 +182,7 @@ export function DealDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="deal-stage">Stage</Label>
+              <Label htmlFor="deal-stage">{t("dialogStage")}</Label>
               <select
                 id="deal-stage"
                 value={stageId}
@@ -198,7 +200,7 @@ export function DealDialog({
 
           {/* Contact autocomplete */}
           <div className="space-y-1.5">
-            <Label>Contact associé</Label>
+            <Label>{t("dialogAssociatedContact")}</Label>
             <div ref={contactAutocomplete.wrapperRef} className="relative">
               {contactId ? (
                 <div className="flex h-9 items-center justify-between rounded-md border border-input bg-transparent px-3 text-sm">
@@ -224,7 +226,7 @@ export function DealDialog({
                     onFocus={() => {
                       if (contactAutocomplete.results.length > 0) contactAutocomplete.setOpen(true)
                     }}
-                    placeholder="Rechercher un contact…"
+                    placeholder={t("searchContactPlaceholder")}
                     className="pl-8"
                   />
                   {contactAutocomplete.searching && (
@@ -252,7 +254,7 @@ export function DealDialog({
               )}
               {contactAutocomplete.open && contactAutocomplete.query && !contactAutocomplete.searching && contactAutocomplete.results.length === 0 && (
                 <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg px-3 py-3 text-sm text-muted-foreground text-center">
-                  Aucun contact trouvé
+                  {t("noContactFound")}
                 </div>
               )}
             </div>
@@ -261,7 +263,7 @@ export function DealDialog({
           {/* Probabilité + Date */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="deal-probability">Probabilité (%)</Label>
+              <Label htmlFor="deal-probability">{t("dialogProbability")}</Label>
               <Input
                 id="deal-probability"
                 type="number"
@@ -273,7 +275,7 @@ export function DealDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="deal-close-date">Date de clôture</Label>
+              <Label htmlFor="deal-close-date">{t("dialogCloseDate")}</Label>
               <Input
                 id="deal-close-date"
                 type="date"
@@ -285,11 +287,11 @@ export function DealDialog({
 
           {/* Notes */}
           <div className="space-y-1.5">
-            <Label htmlFor="deal-notes">Notes</Label>
+            <Label htmlFor="deal-notes">{t("dialogNotes")}</Label>
             <RichTextEditor
               content={notes}
               onChange={setNotes}
-              placeholder="Notes sur ce deal…"
+              placeholder={t("dialogNotesPlaceholder")}
               minHeight="80px"
               onImageUpload={apiUploadImage}
             />
@@ -309,7 +311,7 @@ export function DealDialog({
               ) : (
                 <Trash2 className="h-4 w-4" />
               )}
-              Supprimer
+              {t("dialogDelete")}
             </Button>
           ) : (
             <div />
@@ -319,7 +321,7 @@ export function DealDialog({
             disabled={!name.trim() || !stageId || saving}
           >
             {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {isEditing ? "Enregistrer" : "Créer"}
+            {isEditing ? t("dialogSave") : t("dialogCreate")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Loader2, Sparkles, AlertTriangle, AlertCircle, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { fetchNextActions, fetchAiNextActions } from "@/services/deals"
+import { useTranslations } from "next-intl"
 import type { NextAction, AiSuggestion } from "@/services/deals"
 
 const PRIORITY_STYLES = {
@@ -17,6 +18,7 @@ interface NextActionsProps {
 }
 
 export function NextActions({ dealId }: NextActionsProps) {
+  const t = useTranslations("deals")
   const [actions, setActions] = useState<NextAction[]>([])
   const [aiSuggestions, setAiSuggestions] = useState<AiSuggestion[]>([])
   const [loading, setLoading] = useState(true)
@@ -38,7 +40,7 @@ export function NextActions({ dealId }: NextActionsProps) {
       const data = await fetchAiNextActions(dealId)
       setAiSuggestions(data.suggestions)
     } catch {
-      setAiSuggestions([{ action: "Analyse non disponible", reasoning: "Erreur", priority: "medium" }])
+      setAiSuggestions([{ action: t("aiUnavailable"), reasoning: t("aiError"), priority: "medium" }])
     } finally {
       setAiLoading(false)
     }
@@ -56,7 +58,7 @@ export function NextActions({ dealId }: NextActionsProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium">Actions recommandées</h3>
+      <h3 className="text-sm font-medium">{t("recommendedActions")}</h3>
       <div className="space-y-2">
         {actions.map((action, i) => {
           const style = PRIORITY_STYLES[action.priority]
@@ -73,20 +75,20 @@ export function NextActions({ dealId }: NextActionsProps) {
       {!aiRequested && (
         <Button variant="outline" size="sm" onClick={handleAiAnalysis} className="gap-2">
           <Sparkles className="h-3.5 w-3.5" />
-          Analyse IA approfondie
+          {t("aiAnalysis")}
         </Button>
       )}
 
       {aiLoading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Analyse en cours...
+          {t("aiAnalysisLoading")}
         </div>
       )}
 
       {aiSuggestions.length > 0 && (
         <div className="space-y-2 mt-3">
-          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Suggestions IA</h4>
+          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("aiSuggestions")}</h4>
           {aiSuggestions.map((s, i) => (
             <div key={i} className="rounded-lg border border-border bg-card px-3 py-2.5 space-y-1">
               <p className="text-sm font-medium">{s.action}</p>

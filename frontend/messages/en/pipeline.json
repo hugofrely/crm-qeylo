@@ -1,1 +1,26 @@
-{}
+{
+  "title": "Conversion funnel",
+  "overallConversion": "Overall conversion",
+  "selectPipeline": "Select a pipeline",
+  "hideDetails": "Hide details",
+  "showDetails": "Show details",
+  "tableStage": "Stage",
+  "tableEntered": "Entered",
+  "tableExitedToNext": "Exited to next",
+  "tableConversion": "Conversion",
+  "tableAvgDuration": "Avg. duration",
+  "tableAmount": "Amount",
+  "filterPipeline": "Pipeline",
+  "filterMode": "Mode",
+  "filterModeCohort": "By entry cohort",
+  "filterModeActivity": "By activity",
+  "filterPeriod": "Period",
+  "filterModeLabel": "Filter mode",
+  "allDeals": "All deals",
+  "allPeriods": "All periods",
+  "thisMonth": "This month",
+  "lastMonth": "Last month",
+  "last3Months": "Last 3 months",
+  "last6Months": "Last 6 months",
+  "thisYear": "This year"
+}

@@ -30,11 +30,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import type { Member } from "@/types/organizations"
 
 export default function DealsPage() {
   const router = useRouter()
+  const t = useTranslations("deals")
   const { currentOrganization } = useOrganization()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [createPipelineOpen, setCreatePipelineOpen] = useState(false)
@@ -190,11 +192,11 @@ export default function DealsPage() {
     <div className="flex flex-col h-full animate-fade-in-up">
       {/* Header */}
       <div className="p-4 sm:p-8 lg:px-12 lg:pt-12 lg:pb-0 space-y-6 shrink-0">
-        <PageHeader title="Pipeline" subtitle="Gérez vos deals par étape du pipeline">
+        <PageHeader title={t("pageTitle")} subtitle={t("pageSubtitle")}>
           <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
           <Button onClick={() => setDialogOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
-            Nouveau deal
+            {t("newDeal")}
           </Button>
         </PageHeader>
 
@@ -203,7 +205,7 @@ export default function DealsPage() {
           <FilterSearchInput
             value={filterSearch}
             onChange={setFilterSearch}
-            placeholder="Rechercher un deal..."
+            placeholder={t("searchPlaceholder")}
             className="w-64"
           />
           <FilterContactSearch
@@ -211,14 +213,14 @@ export default function DealsPage() {
             contactLabel={filterContactLabel || null}
             onSelect={(id, label) => { setFilterContact(id); setFilterContactLabel(label) }}
             onClear={() => { setFilterContact(""); setFilterContactLabel(""); contactAutocomplete.reset() }}
-            label="Contact"
+            label={t("filterContact")}
           />
           <FilterCompanySearch
             companyId={filterCompany || null}
             companyLabel={filterCompanyLabel || null}
             onSelect={(id, label) => { setFilterCompany(id); setFilterCompanyLabel(label) }}
             onClear={() => { setFilterCompany(""); setFilterCompanyLabel("") }}
-            label="Entreprise"
+            label={t("filterCompany")}
           />
           <FilterNumberRange
             min={filterAmountMin}
@@ -227,29 +229,29 @@ export default function DealsPage() {
             onMaxChange={setFilterAmountMax}
             placeholderMin="Min"
             placeholderMax="Max"
-            label="Montant"
+            label={t("filterAmount")}
           />
           <FilterDateRange
             after={filterExpectedCloseAfter}
             before={filterExpectedCloseBefore}
             onAfterChange={setFilterExpectedCloseAfter}
             onBeforeChange={setFilterExpectedCloseBefore}
-            label="Date de closing"
+            label={t("filterClosingDate")}
           />
           <FilterDateRange
             after={filterCreatedAfter}
             before={filterCreatedBefore}
             onAfterChange={setFilterCreatedAfter}
             onBeforeChange={setFilterCreatedBefore}
-            label="Date de création"
+            label={t("filterCreatedDate")}
           />
           {members.length > 0 && (
             <FilterSelect
               options={members.map((m) => ({ value: m.user_id, label: `${m.first_name} ${m.last_name}` }))}
               value={filterCreatedBy}
               onChange={setFilterCreatedBy}
-              placeholder="Tous"
-              label="Créé par"
+              placeholder={t("filterAll")}
+              label={t("filterCreatedBy")}
             />
           )}
         </FilterBar>
@@ -293,24 +295,24 @@ export default function DealsPage() {
                 <DropdownMenuContent align="start">
                   <DropdownMenuItem onClick={() => { setRenamingId(selectedPipelineId); setRenameValue(pipelines.find((p) => p.id === selectedPipelineId)?.name ?? "") }}>
                     <Pencil className="h-4 w-4" />
-                    Renommer
+                    {t("rename")}
                   </DropdownMenuItem>
                   {!pipelines.find((p) => p.id === selectedPipelineId)?.is_default && (
                     <DropdownMenuItem onClick={() => handleSetDefault(selectedPipelineId)}>
                       <Star className="h-4 w-4" />
-                      Définir par défaut
+                      {t("setDefault")}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={() => router.push("/settings/pipeline")}>
                     <Settings className="h-4 w-4" />
-                    Gérer les étapes
+                    {t("manageStages")}
                   </DropdownMenuItem>
                   {pipelines.length > 1 && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem variant="destructive" onClick={() => setDeleteDialogId(selectedPipelineId)}>
                         <Trash2 className="h-4 w-4" />
-                        Supprimer
+                        {t("delete")}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -353,48 +355,48 @@ export default function DealsPage() {
       <Dialog open={!!deleteDialogId} onOpenChange={(open) => { if (!open) { setDeleteDialogId(null); setDeleteMigrateTo("") } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Supprimer le pipeline</DialogTitle>
+            <DialogTitle>{t("deletePipelineTitle")}</DialogTitle>
           </DialogHeader>
           {deletePipelineData && deletePipelineData.deal_count > 0 ? (
             <div className="space-y-3">
-              <p className="text-muted-foreground text-sm">
-                Ce pipeline contient <strong>{deletePipelineData.deal_count} deal{deletePipelineData.deal_count !== 1 ? "s" : ""}</strong>. Choisissez un pipeline de destination :
-              </p>
+              <p className="text-muted-foreground text-sm"
+                dangerouslySetInnerHTML={{ __html: t("deletePipelineHasDeals", { count: deletePipelineData.deal_count }) }}
+              />
               <select
                 value={deleteMigrateTo}
                 onChange={(e) => setDeleteMigrateTo(e.target.value)}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
-                <option value="">-- Sélectionner --</option>
+                <option value="">{t("selectPlaceholder")}</option>
                 {pipelines.filter((p) => p.id !== deleteDialogId).map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
             </div>
           ) : (
-            <p className="text-muted-foreground text-sm">
-              Êtes-vous sûr de vouloir supprimer le pipeline <strong>{deletePipelineData?.name}</strong> ?
-            </p>
+            <p className="text-muted-foreground text-sm"
+              dangerouslySetInnerHTML={{ __html: t("deletePipelineConfirm", { name: deletePipelineData?.name ?? "" }) }}
+            />
           )}
           <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => { setDeleteDialogId(null); setDeleteMigrateTo("") }}>Annuler</Button>
+            <Button variant="outline" onClick={() => { setDeleteDialogId(null); setDeleteMigrateTo("") }}>{t("cancel")}</Button>
             <Button
               variant="destructive"
               onClick={handleDeletePipeline}
               disabled={deleting || (!!deletePipelineData && deletePipelineData.deal_count > 0 && !deleteMigrateTo)}
             >
               {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Supprimer
+              {t("delete")}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       <FilterPanel open={filterOpen} onOpenChange={setFilterOpen} onReset={resetFilters} activeFilterCount={activeFilterCount}>
-        <FilterSection label="Recherche">
-          <FilterSearchInput value={filterSearch} onChange={setFilterSearch} placeholder="Rechercher un deal..." />
+        <FilterSection label={t("filterSearch")}>
+          <FilterSearchInput value={filterSearch} onChange={setFilterSearch} placeholder={t("searchPlaceholder")} />
         </FilterSection>
-        <FilterSection label="Contact">
+        <FilterSection label={t("filterContact")}>
           <div ref={contactAutocomplete.wrapperRef} className="relative">
             {filterContact ? (
               <div className="flex h-9 items-center justify-between rounded-md border border-input bg-transparent px-3 text-sm">
@@ -420,7 +422,7 @@ export default function DealsPage() {
                   onFocus={() => {
                     if (contactAutocomplete.results.length > 0) contactAutocomplete.setOpen(true)
                   }}
-                  placeholder="Rechercher un contact…"
+                  placeholder={t("searchContactPlaceholder")}
                   className="pl-8"
                 />
                 {contactAutocomplete.searching && (
@@ -448,12 +450,12 @@ export default function DealsPage() {
             )}
             {contactAutocomplete.open && contactAutocomplete.query && !contactAutocomplete.searching && contactAutocomplete.results.length === 0 && (
               <div className="mt-1 w-full rounded-md border border-border bg-background px-3 py-3 text-sm text-muted-foreground text-center">
-                Aucun contact trouvé
+                {t("noContactFound")}
               </div>
             )}
           </div>
         </FilterSection>
-        <FilterSection label="Entreprise">
+        <FilterSection label={t("filterCompany")}>
           <div ref={companyAutocomplete.wrapperRef} className="relative">
             {filterCompany ? (
               <div className="flex h-9 items-center justify-between rounded-md border border-input bg-transparent px-3 text-sm">
@@ -479,7 +481,7 @@ export default function DealsPage() {
                   onFocus={() => {
                     if (companyAutocomplete.results.length > 0) companyAutocomplete.setOpen(true)
                   }}
-                  placeholder="Rechercher une entreprise…"
+                  placeholder={t("searchCompanyPlaceholder")}
                   className="pl-8"
                 />
                 {companyAutocomplete.searching && (
@@ -508,38 +510,38 @@ export default function DealsPage() {
             )}
             {companyAutocomplete.open && companyAutocomplete.query && !companyAutocomplete.searching && companyAutocomplete.results.length === 0 && (
               <div className="mt-1 w-full rounded-md border border-border bg-background px-3 py-3 text-sm text-muted-foreground text-center">
-                Aucune entreprise trouvée
+                {t("noCompanyFound")}
               </div>
             )}
           </div>
         </FilterSection>
-        <FilterSection label="Montant">
+        <FilterSection label={t("filterAmount")}>
           <div className="flex gap-2">
             <input type="number" placeholder="Min" value={filterAmountMin} onChange={(e) => setFilterAmountMin(e.target.value)} className={selectClass} />
             <input type="number" placeholder="Max" value={filterAmountMax} onChange={(e) => setFilterAmountMax(e.target.value)} className={selectClass} />
           </div>
         </FilterSection>
-        <FilterSection label="Probabilité (%)">
+        <FilterSection label={t("filterProbability")}>
           <div className="flex gap-2">
             <input type="number" placeholder="Min" min="0" max="100" value={filterProbabilityMin} onChange={(e) => setFilterProbabilityMin(e.target.value)} className={selectClass} />
             <input type="number" placeholder="Max" min="0" max="100" value={filterProbabilityMax} onChange={(e) => setFilterProbabilityMax(e.target.value)} className={selectClass} />
           </div>
         </FilterSection>
-        <FilterSection label="Date de closing prévue">
+        <FilterSection label={t("filterExpectedCloseDate")}>
           <div className="flex gap-2">
             <input type="date" value={filterExpectedCloseAfter} onChange={(e) => setFilterExpectedCloseAfter(e.target.value)} className={selectClass} />
             <input type="date" value={filterExpectedCloseBefore} onChange={(e) => setFilterExpectedCloseBefore(e.target.value)} className={selectClass} />
           </div>
         </FilterSection>
-        <FilterSection label="Date de création">
+        <FilterSection label={t("filterCreatedDate")}>
           <div className="flex gap-2">
             <input type="date" value={filterCreatedAfter} onChange={(e) => setFilterCreatedAfter(e.target.value)} className={selectClass} />
             <input type="date" value={filterCreatedBefore} onChange={(e) => setFilterCreatedBefore(e.target.value)} className={selectClass} />
           </div>
         </FilterSection>
-        <FilterSection label="Créé par">
+        <FilterSection label={t("filterCreatedBy")}>
           <select value={filterCreatedBy} onChange={(e) => setFilterCreatedBy(e.target.value)} className={selectClass}>
-            <option value="">Tous les utilisateurs</option>
+            <option value="">{t("filterAllUsers")}</option>
             {members.map((m) => (
               <option key={m.user_id} value={m.user_id}>{m.first_name} {m.last_name}</option>
             ))}

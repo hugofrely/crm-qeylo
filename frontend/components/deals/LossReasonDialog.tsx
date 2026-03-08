@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { fetchLossReasons, updateDeal } from "@/services/deals"
+import { useTranslations } from "next-intl"
 import type { DealLossReason } from "@/types"
 
 interface LossReasonDialogProps {
@@ -32,6 +33,7 @@ export function LossReasonDialog({
   onConfirm,
   onCancel,
 }: LossReasonDialogProps) {
+  const t = useTranslations("deals")
   const [reasons, setReasons] = useState<DealLossReason[]>([])
   const [selectedReason, setSelectedReason] = useState("")
   const [comment, setComment] = useState("")
@@ -75,37 +77,37 @@ export function LossReasonDialog({
     <Dialog open={open} onOpenChange={(o) => { if (!o) handleCancel() }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Raison de la perte</DialogTitle>
+          <DialogTitle>{t("lossReasonTitle")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 font-[family-name:var(--font-body)]">
           <div className="space-y-1.5">
-            <Label>Raison</Label>
+            <Label>{t("lossReasonLabel")}</Label>
             <select
               value={selectedReason}
               onChange={(e) => setSelectedReason(e.target.value)}
               className={selectClass}
             >
-              <option value="">Sélectionner une raison...</option>
+              <option value="">{t("lossReasonPlaceholder")}</option>
               {reasons.map((r) => (
                 <option key={r.id} value={r.id}>{r.name}</option>
               ))}
             </select>
           </div>
           <div className="space-y-1.5">
-            <Label>Commentaire (optionnel)</Label>
+            <Label>{t("lossCommentLabel")}</Label>
             <Textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Détails supplémentaires..."
+              placeholder={t("lossCommentPlaceholder")}
               rows={3}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>Annuler</Button>
+          <Button variant="outline" onClick={handleCancel}>{t("lossCancel")}</Button>
           <Button onClick={handleConfirm} disabled={!selectedReason || saving}>
             {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Confirmer
+            {t("lossConfirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

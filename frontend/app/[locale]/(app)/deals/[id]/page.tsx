@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,13 +37,6 @@ import { LogCallDialog } from "@/components/calls/LogCallDialog"
 import { CreateMeetingDialog } from "@/components/calendar/CreateMeetingDialog"
 import type { Deal, Stage, QuoteListItem, Quote } from "@/types"
 
-const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
-  draft: { label: "Brouillon", className: "bg-gray-100 text-gray-700" },
-  sent: { label: "Envoyé", className: "bg-blue-100 text-blue-700" },
-  accepted: { label: "Accepté", className: "bg-green-100 text-green-700" },
-  refused: { label: "Refusé", className: "bg-red-100 text-red-700" },
-}
-
 function formatAmount(amount: string | number): string {
   const num = typeof amount === "string" ? parseFloat(amount) : amount
   return new Intl.NumberFormat("fr-FR", {
@@ -63,7 +58,15 @@ function formatDate(dateStr: string): string {
 export default function DealDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const t = useTranslations("deals")
   const id = params.id as string
+
+  const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+    draft: { label: t("statusDraft"), className: "bg-gray-100 text-gray-700" },
+    sent: { label: t("statusSent"), className: "bg-blue-100 text-blue-700" },
+    accepted: { label: t("statusAccepted"), className: "bg-green-100 text-green-700" },
+    refused: { label: t("statusRefused"), className: "bg-red-100 text-red-700" },
+  }
 
   // Deal data
   const [deal, setDeal] = useState<Deal | null>(null)
@@ -205,19 +208,19 @@ export default function DealDetailPage() {
   }
 
   const handleDelete = async () => {
-    if (!window.confirm("Supprimer ce deal ? Cette action est irréversible.")) return
+    if (!window.confirm(t("confirmDeleteDeal"))) return
     setDeleting(true)
     try {
       await deleteDeal(id)
-      toast("Element supprime", {
+      toast(t("elementDeleted"), {
         action: {
-          label: "Annuler",
+          label: t("cancel"),
           onClick: async () => {
             try {
               await restoreItems("deal", [id])
-              toast.success("Element restaure")
+              toast.success(t("elementRestored"))
             } catch {
-              toast.error("Erreur lors de la restauration")
+              toast.error(t("restoreError"))
             }
           },
         },
@@ -241,10 +244,10 @@ export default function DealDetailPage() {
   if (!deal) {
     return (
       <div className="py-24 text-center">
-        <p className="text-muted-foreground">Deal introuvable.</p>
+        <p className="text-muted-foreground">{t("dealNotFound")}</p>
         <Button variant="ghost" className="mt-4" onClick={() => router.push("/deals")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Retour au pipeline
+          {t("backToPipeline")}
         </Button>
       </div>
     )
@@ -255,7 +258,7 @@ export default function DealDetailPage() {
       {/* Back button */}
       <Button variant="ghost" onClick={() => router.push("/deals")} className="gap-2 text-muted-foreground -ml-2 mb-6">
         <ArrowLeft className="h-4 w-4" />
-        <span className="text-sm">Retour au pipeline</span>
+        <span className="text-sm">{t("backToPipeline")}</span>
       </Button>
 
       {/* 2-column layout — stacks on mobile */}
@@ -284,15 +287,15 @@ export default function DealDetailPage() {
 
             {/* Quick actions */}
             <div className="p-5 border-b border-border">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">Actions rapides</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">{t("quickActions")}</p>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={() => setCallDialogOpen(true)}>
                   <Phone className="h-3.5 w-3.5" />
-                  Logger un appel
+                  {t("logCall")}
                 </Button>
                 <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={() => setMeetingDialogOpen(true)}>
                   <Calendar className="h-3.5 w-3.5" />
-                  Planifier un meeting
+                  {t("scheduleMeeting")}
                 </Button>
               </div>
             </div>
@@ -301,7 +304,7 @@ export default function DealDetailPage() {
             <div className="p-5 space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="deal-name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Nom
+                  {t("fieldName")}
                 </Label>
                 <Input
                   id="deal-name"
@@ -313,7 +316,7 @@ export default function DealDetailPage() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="deal-stage" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Étape
+                  {t("fieldStage")}
                 </Label>
                 <select
                   id="deal-stage"
@@ -331,7 +334,7 @@ export default function DealDetailPage() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="deal-probability" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Probabilité (%)
+                  {t("fieldProbability")}
                 </Label>
                 <Input
                   id="deal-probability"
@@ -347,7 +350,7 @@ export default function DealDetailPage() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="deal-close" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Date de clôture prévue
+                  {t("fieldExpectedClose")}
                 </Label>
                 <Input
                   id="deal-close"
@@ -370,7 +373,7 @@ export default function DealDetailPage() {
                   ) : (
                     <Save className="h-4 w-4 mr-1" />
                   )}
-                  Enregistrer
+                  {t("save")}
                 </Button>
                 <Button
                   variant="outline"
@@ -396,14 +399,14 @@ export default function DealDetailPage() {
               <TabsList>
                 <TabsTrigger value="devis">
                   <FileText className="h-3.5 w-3.5" />
-                  Devis
+                  {t("tabQuotes")}
                 </TabsTrigger>
                 <TabsTrigger value="notes">
-                  Notes
+                  {t("tabNotes")}
                 </TabsTrigger>
                 <TabsTrigger value="comments">
                   <Users className="h-3.5 w-3.5" />
-                  Commentaires
+                  {t("tabComments")}
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -412,7 +415,7 @@ export default function DealDetailPage() {
             <TabsContent value="devis" className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-sm font-medium">
-                  {quotes.length} devis
+                  {t("quotesCount", { count: quotes.length })}
                 </h2>
                 <Button variant="outline" size="sm" onClick={handleCreateQuote} disabled={creatingQuote} className="gap-1.5">
                   {creatingQuote ? (
@@ -420,7 +423,7 @@ export default function DealDetailPage() {
                   ) : (
                     <Plus className="h-3.5 w-3.5" />
                   )}
-                  Nouveau devis
+                  {t("newQuote")}
                 </Button>
               </div>
 
@@ -428,7 +431,7 @@ export default function DealDetailPage() {
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <FileText className="h-8 w-8 text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    Aucun devis pour ce deal.
+                    {t("noQuotes")}
                   </p>
                 </div>
               )}
@@ -489,7 +492,7 @@ export default function DealDetailPage() {
               <RichTextEditor
                 content={notes}
                 onChange={setNotes}
-                placeholder="Notes sur ce deal..."
+                placeholder={t("notesPlaceholder")}
                 minHeight="200px"
                 onImageUpload={apiUploadImage}
               />
@@ -500,7 +503,7 @@ export default function DealDetailPage() {
                   ) : (
                     <Save className="h-3.5 w-3.5" />
                   )}
-                  Enregistrer les notes
+                  {t("saveNotes")}
                 </Button>
               </div>
             </TabsContent>
