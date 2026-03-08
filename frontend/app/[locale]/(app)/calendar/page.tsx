@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
+import { useTranslations } from "next-intl"
+import { useLocale } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
@@ -9,7 +11,7 @@ import { CreateMeetingDialog } from "@/components/calendar/CreateMeetingDialog"
 import { MeetingDetailDialog } from "@/components/calendar/MeetingDetailDialog"
 import type { Meeting } from "@/types/calendar"
 
-const DAY_LABELS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const
 
 function getMonthDays(year: number, month: number) {
   // month is 0-indexed
@@ -42,21 +44,23 @@ function getMonthDays(year: number, month: number) {
   return days
 }
 
-function formatTime(isoString: string): string {
+function formatTime(isoString: string, locale: string): string {
   const d = new Date(isoString)
-  return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+  return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })
 }
 
 function isSameDay(d1: Date, d2: Date): boolean {
   return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate()
 }
 
-function formatMonthYear(year: number, month: number): string {
+function formatMonthYear(year: number, month: number, locale: string): string {
   const d = new Date(year, month, 1)
-  return d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })
+  return d.toLocaleDateString(locale, { month: "long", year: "numeric" })
 }
 
 export default function CalendarPage() {
+  const t = useTranslations("calendar")
+  const locale = useLocale()
   const today = useMemo(() => new Date(), [])
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
   const [currentMonth, setCurrentMonth] = useState(today.getMonth())
@@ -122,25 +126,25 @@ export default function CalendarPage() {
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-semibold tracking-tight">Calendrier</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" onClick={prevMonth}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm font-medium min-w-[160px] text-center capitalize">
-              {formatMonthYear(currentYear, currentMonth)}
+              {formatMonthYear(currentYear, currentMonth, locale)}
             </span>
             <Button variant="ghost" size="icon" onClick={nextMonth}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
           <Button variant="outline" size="sm" onClick={goToToday}>
-            Aujourd&apos;hui
+            {t("today")}
           </Button>
         </div>
         <Button onClick={openNewMeeting}>
           <Plus className="h-4 w-4 mr-2" />
-          Nouveau meeting
+          {t("newMeeting")}
         </Button>
       </div>
 
@@ -148,12 +152,12 @@ export default function CalendarPage() {
       <div className="flex-1 overflow-auto p-6">
         {/* Day headers */}
         <div className="grid grid-cols-7 gap-px bg-border rounded-t-lg overflow-hidden">
-          {DAY_LABELS.map((label) => (
+          {DAY_KEYS.map((key) => (
             <div
-              key={label}
+              key={key}
               className="bg-muted px-2 py-2 text-center text-xs font-medium text-muted-foreground"
             >
-              {label}
+              {t(`dayLabels.${key}`)}
             </div>
           ))}
         </div>
@@ -196,14 +200,14 @@ export default function CalendarPage() {
                       }}
                     >
                       {!meeting.is_all_day && (
-                        <span className="font-medium">{formatTime(meeting.start_at)} </span>
+                        <span className="font-medium">{formatTime(meeting.start_at, locale)} </span>
                       )}
                       {meeting.title}
                     </button>
                   ))}
                   {dayMeetings.length > 3 && (
                     <span className="text-[10px] text-muted-foreground pl-1">
-                      +{dayMeetings.length - 3} de plus
+                      {t("moreEvents", { count: dayMeetings.length - 3 })}
                     </span>
                   )}
                 </div>

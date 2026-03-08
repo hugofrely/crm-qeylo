@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,7 @@ export function CreateMeetingDialog({
   defaultDate,
   onSuccess,
 }: CreateMeetingDialogProps) {
+  const t = useTranslations("calendar.createDialog")
   const [title, setTitle] = useState("")
   const [startAt, setStartAt] = useState("")
   const [endAt, setEndAt] = useState("")
@@ -145,11 +147,11 @@ export function CreateMeetingDialog({
         contact: contactId || null,
         deal: dealId || null,
       })
-      toast.success("Meeting créé avec succès")
+      toast.success(t("successToast"))
       onOpenChange(false)
       onSuccess?.()
     } catch {
-      setError("Erreur lors de la création du meeting.")
+      setError(t("errorCreate"))
     } finally {
       setIsLoading(false)
     }
@@ -161,12 +163,12 @@ export function CreateMeetingDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Nouveau meeting
+            {t("title")}
           </DialogTitle>
           <DialogDescription>
             {contactName
-              ? `Planifier un meeting avec ${contactName}`
-              : "Planifier un nouveau meeting"}
+              ? t("descriptionWithContact", { contactName })
+              : t("descriptionDefault")}
           </DialogDescription>
         </DialogHeader>
 
@@ -179,12 +181,12 @@ export function CreateMeetingDialog({
 
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="meeting-title">Titre *</Label>
+            <Label htmlFor="meeting-title">{t("titleLabel")}</Label>
             <Input
               id="meeting-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Titre du meeting"
+              placeholder={t("titlePlaceholder")}
               required
               disabled={isLoading}
               className="h-11"
@@ -196,7 +198,7 @@ export function CreateMeetingDialog({
             <div className="space-y-2">
               <Label htmlFor="meeting-start" className="flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" />
-                Début
+                {t("start")}
               </Label>
               <Input
                 id="meeting-start"
@@ -211,7 +213,7 @@ export function CreateMeetingDialog({
             <div className="space-y-2">
               <Label htmlFor="meeting-end" className="flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" />
-                Fin
+                {t("end")}
               </Label>
               <Input
                 id="meeting-end"
@@ -234,7 +236,7 @@ export function CreateMeetingDialog({
               disabled={isLoading}
             />
             <Label htmlFor="meeting-all-day" className="text-sm font-normal cursor-pointer">
-              Journée entière
+              {t("allDay")}
             </Label>
           </div>
 
@@ -242,13 +244,13 @@ export function CreateMeetingDialog({
           <div className="space-y-2">
             <Label htmlFor="meeting-location" className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5" />
-              Lieu
+              {t("location")}
             </Label>
             <Input
               id="meeting-location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="Lieu ou lien visio"
+              placeholder={t("locationPlaceholder")}
               disabled={isLoading}
               className="h-11"
             />
@@ -256,12 +258,12 @@ export function CreateMeetingDialog({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="meeting-description">Description</Label>
+            <Label htmlFor="meeting-description">{t("description")}</Label>
             <Textarea
               id="meeting-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Notes ou ordre du jour..."
+              placeholder={t("descriptionPlaceholder")}
               disabled={isLoading}
               rows={3}
             />
@@ -270,10 +272,10 @@ export function CreateMeetingDialog({
           {/* Calendar Account */}
           {calendarAccounts.length > 0 && (
             <div className="space-y-2">
-              <Label>Compte calendrier</Label>
+              <Label>{t("calendarAccount")}</Label>
               <Select value={calendarAccountId} onValueChange={setCalendarAccountId}>
                 <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Aucun (meeting local)" />
+                  <SelectValue placeholder={t("calendarAccountPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {calendarAccounts.map((account) => (
@@ -288,12 +290,12 @@ export function CreateMeetingDialog({
 
           {/* Attendees */}
           <div className="space-y-2">
-            <Label>Participants</Label>
+            <Label>{t("attendees")}</Label>
             <div className="flex gap-2">
               <Input
                 value={attendeeEmail}
                 onChange={(e) => setAttendeeEmail(e.target.value)}
-                placeholder="email@exemple.com"
+                placeholder={t("attendeePlaceholder")}
                 type="email"
                 disabled={isLoading}
                 className="h-11 flex-1"
@@ -311,7 +313,7 @@ export function CreateMeetingDialog({
                 disabled={isLoading || !attendeeEmail.trim()}
                 className="h-11"
               >
-                Ajouter
+                {t("addAttendee")}
               </Button>
             </div>
             {attendees.length > 0 && (
@@ -337,17 +339,17 @@ export function CreateMeetingDialog({
 
           {/* Reminder */}
           <div className="space-y-2">
-            <Label>Rappel</Label>
+            <Label>{t("reminder")}</Label>
             <Select value={reminderMinutes} onValueChange={setReminderMinutes}>
               <SelectTrigger className="h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="5">5 minutes avant</SelectItem>
-                <SelectItem value="15">15 minutes avant</SelectItem>
-                <SelectItem value="30">30 minutes avant</SelectItem>
-                <SelectItem value="60">1 heure avant</SelectItem>
-                <SelectItem value="1440">1 jour avant</SelectItem>
+                <SelectItem value="5">{t("reminder5")}</SelectItem>
+                <SelectItem value="15">{t("reminder15")}</SelectItem>
+                <SelectItem value="30">{t("reminder30")}</SelectItem>
+                <SelectItem value="60">{t("reminder60")}</SelectItem>
+                <SelectItem value="1440">{t("reminder1440")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -360,16 +362,16 @@ export function CreateMeetingDialog({
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
-              Annuler
+              {t("cancel")}
             </Button>
             <Button type="submit" disabled={isLoading || !title.trim()}>
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Création...
+                  {t("creating")}
                 </>
               ) : (
-                "Créer"
+                t("create")
               )}
             </Button>
           </div>

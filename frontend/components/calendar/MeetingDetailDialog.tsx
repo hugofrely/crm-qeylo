@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
+import { useLocale } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -47,8 +49,8 @@ function toLocalDatetime(isoString: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-function formatDateTime(isoString: string): string {
-  return new Date(isoString).toLocaleDateString("fr-FR", {
+function formatDateTime(isoString: string, locale: string): string {
+  return new Date(isoString).toLocaleDateString(locale, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -58,19 +60,14 @@ function formatDateTime(isoString: string): string {
   })
 }
 
-const SYNC_LABELS: Record<string, { label: string; color: string }> = {
-  synced: { label: "Synchronisé", color: "text-green-600 bg-green-500/10" },
-  pending: { label: "En attente", color: "text-yellow-600 bg-yellow-500/10" },
-  failed: { label: "Échec sync", color: "text-red-600 bg-red-500/10" },
-  not_synced: { label: "Local", color: "text-muted-foreground bg-muted" },
-}
-
 export function MeetingDetailDialog({
   open,
   onOpenChange,
   meeting,
   onUpdated,
 }: MeetingDetailDialogProps) {
+  const t = useTranslations("calendar.detailDialog")
+  const locale = useLocale()
   const [editing, setEditing] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -128,12 +125,12 @@ export function MeetingDetailDialog({
         calendar_account: calendarAccountId || null,
         reminder_minutes: Number(reminderMinutes),
       })
-      toast.success("Meeting mis à jour")
+      toast.success(t("successUpdate"))
       setEditing(false)
       onUpdated()
       onOpenChange(false)
     } catch {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(t("errorUpdate"))
     } finally {
       setSaving(false)
     }
@@ -144,11 +141,11 @@ export function MeetingDetailDialog({
     setDeleting(true)
     try {
       await deleteMeeting(meeting.id)
-      toast.success("Meeting supprimé")
+      toast.success(t("successDelete"))
       onUpdated()
       onOpenChange(false)
     } catch {
-      toast.error("Erreur lors de la suppression")
+      toast.error(t("errorDelete"))
     } finally {
       setDeleting(false)
       setConfirmDelete(false)
@@ -157,7 +154,15 @@ export function MeetingDetailDialog({
 
   if (!meeting) return null
 
-  const sync = SYNC_LABELS[meeting.sync_status] || SYNC_LABELS.not_synced
+  const syncStatus = meeting.sync_status || "not_synced"
+  const syncLabel = t(`syncStatus.${syncStatus as "synced" | "pending" | "failed" | "not_synced"}`)
+  const SYNC_COLORS: Record<string, string> = {
+    synced: "text-green-600 bg-green-500/10",
+    pending: "text-yellow-600 bg-yellow-500/10",
+    failed: "text-red-600 bg-red-500/10",
+    not_synced: "text-muted-foreground bg-muted",
+  }
+  const syncColor = SYNC_COLORS[syncStatus] || SYNC_COLORS.not_synced
 
   return (
     <>
@@ -166,7 +171,7 @@ export function MeetingDetailDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              {editing ? "Modifier le meeting" : meeting.title}
+              {editing ? t("editTitle") : meeting.title}
             </DialogTitle>
           </DialogHeader>
 
@@ -174,7 +179,7 @@ export function MeetingDetailDialog({
             /* ─── Edit Mode ─── */
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Titre *</Label>
+                <Label>{t("titleLabel")}</Label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -186,7 +191,7 @@ export function MeetingDetailDialog({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5" /> Début
+                    <Clock className="h-3.5 w-3.5" /> {t("start")}
                   </Label>
                   <Input
                     type="datetime-local"
@@ -198,7 +203,7 @@ export function MeetingDetailDialog({
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5" /> Fin
+                    <Clock className="h-3.5 w-3.5" /> {t("end")}
                   </Label>
                   <Input
                     type="datetime-local"
@@ -216,24 +221,24 @@ export function MeetingDetailDialog({
                   onCheckedChange={(c) => setIsAllDay(c === true)}
                   disabled={saving}
                 />
-                <Label className="text-sm font-normal cursor-pointer">Journée entière</Label>
+                <Label className="text-sm font-normal cursor-pointer">{t("allDay")}</Label>
               </div>
 
               <div className="space-y-2">
                 <Label className="flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5" /> Lieu
+                  <MapPin className="h-3.5 w-3.5" /> {t("location")}
                 </Label>
                 <Input
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Lieu ou lien visio"
+                  placeholder={t("locationPlaceholder")}
                   className="h-11"
                   disabled={saving}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Description</Label>
+                <Label>{t("description")}</Label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -244,10 +249,10 @@ export function MeetingDetailDialog({
 
               {calendarAccounts.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Compte calendrier</Label>
+                  <Label>{t("calendarAccount")}</Label>
                   <Select value={calendarAccountId} onValueChange={setCalendarAccountId}>
                     <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Aucun (meeting local)" />
+                      <SelectValue placeholder={t("calendarAccountPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {calendarAccounts.map((account) => (
@@ -261,33 +266,33 @@ export function MeetingDetailDialog({
               )}
 
               <div className="space-y-2">
-                <Label>Rappel</Label>
+                <Label>{t("reminder")}</Label>
                 <Select value={reminderMinutes} onValueChange={setReminderMinutes}>
                   <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5">5 minutes avant</SelectItem>
-                    <SelectItem value="15">15 minutes avant</SelectItem>
-                    <SelectItem value="30">30 minutes avant</SelectItem>
-                    <SelectItem value="60">1 heure avant</SelectItem>
-                    <SelectItem value="1440">1 jour avant</SelectItem>
+                    <SelectItem value="5">{t("reminder5")}</SelectItem>
+                    <SelectItem value="15">{t("reminder15")}</SelectItem>
+                    <SelectItem value="30">{t("reminder30")}</SelectItem>
+                    <SelectItem value="60">{t("reminder60")}</SelectItem>
+                    <SelectItem value="1440">{t("reminder1440")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex justify-end gap-3 pt-2">
                 <Button variant="outline" onClick={() => setEditing(false)} disabled={saving}>
-                  Annuler
+                  {t("cancel")}
                 </Button>
                 <Button onClick={handleSave} disabled={saving || !title.trim()}>
                   {saving ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Sauvegarde...
+                      {t("saving")}
                     </>
                   ) : (
-                    "Sauvegarder"
+                    t("save")
                   )}
                 </Button>
               </div>
@@ -299,12 +304,12 @@ export function MeetingDetailDialog({
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="h-4 w-4 shrink-0" />
                   {meeting.is_all_day
-                    ? "Journée entière"
+                    ? t("allDay")
                     : (
                         <>
-                          {formatDateTime(meeting.start_at)}
-                          <span className="mx-1">→</span>
-                          {formatDateTime(meeting.end_at)}
+                          {formatDateTime(meeting.start_at, locale)}
+                          <span className="mx-1">&rarr;</span>
+                          {formatDateTime(meeting.end_at, locale)}
                         </>
                       )}
                 </div>
@@ -326,7 +331,7 @@ export function MeetingDetailDialog({
                 {meeting.attendees && meeting.attendees.length > 0 && (
                   <div className="space-y-1">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Participants
+                      {t("attendees")}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {meeting.attendees.map((a, i) => (
@@ -344,15 +349,15 @@ export function MeetingDetailDialog({
                 {meeting.description && (
                   <div className="space-y-1">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Description
+                      {t("description")}
                     </p>
                     <p className="text-sm whitespace-pre-wrap">{meeting.description}</p>
                   </div>
                 )}
 
                 <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full ${sync.color}`}>
-                    {sync.label}
+                  <span className={`text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full ${syncColor}`}>
+                    {syncLabel}
                   </span>
                 </div>
               </div>
@@ -365,11 +370,11 @@ export function MeetingDetailDialog({
                   className="gap-1.5"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  Supprimer
+                  {t("delete")}
                 </Button>
                 <Button size="sm" onClick={() => setEditing(true)} className="gap-1.5">
                   <Pencil className="h-3.5 w-3.5" />
-                  Modifier
+                  {t("edit")}
                 </Button>
               </div>
             </div>
@@ -380,14 +385,14 @@ export function MeetingDetailDialog({
       <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer ce meeting ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("confirmDeleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Le meeting &quot;{meeting.title}&quot; sera supprimé définitivement.
-              {meeting.sync_status === "synced" && " Il sera également supprimé de votre calendrier externe."}
+              {t("confirmDeleteDescription", { title: meeting.title })}
+              {meeting.sync_status === "synced" && t("confirmDeleteSynced")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Annuler</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleting}
@@ -396,10 +401,10 @@ export function MeetingDetailDialog({
               {deleting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Suppression...
+                  {t("deleting")}
                 </>
               ) : (
-                "Supprimer"
+                t("delete")
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
