@@ -21,6 +21,7 @@ import { usePipeline } from "@/hooks/useDeals"
 import { KanbanColumn } from "./KanbanColumn"
 import { DealCard } from "./DealCard"
 import { DealDialog } from "./DealDialog"
+import { LossReasonDialog } from "./LossReasonDialog"
 import { Loader2 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Deal } from "@/types"
@@ -36,6 +37,7 @@ export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange, filter
   const router = useRouter()
   const { pipeline, setPipeline, loading, refresh } = usePipeline(pipelineId, filters)
   const [activeDeal, setActiveDeal] = useState<Deal | null>(null)
+  const [pendingLoss, setPendingLoss] = useState<{dealId: string; stageId: string} | null>(null)
   const [dealDialogOpen, setDealDialogOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [showLeftFade, setShowLeftFade] = useState(false)
@@ -177,10 +179,17 @@ export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange, filter
 
     if (!newStageId) return
 
+    const targetStageData = pipeline.find((s) => s.stage.id === newStageId)
+    if (targetStageData?.stage.is_lost) {
+      // Show loss reason dialog instead of saving directly
+      setPendingLoss({ dealId, stageId: newStageId })
+      return
+    }
+
     // Persist the change
     try {
       await updateDeal(dealId, { stage: newStageId })
-      const stageName = pipeline.find((s) => s.stage.id === newStageId)?.stage.name
+      const stageName = targetStageData?.stage.name
       posthog.capture("deal_stage_changed", { stage: stageName })
     } catch (err) {
       console.error("Failed to update deal stage:", err)
@@ -256,6 +265,20 @@ export function KanbanBoard({ pipelineId, dialogOpen, onDialogOpenChange, filter
         deal={null}
         stages={allStages}
         onSuccess={refresh}
+      />
+      <LossReasonDialog
+        open={!!pendingLoss}
+        onOpenChange={(open) => { if (!open) setPendingLoss(null) }}
+        dealId={pendingLoss?.dealId ?? ""}
+        newStageId={pendingLoss?.stageId ?? ""}
+        onConfirm={() => {
+          setPendingLoss(null)
+          refresh()
+        }}
+        onCancel={() => {
+          setPendingLoss(null)
+          refresh() // Re-fetch to restore correct position
+        }}
       />
     </DndContext>
   )

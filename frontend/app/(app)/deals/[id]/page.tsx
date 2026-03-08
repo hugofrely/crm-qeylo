@@ -26,6 +26,7 @@ import {
   User,
 } from "lucide-react"
 import { EntityLink } from "@/components/shared/EntityLink"
+import { NextActions } from "@/components/deals/NextActions"
 import type { Deal, Stage, QuoteListItem, Quote } from "@/types"
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -264,6 +265,11 @@ export default function DealDetailPage() {
               <div className="mt-3 text-xl font-semibold text-green-700">
                 {formatAmount(deal.amount)}
               </div>
+            </div>
+
+            {/* Next best actions */}
+            <div className="p-5 border-b border-border">
+              <NextActions dealId={id} />
             </div>
 
             {/* Deal fields */}

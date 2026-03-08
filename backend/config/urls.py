@@ -13,6 +13,7 @@ urlpatterns = [
     path("api/products/", include("products.urls")),
     path("api/quotes/", include("deals.quote_urls")),
     path("api/deals/", include("deals.urls")),
+    path("api/quotas/", include("deals.quota_urls")),
     path("api/pipeline-stages/", include("deals.stage_urls")),
     path("api/tasks/", include("tasks.urls")),
     path("api/timeline/", include("notes.urls")),

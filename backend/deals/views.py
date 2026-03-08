@@ -4,12 +4,16 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Count, Q
-from .models import Pipeline, PipelineStage, Deal, DealStageTransition, PIPELINE_TEMPLATES
+from .models import Pipeline, PipelineStage, Deal, DealStageTransition, DealLossReason, PIPELINE_TEMPLATES, SalesQuota
+from .analytics import compute_forecast, compute_win_loss, compute_velocity, compute_leaderboard
+from .next_actions import compute_heuristic_actions
 from .serializers import (
     PipelineSerializer,
     PipelineStageSerializer,
     DealSerializer,
+    DealLossReasonSerializer,
     PipelineDealSerializer,
+    SalesQuotaSerializer,
 )
 
 
@@ -173,7 +177,9 @@ class DealViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        qs = Deal.objects.filter(organization=self.request.organization)
+        qs = Deal.objects.filter(
+            organization=self.request.organization
+        ).select_related("loss_reason")
         contact_id = self.request.query_params.get("contact")
         if contact_id:
             qs = qs.filter(contact_id=contact_id)
@@ -200,6 +206,26 @@ class DealViewSet(viewsets.ModelViewSet):
         old_stage = deal.stage
         updated_deal = serializer.save()
         if updated_deal.stage_id != old_stage.id:
+            from django.utils import timezone
+            now = timezone.now()
+            new_stage = updated_deal.stage
+            if new_stage.is_won and not old_stage.is_won:
+                updated_deal.won_at = now
+                updated_deal.closed_at = now
+                updated_deal.save(update_fields=["won_at", "closed_at"])
+            elif new_stage.is_lost and not old_stage.is_lost:
+                updated_deal.lost_at = now
+                updated_deal.closed_at = now
+                updated_deal.save(update_fields=["lost_at", "closed_at"])
+            elif not new_stage.is_won and not new_stage.is_lost:
+                if old_stage.is_won or old_stage.is_lost:
+                    updated_deal.won_at = None
+                    updated_deal.lost_at = None
+                    updated_deal.closed_at = None
+                    updated_deal.loss_reason = None
+                    updated_deal.loss_comment = ""
+                    updated_deal.save(update_fields=["won_at", "lost_at", "closed_at", "loss_reason", "loss_comment"])
+
             last_transition = (
                 DealStageTransition.objects.filter(deal=deal)
                 .order_by("-transitioned_at")
@@ -207,8 +233,7 @@ class DealViewSet(viewsets.ModelViewSet):
             )
             duration = None
             if last_transition:
-                from django.utils import timezone
-                duration = timezone.now() - last_transition.transitioned_at
+                duration = now - last_transition.transitioned_at
             DealStageTransition.objects.create(
                 deal=updated_deal,
                 organization=updated_deal.organization,
@@ -217,6 +242,18 @@ class DealViewSet(viewsets.ModelViewSet):
                 changed_by=self.request.user,
                 duration_in_previous=duration,
             )
+
+
+class DealLossReasonViewSet(viewsets.ModelViewSet):
+    serializer_class = DealLossReasonSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        return DealLossReason.objects.filter(organization=self.request.organization)
+
+    def perform_create(self, serializer):
+        serializer.save(organization=self.request.organization)
 
 
 @api_view(["GET"])
@@ -372,3 +409,192 @@ def quote_status_change(request, pk, new_status):
         quote.deal.amount = quote.total_ttc
         quote.deal.save(update_fields=["amount", "updated_at"])
     return Response(QuoteSerializer(quote).data)
+
+
+class SalesQuotaViewSet(viewsets.ModelViewSet):
+    serializer_class = SalesQuotaSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        qs = SalesQuota.objects.filter(organization=self.request.organization)
+        month = self.request.query_params.get("month")
+        if month:
+            qs = qs.filter(month=month)
+        return qs.select_related("user")
+
+    def perform_create(self, serializer):
+        serializer.save(organization=self.request.organization)
+
+    def create(self, request, *args, **kwargs):
+        # Upsert: if quota exists for user+month, update it
+        user_id = request.data.get("user")
+        month = request.data.get("month")
+        target = request.data.get("target_amount")
+        if user_id and month:
+            existing = SalesQuota.objects.filter(
+                organization=request.organization, user_id=user_id, month=month
+            ).first()
+            if existing:
+                existing.target_amount = target
+                existing.save(update_fields=["target_amount", "updated_at"])
+                return Response(SalesQuotaSerializer(existing).data)
+        return super().create(request, *args, **kwargs)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def quota_bulk_update(request):
+    quotas_data = request.data.get("quotas", [])
+    results = []
+    for item in quotas_data:
+        obj, _ = SalesQuota.objects.update_or_create(
+            organization=request.organization,
+            user_id=item["user"],
+            month=item["month"],
+            defaults={"target_amount": item["target_amount"]},
+        )
+        results.append(SalesQuotaSerializer(obj).data)
+    return Response(results)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def forecast_view(request):
+    result = compute_forecast(
+        organization=request.organization,
+        period=request.query_params.get("period", "this_quarter"),
+        pipeline_id=request.query_params.get("pipeline"),
+        user_id=request.query_params.get("user"),
+    )
+    if "error" in result:
+        return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(result)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def win_loss_view(request):
+    result = compute_win_loss(
+        organization=request.organization,
+        period=request.query_params.get("period", "this_quarter"),
+        pipeline_id=request.query_params.get("pipeline"),
+        user_id=request.query_params.get("user"),
+    )
+    if "error" in result:
+        return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(result)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def velocity_view(request):
+    pipeline_id = request.query_params.get("pipeline")
+    if not pipeline_id:
+        return Response({"detail": "pipeline is required"}, status=status.HTTP_400_BAD_REQUEST)
+    result = compute_velocity(
+        organization=request.organization,
+        pipeline_id=pipeline_id,
+        period=request.query_params.get("period", "last_6_months"),
+        user_id=request.query_params.get("user"),
+    )
+    if "error" in result:
+        return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(result)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def next_actions_view(request, pk):
+    try:
+        deal = Deal.objects.select_related("stage", "contact").get(
+            pk=pk, organization=request.organization
+        )
+    except Deal.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+    actions = compute_heuristic_actions(deal, request.organization)
+    return Response({"heuristic_actions": actions, "ai_analysis_available": True})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def next_actions_ai_view(request, pk):
+    try:
+        deal = Deal.objects.select_related("stage", "contact", "company").get(
+            pk=pk, organization=request.organization
+        )
+    except Deal.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    from notes.models import TimelineEntry
+    from tasks.models import Task as TaskModel
+    recent_activities = TimelineEntry.objects.filter(
+        organization=request.organization, deal=deal
+    ).order_by("-created_at")[:10]
+    tasks = TaskModel.objects.filter(deal=deal).order_by("-created_at")[:5]
+
+    context_parts = [
+        f"Deal: {deal.name}",
+        f"Montant: {deal.amount} EUR",
+        f"Stage: {deal.stage.name}",
+        f"Probabilite: {deal.probability}%" if deal.probability else None,
+        f"Date de cloture prevue: {deal.expected_close}" if deal.expected_close else None,
+        f"Contact: {deal.contact.first_name} {deal.contact.last_name}" if deal.contact else None,
+        f"Entreprise: {deal.company.name}" if deal.company else None,
+        f"Notes: {deal.notes[:500]}" if deal.notes else None,
+    ]
+    context_str = "\n".join(p for p in context_parts if p)
+
+    if recent_activities:
+        context_str += "\n\nActivites recentes:\n"
+        for a in recent_activities:
+            context_str += f"- [{a.created_at.strftime('%d/%m')}] {a.entry_type}: {a.content[:200]}\n"
+
+    if tasks:
+        context_str += "\nTaches:\n"
+        for t in tasks:
+            status_str = "done" if t.is_done else "todo"
+            context_str += f"- {status_str} {t.description} (echeance: {t.due_date})\n"
+
+    prompt = f"""Analyse ce deal CRM et suggere 2-3 prochaines actions concretes pour le faire avancer.
+
+{context_str}
+
+Reponds en JSON avec ce format exact (un tableau JSON, rien d'autre):
+[{{"action": "description concrete", "reasoning": "pourquoi cette action", "priority": "high"}}]
+
+Sois concis et actionnable."""
+
+    try:
+        from django.conf import settings
+        from pydantic_ai import Agent
+        import json
+
+        agent = Agent(model=settings.AI_MODEL)
+        result = agent.run_sync(prompt)
+        # Try to parse JSON from response
+        text = result.data
+        # Find JSON array in response
+        start_idx = text.find("[")
+        end_idx = text.rfind("]") + 1
+        if start_idx >= 0 and end_idx > start_idx:
+            suggestions = json.loads(text[start_idx:end_idx])
+        else:
+            suggestions = [{"action": text, "reasoning": "", "priority": "medium"}]
+    except Exception as e:
+        suggestions = [{"action": "Analyse non disponible", "reasoning": str(e), "priority": "medium"}]
+
+    return Response({"suggestions": suggestions})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def leaderboard_view(request):
+    result = compute_leaderboard(
+        organization=request.organization,
+        period=request.query_params.get("period", "this_month"),
+        pipeline_id=request.query_params.get("pipeline"),
+    )
+    if "error" in result:
+        return Response({"detail": result["error"]}, status=status.HTTP_400_BAD_REQUEST)
+    return Response(result)

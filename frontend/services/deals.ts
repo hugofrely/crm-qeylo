@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/api"
-import type { Deal, Pipeline, PipelineStage, Stage } from "@/types"
+import type { Deal, Pipeline, PipelineStage, Stage, DealLossReason, SalesQuota, ForecastResponse, WinLossResponse, VelocityResponse, LeaderboardResponse } from "@/types"
 
 // Pipeline CRUD
 export async function fetchPipelines(): Promise<Pipeline[]> {
@@ -74,4 +74,85 @@ export async function deletePipelineStage(id: string | number, migrateTo?: strin
     ? `/pipeline-stages/${id}/?migrate_to=${migrateTo}`
     : `/pipeline-stages/${id}/`
   await apiFetch(url, { method: "DELETE" })
+}
+
+// Loss Reasons
+export async function fetchLossReasons(): Promise<DealLossReason[]> {
+  return apiFetch<DealLossReason[]>(`/deals/loss-reasons/`)
+}
+
+// Sales Quotas
+export async function fetchQuotas(month?: string): Promise<SalesQuota[]> {
+  const params = month ? `?month=${month}` : ""
+  return apiFetch<SalesQuota[]>(`/quotas/${params}`)
+}
+
+export async function upsertQuota(data: { user: string; month: string; target_amount: number }): Promise<SalesQuota> {
+  return apiFetch<SalesQuota>(`/quotas/`, { method: "POST", json: data })
+}
+
+export async function bulkUpdateQuotas(quotas: { user: string; month: string; target_amount: number }[]): Promise<SalesQuota[]> {
+  return apiFetch<SalesQuota[]>(`/quotas/bulk/`, { method: "POST", json: { quotas } })
+}
+
+// Analytics
+export async function fetchForecast(params?: { period?: string; pipeline?: string; user?: string }): Promise<ForecastResponse> {
+  const sp = new URLSearchParams()
+  if (params?.period) sp.set("period", params.period)
+  if (params?.pipeline) sp.set("pipeline", params.pipeline)
+  if (params?.user) sp.set("user", params.user)
+  const qs = sp.toString()
+  return apiFetch<ForecastResponse>(`/deals/forecast/${qs ? `?${qs}` : ""}`)
+}
+
+export async function fetchWinLoss(params?: { period?: string; pipeline?: string; user?: string }): Promise<WinLossResponse> {
+  const sp = new URLSearchParams()
+  if (params?.period) sp.set("period", params.period)
+  if (params?.pipeline) sp.set("pipeline", params.pipeline)
+  if (params?.user) sp.set("user", params.user)
+  const qs = sp.toString()
+  return apiFetch<WinLossResponse>(`/deals/win-loss/${qs ? `?${qs}` : ""}`)
+}
+
+export async function fetchVelocity(params: { pipeline: string; period?: string; user?: string }): Promise<VelocityResponse> {
+  const sp = new URLSearchParams({ pipeline: params.pipeline })
+  if (params.period) sp.set("period", params.period)
+  if (params.user) sp.set("user", params.user)
+  return apiFetch<VelocityResponse>(`/deals/velocity/?${sp.toString()}`)
+}
+
+// Next Best Actions
+export interface NextAction {
+  type: string
+  priority: "high" | "medium" | "low"
+  message: string
+  suggested_action: string
+  days_since_activity?: number
+}
+
+export interface NextActionsResponse {
+  heuristic_actions: NextAction[]
+  ai_analysis_available: boolean
+}
+
+export interface AiSuggestion {
+  action: string
+  reasoning: string
+  priority: "high" | "medium" | "low"
+}
+
+export async function fetchNextActions(dealId: string): Promise<NextActionsResponse> {
+  return apiFetch<NextActionsResponse>(`/deals/${dealId}/next-actions/`)
+}
+
+export async function fetchAiNextActions(dealId: string): Promise<{ suggestions: AiSuggestion[] }> {
+  return apiFetch<{ suggestions: AiSuggestion[] }>(`/deals/${dealId}/next-actions/ai/`, { method: "POST" })
+}
+
+export async function fetchLeaderboard(params?: { period?: string; pipeline?: string }): Promise<LeaderboardResponse> {
+  const sp = new URLSearchParams()
+  if (params?.period) sp.set("period", params.period)
+  if (params?.pipeline) sp.set("pipeline", params.pipeline)
+  const qs = sp.toString()
+  return apiFetch<LeaderboardResponse>(`/deals/leaderboard/${qs ? `?${qs}` : ""}`)
 }

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Pipeline, PipelineStage, Deal
+from .models import Pipeline, PipelineStage, Deal, DealLossReason, SalesQuota
 
 
 class PipelineSerializer(serializers.ModelSerializer):
@@ -15,13 +15,23 @@ class PipelineSerializer(serializers.ModelSerializer):
 class PipelineStageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PipelineStage
-        fields = ["id", "name", "order", "color", "pipeline"]
+        fields = ["id", "name", "order", "color", "pipeline", "is_won", "is_lost"]
+        read_only_fields = ["id"]
+
+
+class DealLossReasonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DealLossReason
+        fields = ["id", "name", "order", "is_default"]
         read_only_fields = ["id"]
 
 
 class DealSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(
         source="company.name", read_only=True, default=None
+    )
+    loss_reason_name = serializers.CharField(
+        source="loss_reason.name", read_only=True, default=None
     )
 
     class Meta:
@@ -40,6 +50,11 @@ class DealSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "closed_at",
+            "loss_reason",
+            "loss_reason_name",
+            "loss_comment",
+            "won_at",
+            "lost_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
@@ -138,3 +153,15 @@ class QuoteListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quote
         fields = ["id", "deal", "number", "status", "total_ttc", "line_count", "valid_until", "created_at"]
+
+
+class SalesQuotaSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SalesQuota
+        fields = ["id", "user", "user_name", "month", "target_amount", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def get_user_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}".strip()

@@ -1,6 +1,6 @@
 export interface WidgetConfig {
   id: string
-  type: "line_chart" | "bar_chart" | "pie_chart" | "kpi_card" | "table" | "funnel_chart"
+  type: "line_chart" | "bar_chart" | "pie_chart" | "kpi_card" | "table" | "funnel_chart" | "forecast_chart" | "win_loss_chart" | "loss_reasons_chart" | "velocity_chart" | "leaderboard_table" | "quota_progress"
   title: string
   source: "deals" | "contacts" | "tasks" | "activities" | "quotes"
   metric: string

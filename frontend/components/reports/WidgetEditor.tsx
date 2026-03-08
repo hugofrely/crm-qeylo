@@ -27,7 +27,15 @@ const CHART_TYPES = [
   { value: "kpi_card", label: "KPI" },
   { value: "table", label: "Tableau" },
   { value: "funnel_chart", label: "Entonnoir" },
+  { value: "forecast_chart", label: "Forecast" },
+  { value: "win_loss_chart", label: "Win/Loss" },
+  { value: "loss_reasons_chart", label: "Raisons de perte" },
+  { value: "velocity_chart", label: "Vélocité" },
+  { value: "leaderboard_table", label: "Leaderboard" },
+  { value: "quota_progress", label: "Progression quota" },
 ] as const
+
+const ANALYTICS_TYPES = ["forecast_chart", "win_loss_chart", "loss_reasons_chart", "velocity_chart", "leaderboard_table", "quota_progress"]
 
 const SOURCES = [
   { value: "deals", label: "Deals" },
@@ -111,7 +119,7 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
   const [pipelines, setPipelines] = useState<{ id: string; name: string }[]>([])
 
   useEffect(() => {
-    if (chartType === "funnel_chart") {
+    if (chartType === "funnel_chart" || ANALYTICS_TYPES.includes(chartType)) {
       import("@/services/deals").then((mod) => {
         mod.fetchPipelines().then(setPipelines)
       })
@@ -176,6 +184,23 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
       return
     }
 
+    if (ANALYTICS_TYPES.includes(chartType)) {
+      if (pipelineId) filters.pipeline_id = pipelineId
+      if (dateRange) filters.period = dateRange
+      onSave({
+        id: widget?.id || crypto.randomUUID(),
+        type: chartType,
+        title: title.trim(),
+        source: "deals",
+        metric: "count",
+        group_by: null,
+        filters,
+        size,
+      })
+      onOpenChange(false)
+      return
+    }
+
     onSave({
       id: widget?.id || crypto.randomUUID(),
       type: chartType,
@@ -214,7 +239,7 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
             </select>
           </div>
 
-          {chartType === "funnel_chart" ? (
+          {chartType === "funnel_chart" || ANALYTICS_TYPES.includes(chartType) ? (
             <>
               <div className="space-y-1.5">
                 <Label>Pipeline</Label>

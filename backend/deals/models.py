@@ -8,8 +8,8 @@ DEFAULT_STAGES = [
     {"name": "En discussion", "color": "#F59E0B", "order": 2},
     {"name": "Devis envoyé", "color": "#3B82F6", "order": 3},
     {"name": "Négociation", "color": "#8B5CF6", "order": 4},
-    {"name": "Gagné", "color": "#10B981", "order": 5},
-    {"name": "Perdu", "color": "#EF4444", "order": 6},
+    {"name": "Gagné", "color": "#10B981", "order": 5, "is_won": True},
+    {"name": "Perdu", "color": "#EF4444", "order": 6, "is_lost": True},
 ]
 
 PIPELINE_TEMPLATES = {
@@ -18,22 +18,22 @@ PIPELINE_TEMPLATES = {
         {"name": "Qualification", "color": "#F59E0B", "order": 2},
         {"name": "Proposition", "color": "#3B82F6", "order": 3},
         {"name": "Négociation", "color": "#8B5CF6", "order": 4},
-        {"name": "Gagné", "color": "#10B981", "order": 5},
-        {"name": "Perdu", "color": "#EF4444", "order": 6},
+        {"name": "Gagné", "color": "#10B981", "order": 5, "is_won": True},
+        {"name": "Perdu", "color": "#EF4444", "order": 6, "is_lost": True},
     ],
     "upsell": [
         {"name": "Identification", "color": "#6366F1", "order": 1},
         {"name": "Proposition", "color": "#F59E0B", "order": 2},
         {"name": "Décision", "color": "#3B82F6", "order": 3},
-        {"name": "Gagné", "color": "#10B981", "order": 4},
-        {"name": "Perdu", "color": "#EF4444", "order": 5},
+        {"name": "Gagné", "color": "#10B981", "order": 4, "is_won": True},
+        {"name": "Perdu", "color": "#EF4444", "order": 5, "is_lost": True},
     ],
     "partenariats": [
         {"name": "Prise de contact", "color": "#6366F1", "order": 1},
         {"name": "Évaluation", "color": "#F59E0B", "order": 2},
         {"name": "Négociation", "color": "#3B82F6", "order": 3},
-        {"name": "Signé", "color": "#10B981", "order": 4},
-        {"name": "Abandonné", "color": "#EF4444", "order": 5},
+        {"name": "Signé", "color": "#10B981", "order": 4, "is_won": True},
+        {"name": "Abandonné", "color": "#EF4444", "order": 5, "is_lost": True},
     ],
 }
 
@@ -96,6 +96,8 @@ class PipelineStage(models.Model):
     name = models.CharField(max_length=100)
     order = models.IntegerField(default=0)
     color = models.CharField(max_length=7, default="#6366F1")
+    is_won = models.BooleanField(default=False)
+    is_lost = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["order"]
@@ -106,6 +108,46 @@ class PipelineStage(models.Model):
     @classmethod
     def create_defaults(cls, organization):
         Pipeline.create_defaults(organization)
+
+
+class DealLossReason(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="deal_loss_reasons",
+    )
+    name = models.CharField(max_length=100)
+    order = models.IntegerField(default=0)
+    is_default = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["order"]
+        constraints = [
+            models.UniqueConstraint(fields=["organization", "name"], name="unique_loss_reason_per_org"),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    DEFAULT_REASONS = [
+        "Prix trop élevé",
+        "Concurrent choisi",
+        "Pas de budget",
+        "Mauvais timing",
+        "Pas de besoin réel",
+        "Pas de réponse",
+        "Autre",
+    ]
+
+    @classmethod
+    def create_defaults(cls, organization):
+        for i, name in enumerate(cls.DEFAULT_REASONS):
+            cls.objects.get_or_create(
+                organization=organization,
+                name=name,
+                defaults={"order": i, "is_default": True},
+            )
 
 
 class Deal(SoftDeleteModel):
@@ -140,6 +182,13 @@ class Deal(SoftDeleteModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     closed_at = models.DateTimeField(null=True, blank=True)
+    loss_reason = models.ForeignKey(
+        DealLossReason, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="deals",
+    )
+    loss_comment = models.TextField(blank=True, default="")
+    won_at = models.DateTimeField(null=True, blank=True)
+    lost_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -321,3 +370,33 @@ class QuoteLine(models.Model):
     @property
     def line_ttc(self):
         return self.line_ht + self.line_tax
+
+
+class SalesQuota(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="sales_quotas",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="sales_quotas",
+    )
+    month = models.DateField(help_text="First day of the month")
+    target_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["month"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "user", "month"],
+                name="unique_quota_per_user_month",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.month} - {self.target_amount}"

@@ -13,6 +13,7 @@ Tu peux :
 - Enregistrer des interactions passees (appels, reunions, etc.) sur la timeline d'un contact avec log_interaction
 - Donner un resume de l'activite (dashboard)
 - Rechercher dans toutes les donnees
+- Analyser les performances commerciales : forecast de revenus, analyse win/loss, velocite des deals, leaderboard equipe, progression des quotas, et suggestions de prochaines actions sur un deal
 - Envoyer des emails aux contacts (si un compte email est connecte)
 
 ## Comportement

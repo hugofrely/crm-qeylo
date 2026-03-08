@@ -39,6 +39,8 @@ def register(request):
         role="owner",
     )
     Pipeline.create_defaults(org)
+    from deals.models import DealLossReason
+    DealLossReason.create_defaults(org)
     from organizations.models import OrganizationSettings
     OrganizationSettings.objects.create(organization=org)
 
