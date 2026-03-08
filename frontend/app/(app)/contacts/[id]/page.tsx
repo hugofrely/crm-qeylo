@@ -4,7 +4,11 @@ import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { fetchContact as fetchContactApi, updateContact, deleteContact as deleteContactApi, fetchContactCategories, fetchCustomFieldDefinitions, checkEmailAccount, fetchContactTimeline, fetchContactTasks, fetchContactDeals } from "@/services/contacts"
 import { fetchContactEmails } from "@/services/emails"
+import { fetchMeetings } from "@/services/calendar"
+import { fetchEnrollments, fetchSequences } from "@/services/sequences"
 import type { Email } from "@/types/emails"
+import type { Meeting } from "@/types/calendar"
+import type { SequenceEnrollment, Sequence } from "@/types/sequences"
 import { restoreItems } from "@/services/trash"
 import { toast } from "sonner"
 import posthog from "posthog-js"
@@ -25,7 +29,10 @@ import {
   MessageCircle,
   Plus,
   Sparkles,
+  Phone,
+  Calendar,
 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ActivityDialog } from "@/components/activities/ActivityDialog"
 import { ComposeEmailDialog } from "@/components/emails/ComposeEmailDialog"
@@ -66,6 +73,9 @@ export default function ContactDetailPage() {
   const [deals, setDeals] = useState<Deal[]>([])
   const [stages, setStages] = useState<Stage[]>([])
   const [history, setHistory] = useState<TimelineEntry[]>([])
+  const [meetings, setMeetings] = useState<Meeting[]>([])
+  const [enrollments, setEnrollments] = useState<SequenceEnrollment[]>([])
+  const [enrollmentSequences, setEnrollmentSequences] = useState<Sequence[]>([])
 
   // Dialogs
   const [activityDialogOpen, setActivityDialogOpen] = useState(false)
@@ -103,6 +113,31 @@ export default function ContactDetailPage() {
   useEffect(() => {
     fetchContact().finally(() => setLoading(false))
   }, [fetchContact])
+
+  /* ── Fetch meetings & sequence enrollments ── */
+  useEffect(() => {
+    if (!id) return
+    fetchMeetings({ contact: id })
+      .then(setMeetings)
+      .catch(() => {})
+    // Fetch all sequences, then check enrollments for this contact
+    fetchSequences()
+      .then(async (sequences) => {
+        setEnrollmentSequences(sequences)
+        const allEnrollments: SequenceEnrollment[] = []
+        for (const seq of sequences) {
+          try {
+            const enrolls = await fetchEnrollments(seq.id, "active")
+            const matching = enrolls.filter((e) => e.contact === id)
+            allEnrollments.push(...matching)
+          } catch {
+            // ignore
+          }
+        }
+        setEnrollments(allEnrollments)
+      })
+      .catch(() => {})
+  }, [id])
 
   /* ── Fetch tab data when tab or contact changes ── */
   const fetchTabData = useCallback(async () => {
@@ -363,6 +398,24 @@ export default function ContactDetailPage() {
 
         {/* RIGHT PANEL (TABS) */}
         <div className="flex-1 min-w-0 rounded-xl border border-border bg-card overflow-hidden pt-2 w-full">
+          {/* Sequence enrollment banner */}
+          {enrollments.length > 0 && (
+            <div className="mx-4 mt-2 mb-1 px-3 py-2 bg-primary/10 rounded-lg flex items-center gap-2 flex-wrap">
+              <Mail className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span className="text-xs font-medium font-[family-name:var(--font-body)] text-primary">
+                Inscrit dans la sequence :
+              </span>
+              {enrollments.map((enrollment) => {
+                const seq = enrollmentSequences.find((s) => s.id === enrollment.sequence)
+                return (
+                  <Badge key={enrollment.id} variant="secondary" className="text-xs">
+                    {seq?.name || "Sequence"}
+                  </Badge>
+                )
+              })}
+            </div>
+          )}
+
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="px-2">
               <TabsList responsive className="w-full justify-start overflow-x-auto scrollbar-hide">

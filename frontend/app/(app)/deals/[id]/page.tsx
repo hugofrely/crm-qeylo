@@ -24,9 +24,13 @@ import {
   ChevronUp,
   FileText,
   User,
+  Phone,
+  Calendar,
 } from "lucide-react"
 import { EntityLink } from "@/components/shared/EntityLink"
 import { NextActions } from "@/components/deals/NextActions"
+import { LogCallDialog } from "@/components/calls/LogCallDialog"
+import { CreateMeetingDialog } from "@/components/calendar/CreateMeetingDialog"
 import type { Deal, Stage, QuoteListItem, Quote } from "@/types"
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -79,6 +83,10 @@ export default function DealDetailPage() {
   const [expandedQuote, setExpandedQuote] = useState<Quote | null>(null)
   const [loadingQuote, setLoadingQuote] = useState(false)
   const [creatingQuote, setCreatingQuote] = useState(false)
+
+  // Dialogs
+  const [callDialogOpen, setCallDialogOpen] = useState(false)
+  const [meetingDialogOpen, setMeetingDialogOpen] = useState(false)
 
   // Tabs (managed by Shadcn Tabs)
 
@@ -270,6 +278,21 @@ export default function DealDetailPage() {
             {/* Next best actions */}
             <div className="p-5 border-b border-border">
               <NextActions dealId={id} />
+            </div>
+
+            {/* Quick actions */}
+            <div className="p-5 border-b border-border">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">Actions rapides</p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={() => setCallDialogOpen(true)}>
+                  <Phone className="h-3.5 w-3.5" />
+                  Logger un appel
+                </Button>
+                <Button variant="outline" size="sm" className="gap-1.5 flex-1" onClick={() => setMeetingDialogOpen(true)}>
+                  <Calendar className="h-3.5 w-3.5" />
+                  Planifier un meeting
+                </Button>
+              </div>
             </div>
 
             {/* Deal fields */}
@@ -478,6 +501,25 @@ export default function DealDetailPage() {
           </Tabs>
         </div>
       </div>
+
+      {/* Dialogs */}
+      <LogCallDialog
+        open={callDialogOpen}
+        onOpenChange={setCallDialogOpen}
+        dealId={id}
+        contactId={deal.contact || undefined}
+        contactName={deal.contact_name || undefined}
+        onSuccess={() => loadDeal()}
+      />
+
+      <CreateMeetingDialog
+        open={meetingDialogOpen}
+        onOpenChange={setMeetingDialogOpen}
+        dealId={id}
+        contactId={deal.contact || undefined}
+        contactName={deal.contact_name || undefined}
+        onSuccess={() => loadDeal()}
+      />
     </div>
   )
 }
