@@ -78,6 +78,8 @@ class OrganizationSettings(models.Model):
         Organization, on_delete=models.CASCADE, related_name="settings"
     )
     task_reminder_offsets = models.JSONField(default=default_reminder_offsets)
+    scoring_hot_threshold = models.IntegerField(default=70)
+    scoring_warm_threshold = models.IntegerField(default=30)
 
     def __str__(self):
         return f"Settings for {self.organization.name}"

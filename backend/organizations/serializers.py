@@ -28,4 +28,4 @@ class InvitationSerializer(serializers.ModelSerializer):
 class OrganizationSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizationSettings
-        fields = ["task_reminder_offsets"]
+        fields = ["task_reminder_offsets", "scoring_hot_threshold", "scoring_warm_threshold"]

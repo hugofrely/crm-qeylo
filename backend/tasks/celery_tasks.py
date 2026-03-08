@@ -79,3 +79,15 @@ def check_task_reminders():
                         )
 
                 TaskReminder.objects.create(task=task, offset_minutes=offset)
+
+
+@shared_task
+def apply_scoring_decay():
+    """Daily task: recalculate scores for all contacts to apply inactivity decay."""
+    from contacts.models import Contact
+    from contacts.scoring import recalculate_score
+
+    for org in Organization.objects.all():
+        contacts = Contact.objects.filter(organization=org, numeric_score__gt=0)
+        for contact in contacts.iterator():
+            recalculate_score(contact)

@@ -15,6 +15,7 @@ import {
   Check,
 } from "lucide-react"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import {
   Dialog,
   DialogContent,
@@ -118,6 +119,25 @@ export function ContactHeader({
           <p className="text-muted-foreground text-xs mt-1 font-[family-name:var(--font-body)]">
             Créé le {formatDate(contact.created_at)}
           </p>
+          {contact.numeric_score != null && (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium font-[family-name:var(--font-body)]",
+                contact.lead_score === "hot"
+                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                  : contact.lead_score === "warm"
+                    ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                    : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+              )}
+            >
+              {contact.numeric_score}/100
+            </span>
+          )}
+          {contact.owner_name && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs font-medium text-muted-foreground">
+              Propriétaire: {contact.owner_name}
+            </span>
+          )}
         </div>
 
         {/* Action buttons */}

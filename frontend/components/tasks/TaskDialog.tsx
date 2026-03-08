@@ -5,6 +5,7 @@ import { Loader2, Trash2, Search, X, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -53,6 +54,9 @@ export function TaskDialog({
   const contactAutocomplete = useContactAutocomplete()
   const memberAutocomplete = useMemberAutocomplete()
   const [assigneeIds, setAssigneeIds] = useState<string[]>([])
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurrenceRule, setRecurrenceRule] = useState("")
+  const [customDays, setCustomDays] = useState<string[]>([])
 
   useEffect(() => {
     if (open) {
@@ -65,6 +69,13 @@ export function TaskDialog({
         setContactId(task.contact || "")
         setContactLabel(task.contact_name || "")
         setAssigneeIds(task.assignees ? task.assignees.map((a) => a.user_id) : [])
+        setIsRecurring(task.is_recurring || false)
+        setRecurrenceRule(task.recurrence_rule || "")
+        if (task.recurrence_rule?.startsWith("WEEKLY;BYDAY=")) {
+          setCustomDays(task.recurrence_rule.split("BYDAY=")[1].split(","))
+        } else {
+          setCustomDays([])
+        }
       } else {
         setDescription("")
         setDueDate(prefilledDate || "")
@@ -73,6 +84,9 @@ export function TaskDialog({
         setContactId("")
         setContactLabel("")
         setAssigneeIds([])
+        setIsRecurring(false)
+        setRecurrenceRule("")
+        setCustomDays([])
       }
       contactAutocomplete.reset()
       memberAutocomplete.reset()
@@ -95,6 +109,8 @@ export function TaskDialog({
         priority,
         contact: contactId || null,
         assigned_to: assigneeIds,
+        is_recurring: isRecurring,
+        recurrence_rule: isRecurring ? recurrenceRule : "",
       }
 
       if (isEditing) {
@@ -203,6 +219,85 @@ export function TaskDialog({
                 <option value="low">Basse</option>
               </select>
             </div>
+          </div>
+
+          {/* Récurrence */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="task-recurring"
+                checked={isRecurring}
+                onCheckedChange={(checked) => {
+                  setIsRecurring(!!checked)
+                  if (!checked) {
+                    setRecurrenceRule("")
+                    setCustomDays([])
+                  } else {
+                    setRecurrenceRule("WEEKLY")
+                  }
+                }}
+              />
+              <Label htmlFor="task-recurring" className="text-sm cursor-pointer">
+                Tâche récurrente
+              </Label>
+            </div>
+            {isRecurring && (
+              <div className="space-y-2 pl-6">
+                <select
+                  value={recurrenceRule.startsWith("WEEKLY;BYDAY=") ? "CUSTOM" : recurrenceRule}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (val === "CUSTOM") {
+                      setRecurrenceRule("WEEKLY;BYDAY=MO")
+                      setCustomDays(["MO"])
+                    } else {
+                      setRecurrenceRule(val)
+                      setCustomDays([])
+                    }
+                  }}
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                >
+                  <option value="DAILY">Quotidien</option>
+                  <option value="WEEKLY">Hebdomadaire</option>
+                  <option value="MONTHLY">Mensuel</option>
+                  <option value="CUSTOM">Jours personnalisés</option>
+                </select>
+                {(recurrenceRule.startsWith("WEEKLY;BYDAY=")) && (
+                  <div className="flex gap-1.5">
+                    {[
+                      { key: "MO", label: "Lu" },
+                      { key: "TU", label: "Ma" },
+                      { key: "WE", label: "Me" },
+                      { key: "TH", label: "Je" },
+                      { key: "FR", label: "Ve" },
+                      { key: "SA", label: "Sa" },
+                      { key: "SU", label: "Di" },
+                    ].map(({ key, label }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          const newDays = customDays.includes(key)
+                            ? customDays.filter((d) => d !== key)
+                            : [...customDays, key]
+                          if (newDays.length > 0) {
+                            setCustomDays(newDays)
+                            setRecurrenceRule(`WEEKLY;BYDAY=${newDays.join(",")}`)
+                          }
+                        }}
+                        className={`h-8 w-8 rounded-full text-xs font-medium transition-colors ${
+                          customDays.includes(key)
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Contact autocomplete */}

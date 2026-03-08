@@ -28,6 +28,7 @@ class ContactSerializer(serializers.ModelSerializer):
     company_entity_name = serializers.CharField(
         source="company_entity.name", read_only=True, default=None
     )
+    owner_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Contact
@@ -38,11 +39,13 @@ class ContactSerializer(serializers.ModelSerializer):
             # Profile
             "job_title", "linkedin_url", "website", "address", "industry",
             # Qualification
-            "lead_score", "estimated_budget", "identified_needs", "decision_role",
+            "lead_score", "numeric_score", "estimated_budget", "identified_needs", "decision_role",
             # Preferences
             "preferred_channel", "timezone", "language", "interests", "birthday",
             # AI Summary
             "ai_summary", "ai_summary_updated_at",
+            # Owner
+            "owner", "owner_name",
             # Timestamps
             "created_at", "updated_at",
             # Categories & custom fields
@@ -53,7 +56,12 @@ class ContactSerializer(serializers.ModelSerializer):
             "secondary_email", "secondary_phone", "mobile_phone",
             "twitter_url", "siret",
         ]
-        read_only_fields = ["id", "ai_summary_updated_at", "created_at", "updated_at"]
+        read_only_fields = ["id", "ai_summary_updated_at", "owner_name", "created_at", "updated_at"]
+
+    def get_owner_name(self, obj):
+        if obj.owner:
+            return f"{obj.owner.first_name} {obj.owner.last_name}".strip()
+        return None
 
     def validate_custom_fields(self, value):
         if not value:
@@ -102,7 +110,14 @@ class ContactSerializer(serializers.ModelSerializer):
         return instance
 
 
-from .models import DuplicateDetectionSettings
+from .models import DuplicateDetectionSettings, ScoringRule, LeadRoutingRule, RoundRobinState
+
+
+class ScoringRuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ScoringRule
+        fields = ["id", "event_type", "points", "is_active", "created_at"]
+        read_only_fields = ["id", "created_at"]
 
 
 class DuplicateDetectionSettingsSerializer(serializers.ModelSerializer):
@@ -112,6 +127,37 @@ class DuplicateDetectionSettingsSerializer(serializers.ModelSerializer):
             "enabled", "match_email", "match_name", "match_phone",
             "match_siret", "match_company", "similarity_threshold",
         ]
+
+
+class LeadRoutingRuleSerializer(serializers.ModelSerializer):
+    assign_to_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LeadRoutingRule
+        fields = ["id", "name", "priority", "conditions", "assign_to", "assign_to_name", "is_active", "created_at"]
+        read_only_fields = ["id", "created_at"]
+
+    def get_assign_to_name(self, obj):
+        if obj.assign_to:
+            return f"{obj.assign_to.first_name} {obj.assign_to.last_name}".strip()
+        return None
+
+
+class RoundRobinStateSerializer(serializers.ModelSerializer):
+    eligible_user_ids = serializers.ListField(
+        child=serializers.UUIDField(), write_only=True, required=False
+    )
+
+    class Meta:
+        model = RoundRobinState
+        fields = ["eligible_user_ids", "last_assigned_index"]
+        read_only_fields = ["last_assigned_index"]
+
+    def update(self, instance, validated_data):
+        user_ids = validated_data.pop("eligible_user_ids", None)
+        if user_ids is not None:
+            instance.eligible_users.set(user_ids)
+        return instance
 
 
 class BulkActionSerializer(serializers.Serializer):
