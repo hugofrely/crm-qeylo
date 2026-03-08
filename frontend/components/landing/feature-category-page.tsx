@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl"
 import { Link } from "@/i18n/navigation"
 import { motion } from "motion/react"
+import Image from "next/image"
 import {
   Sparkles,
   TrendingUp,
@@ -48,14 +49,6 @@ const categoryConfig = {
   },
 } as const
 
-const gradientClasses = {
-  ai: "from-[#0D4F4F] to-[#083838]",
-  sales: "from-[#C9946E] to-[#8B6B4A]",
-  contacts: "from-[#3D7A7A] to-[#2A5555]",
-  productivity: "from-[#8B5CF6] to-[#6D28D9]",
-  communication: "from-[#E5584A] to-[#B8342A]",
-} as const
-
 // Sub-icons per feature index per category for visual variety
 const featureSubIcons: Record<string, [LucideIcon, LucideIcon, LucideIcon]> = {
   ai: [Sparkles, Zap, TrendingUp],
@@ -63,6 +56,35 @@ const featureSubIcons: Record<string, [LucideIcon, LucideIcon, LucideIcon]> = {
   contacts: [Users, Zap, Mail],
   productivity: [Zap, Sparkles, TrendingUp],
   communication: [Mail, Users, Zap],
+}
+
+// Screenshot images per feature index per category
+const featureScreenshots: Record<string, [string, string, string]> = {
+  ai: [
+    "/images/features/ai-0.webp",
+    "/images/features/ai-1.webp",
+    "/images/features/ai-2.webp",
+  ],
+  sales: [
+    "/images/features/sales-0.webp",
+    "/images/features/sales-1.webp",
+    "/images/features/sales-2.webp",
+  ],
+  contacts: [
+    "/images/features/contacts-0.webp",
+    "/images/features/contacts-1.webp",
+    "/images/features/contacts-2.webp",
+  ],
+  productivity: [
+    "/images/features/productivity-0.webp",
+    "/images/features/productivity-1.webp",
+    "/images/features/productivity-2.webp",
+  ],
+  communication: [
+    "/images/features/communication-0.webp",
+    "/images/features/communication-1.webp",
+    "/images/features/communication-2.webp",
+  ],
 }
 
 interface FeatureCategoryPageProps {
@@ -76,76 +98,42 @@ const animationProps = {
   transition: { duration: 0.5 },
 }
 
-function FeatureIllustration({
+function FeatureScreenshot({
+  src,
   color,
-  Icon,
 }: {
+  src: string
   color: string
-  Icon: LucideIcon
 }) {
   return (
     <div
-      className="relative rounded-2xl border border-border/30 overflow-hidden min-h-[280px] md:min-h-[360px] flex items-center justify-center"
+      className="relative rounded-2xl overflow-hidden"
       style={{
-        background: `linear-gradient(135deg, ${color}08 0%, ${color}03 50%, transparent 100%)`,
-        boxShadow: `0 8px 32px -8px ${color}10`,
+        boxShadow: `0 20px 60px -12px ${color}20, 0 0 0 1px ${color}10`,
       }}
     >
-      {/* Dot grid pattern */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.04]">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern
-              id={`feat-dots-${color.replace("#", "")}`}
-              width="32"
-              height="32"
-              patternUnits="userSpaceOnUse"
-            >
-              <circle cx="16" cy="16" r="1" fill={color} />
-            </pattern>
-          </defs>
-          <rect
-            width="100%"
-            height="100%"
-            fill={`url(#feat-dots-${color.replace("#", "")})`}
-          />
-        </svg>
+      {/* Browser chrome */}
+      <div
+        className="flex items-center gap-2 px-4 py-3 border-b border-border/20"
+        style={{
+          background: `linear-gradient(135deg, ${color}08 0%, ${color}04 100%)`,
+        }}
+      >
+        <div className="flex gap-1.5">
+          <div className="h-2.5 w-2.5 rounded-full bg-border/40" />
+          <div className="h-2.5 w-2.5 rounded-full bg-border/40" />
+          <div className="h-2.5 w-2.5 rounded-full bg-border/40" />
+        </div>
+        <div className="mx-auto h-5 w-48 rounded-md bg-border/10" />
       </div>
 
-      {/* Floating decorative circles */}
-      <div
-        className="absolute top-8 right-12 h-24 w-24 rounded-full border"
-        style={{ borderColor: `${color}15` }}
-      />
-      <div
-        className="absolute bottom-12 left-8 h-16 w-16 rounded-full border"
-        style={{ borderColor: `${color}10` }}
-      />
-      <div
-        className="absolute top-1/3 left-1/4 h-10 w-10 rounded-full"
-        style={{ backgroundColor: `${color}06` }}
-      />
-
-      {/* Gradient accent line */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-1"
-        style={{
-          background: `linear-gradient(to right, transparent, ${color}20, transparent)`,
-        }}
-      />
-
-      {/* Vertical accent line */}
-      <div
-        className="absolute top-0 right-16 w-px h-full"
-        style={{
-          background: `linear-gradient(to bottom, transparent, ${color}10, transparent)`,
-        }}
-      />
-
-      {/* Center icon */}
-      <Icon
-        className="h-20 w-20"
-        style={{ color, opacity: 0.08 }}
+      {/* Screenshot */}
+      <Image
+        src={src}
+        alt=""
+        width={1200}
+        height={800}
+        className="w-full h-auto"
       />
     </div>
   )
@@ -161,42 +149,20 @@ export function FeatureCategoryPage({ category }: FeatureCategoryPageProps) {
   return (
     <>
       {/* ─── Section 1: Hero ─── */}
-      <section className="relative overflow-hidden pt-32 pb-20 lg:pt-40 lg:pb-28">
-        {/* Background effects */}
+      <section className="relative overflow-hidden pt-28 pb-14 lg:pt-36 lg:pb-20">
+        {/* Background blobs */}
         <div className="pointer-events-none absolute inset-0">
-          {/* Primary gradient orb */}
           <div
-            className="absolute -top-40 right-0 h-[500px] w-[500px] rounded-full blur-[120px]"
-            style={{ backgroundColor: color, opacity: 0.08 }}
+            className="absolute -top-20 right-[5%] h-[500px] w-[500px] rounded-full blur-[120px]"
+            style={{ backgroundColor: color, opacity: 0.22 }}
           />
-          {/* Secondary smaller orb */}
           <div
-            className="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full blur-[80px]"
-            style={{ backgroundColor: color, opacity: 0.05 }}
+            className="absolute -bottom-12 left-[8%] h-[350px] w-[350px] rounded-full blur-[90px]"
+            style={{ backgroundColor: color, opacity: 0.16 }}
           />
-          {/* Dot grid overlay */}
-          <div className="absolute inset-0 opacity-[0.02]">
-            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern
-                  id={`hero-dots-${category}`}
-                  width="40"
-                  height="40"
-                  patternUnits="userSpaceOnUse"
-                >
-                  <circle cx="20" cy="20" r="1" fill="currentColor" />
-                </pattern>
-              </defs>
-              <rect
-                width="100%"
-                height="100%"
-                fill={`url(#hero-dots-${category})`}
-              />
-            </svg>
-          </div>
-          {/* Large decorative category icon */}
-          <Icon
-            className="absolute -top-4 right-8 h-64 w-64 opacity-[0.03]"
+          <div
+            className="absolute top-[30%] left-[40%] h-[250px] w-[250px] rounded-full blur-[100px]"
+            style={{ backgroundColor: "#C9946E", opacity: 0.1 }}
           />
         </div>
 
@@ -204,16 +170,13 @@ export function FeatureCategoryPage({ category }: FeatureCategoryPageProps) {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="mx-auto max-w-3xl text-center"
           >
             {/* Badge */}
             <span
-              className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold"
-              style={{
-                backgroundColor: `${color}18`,
-                color,
-              }}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold text-white"
+              style={{ backgroundColor: color }}
             >
               <Icon className="h-4 w-4" />
               {t("badge")}
@@ -222,27 +185,23 @@ export function FeatureCategoryPage({ category }: FeatureCategoryPageProps) {
             {/* Title */}
             <h1 className="mt-6 text-4xl font-bold tracking-tight leading-[1.1] sm:text-5xl lg:text-6xl">
               {t("title")}{" "}
-              <span
-                className={`bg-gradient-to-r ${gradientClasses[category]} bg-clip-text text-transparent`}
-              >
-                {t("titleGradient")}
-              </span>
+              <span style={{ color }}>{t("titleGradient")}</span>
             </h1>
 
             {/* Description */}
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
+            <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
               {t("description")}
             </p>
 
             {/* CTA buttons */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Button
                 size="lg"
                 asChild
-                className="group h-12 rounded-full px-8 text-base font-medium text-white shadow-xl transition-all hover:scale-[1.02]"
+                className="group h-11 rounded-full px-7 text-base font-semibold text-white transition-all hover:scale-[1.02]"
                 style={{
                   backgroundColor: color,
-                  boxShadow: `0 10px 30px -8px ${color}40`,
+                  boxShadow: `0 6px 24px -4px ${color}50`,
                 }}
               >
                 <Link href="/register">
@@ -254,7 +213,7 @@ export function FeatureCategoryPage({ category }: FeatureCategoryPageProps) {
                 variant="ghost"
                 size="lg"
                 asChild
-                className="h-12 rounded-full px-8 text-base border border-border/50"
+                className="h-11 rounded-full px-7 text-base border border-border/60 hover:border-border"
               >
                 <Link href="/features">{t("ctaSecondary")}</Link>
               </Button>
@@ -331,8 +290,11 @@ export function FeatureCategoryPage({ category }: FeatureCategoryPageProps) {
                       </ul>
                     </div>
 
-                    {/* Illustration side */}
-                    <FeatureIllustration color={color} Icon={SubIcon} />
+                    {/* Screenshot side */}
+                    <FeatureScreenshot
+                      src={featureScreenshots[category][featureIndex]}
+                      color={color}
+                    />
                   </motion.div>
 
                   {/* Accent line separator between features */}

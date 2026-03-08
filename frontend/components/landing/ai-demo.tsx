@@ -198,8 +198,8 @@ export function AIDemo() {
             </div>
 
             <div className="p-6 sm:p-8 lg:p-10">
-              {/* Chat area */}
-              <div className="space-y-6" key={cycleKey}>
+              {/* Chat area — fixed min-height prevents layout shift when scenarios cycle */}
+              <div className="space-y-6 min-h-[700px] sm:min-h-[520px]" key={cycleKey}>
                 {/* User message bubble */}
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}

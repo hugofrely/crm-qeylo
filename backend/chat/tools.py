@@ -134,12 +134,28 @@ def create_contact(
             "message": f"Un contact similaire existe déjà: {contact.first_name} {contact.last_name} (score: {round(score, 2)}).",
         }
 
+    # Auto-resolve or create the Company entity when a company name is provided
+    company_entity = None
+    if company:
+        company_entity = Company.objects.filter(
+            organization_id=org_id, name__iexact=company,
+        ).first()
+        if not company_entity:
+            domain = email.split("@")[1] if email and "@" in email else ""
+            company_entity = Company.objects.create(
+                organization_id=org_id,
+                created_by_id=ctx.deps.user_id,
+                name=company,
+                domain=domain,
+            )
+
     contact = Contact.objects.create(
         organization_id=org_id,
         created_by_id=ctx.deps.user_id,
         first_name=first_name,
         last_name=last_name,
         company=company,
+        company_entity=company_entity,
         email=email,
         phone=phone,
     )
@@ -160,7 +176,7 @@ def create_contact(
         )
         contact.categories.set(cats)
 
-    return {
+    result = {
         "action": "contact_created",
         "id": str(contact.id),
         "entity_id": str(contact.id),
@@ -176,6 +192,10 @@ def create_contact(
         },
         "link": f"/contacts/{contact.id}",
     }
+    if company_entity:
+        result["company_entity_id"] = str(company_entity.id)
+        result["company_link"] = f"/companies/{company_entity.id}"
+    return result
 
 
 def search_contacts(ctx: RunContext[ChatDeps], query: str, category: str = "") -> dict:
@@ -317,7 +337,7 @@ def update_contact_categories(
     org_id = ctx.deps.organization_id
     resolved_id = _resolve_contact_id(org_id, contact_id)
     if not resolved_id:
-        return {"error": "Contact introuvable."}
+        return {"action": "error", "message": "Contact introuvable."}
 
     contact = Contact.objects.get(id=resolved_id, organization_id=org_id)
 
@@ -361,7 +381,7 @@ def update_custom_field(
     org_id = ctx.deps.organization_id
     resolved_id = _resolve_contact_id(org_id, contact_id)
     if not resolved_id:
-        return {"error": "Contact introuvable."}
+        return {"action": "error", "message": "Contact introuvable."}
 
     contact = Contact.objects.get(id=resolved_id, organization_id=org_id)
 
@@ -371,19 +391,19 @@ def update_custom_field(
             label__iexact=field_label,
         )
     except CustomFieldDefinition.DoesNotExist:
-        return {"error": f"Champ personnalise '{field_label}' introuvable."}
+        return {"action": "error", "message": f"Champ personnalise '{field_label}' introuvable."}
 
     # Type conversion
     if field_def.field_type == "number":
         try:
             value = float(value)
         except ValueError:
-            return {"error": f"Le champ '{field_label}' attend un nombre."}
+            return {"action": "error", "message": f"Le champ '{field_label}' attend un nombre."}
     elif field_def.field_type == "checkbox":
         value = value.lower() in ("true", "oui", "1", "yes")
     elif field_def.field_type == "select":
         if value not in field_def.options:
-            return {"error": f"Valeur invalide. Options: {field_def.options}"}
+            return {"action": "error", "message": f"Valeur invalide. Options: {field_def.options}"}
 
     if not contact.custom_fields:
         contact.custom_fields = {}
@@ -562,10 +582,10 @@ def create_deal(
     """Create a new deal in the pipeline."""
     org_id = ctx.deps.organization_id
     stage = PipelineStage.objects.filter(
-        organization_id=org_id, name=stage_name,
+        pipeline__organization_id=org_id, name=stage_name,
     ).first()
     if not stage:
-        stage = PipelineStage.objects.filter(organization_id=org_id).first()
+        stage = PipelineStage.objects.filter(pipeline__organization_id=org_id).first()
     if not stage:
         return {"action": "error", "message": "No pipeline stages found. Please create stages first."}
 
@@ -2432,9 +2452,9 @@ def generate_chart(
         if date_from:
             qs = qs.filter(created_at__gte=date_from)
         data = list(
-            qs.values("stage__name", "stage__position")
+            qs.values("stage__name", "stage__order")
             .annotate(value=Sum("amount"))
-            .order_by("stage__position")
+            .order_by("stage__order")
         )
         data = [{"label": r["stage__name"] or "Sans étape", "value": float(r["value"] or 0)} for r in data]
 
@@ -2446,9 +2466,9 @@ def generate_chart(
         if date_from:
             qs = qs.filter(created_at__gte=date_from)
         data = list(
-            qs.values("stage__name", "stage__position")
+            qs.values("stage__name", "stage__order")
             .annotate(value=Avg("amount"))
-            .order_by("stage__position")
+            .order_by("stage__order")
         )
         data = [{"label": r["stage__name"] or "Sans étape", "value": round(float(r["value"] or 0), 2)} for r in data]
 
@@ -2486,7 +2506,7 @@ def generate_chart(
         color = "#3b82f6"
         stages = PipelineStage.objects.filter(
             pipeline__organization_id=org_id,
-        ).order_by("position")
+        ).order_by("order")
         qs = Deal.objects.filter(organization_id=org_id)
         if date_from:
             qs = qs.filter(created_at__gte=date_from)
@@ -2503,7 +2523,7 @@ def generate_chart(
         from deals.models import DealStageTransition
         stages = PipelineStage.objects.filter(
             pipeline__organization_id=org_id,
-        ).order_by("position")
+        ).order_by("order")
         data = []
         for stage in stages:
             transitions = DealStageTransition.objects.filter(
@@ -2708,7 +2728,7 @@ def generate_chart(
             chart_type = "funnel"
         stages = PipelineStage.objects.filter(
             pipeline__organization_id=org_id,
-        ).order_by("position")
+        ).order_by("order")
         qs = Deal.objects.filter(organization_id=org_id)
         if date_from:
             qs = qs.filter(created_at__gte=date_from)
@@ -2878,7 +2898,7 @@ def get_company(ctx: RunContext[ChatDeps], company_name_or_id: str) -> dict:
     org_id = ctx.deps.organization_id
     company = _find_company(org_id, company_name_or_id)
     if not company:
-        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise '{company_name_or_id}' non trouvee."}
     contacts_count = company.contacts.count()
     deals = company.deals.all()
     open_value = float(deals.exclude(stage__name__in=["Gagne", "Perdu", "Gagné"]).aggregate(t=Sum("amount"))["t"] or 0)
@@ -2951,7 +2971,7 @@ def update_company(
     org_id = ctx.deps.organization_id
     company = _find_company(org_id, company_name_or_id)
     if not company:
-        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise '{company_name_or_id}' non trouvee."}
     changes = []
     for field, value in [
         ("name", name), ("industry", industry), ("website", website),
@@ -2980,7 +3000,7 @@ def delete_company(ctx: RunContext[ChatDeps], company_name_or_id: str) -> dict:
     org_id = ctx.deps.organization_id
     company = _find_company(org_id, company_name_or_id)
     if not company:
-        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise '{company_name_or_id}' non trouvee."}
     company.soft_delete(user_id=ctx.deps.user_id)
     return {
         "action": "deleted",
@@ -2995,7 +3015,7 @@ def get_company_stats(ctx: RunContext[ChatDeps], company_name_or_id: str) -> dic
     org_id = ctx.deps.organization_id
     company = _find_company(org_id, company_name_or_id)
     if not company:
-        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise '{company_name_or_id}' non trouvee."}
     deals = Deal.objects.filter(company=company)
     open_deals = deals.exclude(stage__name__in=["Gagne", "Perdu", "Gagné"])
     won_deals = deals.filter(stage__name__in=["Gagne", "Gagné"])
@@ -3022,7 +3042,7 @@ def get_company_contacts(ctx: RunContext[ChatDeps], company_name_or_id: str, rol
     org_id = ctx.deps.organization_id
     company = _find_company(org_id, company_name_or_id)
     if not company:
-        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise '{company_name_or_id}' non trouvee."}
     contacts = Contact.objects.filter(company_entity=company)
     if role:
         contacts = contacts.filter(decision_role__iexact=role)
@@ -3042,7 +3062,7 @@ def get_company_deals(ctx: RunContext[ChatDeps], company_name_or_id: str, stage:
     org_id = ctx.deps.organization_id
     company = _find_company(org_id, company_name_or_id)
     if not company:
-        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise '{company_name_or_id}' non trouvee."}
     deals = Deal.objects.filter(company=company).select_related("stage")
     if stage:
         deals = deals.filter(stage__name__icontains=stage)
@@ -3062,7 +3082,7 @@ def get_company_hierarchy(ctx: RunContext[ChatDeps], company_name_or_id: str) ->
     org_id = ctx.deps.organization_id
     company = _find_company(org_id, company_name_or_id)
     if not company:
-        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise '{company_name_or_id}' non trouvee."}
     root = company
     while root.parent:
         root = root.parent
@@ -3084,7 +3104,7 @@ def get_company_org_chart(ctx: RunContext[ChatDeps], company_name_or_id: str) ->
     org_id = ctx.deps.organization_id
     company = _find_company(org_id, company_name_or_id)
     if not company:
-        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise '{company_name_or_id}' non trouvee."}
     contacts = Contact.objects.filter(company_entity=company)
     contact_ids = list(contacts.values_list("id", flat=True))
     relationships = ContactRelationship.objects.filter(
@@ -3111,10 +3131,10 @@ def link_contact_to_company(ctx: RunContext[ChatDeps], contact_name_or_id: str, 
     org_id = ctx.deps.organization_id
     contact_id = _resolve_contact_id(org_id, contact_name_or_id)
     if not contact_id:
-        return {"error": "Contact non trouve."}
+        return {"action": "error", "message": "Contact non trouve."}
     company = _find_company(org_id, company_name_or_id)
     if not company:
-        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise '{company_name_or_id}' non trouvee."}
     Contact.objects.filter(id=contact_id).update(company_entity=company)
     contact = Contact.objects.get(id=contact_id)
     return {
@@ -3131,7 +3151,7 @@ def unlink_contact_from_company(ctx: RunContext[ChatDeps], contact_name_or_id: s
     org_id = ctx.deps.organization_id
     contact_id = _resolve_contact_id(org_id, contact_name_or_id)
     if not contact_id:
-        return {"error": "Contact non trouve."}
+        return {"action": "error", "message": "Contact non trouve."}
     contact = Contact.objects.get(id=contact_id)
     old_name = contact.company_entity.name if contact.company_entity else "aucune"
     contact.company_entity = None
@@ -3154,7 +3174,7 @@ def create_contact_relationship_tool(
     from_id = _resolve_contact_id(org_id, from_contact_name_or_id)
     to_id = _resolve_contact_id(org_id, to_contact_name_or_id)
     if not from_id or not to_id:
-        return {"error": "Contact(s) non trouve(s)."}
+        return {"action": "error", "message": "Contact(s) non trouve(s)."}
     rel, created = ContactRelationship.objects.get_or_create(
         organization_id=org_id,
         from_contact_id=from_id, to_contact_id=to_id,
@@ -3182,7 +3202,7 @@ def remove_contact_relationship(
     from_id = _resolve_contact_id(org_id, from_contact_name_or_id)
     to_id = _resolve_contact_id(org_id, to_contact_name_or_id)
     if not from_id or not to_id:
-        return {"error": "Contact(s) non trouve(s)."}
+        return {"action": "error", "message": "Contact(s) non trouve(s)."}
     deleted, _ = ContactRelationship.objects.filter(
         organization_id=org_id,
         from_contact_id=from_id, to_contact_id=to_id,
@@ -3197,9 +3217,9 @@ def transfer_contacts(ctx: RunContext[ChatDeps], from_company: str, to_company: 
     src = _find_company(org_id, from_company)
     dst = _find_company(org_id, to_company)
     if not src:
-        return {"error": f"Entreprise source '{from_company}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise source '{from_company}' non trouvee."}
     if not dst:
-        return {"error": f"Entreprise destination '{to_company}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise destination '{to_company}' non trouvee."}
     count = Contact.objects.filter(company_entity=src).update(company_entity=dst)
     return {"action": "transferred", "summary": f"{count} contact(s) transfere(s) de {src.name} vers {dst.name}."}
 
@@ -3210,9 +3230,9 @@ def set_parent_company(ctx: RunContext[ChatDeps], company_name_or_id: str, paren
     company = _find_company(org_id, company_name_or_id)
     parent = _find_company(org_id, parent_name_or_id)
     if not company:
-        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise '{company_name_or_id}' non trouvee."}
     if not parent:
-        return {"error": f"Entreprise parente '{parent_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise parente '{parent_name_or_id}' non trouvee."}
     company.parent = parent
     company.save(update_fields=["parent"])
     return {"action": "updated", "summary": f"{company.name} est maintenant filiale de {parent.name}."}
@@ -3223,7 +3243,7 @@ def get_company_summary(ctx: RunContext[ChatDeps], company_name_or_id: str) -> d
     org_id = ctx.deps.organization_id
     company = _find_company(org_id, company_name_or_id)
     if not company:
-        return {"error": f"Entreprise '{company_name_or_id}' non trouvee."}
+        return {"action": "error", "message": f"Entreprise '{company_name_or_id}' non trouvee."}
     contacts = Contact.objects.filter(company_entity=company)
     deals = Deal.objects.filter(company=company)
     open_deals = deals.exclude(stage__name__in=["Gagne", "Perdu", "Gagné"])
@@ -3303,7 +3323,7 @@ def get_deal_velocity(
         pipeline = pipeline.filter(name__icontains=pipeline_name)
     p = pipeline.first()
     if not p:
-        return {"error": "No pipeline found"}
+        return {"action": "error", "message": "No pipeline found"}
     return compute_velocity(Organization.objects.get(id=org_id), str(p.id), period=period)
 
 
@@ -3333,13 +3353,13 @@ def get_quota_progress(
             full_name = f"{r['user']['first_name']} {r['user']['last_name']}".lower()
             if user_name.lower() in full_name:
                 return r
-        return {"error": f"User '{user_name}' not found in leaderboard"}
+        return {"action": "error", "message": f"User '{user_name}' not found in leaderboard"}
     # Return current user's progress
     user_id = ctx.deps.user_id
     for r in result.get("rankings", []):
         if r["user"]["id"] == user_id:
             return r
-    return {"error": "User not found in leaderboard"}
+    return {"action": "error", "message": "User not found in leaderboard"}
 
 
 def get_next_actions(
@@ -3356,12 +3376,12 @@ def get_next_actions(
             organization_id=org_id, name__icontains=deal_name_or_id
         ).first()
         if not deal:
-            return {"error": f"Deal '{deal_name_or_id}' not found"}
+            return {"action": "error", "message": f"Deal '{deal_name_or_id}' not found"}
         deal_id = str(deal.id)
     else:
         deal = Deal.objects.filter(id=deal_id, organization_id=org_id).select_related("stage").first()
         if not deal:
-            return {"error": "Deal not found"}
+            return {"action": "error", "message": "Deal not found"}
 
     from deals.next_actions import compute_heuristic_actions
     actions = compute_heuristic_actions(deal, Organization.objects.get(id=org_id))
