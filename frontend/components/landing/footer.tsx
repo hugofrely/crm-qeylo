@@ -10,6 +10,11 @@ export function Footer() {
   const footerLinks = {
     [t("product")]: [
       { label: t("productLinks.features"), href: "/features" as const },
+      { label: t("productLinks.ai"), href: "/features/ai" as const },
+      { label: t("productLinks.sales"), href: "/features/sales" as const },
+      { label: t("productLinks.contacts"), href: "/features/contacts" as const },
+      { label: t("productLinks.productivity"), href: "/features/productivity" as const },
+      { label: t("productLinks.communication"), href: "/features/communication" as const },
       { label: t("productLinks.pricing"), href: "/pricing" as const },
       { label: t("productLinks.login"), href: "/login" as const },
       { label: t("productLinks.register"), href: "/register" as const },

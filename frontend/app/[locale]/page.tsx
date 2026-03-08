@@ -1,13 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useRouter } from "@/i18n/navigation"
 import { useAuth } from "@/lib/auth"
 import { Navbar } from "@/components/landing/navbar"
 import { Hero } from "@/components/landing/hero"
 import { AIDemo } from "@/components/landing/ai-demo"
-import { Features } from "@/components/landing/features"
-import { Everything } from "@/components/landing/everything"
+import { FeaturesShowcase } from "@/components/landing/features-showcase"
 import { HowItWorks } from "@/components/landing/how-it-works"
 import { Pricing } from "@/components/landing/pricing"
 import { CTA } from "@/components/landing/cta"
@@ -15,22 +12,10 @@ import { Footer } from "@/components/landing/footer"
 import { useTranslations } from "next-intl"
 
 export default function HomePage() {
-  const { user, loading } = useAuth()
-  const router = useRouter()
-  const [showLanding, setShowLanding] = useState(false)
+  const { loading } = useAuth()
   const t = useTranslations("common")
 
-  useEffect(() => {
-    if (!loading) {
-      if (user) {
-        router.replace("/chat")
-      } else {
-        setShowLanding(true)
-      }
-    }
-  }, [user, loading, router])
-
-  if (!showLanding) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-muted-foreground">{t("loading")}</div>
@@ -44,8 +29,7 @@ export default function HomePage() {
       <main>
         <Hero />
         <AIDemo />
-        <Features />
-        <Everything />
+        <FeaturesShowcase />
         <HowItWorks />
         <Pricing />
         <CTA />
