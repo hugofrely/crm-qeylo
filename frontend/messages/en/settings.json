@@ -1,1 +1,74 @@
-{}
+{
+  "title": "Settings",
+  "subtitle": "Manage your profile and organization",
+  "tabs": {
+    "personal": "information",
+    "personalPrefix": "Personal",
+    "organisation": "Organization"
+  },
+  "profile": {
+    "title": "Profile",
+    "badge": "User",
+    "fullName": "Full name",
+    "email": "Email address",
+    "language": "Language",
+    "languageDesc": "Choose the interface language",
+    "languageFr": "Français",
+    "languageEn": "English"
+  },
+  "notifications": {
+    "emailNotifications": "Email notifications",
+    "emailNotificationsDesc": "Receive reminders and alerts by email"
+  },
+  "emailAccounts": {
+    "title": "Connected email accounts",
+    "subtitle": "Send emails directly from the CRM",
+    "connectGmail": "Connect Gmail",
+    "connectOutlook": "Connect Outlook",
+    "disconnected": "Account disconnected",
+    "gmailConnectError": "Unable to initiate Gmail connection",
+    "outlookConnectError": "Unable to initiate Outlook connection",
+    "connected": "{provider} account connected",
+    "connectionError": "Error connecting email account"
+  },
+  "aiUsage": {
+    "title": "AI Usage",
+    "subtitle": "Track costs and tokens by organization and user"
+  },
+  "orgSubTabs": {
+    "settings": "Settings",
+    "billing": "Billing"
+  },
+  "duplicates": {
+    "title": "Duplicate detection",
+    "subtitle": "Configure automatic detection of duplicate contacts",
+    "enabled": "Detection enabled",
+    "enabledDesc": "Check for duplicates before each contact creation",
+    "matchCriteria": "Match criteria",
+    "matchEmail": "Email",
+    "matchEmailDesc": "Exact email address match",
+    "matchName": "First and last name",
+    "matchNameDesc": "Approximate match (tolerates typos)",
+    "matchPhone": "Phone",
+    "matchPhoneDesc": "Exact phone number match",
+    "matchSiret": "SIRET",
+    "matchSiretDesc": "Exact SIRET number match",
+    "matchCompany": "Company",
+    "matchCompanyDesc": "Approximate company name match",
+    "similarityThreshold": "Similarity threshold",
+    "similarityThresholdDesc": "The lower the threshold, the more sensitive the detection (more false positives)",
+    "updateError": "Error updating settings"
+  },
+  "emailTemplates": {
+    "title": "Email templates",
+    "subtitle": "Create and manage reusable email templates"
+  },
+  "quotas": {
+    "title": "Sales quotas",
+    "subtitle": "Define monthly targets per salesperson"
+  },
+  "checkout": {
+    "success": "Subscription activated successfully!",
+    "cancel": "Payment cancelled."
+  }
+}

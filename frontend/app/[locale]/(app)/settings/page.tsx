@@ -16,9 +16,17 @@ import {
   GitMerge,
   Target,
   Loader2,
+  Globe,
 } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { apiFetch } from "@/lib/api"
 import { fetchOrganizations, fetchMembers } from "@/services/organizations"
 import { fetchDuplicateSettings, updateDuplicateSettings } from "@/services/contacts"
@@ -33,6 +41,8 @@ import ReminderSettings from "@/components/settings/ReminderSettings"
 import ScoringSettings from "@/components/settings/ScoringSettings"
 import RoutingSettings from "@/components/settings/RoutingSettings"
 import BillingSection from "@/components/settings/BillingSection"
+import { useTranslations } from "next-intl"
+import { useLocale } from "next-intl"
 
 interface EmailAccount {
   id: string
@@ -45,6 +55,8 @@ interface EmailAccount {
 export default function SettingsPage() {
   const { user } = useAuth()
   const searchParams = useSearchParams()
+  const t = useTranslations('settings')
+  const locale = useLocale()
 
   const initials = user
     ? `${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase()
@@ -75,13 +87,14 @@ export default function SettingsPage() {
     const connected = searchParams.get("email_connected")
     const error = searchParams.get("email_error")
     if (connected) {
-      toast.success(`Compte ${connected === "gmail" ? "Gmail" : "Outlook"} connecté`)
+      const provider = connected === "gmail" ? "Gmail" : "Outlook"
+      toast.success(t('emailAccounts.connected', { provider }))
       apiFetch<EmailAccount[]>("/email/accounts/").then(setEmailAccounts).catch(() => {})
     }
     if (error) {
-      toast.error("Erreur lors de la connexion du compte email")
+      toast.error(t('emailAccounts.connectionError'))
     }
-  }, [searchParams])
+  }, [searchParams, t])
 
   useEffect(() => {
     async function fetchOrg() {
@@ -114,16 +127,16 @@ export default function SettingsPage() {
   useEffect(() => {
     const checkout = searchParams.get("checkout")
     if (checkout === "success") {
-      toast.success("Abonnement activé avec succès !")
+      toast.success(t('checkout.success'))
     } else if (checkout === "cancel") {
-      toast.info("Paiement annulé.")
+      toast.info(t('checkout.cancel'))
     }
-  }, [searchParams])
+  }, [searchParams, t])
 
   const disconnectAccount = async (id: string) => {
     await apiFetch(`/email/accounts/${id}/`, { method: "DELETE" })
     setEmailAccounts((prev) => prev.filter((a) => a.id !== id))
-    toast.success("Compte déconnecté")
+    toast.success(t('emailAccounts.disconnected'))
   }
 
   const handleDupSettingChange = async (field: string, value: boolean | number) => {
@@ -133,23 +146,44 @@ export default function SettingsPage() {
     try {
       await updateDuplicateSettings({ [field]: value })
     } catch {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(t('duplicates.updateError'))
       fetchDuplicateSettings().then(setDupSettings).catch(() => {})
+    }
+  }
+
+  const handleLanguageChange = async (newLocale: string) => {
+    try {
+      await apiFetch("/accounts/me/", {
+        method: "PATCH",
+        json: { preferred_language: newLocale },
+      })
+      document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000`
+      // Redirect to the same page with the new locale
+      const currentPath = window.location.pathname
+      // Replace the current locale segment with the new one
+      const newPath = currentPath.replace(`/${locale}`, `/${newLocale}`)
+      window.location.href = newPath + window.location.search
+    } catch {
+      // silently fail - the API endpoint might not exist yet
+      document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000`
+      const currentPath = window.location.pathname
+      const newPath = currentPath.replace(`/${locale}`, `/${newLocale}`)
+      window.location.href = newPath + window.location.search
     }
   }
 
   return (
     <div className="p-6 sm:p-8 lg:p-12 max-w-3xl mx-auto space-y-6 animate-fade-in-up">
-      <PageHeader title="Paramètres" subtitle="Gérez votre profil et votre organisation" />
+      <PageHeader title={t('title')} subtitle={t('subtitle')} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full sm:w-auto">
           <TabsTrigger value="personnel" className="flex-1 sm:flex-initial gap-1.5">
             <User className="h-4 w-4" />
-            <span className="hidden sm:inline">Informations</span> personnelles
+            <span className="hidden sm:inline">{t('tabs.personalPrefix')}</span> {t('tabs.personal')}
           </TabsTrigger>
           <TabsTrigger value="organisation" className="flex-1 sm:flex-initial gap-1.5">
-            Organisation
+            {t('tabs.organisation')}
           </TabsTrigger>
         </TabsList>
 
@@ -158,7 +192,7 @@ export default function SettingsPage() {
           {/* Profile card */}
           <div className="rounded-xl border border-border bg-card overflow-hidden">
             <div className="px-6 py-5 border-b border-border">
-              <h2 className="text-xl tracking-tight">Profil</h2>
+              <h2 className="text-xl tracking-tight">{t('profile.title')}</h2>
             </div>
             <div className="p-6 space-y-5 font-[family-name:var(--font-body)]">
               <div className="flex items-center gap-4">
@@ -170,7 +204,7 @@ export default function SettingsPage() {
                     {user?.first_name} {user?.last_name}
                   </h3>
                   <Badge variant="secondary" className="mt-1 text-[10px] font-normal">
-                    Utilisateur
+                    {t('profile.badge')}
                   </Badge>
                 </div>
               </div>
@@ -183,7 +217,7 @@ export default function SettingsPage() {
                     <User className="h-3.5 w-3.5" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Nom complet</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('profile.fullName')}</p>
                     <p className="text-sm font-medium">
                       {user?.first_name} {user?.last_name}
                     </p>
@@ -194,11 +228,37 @@ export default function SettingsPage() {
                     <Mail className="h-3.5 w-3.5" />
                   </div>
                   <div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Adresse email</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('profile.email')}</p>
                     <p className="text-sm font-medium">{user?.email}</p>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Language selector */}
+          <div className="rounded-xl border border-border bg-card">
+            <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary/8 text-primary">
+                  <Globe className="h-5 w-5" />
+                </div>
+                <div className="font-[family-name:var(--font-body)]">
+                  <p className="text-sm font-medium">{t('profile.language')}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('profile.languageDesc')}
+                  </p>
+                </div>
+              </div>
+              <Select value={locale} onValueChange={handleLanguageChange}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fr">{t('profile.languageFr')}</SelectItem>
+                  <SelectItem value="en">{t('profile.languageEn')}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -210,9 +270,9 @@ export default function SettingsPage() {
                   <Bell className="h-5 w-5" />
                 </div>
                 <div className="font-[family-name:var(--font-body)]">
-                  <p className="text-sm font-medium">Notifications email</p>
+                  <p className="text-sm font-medium">{t('notifications.emailNotifications')}</p>
                   <p className="text-xs text-muted-foreground">
-                    Recevoir les rappels et alertes par email
+                    {t('notifications.emailNotificationsDesc')}
                   </p>
                 </div>
               </div>
@@ -231,9 +291,9 @@ export default function SettingsPage() {
           {/* Connected email accounts */}
           <div className="rounded-xl border border-border bg-card overflow-hidden">
             <div className="px-6 py-5 border-b border-border">
-              <h2 className="text-xl tracking-tight">Comptes email connectés</h2>
+              <h2 className="text-xl tracking-tight">{t('emailAccounts.title')}</h2>
               <p className="text-xs text-muted-foreground mt-1 font-[family-name:var(--font-body)]">
-                Envoyez des emails directement depuis le CRM
+                {t('emailAccounts.subtitle')}
               </p>
             </div>
             <div className="p-6 space-y-4 font-[family-name:var(--font-body)]">
@@ -271,13 +331,13 @@ export default function SettingsPage() {
                         const data = await apiFetch<{ url: string }>("/email/connect/gmail/")
                         window.location.href = data.url
                       } catch {
-                        toast.error("Impossible de lancer la connexion Gmail")
+                        toast.error(t('emailAccounts.gmailConnectError'))
                       }
                     }}
                     className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium hover:bg-secondary/50 transition-colors"
                   >
                     <Plug className="h-4 w-4" />
-                    Connecter Gmail
+                    {t('emailAccounts.connectGmail')}
                   </button>
                 )}
                 {!emailAccounts.find((a) => a.provider === "outlook") && (
@@ -287,13 +347,13 @@ export default function SettingsPage() {
                         const data = await apiFetch<{ url: string }>("/email/connect/outlook/")
                         window.location.href = data.url
                       } catch {
-                        toast.error("Impossible de lancer la connexion Outlook")
+                        toast.error(t('emailAccounts.outlookConnectError'))
                       }
                     }}
                     className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium hover:bg-secondary/50 transition-colors"
                   >
                     <Plug className="h-4 w-4" />
-                    Connecter Outlook
+                    {t('emailAccounts.connectOutlook')}
                   </button>
                 )}
               </div>
@@ -310,9 +370,9 @@ export default function SettingsPage() {
                       <Activity className="h-5 w-5" />
                     </div>
                     <div className="font-[family-name:var(--font-body)]">
-                      <p className="text-sm font-medium">Consommation IA</p>
+                      <p className="text-sm font-medium">{t('aiUsage.title')}</p>
                       <p className="text-xs text-muted-foreground">
-                        Suivre les couts et tokens par organisation et utilisateur
+                        {t('aiUsage.subtitle')}
                       </p>
                     </div>
                   </div>
@@ -335,11 +395,11 @@ export default function SettingsPage() {
               <Tabs value={activeSubTab} onValueChange={setActiveSubTab}>
                 <TabsList variant="line" className="w-full sm:w-auto mb-6">
                   <TabsTrigger value="parametres" className="flex-1 sm:flex-initial">
-                    Paramètres
+                    {t('orgSubTabs.settings')}
                   </TabsTrigger>
                   {isOwnerOrAdmin && (
                     <TabsTrigger value="facturation" className="flex-1 sm:flex-initial">
-                      Facturation
+                      {t('orgSubTabs.billing')}
                     </TabsTrigger>
                   )}
                 </TabsList>
@@ -367,9 +427,9 @@ export default function SettingsPage() {
                             <GitMerge className="h-5 w-5" />
                           </div>
                           <div>
-                            <h2 className="text-xl tracking-tight">Détection de doublons</h2>
+                            <h2 className="text-xl tracking-tight">{t('duplicates.title')}</h2>
                             <p className="text-xs text-muted-foreground mt-1 font-[family-name:var(--font-body)]">
-                              Configurer la détection automatique de contacts en double
+                              {t('duplicates.subtitle')}
                             </p>
                           </div>
                         </div>
@@ -377,9 +437,9 @@ export default function SettingsPage() {
                       <div className="p-6 space-y-4 font-[family-name:var(--font-body)]">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium">Détection activée</p>
+                            <p className="text-sm font-medium">{t('duplicates.enabled')}</p>
                             <p className="text-xs text-muted-foreground">
-                              Vérifier les doublons avant chaque création de contact
+                              {t('duplicates.enabledDesc')}
                             </p>
                           </div>
                           <Checkbox
@@ -394,15 +454,15 @@ export default function SettingsPage() {
 
                             <div>
                               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">
-                                Critères de correspondance
+                                {t('duplicates.matchCriteria')}
                               </p>
                               <div className="space-y-3">
                                 {[
-                                  { key: "match_email", label: "Email", desc: "Correspondance exacte de l'adresse email" },
-                                  { key: "match_name", label: "Nom et prénom", desc: "Correspondance approximative (tolère les fautes)" },
-                                  { key: "match_phone", label: "Téléphone", desc: "Correspondance exacte du numéro" },
-                                  { key: "match_siret", label: "SIRET", desc: "Correspondance exacte du numéro SIRET" },
-                                  { key: "match_company", label: "Entreprise", desc: "Correspondance approximative du nom" },
+                                  { key: "match_email", label: t('duplicates.matchEmail'), desc: t('duplicates.matchEmailDesc') },
+                                  { key: "match_name", label: t('duplicates.matchName'), desc: t('duplicates.matchNameDesc') },
+                                  { key: "match_phone", label: t('duplicates.matchPhone'), desc: t('duplicates.matchPhoneDesc') },
+                                  { key: "match_siret", label: t('duplicates.matchSiret'), desc: t('duplicates.matchSiretDesc') },
+                                  { key: "match_company", label: t('duplicates.matchCompany'), desc: t('duplicates.matchCompanyDesc') },
                                 ].map(({ key, label, desc }) => (
                                   <div key={key} className="flex items-center justify-between">
                                     <div>
@@ -422,10 +482,10 @@ export default function SettingsPage() {
 
                             <div>
                               <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
-                                Seuil de similarité
+                                {t('duplicates.similarityThreshold')}
                               </p>
                               <p className="text-xs text-muted-foreground mb-3">
-                                Plus le seuil est bas, plus la détection est sensible (plus de faux positifs)
+                                {t('duplicates.similarityThresholdDesc')}
                               </p>
                               <div className="flex items-center gap-4">
                                 <input
@@ -457,9 +517,9 @@ export default function SettingsPage() {
                             <Mail className="h-5 w-5" />
                           </div>
                           <div className="font-[family-name:var(--font-body)]">
-                            <p className="text-sm font-medium">Templates d&apos;email</p>
+                            <p className="text-sm font-medium">{t('emailTemplates.title')}</p>
                             <p className="text-xs text-muted-foreground">
-                              Créer et gérer des modèles d&apos;emails réutilisables
+                              {t('emailTemplates.subtitle')}
                             </p>
                           </div>
                         </div>
@@ -477,9 +537,9 @@ export default function SettingsPage() {
                             <Target className="h-5 w-5" />
                           </div>
                           <div className="font-[family-name:var(--font-body)]">
-                            <p className="text-sm font-medium">Quotas de vente</p>
+                            <p className="text-sm font-medium">{t('quotas.title')}</p>
                             <p className="text-xs text-muted-foreground">
-                              Définir les objectifs mensuels par commercial
+                              {t('quotas.subtitle')}
                             </p>
                           </div>
                         </div>

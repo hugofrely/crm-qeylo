@@ -1,1 +1,74 @@
-{}
+{
+  "title": "Paramètres",
+  "subtitle": "Gérez votre profil et votre organisation",
+  "tabs": {
+    "personal": "personnelles",
+    "personalPrefix": "Informations",
+    "organisation": "Organisation"
+  },
+  "profile": {
+    "title": "Profil",
+    "badge": "Utilisateur",
+    "fullName": "Nom complet",
+    "email": "Adresse email",
+    "language": "Langue",
+    "languageDesc": "Choisissez la langue de l'interface",
+    "languageFr": "Français",
+    "languageEn": "English"
+  },
+  "notifications": {
+    "emailNotifications": "Notifications email",
+    "emailNotificationsDesc": "Recevoir les rappels et alertes par email"
+  },
+  "emailAccounts": {
+    "title": "Comptes email connectés",
+    "subtitle": "Envoyez des emails directement depuis le CRM",
+    "connectGmail": "Connecter Gmail",
+    "connectOutlook": "Connecter Outlook",
+    "disconnected": "Compte déconnecté",
+    "gmailConnectError": "Impossible de lancer la connexion Gmail",
+    "outlookConnectError": "Impossible de lancer la connexion Outlook",
+    "connected": "Compte {provider} connecté",
+    "connectionError": "Erreur lors de la connexion du compte email"
+  },
+  "aiUsage": {
+    "title": "Consommation IA",
+    "subtitle": "Suivre les couts et tokens par organisation et utilisateur"
+  },
+  "orgSubTabs": {
+    "settings": "Paramètres",
+    "billing": "Facturation"
+  },
+  "duplicates": {
+    "title": "Détection de doublons",
+    "subtitle": "Configurer la détection automatique de contacts en double",
+    "enabled": "Détection activée",
+    "enabledDesc": "Vérifier les doublons avant chaque création de contact",
+    "matchCriteria": "Critères de correspondance",
+    "matchEmail": "Email",
+    "matchEmailDesc": "Correspondance exacte de l'adresse email",
+    "matchName": "Nom et prénom",
+    "matchNameDesc": "Correspondance approximative (tolère les fautes)",
+    "matchPhone": "Téléphone",
+    "matchPhoneDesc": "Correspondance exacte du numéro",
+    "matchSiret": "SIRET",
+    "matchSiretDesc": "Correspondance exacte du numéro SIRET",
+    "matchCompany": "Entreprise",
+    "matchCompanyDesc": "Correspondance approximative du nom",
+    "similarityThreshold": "Seuil de similarité",
+    "similarityThresholdDesc": "Plus le seuil est bas, plus la détection est sensible (plus de faux positifs)",
+    "updateError": "Erreur lors de la mise à jour"
+  },
+  "emailTemplates": {
+    "title": "Templates d'email",
+    "subtitle": "Créer et gérer des modèles d'emails réutilisables"
+  },
+  "quotas": {
+    "title": "Quotas de vente",
+    "subtitle": "Définir les objectifs mensuels par commercial"
+  },
+  "checkout": {
+    "success": "Abonnement activé avec succès !",
+    "cancel": "Paiement annulé."
+  }
+}
