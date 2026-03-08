@@ -53,7 +53,7 @@ interface EmailAccount {
 }
 
 export default function SettingsPage() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const searchParams = useSearchParams()
   const t = useTranslations('settings')
   const locale = useLocale()
@@ -280,9 +280,11 @@ export default function SettingsPage() {
               <Checkbox
                 checked={user?.email_notifications ?? true}
                 onCheckedChange={async (checked) => {
+                  const value = !!checked
+                  updateUser({ email_notifications: value })
                   await apiFetch("/auth/me/", {
                     method: "PATCH",
-                    json: { email_notifications: !!checked },
+                    json: { email_notifications: value },
                   })
                 }}
               />
@@ -312,9 +314,11 @@ export default function SettingsPage() {
                       <Checkbox
                         checked={user?.[field] ?? true}
                         onCheckedChange={async (checked) => {
+                          const value = !!checked
+                          updateUser({ [field]: value })
                           await apiFetch("/auth/me/", {
                             method: "PATCH",
-                            json: { [field]: !!checked },
+                            json: { [field]: value },
                           })
                         }}
                       />
@@ -344,9 +348,11 @@ export default function SettingsPage() {
                       <Checkbox
                         checked={user?.[field] ?? true}
                         onCheckedChange={async (checked) => {
+                          const value = !!checked
+                          updateUser({ [field]: value })
                           await apiFetch("/auth/me/", {
                             method: "PATCH",
-                            json: { [field]: !!checked },
+                            json: { [field]: value },
                           })
                         }}
                       />
@@ -375,9 +381,11 @@ export default function SettingsPage() {
                       <Checkbox
                         checked={user?.[field] ?? true}
                         onCheckedChange={async (checked) => {
+                          const value = !!checked
+                          updateUser({ [field]: value })
                           await apiFetch("/auth/me/", {
                             method: "PATCH",
-                            json: { [field]: !!checked },
+                            json: { [field]: value },
                           })
                         }}
                       />
@@ -407,9 +415,11 @@ export default function SettingsPage() {
                       <Checkbox
                         checked={user?.[field] ?? true}
                         onCheckedChange={async (checked) => {
+                          const value = !!checked
+                          updateUser({ [field]: value })
                           await apiFetch("/auth/me/", {
                             method: "PATCH",
-                            json: { [field]: !!checked },
+                            json: { [field]: value },
                           })
                         }}
                       />

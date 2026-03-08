@@ -76,6 +76,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     []
   )
 
+  const updateUser = useCallback((fields: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...fields } : prev))
+  }, [])
+
   const logout = useCallback(() => {
     posthog.capture("user_logged_out")
     posthog.reset()
@@ -87,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

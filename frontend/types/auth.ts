@@ -32,4 +32,5 @@ export interface AuthContextType {
     invite_token?: string
   }) => Promise<void>
   logout: () => void
+  updateUser: (fields: Partial<User>) => void
 }
