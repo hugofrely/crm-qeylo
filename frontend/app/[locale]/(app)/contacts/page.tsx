@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { apiFetch } from "@/lib/api"
 import { fetchContactCategories, checkDuplicates, exportContactsCSV, fetchContactTags, fetchContactSources, bulkContactAction } from "@/services/contacts"
 import { DuplicateDetectionDialog } from "@/components/contacts/DuplicateDetectionDialog"
@@ -39,13 +40,15 @@ interface ContactsResponse {
 
 const PAGE_SIZE = 20
 
-const LEAD_SCORE_OPTIONS = [
-  { value: "hot", label: "Chaud" },
-  { value: "warm", label: "Tiède" },
-  { value: "cold", label: "Froid" },
-]
-
 export default function ContactsPage() {
+  const t = useTranslations("contacts")
+
+  const LEAD_SCORE_OPTIONS = [
+    { value: "hot", label: t("leadScore.hot") },
+    { value: "warm", label: t("leadScore.warm") },
+    { value: "cold", label: t("leadScore.cold") },
+  ]
+
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -339,8 +342,8 @@ export default function ContactsPage() {
     <div className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       {/* Header */}
       <PageHeader
-        title="Contacts"
-        subtitle={`${totalCount} contact${totalCount !== 1 ? "s" : ""} au total`}
+        title={t("title")}
+        subtitle={t("subtitle", { count: totalCount })}
       >
         <FilterTriggerButton
           open={filterOpen}
@@ -350,40 +353,40 @@ export default function ContactsPage() {
         <ImportCSVDialog onImported={fetchContacts} />
         <Button variant="outline" className="gap-2" onClick={handleExport} disabled={exporting}>
           {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-          Exporter
+          {t("export")}
         </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              Ajouter
+              {t("add")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Nouveau contact</DialogTitle>
+              <DialogTitle>{t("form.newContact")}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="first_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Prénom</Label>
+                  <Label htmlFor="first_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.firstName")}</Label>
                   <Input id="first_name" value={formData.first_name} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} required className="h-11 bg-secondary/30 border-border/60" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="last_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Nom</Label>
+                  <Label htmlFor="last_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.lastName")}</Label>
                   <Input id="last_name" value={formData.last_name} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} required className="h-11 bg-secondary/30 border-border/60" />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Email</Label>
+                <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.email")}</Label>
                 <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Téléphone</Label>
+                <Label htmlFor="phone" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.phone")}</Label>
                 <Input id="phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="company" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Entreprise</Label>
+                <Label htmlFor="company" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.company")}</Label>
                 {formData.company_entity && companyEntityLabel ? (
                   <div className="flex items-center gap-2">
                     <div className="flex-1 flex items-center gap-2 h-11 bg-secondary/30 border border-border/60 rounded-md px-3">
@@ -403,7 +406,7 @@ export default function ContactsPage() {
                         value={companyAutocomplete.query || formData.company}
                         onChange={(e) => { setFormData({ ...formData, company: e.target.value }); companyAutocomplete.search(e.target.value) }}
                         onFocus={() => { if (formData.company && !companyAutocomplete.query) companyAutocomplete.search(formData.company); if (companyAutocomplete.results.length > 0) companyAutocomplete.setOpen(true) }}
-                        placeholder="Rechercher ou saisir une entreprise..."
+                        placeholder={t("form.companySearchPlaceholder")}
                         className="h-11 bg-secondary/30 border-border/60 pl-8"
                       />
                       {companyAutocomplete.searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
@@ -422,23 +425,23 @@ export default function ContactsPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="job_title" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Poste</Label>
+                <Label htmlFor="job_title" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.jobTitle")}</Label>
                 <Input id="job_title" value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lead_score" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Score</Label>
+                <Label htmlFor="lead_score" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.score")}</Label>
                 <select id="lead_score" value={formData.lead_score} onChange={(e) => setFormData({ ...formData, lead_score: e.target.value })} className="flex h-11 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                  <option value="">-- Aucun --</option>
-                  <option value="hot">Chaud</option>
-                  <option value="warm">Tiede</option>
-                  <option value="cold">Froid</option>
+                  <option value="">{t("form.scoreNone")}</option>
+                  <option value="hot">{t("leadScore.hot")}</option>
+                  <option value="warm">{t("leadScore.warm")}</option>
+                  <option value="cold">{t("leadScore.cold")}</option>
                 </select>
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Annuler</Button>
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{t("form.cancel")}</Button>
                 <Button type="submit" disabled={creating}>
                   {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Créer
+                  {t("form.create")}
                 </Button>
               </div>
             </form>
@@ -455,12 +458,12 @@ export default function ContactsPage() {
         <FilterSearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Rechercher un contact..."
+          placeholder={t("searchPlaceholder")}
           className="w-64"
         />
         {categories.length > 0 && (
           <FilterPills
-            label="Catégorie"
+            label={t("filter.category")}
             options={categories.map((cat) => ({ value: cat.id, label: cat.name, color: cat.color, count: cat.contact_count ?? undefined }))}
             value={selectedCategory}
             onChange={(v) => { setSelectedCategory(v); setSelectedSegment(null) }}
@@ -468,24 +471,24 @@ export default function ContactsPage() {
           />
         )}
         <FilterPills
-          label="Score"
+          label={t("filter.score")}
           options={LEAD_SCORE_OPTIONS}
           value={leadScore}
           onChange={setLeadScore}
           showAll
-          allLabel="Tous"
+          allLabel={t("filter.all")}
         />
         {availableSources.length > 0 && (
           <FilterSelect
-            label="Source"
+            label={t("filter.source")}
             options={availableSources.map((s) => ({ value: s, label: s }))}
             value={source}
             onChange={setSource}
-            placeholder="Toutes les sources"
+            placeholder={t("filter.allSources")}
           />
         )}
         <FilterDateRange
-          label="Date de création"
+          label={t("filter.createdDate")}
           after={createdAfter}
           before={createdBefore}
           onAfterChange={setCreatedAfter}
@@ -493,7 +496,7 @@ export default function ContactsPage() {
         />
         {availableTags.length > 0 && (
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Tags</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("filter.tags")}</span>
             <div className="flex flex-wrap gap-1.5">
               {availableTags.map((tag) => (
                 <button
@@ -528,26 +531,26 @@ export default function ContactsPage() {
       {selectedIds.size > 0 && (
         <div className="sticky bottom-4 z-30 flex items-center justify-between gap-4 bg-card border border-border rounded-lg px-4 py-3 shadow-lg">
           <span className="text-sm font-medium">
-            {selectedIds.size} contact{selectedIds.size > 1 ? "s" : ""} sélectionné{selectedIds.size > 1 ? "s" : ""}
+            {t("bulk.selected", { count: selectedIds.size })}
           </span>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())}>
-              Annuler
+              {t("bulk.cancel")}
             </Button>
             <Button variant="outline" size="sm" className="gap-1.5" onClick={handleBulkExport}>
               <Download className="h-3.5 w-3.5" />
-              Exporter
+              {t("bulk.export")}
             </Button>
             <Dialog open={bulkCategorizeOpen} onOpenChange={setBulkCategorizeOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1.5">
                   <FolderOpen className="h-3.5 w-3.5" />
-                  Catégoriser
+                  {t("bulk.categorize")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Catégoriser {selectedIds.size} contact{selectedIds.size > 1 ? "s" : ""}</DialogTitle>
+                  <DialogTitle>{t("bulk.categorizeTitle", { count: selectedIds.size })}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="flex flex-wrap gap-1.5">
@@ -567,8 +570,8 @@ export default function ContactsPage() {
                     ))}
                   </div>
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => { setBulkCategorizeOpen(false); setBulkCategorizeIds([]) }}>Annuler</Button>
-                    <Button onClick={handleBulkCategorize} disabled={bulkCategorizeIds.length === 0}>Appliquer</Button>
+                    <Button variant="outline" onClick={() => { setBulkCategorizeOpen(false); setBulkCategorizeIds([]) }}>{t("form.cancel")}</Button>
+                    <Button onClick={handleBulkCategorize} disabled={bulkCategorizeIds.length === 0}>{t("form.apply")}</Button>
                   </div>
                 </div>
               </DialogContent>
@@ -577,12 +580,12 @@ export default function ContactsPage() {
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1.5">
                   <Building2 className="h-3.5 w-3.5" />
-                  Entreprise
+                  {t("bulk.company")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Assigner une entreprise à {selectedIds.size} contact{selectedIds.size > 1 ? "s" : ""}</DialogTitle>
+                  <DialogTitle>{t("bulk.assignCompanyTitle", { count: selectedIds.size })}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <FilterCompanySearch
@@ -592,14 +595,14 @@ export default function ContactsPage() {
                     onClear={() => { setBulkCompanyId(null); setBulkCompanyLabel(null) }}
                   />
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => { setBulkAssignCompanyOpen(false); setBulkCompanyId(null); setBulkCompanyLabel(null) }}>Annuler</Button>
-                    <Button onClick={handleBulkAssignCompany} disabled={!bulkCompanyId}>Assigner</Button>
+                    <Button variant="outline" onClick={() => { setBulkAssignCompanyOpen(false); setBulkCompanyId(null); setBulkCompanyLabel(null) }}>{t("form.cancel")}</Button>
+                    <Button onClick={handleBulkAssignCompany} disabled={!bulkCompanyId}>{t("form.assign")}</Button>
                   </div>
                 </div>
               </DialogContent>
             </Dialog>
             <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
-              Supprimer ({selectedIds.size})
+              {t("bulk.delete", { count: selectedIds.size })}
             </Button>
           </div>
         </div>
@@ -630,25 +633,25 @@ export default function ContactsPage() {
         onReset={resetFilters}
         activeFilterCount={activeFilterCount}
       >
-        <FilterSection label="Recherche">
+        <FilterSection label={t("filter.search")}>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher un contact..."
+              placeholder={t("searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 h-9 bg-secondary/30 border-border/60"
             />
           </div>
         </FilterSection>
-        <FilterSection label="Segment">
+        <FilterSection label={t("filter.segment")}>
           <SegmentSelector
             selectedSegmentId={selectedSegment}
             onSelect={(id) => { setSelectedSegment(id); setSelectedCategory(null); setSearch("") }}
           />
         </FilterSection>
         {categories.length > 0 && (
-          <FilterSection label="Catégorie">
+          <FilterSection label={t("filter.category")}>
             <div className="flex flex-wrap gap-1.5">
               <button
                 onClick={() => { setSelectedCategory(null); setSelectedSegment(null) }}
@@ -656,7 +659,7 @@ export default function ContactsPage() {
                   selectedCategory === null ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
                 }`}
               >
-                Tous
+                {t("filter.all")}
               </button>
               {categories.map((cat) => (
                 <button
@@ -674,7 +677,7 @@ export default function ContactsPage() {
             </div>
           </FilterSection>
         )}
-        <FilterSection label="Score">
+        <FilterSection label={t("filter.score")}>
           <div className="flex flex-wrap gap-1.5">
             <button
               onClick={() => setLeadScore(null)}
@@ -682,7 +685,7 @@ export default function ContactsPage() {
                 leadScore === null ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
               }`}
             >
-              Tous
+              {t("filter.all")}
             </button>
             {LEAD_SCORE_OPTIONS.map((opt) => (
               <button
@@ -698,16 +701,16 @@ export default function ContactsPage() {
           </div>
         </FilterSection>
         {availableSources.length > 0 && (
-          <FilterSection label="Source">
+          <FilterSection label={t("filter.source")}>
             <FilterSelect
               options={availableSources.map((s) => ({ value: s, label: s }))}
               value={source}
               onChange={setSource}
-              placeholder="Toutes les sources"
+              placeholder={t("filter.allSources")}
             />
           </FilterSection>
         )}
-        <FilterSection label="Date de création">
+        <FilterSection label={t("filter.createdDate")}>
           <FilterDateRange
             after={createdAfter}
             before={createdBefore}
@@ -716,7 +719,7 @@ export default function ContactsPage() {
           />
         </FilterSection>
         {availableTags.length > 0 && (
-          <FilterSection label="Tags">
+          <FilterSection label={t("filter.tags")}>
             <div className="flex flex-wrap gap-1.5">
               {availableTags.map((tag) => (
                 <button

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import type { TimelineEntry } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -77,27 +78,9 @@ function getTimelineColor(entryType: string) {
   }
 }
 
-function getEntryTypeLabel(entryType: string): string {
-  const labels: Record<string, string> = {
-    contact_created: "Contact cree",
-    deal_created: "Deal cree",
-    deal_moved: "Deal deplace",
-    note_added: "Note",
-    task_created: "Tache creee",
-    chat_action: "Action chat",
-    contact_updated: "Contact modifie",
-    call: "Appel",
-    email_sent: "Email envoye",
-    email_received: "Email recu",
-    meeting: "Reunion",
-    custom: "Activite",
-  }
-  return labels[entryType] || entryType
-}
-
 /* ── ActivityMetadata ── */
 
-function ActivityMetadata({ entry }: { entry: TimelineEntry }) {
+function ActivityMetadata({ entry, t }: { entry: TimelineEntry; t: ReturnType<typeof useTranslations> }) {
   const meta = entry.metadata as Record<string, unknown>
   if (!meta || Object.keys(meta).length === 0) return null
 
@@ -105,10 +88,10 @@ function ActivityMetadata({ entry }: { entry: TimelineEntry }) {
 
   switch (entry.entry_type) {
     case "call":
-      if (meta.direction) badges.push(meta.direction === "inbound" ? "Entrant" : "Sortant")
+      if (meta.direction) badges.push(meta.direction === "inbound" ? t("callDirection.inbound") : t("callDirection.outbound"))
       if (meta.outcome) {
-        const outcomes: Record<string, string> = { answered: "Repondu", voicemail: "Messagerie", no_answer: "Pas de reponse", busy: "Occupe" }
-        badges.push(outcomes[meta.outcome as string] || String(meta.outcome))
+        const outcomeKey = meta.outcome as string
+        badges.push(t(`callOutcome.${outcomeKey}`))
       }
       if (meta.duration_minutes) badges.push(`${meta.duration_minutes} min`)
       break
@@ -140,7 +123,7 @@ function ActivityMetadata({ entry }: { entry: TimelineEntry }) {
 
 /* ── TimelineList (reusable internal component) ── */
 
-function TimelineList({ entries, emptyMessage }: { entries: TimelineEntry[]; emptyMessage: string }) {
+function TimelineList({ entries, emptyMessage, t }: { entries: TimelineEntry[]; emptyMessage: string; t: ReturnType<typeof useTranslations> }) {
   if (entries.length === 0) {
     return (
       <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
@@ -162,7 +145,7 @@ function TimelineList({ entries, emptyMessage }: { entries: TimelineEntry[]; emp
             <div className="flex-1 min-w-0 font-[family-name:var(--font-body)]">
               <div className="flex items-baseline justify-between gap-2">
                 <Badge variant="outline" className="text-[10px] capitalize font-normal">
-                  {getEntryTypeLabel(entry.entry_type)}
+                  {t(`timeline.${entry.entry_type}`)}
                 </Badge>
                 <span className="text-[11px] text-muted-foreground whitespace-nowrap">
                   {formatDateTime(entry.created_at)}
@@ -176,7 +159,7 @@ function TimelineList({ entries, emptyMessage }: { entries: TimelineEntry[]; emp
                   <MarkdownContent content={entry.content} />
                 </div>
               )}
-              <ActivityMetadata entry={entry} />
+              <ActivityMetadata entry={entry} t={t} />
             </div>
           </div>
         </div>
@@ -192,5 +175,6 @@ export interface ContactTimelineProps {
 }
 
 export function ContactTimeline({ entries }: ContactTimelineProps) {
-  return <TimelineList entries={entries} emptyMessage="Aucune activite pour ce contact." />
+  const t = useTranslations("contacts")
+  return <TimelineList entries={entries} emptyMessage={t("emptyState.noActivities")} t={t} />
 }

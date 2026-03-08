@@ -1,6 +1,7 @@
 "use client"
 
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import type { Contact, CustomFieldDefinition } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -78,49 +79,6 @@ function getLeadScoreStyle(score: string) {
   }
 }
 
-function getLeadScoreLabel(score: string) {
-  switch (score) {
-    case "hot":
-      return "Chaud"
-    case "warm":
-      return "Tiede"
-    case "cold":
-      return "Froid"
-    default:
-      return score
-  }
-}
-
-function getDecisionRoleLabel(role: string) {
-  switch (role) {
-    case "decision_maker":
-      return "Decideur"
-    case "influencer":
-      return "Influenceur"
-    case "user":
-      return "Utilisateur"
-    case "other":
-      return "Autre"
-    default:
-      return role
-  }
-}
-
-function getChannelLabel(channel: string) {
-  switch (channel) {
-    case "email":
-      return "Email"
-    case "phone":
-      return "Telephone"
-    case "linkedin":
-      return "LinkedIn"
-    case "other":
-      return "Autre"
-    default:
-      return channel
-  }
-}
-
 /* ── Styles ── */
 
 const inputClass = "h-9 bg-secondary/30 border-border/60"
@@ -139,6 +97,8 @@ function CompanyField({
   onSelectCompany,
   onClearCompany,
   onTextChange,
+  companyLabel,
+  searchPlaceholder,
 }: {
   companyEntityId: string | null
   companyEntityName: string | null
@@ -146,12 +106,14 @@ function CompanyField({
   onSelectCompany: (id: string, name: string) => void
   onClearCompany: () => void
   onTextChange: (val: string) => void
+  companyLabel: string
+  searchPlaceholder: string
 }) {
   const autocomplete = useCompanyAutocomplete()
 
   return (
     <div className="space-y-1">
-      <Label className="text-xs font-[family-name:var(--font-body)]">Entreprise</Label>
+      <Label className="text-xs font-[family-name:var(--font-body)]">{companyLabel}</Label>
       {companyEntityId && companyEntityName ? (
         <div className="flex items-center gap-2">
           <div className={`flex-1 flex items-center gap-2 ${inputClass} rounded-lg px-3`}>
@@ -184,7 +146,7 @@ function CompanyField({
                 }
                 if (autocomplete.results.length > 0) autocomplete.setOpen(true)
               }}
-              placeholder="Rechercher ou saisir une entreprise..."
+              placeholder={searchPlaceholder}
               className={`${inputClass} pl-8`}
             />
             {autocomplete.searching && (
@@ -232,12 +194,18 @@ export function ContactInfo({
   onEditFormChange,
   customFieldDefs,
 }: ContactInfoProps) {
+  const t = useTranslations("contacts")
+
   const updateCustomField = (fieldId: string, value: unknown) => {
     onEditFormChange("custom_fields", {
       ...((editForm.custom_fields as Record<string, unknown>) || {}),
       [fieldId]: value,
     })
   }
+
+  const getLeadScoreLabel = (score: string) => t(`leadScore.${score}`)
+  const getDecisionRoleLabel = (role: string) => t(`decisionRole.${role}`)
+  const getChannelLabel = (channel: string) => t(`channel.${channel}`)
 
   const addressParts = [contact.address, contact.city, contact.postal_code, contact.state, contact.country].filter(Boolean)
   const fullAddress = addressParts.join(", ")
@@ -247,14 +215,14 @@ export function ContactInfo({
       <div className="space-y-4">
         {/* Identity */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          <h3 className={labelClass}>Identite</h3>
+          <h3 className={labelClass}>{t("sections.identity")}</h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Prenom</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.firstName")}</Label>
               <Input value={editForm.first_name as string} onChange={(e) => onEditFormChange("first_name", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Nom</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.lastName")}</Label>
               <Input value={editForm.last_name as string} onChange={(e) => onEditFormChange("last_name", e.target.value)} className={inputClass} />
             </div>
           </div>
@@ -272,71 +240,73 @@ export function ContactInfo({
               onEditFormChange("_company_entity_name", null)
             }}
             onTextChange={(val) => onEditFormChange("company", val)}
+            companyLabel={t("form.company")}
+            searchPlaceholder={t("form.companySearchPlaceholder")}
           />
           <div className="space-y-1">
-            <Label className="text-xs font-[family-name:var(--font-body)]">Poste</Label>
+            <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.jobTitle")}</Label>
             <Input value={editForm.job_title as string} onChange={(e) => onEditFormChange("job_title", e.target.value)} className={inputClass} />
           </div>
         </div>
 
-        {/* Coordonnées */}
+        {/* Coordonnees */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          <h3 className={labelClass}>Coordonnées</h3>
+          <h3 className={labelClass}>{t("sections.contactInfo")}</h3>
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Email</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.email")}</Label>
               <Input type="email" value={editForm.email as string} onChange={(e) => onEditFormChange("email", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Email secondaire</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.secondaryEmail")}</Label>
               <Input type="email" value={editForm.secondary_email as string} onChange={(e) => onEditFormChange("secondary_email", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Telephone</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.phone")}</Label>
               <Input value={editForm.phone as string} onChange={(e) => onEditFormChange("phone", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Telephone secondaire</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.secondaryPhone")}</Label>
               <Input value={editForm.secondary_phone as string} onChange={(e) => onEditFormChange("secondary_phone", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Mobile</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.mobile")}</Label>
               <Input value={editForm.mobile_phone as string} onChange={(e) => onEditFormChange("mobile_phone", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Adresse</Label>
-              <Input value={editForm.address as string} onChange={(e) => onEditFormChange("address", e.target.value)} className={inputClass} placeholder="Adresse" />
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.address")}</Label>
+              <Input value={editForm.address as string} onChange={(e) => onEditFormChange("address", e.target.value)} className={inputClass} placeholder={t("form.address")} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-[family-name:var(--font-body)]">Ville</Label>
+                <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.city")}</Label>
                 <Input value={editForm.city as string} onChange={(e) => onEditFormChange("city", e.target.value)} className={inputClass} />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs font-[family-name:var(--font-body)]">Code postal</Label>
+                <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.postalCode")}</Label>
                 <Input value={editForm.postal_code as string} onChange={(e) => onEditFormChange("postal_code", e.target.value)} className={inputClass} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-[family-name:var(--font-body)]">Region</Label>
+                <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.region")}</Label>
                 <Input value={editForm.state as string} onChange={(e) => onEditFormChange("state", e.target.value)} className={inputClass} />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs font-[family-name:var(--font-body)]">Pays</Label>
+                <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.country")}</Label>
                 <Input value={editForm.country as string} onChange={(e) => onEditFormChange("country", e.target.value)} className={inputClass} />
               </div>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">LinkedIn</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.linkedin")}</Label>
               <Input value={editForm.linkedin_url as string} onChange={(e) => onEditFormChange("linkedin_url", e.target.value)} placeholder="https://linkedin.com/in/..." className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Site web</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.website")}</Label>
               <Input value={editForm.website as string} onChange={(e) => onEditFormChange("website", e.target.value)} placeholder="https://..." className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Twitter</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.twitter")}</Label>
               <Input value={editForm.twitter_url as string} onChange={(e) => onEditFormChange("twitter_url", e.target.value)} placeholder="https://twitter.com/..." className={inputClass} />
             </div>
           </div>
@@ -344,33 +314,33 @@ export function ContactInfo({
 
         {/* Qualification */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          <h3 className={labelClass}>Qualification</h3>
+          <h3 className={labelClass}>{t("sections.qualification")}</h3>
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Score</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.score")}</Label>
               <select className={selectClass} value={editForm.lead_score as string} onChange={(e) => onEditFormChange("lead_score", e.target.value)}>
-                <option value="">-- Aucun --</option>
-                <option value="hot">Chaud</option>
-                <option value="warm">Tiede</option>
-                <option value="cold">Froid</option>
+                <option value="">{t("form.scoreNone")}</option>
+                <option value="hot">{t("leadScore.hot")}</option>
+                <option value="warm">{t("leadScore.warm")}</option>
+                <option value="cold">{t("leadScore.cold")}</option>
               </select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Budget estime (EUR)</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.estimatedBudget")}</Label>
               <Input type="number" value={editForm.estimated_budget as string} onChange={(e) => onEditFormChange("estimated_budget", e.target.value)} placeholder="0" className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Role de decision</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.decisionRole")}</Label>
               <select className={selectClass} value={editForm.decision_role as string} onChange={(e) => onEditFormChange("decision_role", e.target.value)}>
-                <option value="">-- Aucun --</option>
-                <option value="decision_maker">Decideur</option>
-                <option value="influencer">Influenceur</option>
-                <option value="user">Utilisateur</option>
-                <option value="other">Autre</option>
+                <option value="">{t("form.scoreNone")}</option>
+                <option value="decision_maker">{t("decisionRole.decision_maker")}</option>
+                <option value="influencer">{t("decisionRole.influencer")}</option>
+                <option value="user">{t("decisionRole.user")}</option>
+                <option value="other">{t("decisionRole.other")}</option>
               </select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Besoins identifies</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.identifiedNeeds")}</Label>
               <textarea className={textareaClass} value={editForm.identified_needs as string} onChange={(e) => onEditFormChange("identified_needs", e.target.value)} />
             </div>
           </div>
@@ -378,40 +348,40 @@ export function ContactInfo({
 
         {/* Preferences */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          <h3 className={labelClass}>Profil & Preferences</h3>
+          <h3 className={labelClass}>{t("sections.profilePreferences")}</h3>
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Source</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.source")}</Label>
               <Input value={editForm.source as string} onChange={(e) => onEditFormChange("source", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Industrie</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.industry")}</Label>
               <Input value={editForm.industry as string} onChange={(e) => onEditFormChange("industry", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Canal prefere</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.preferredChannel")}</Label>
               <select className={selectClass} value={editForm.preferred_channel as string} onChange={(e) => onEditFormChange("preferred_channel", e.target.value)}>
-                <option value="">-- Aucun --</option>
-                <option value="email">Email</option>
-                <option value="phone">Telephone</option>
-                <option value="linkedin">LinkedIn</option>
-                <option value="other">Autre</option>
+                <option value="">{t("form.scoreNone")}</option>
+                <option value="email">{t("channel.email")}</option>
+                <option value="phone">{t("channel.phone")}</option>
+                <option value="linkedin">{t("channel.linkedin")}</option>
+                <option value="other">{t("channel.other")}</option>
               </select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Langue</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.language")}</Label>
               <Input value={editForm.language as string} onChange={(e) => onEditFormChange("language", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Fuseau horaire</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.timezone")}</Label>
               <Input value={editForm.timezone as string} onChange={(e) => onEditFormChange("timezone", e.target.value)} placeholder="Europe/Paris" className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Anniversaire</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.birthday")}</Label>
               <Input type="date" value={editForm.birthday as string} onChange={(e) => onEditFormChange("birthday", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Tags (virgules)</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.tagsComma")}</Label>
               <Input
                 value={(editForm.tags as string[])?.join(", ") || ""}
                 onChange={(e) =>
@@ -420,12 +390,12 @@ export function ContactInfo({
                     e.target.value.split(",").map((s) => s.trim()).filter(Boolean)
                   )
                 }
-                placeholder="VIP, Prospect, Partenaire"
+                placeholder={t("form.tagsPlaceholder")}
                 className={inputClass}
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Interets (virgules)</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.interestsComma")}</Label>
               <Input
                 value={(editForm.interests as string[])?.join(", ") || ""}
                 onChange={(e) =>
@@ -434,12 +404,12 @@ export function ContactInfo({
                     e.target.value.split(",").map((s) => s.trim()).filter(Boolean)
                   )
                 }
-                placeholder="Tech, Sport, Marketing"
+                placeholder={t("form.interestsPlaceholder")}
                 className={inputClass}
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">SIRET</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t("form.siret")}</Label>
               <Input value={editForm.siret as string} onChange={(e) => onEditFormChange("siret", e.target.value)} className={inputClass} />
             </div>
           </div>
@@ -447,14 +417,14 @@ export function ContactInfo({
 
         {/* Notes */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          <h3 className={labelClass}>Notes</h3>
+          <h3 className={labelClass}>{t("sections.notes")}</h3>
           <textarea className={textareaClass} value={editForm.notes as string} onChange={(e) => onEditFormChange("notes", e.target.value)} rows={4} />
         </div>
 
         {/* Custom fields */}
         {customFieldDefs.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-            <h3 className={labelClass}>Champs personnalises</h3>
+            <h3 className={labelClass}>{t("sections.customFields")}</h3>
             <div className="space-y-3">
               {customFieldDefs.map((def) => {
                 const cfValues = (editForm.custom_fields as Record<string, unknown>) || {}
@@ -477,7 +447,7 @@ export function ContactInfo({
                         value={value as string}
                         onChange={(e) => updateCustomField(def.id, e.target.value)}
                       >
-                        <option value="">-- Choisir --</option>
+                        <option value="">{t("form.selectNone")}</option>
                         {(def.options || []).map((opt) => (
                           <option key={opt} value={opt}>{opt}</option>
                         ))}
@@ -518,10 +488,10 @@ export function ContactInfo({
   /* ── VIEW MODE ── */
   return (
     <div className="space-y-4">
-      {/* Coordonnées */}
+      {/* Coordonnees */}
       <div className="bg-card border border-border rounded-xl p-5 space-y-3">
         <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-          Coordonnées
+          {t("sections.contactInfo")}
         </h3>
         <div className="space-y-2">
           {contact.email && (
@@ -579,7 +549,7 @@ export function ContactInfo({
             </div>
           )}
           {!contact.email && !contact.phone && !contact.mobile_phone && !fullAddress && !contact.linkedin_url && !contact.website && (
-            <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">Aucune coordonnee renseignee.</p>
+            <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">{t("emptyState.noContactInfo")}</p>
           )}
         </div>
       </div>
@@ -588,7 +558,7 @@ export function ContactInfo({
       {(contact.lead_score || contact.estimated_budget || contact.decision_role || contact.identified_needs) && (
         <div className="bg-card border border-border rounded-xl p-5 space-y-3">
           <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Qualification
+            {t("sections.qualification")}
           </h3>
           <div className="space-y-2">
             {contact.lead_score && (
@@ -625,7 +595,7 @@ export function ContactInfo({
       {(contact.industry || contact.source || (contact.tags && contact.tags.length > 0) || contact.preferred_channel || contact.language || contact.timezone || contact.birthday || (contact.interests && contact.interests.length > 0) || contact.siret) && (
         <div className="bg-card border border-border rounded-xl p-5 space-y-3">
           <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Profil
+            {t("sections.profile")}
           </h3>
           <div className="space-y-2">
             {(contact.company_entity_name || contact.company) && (
@@ -693,7 +663,7 @@ export function ContactInfo({
               <div className="pt-1">
                 <div className="flex items-center gap-2 mb-1.5">
                   <Heart className="h-3 w-3 text-muted-foreground" />
-                  <p className="text-[11px] text-muted-foreground font-[family-name:var(--font-body)]">Centres d&apos;interet</p>
+                  <p className="text-[11px] text-muted-foreground font-[family-name:var(--font-body)]">{t("sections.interests")}</p>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {contact.interests.map((interest) => (
@@ -719,14 +689,14 @@ export function ContactInfo({
         return (
           <div className="bg-card border border-border rounded-xl p-5 space-y-3">
             <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-              Champs personnalises
+              {t("sections.customFields")}
             </h3>
             <div className="space-y-2">
               {filledFields.map((def) => {
                 const val = cf[def.id]
                 let displayVal = String(val)
                 if (def.field_type === "checkbox") {
-                  displayVal = val === true || val === "true" ? "Oui" : "Non"
+                  displayVal = val === true || val === "true" ? t("customFieldCheckbox.yes") : t("customFieldCheckbox.no")
                 } else if (def.field_type === "date" && val) {
                   displayVal = formatDate(String(val))
                 }
@@ -747,7 +717,7 @@ export function ContactInfo({
       {contact.notes && (
         <div className="bg-card border border-border rounded-xl p-5 space-y-3">
           <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Notes
+            {t("sections.notes")}
           </h3>
           <p className="text-sm whitespace-pre-wrap leading-relaxed font-[family-name:var(--font-body)]">
             {contact.notes}

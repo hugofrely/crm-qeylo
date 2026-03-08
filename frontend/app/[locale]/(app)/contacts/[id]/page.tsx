@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { fetchContact as fetchContactApi, updateContact, deleteContact as deleteContactApi, fetchContactCategories, fetchCustomFieldDefinitions, checkEmailAccount, fetchContactTimeline, fetchContactTasks, fetchContactDeals } from "@/services/contacts"
 import { fetchContactEmails } from "@/services/emails"
 import { fetchMeetings } from "@/services/calendar"
@@ -50,6 +52,7 @@ import { CommentSection } from "@/components/collaboration/CommentSection"
 export default function ContactDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const t = useTranslations("contacts")
   const id = params.id as string
 
   // Contact data
@@ -227,15 +230,15 @@ export default function ContactDetailPage() {
     try {
       await deleteContactApi(id as string)
       posthog.capture("contact_deleted")
-      toast("Element supprime", {
+      toast(t("toasts.deleted"), {
         action: {
-          label: "Annuler",
+          label: t("toasts.undo"),
           onClick: async () => {
             try {
               await restoreItems("contact", [id])
-              toast.success("Element restaure")
+              toast.success(t("toasts.restored"))
             } catch {
-              toast.error("Erreur lors de la restauration")
+              toast.error(t("toasts.restoreError"))
             }
           },
         },
@@ -319,10 +322,10 @@ export default function ContactDetailPage() {
       <div className="p-8 lg:p-12 max-w-5xl mx-auto">
         <Button variant="ghost" onClick={() => router.push("/contacts")} className="gap-2 text-muted-foreground">
           <ArrowLeft className="h-4 w-4" />
-          Retour
+          {t("detail.back")}
         </Button>
         <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-muted-foreground font-[family-name:var(--font-body)]">Contact introuvable.</p>
+          <p className="text-muted-foreground font-[family-name:var(--font-body)]">{t("detail.notFound")}</p>
         </div>
       </div>
     )
@@ -337,7 +340,7 @@ export default function ContactDetailPage() {
       {/* Back button */}
       <Button variant="ghost" onClick={() => router.push("/contacts")} className="gap-2 text-muted-foreground -ml-2 mb-6">
         <ArrowLeft className="h-4 w-4" />
-        <span className="font-[family-name:var(--font-body)] text-sm">Retour aux contacts</span>
+        <span className="font-[family-name:var(--font-body)] text-sm">{t("detail.backToContacts")}</span>
       </Button>
 
       {/* 2-column layout — stacks on mobile */}
@@ -405,13 +408,13 @@ export default function ContactDetailPage() {
             <div className="mx-4 mt-2 mb-1 px-3 py-2 bg-primary/10 rounded-lg flex items-center gap-2 flex-wrap">
               <Mail className="h-3.5 w-3.5 text-primary shrink-0" />
               <span className="text-xs font-medium font-[family-name:var(--font-body)] text-primary">
-                Inscrit dans la sequence :
+                {t("detail.sequenceEnrolled")}
               </span>
               {enrollments.map((enrollment) => {
                 const seq = enrollmentSequences.find((s) => s.id === enrollment.sequence)
                 return (
                   <Badge key={enrollment.id} variant="secondary" className="text-xs">
-                    {seq?.name || "Sequence"}
+                    {seq?.name || t("detail.sequenceFallback")}
                   </Badge>
                 )
               })}
@@ -423,35 +426,35 @@ export default function ContactDetailPage() {
               <TabsList responsive className="w-full justify-start overflow-x-auto scrollbar-hide">
                 <TabsTrigger value="activities" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <MessageCircle className="h-3.5 w-3.5" />
-                  <span>Activites</span>
+                  <span>{t("tabs.activities")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="notes" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <FileText className="h-3.5 w-3.5" />
-                  <span>Notes</span>
+                  <span>{t("tabs.notes")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="comments" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Users className="h-3.5 w-3.5" />
-                  <span>Commentaires</span>
+                  <span>{t("tabs.comments")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="emails" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Mail className="h-3.5 w-3.5" />
-                  <span>Emails</span>
+                  <span>{t("tabs.emails")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="tasks" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Target className="h-3.5 w-3.5" />
-                  <span>Taches</span>
+                  <span>{t("tabs.tasks")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="deals" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Briefcase className="h-3.5 w-3.5" />
-                  <span>Deals</span>
+                  <span>{t("tabs.deals")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="history" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>Historique</span>
+                  <span>{t("tabs.history")}</span>
                 </TabsTrigger>
                 <TabsTrigger value="ai-summary" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span>Resume IA</span>
+                  <span>{t("tabs.aiSummary")}</span>
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -460,11 +463,11 @@ export default function ContactDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-                    Activites ({activities.length})
+                    {t("tabs.activities")} ({activities.length})
                   </h2>
                   <Button variant="outline" size="sm" onClick={() => setActivityDialogOpen(true)} className="gap-1.5">
                     <Plus className="h-3.5 w-3.5" />
-                    <span className="font-[family-name:var(--font-body)]">Logger une activite</span>
+                    <span className="font-[family-name:var(--font-body)]">{t("actions.logActivity")}</span>
                   </Button>
                 </div>
                 <ContactTimeline entries={activities} />
@@ -487,19 +490,19 @@ export default function ContactDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-                    Emails ({emails.length})
+                    {t("tabs.emails")} ({emails.length})
                   </h2>
                   {contact.email && hasEmailAccount && (
                     <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)} className="gap-1.5">
                       <Plus className="h-3.5 w-3.5" />
-                      <span className="font-[family-name:var(--font-body)]">Envoyer un email</span>
+                      <span className="font-[family-name:var(--font-body)]">{t("actions.sendEmail")}</span>
                     </Button>
                   )}
                 </div>
                 {emails.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                     <Mail className="h-8 w-8 mb-3" />
-                    <p className="text-sm font-[family-name:var(--font-body)]">Aucun email</p>
+                    <p className="text-sm font-[family-name:var(--font-body)]">{t("emptyState.noEmails")}</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-border rounded-lg border border-border overflow-hidden">
@@ -518,7 +521,7 @@ export default function ContactDetailPage() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
                               <span className={`font-medium text-sm truncate ${!email.is_read ? "font-bold" : ""}`}>
-                                {email.subject || "(sans objet)"}
+                                {email.subject || t("emailNoSubject")}
                               </span>
                               <span className="text-xs text-muted-foreground shrink-0">
                                 {new Intl.DateTimeFormat("fr-FR", {
@@ -554,11 +557,11 @@ export default function ContactDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-                    Taches ({tasks.length})
+                    {t("tabs.tasks")} ({tasks.length})
                   </h2>
                   <Button variant="outline" size="sm" onClick={() => router.push(`/tasks?contact=${id}`)} className="gap-1.5">
                     <Plus className="h-3.5 w-3.5" />
-                    <span className="font-[family-name:var(--font-body)]">Creer une tache</span>
+                    <span className="font-[family-name:var(--font-body)]">{t("actions.createTask")}</span>
                   </Button>
                 </div>
                 <ContactTasks tasks={tasks} onToggle={toggleTaskDone} />
@@ -569,11 +572,11 @@ export default function ContactDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-                    Deals ({deals.length})
+                    {t("tabs.deals")} ({deals.length})
                   </h2>
                   <Button variant="outline" size="sm" onClick={() => router.push("/deals")} className="gap-1.5">
                     <Plus className="h-3.5 w-3.5" />
-                    <span className="font-[family-name:var(--font-body)]">Voir les deals</span>
+                    <span className="font-[family-name:var(--font-body)]">{t("actions.viewDeals")}</span>
                   </Button>
                 </div>
                 <ContactDeals deals={deals} stages={stages} />
@@ -584,7 +587,7 @@ export default function ContactDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-                    Historique ({history.length})
+                    {t("tabs.history")} ({history.length})
                   </h2>
                 </div>
                 <ContactTimeline entries={history} />
@@ -596,7 +599,7 @@ export default function ContactDetailPage() {
                 <div className="flex items-center gap-2 mb-6">
                   <Sparkles className="h-4 w-4 text-primary" />
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-                    Resume IA
+                    {t("aiSummary.title")}
                   </h2>
                 </div>
                 {contact.ai_summary ? (
@@ -606,13 +609,13 @@ export default function ContactDetailPage() {
                     </p>
                     {contact.ai_summary_updated_at && (
                       <p className="text-xs text-muted-foreground font-[family-name:var(--font-body)]">
-                        Derniere mise a jour : {new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(contact.ai_summary_updated_at))}
+                        {t("aiSummary.lastUpdated", { date: new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(contact.ai_summary_updated_at)) })}
                       </p>
                     )}
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
-                    Aucun resume IA disponible pour ce contact.
+                    {t("emptyState.noAiSummary")}
                   </p>
                 )}
               </div>

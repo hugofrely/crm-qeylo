@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import type { Contact, ContactCategory } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -14,7 +15,7 @@ import {
   Trash2,
   Check,
 } from "lucide-react"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
 import {
   Dialog,
@@ -63,6 +64,7 @@ export function ContactHeader({
   onOpenEmailDialog,
   onOpenCallDialog,
 }: ContactHeaderProps) {
+  const t = useTranslations("contacts")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -82,11 +84,11 @@ export function ContactHeader({
       <div className="flex gap-2">
         <Button size="sm" onClick={onSave} disabled={saving} className="gap-1.5">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          <span className="font-[family-name:var(--font-body)]">Sauvegarder</span>
+          <span className="font-[family-name:var(--font-body)]">{t("form.save")}</span>
         </Button>
         <Button size="sm" variant="outline" onClick={onCancelEdit} className="gap-1.5">
           <X className="h-4 w-4" />
-          <span className="font-[family-name:var(--font-body)]">Annuler</span>
+          <span className="font-[family-name:var(--font-body)]">{t("form.cancel")}</span>
         </Button>
       </div>
     )
@@ -117,7 +119,7 @@ export function ContactHeader({
             </p>
           )}
           <p className="text-muted-foreground text-xs mt-1 font-[family-name:var(--font-body)]">
-            Créé le {formatDate(contact.created_at)}
+            {t("detail.createdAt", { date: formatDate(contact.created_at) })}
           </p>
           {contact.numeric_score != null && (
             <span
@@ -135,7 +137,7 @@ export function ContactHeader({
           )}
           {contact.owner_name && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs font-medium text-muted-foreground">
-              Propriétaire: {contact.owner_name}
+              {t("detail.owner", { name: contact.owner_name })}
             </span>
           )}
         </div>
@@ -145,21 +147,21 @@ export function ContactHeader({
           {contact.email && hasEmailAccount && (
             <Button variant="outline" size="sm" onClick={onOpenEmailDialog} className="gap-1.5">
               <Mail className="h-4 w-4" />
-              <span className="font-[family-name:var(--font-body)]">Email</span>
+              <span className="font-[family-name:var(--font-body)]">{t("detail.emailAction")}</span>
             </Button>
           )}
           {contact.phone && (
             <Button variant="outline" size="sm" asChild>
               <a href={`tel:${contact.phone}`} className="gap-1.5">
                 <Phone className="h-4 w-4" />
-                <span className="font-[family-name:var(--font-body)]">Appeler</span>
+                <span className="font-[family-name:var(--font-body)]">{t("detail.callAction")}</span>
               </a>
             </Button>
           )}
           {onOpenCallDialog && (
             <Button variant="outline" size="sm" onClick={onOpenCallDialog} className="gap-1.5">
               <Phone className="h-4 w-4" />
-              <span className="font-[family-name:var(--font-body)]">Log appel</span>
+              <span className="font-[family-name:var(--font-body)]">{t("detail.logCall")}</span>
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={onToggleEdit}>
@@ -173,20 +175,20 @@ export function ContactHeader({
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Supprimer le contact</DialogTitle>
+                <DialogTitle>{t("detail.deleteTitle")}</DialogTitle>
               </DialogHeader>
               <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-                Etes-vous sur de vouloir supprimer{" "}
+                {t("detail.deleteConfirm")}{" "}
                 <strong>{contact.first_name} {contact.last_name}</strong> ?
-                Cette action est irreversible.
+                {" "}{t("detail.deleteIrreversible")}
               </p>
               <div className="flex justify-end gap-2 mt-4">
                 <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                  Annuler
+                  {t("form.cancel")}
                 </Button>
                 <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
                   {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Supprimer
+                  {t("detail.delete")}
                 </Button>
               </div>
             </DialogContent>
@@ -198,7 +200,7 @@ export function ContactHeader({
       {availableCategories.length > 0 && (
         <div className="px-5 pb-4 space-y-3">
           <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Categories
+            {t("detail.categories")}
           </h3>
           <div className="flex flex-wrap gap-2">
             {availableCategories.map((cat) => {

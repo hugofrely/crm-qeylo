@@ -1,6 +1,7 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import {
   Table,
   TableBody,
@@ -87,12 +88,13 @@ export function ContactTable({
   onOrderingChange,
 }: ContactTableProps) {
   const router = useRouter()
+  const t = useTranslations("contacts")
 
   if (contacts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-          Aucun contact trouvé.
+          {t("emptyState.noContacts")}
         </p>
       </div>
     )
@@ -113,11 +115,11 @@ export function ContactTable({
                 />
               </TableHead>
             )}
-            <SortableHeader label="Nom" field="last_name" ordering={ordering} onOrderingChange={handleOrderingChange} />
-            <SortableHeader label="Entreprise" field="company" ordering={ordering} onOrderingChange={handleOrderingChange} />
-            <TableHead className="hidden md:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Email</TableHead>
-            <TableHead className="hidden lg:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">Téléphone</TableHead>
-            <SortableHeader label="Créé le" field="created_at" ordering={ordering} onOrderingChange={handleOrderingChange} className="hidden lg:table-cell" />
+            <SortableHeader label={t("table.name")} field="last_name" ordering={ordering} onOrderingChange={handleOrderingChange} />
+            <SortableHeader label={t("table.company")} field="company" ordering={ordering} onOrderingChange={handleOrderingChange} />
+            <TableHead className="hidden md:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("table.email")}</TableHead>
+            <TableHead className="hidden lg:table-cell text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("table.phone")}</TableHead>
+            <SortableHeader label={t("table.createdAt")} field="created_at" ordering={ordering} onOrderingChange={handleOrderingChange} className="hidden lg:table-cell" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -152,7 +154,7 @@ export function ContactTable({
                                 : "bg-blue-500"
                           }`}
                         />
-                        {contact.lead_score === "hot" ? "Chaud" : contact.lead_score === "warm" ? "Tiède" : "Froid"}
+                        {t(`leadScore.${contact.lead_score}`)}
                       </span>
                     )}
                   </div>

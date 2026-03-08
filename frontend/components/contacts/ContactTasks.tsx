@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import type { Task } from "@/types"
 import { Check, Calendar } from "lucide-react"
 import { EntityLink } from "@/components/shared/EntityLink"
@@ -28,19 +29,6 @@ function getPriorityStyle(priority: string) {
   }
 }
 
-function getPriorityLabel(priority: string) {
-  switch (priority) {
-    case "high":
-      return "Haute"
-    case "medium":
-      return "Moyenne"
-    case "low":
-      return "Basse"
-    default:
-      return priority
-  }
-}
-
 /* ── Props ── */
 
 export interface ContactTasksProps {
@@ -49,10 +37,14 @@ export interface ContactTasksProps {
 }
 
 export function ContactTasks({ tasks, onToggle }: ContactTasksProps) {
+  const t = useTranslations("contacts")
+
+  const getPriorityLabel = (priority: string) => t(`priority.${priority}`)
+
   if (tasks.length === 0) {
     return (
       <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
-        Aucune tache pour ce contact.
+        {t("emptyState.noTasks")}
       </p>
     )
   }
@@ -81,7 +73,7 @@ export function ContactTasks({ tasks, onToggle }: ContactTasksProps) {
               <p className={`text-sm font-[family-name:var(--font-body)] ${task.is_done ? "line-through" : ""} flex-1 min-w-0`}>
                 {task.description}
               </p>
-              <EntityLink type="task" id={task.id} name="Voir" className="shrink-0 text-[11px]" />
+              <EntityLink type="task" id={task.id} name={t("taskView")} className="shrink-0 text-[11px]" />
             </div>
             <div className="flex items-center gap-2 mt-1.5">
               {task.priority && (

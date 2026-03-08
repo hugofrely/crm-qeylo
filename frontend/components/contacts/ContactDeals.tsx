@@ -1,6 +1,7 @@
 "use client"
 
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { ExternalLink } from "lucide-react"
 import type { Deal, Stage } from "@/types"
 import { Badge } from "@/components/ui/badge"
@@ -36,6 +37,8 @@ export interface ContactDealsProps {
 }
 
 export function ContactDeals({ deals, stages }: ContactDealsProps) {
+  const t = useTranslations("contacts")
+
   const getStageName = (stageId: string) => {
     const stage = stages.find((s) => s.id === stageId)
     return stage?.name || "\u2014"
@@ -44,7 +47,7 @@ export function ContactDeals({ deals, stages }: ContactDealsProps) {
   if (deals.length === 0) {
     return (
       <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
-        Aucun deal pour ce contact.
+        {t("emptyState.noDeals")}
       </p>
     )
   }

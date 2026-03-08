@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useMemo } from "react"
+import { useTranslations } from "next-intl"
 import posthog from "posthog-js"
 import { Upload, FileSpreadsheet, Loader2, CheckCircle, ChevronsUpDown, Check, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -36,73 +37,6 @@ interface FieldGroup {
   fields: FieldOption[]
 }
 
-const NATIVE_FIELD_GROUPS: FieldGroup[] = [
-  {
-    label: "Identité",
-    fields: [
-      { value: "first_name", label: "Prénom" },
-      { value: "last_name", label: "Nom" },
-      { value: "email", label: "Email" },
-      { value: "phone", label: "Téléphone" },
-      { value: "mobile_phone", label: "Mobile" },
-      { value: "secondary_email", label: "Email secondaire" },
-      { value: "secondary_phone", label: "Tél. secondaire" },
-    ],
-  },
-  {
-    label: "Entreprise",
-    fields: [
-      { value: "company", label: "Entreprise" },
-      { value: "job_title", label: "Poste" },
-      { value: "industry", label: "Secteur" },
-      { value: "siret", label: "SIRET" },
-    ],
-  },
-  {
-    label: "Localisation",
-    fields: [
-      { value: "address", label: "Adresse" },
-      { value: "city", label: "Ville" },
-      { value: "postal_code", label: "Code postal" },
-      { value: "country", label: "Pays" },
-      { value: "state", label: "Région" },
-    ],
-  },
-  {
-    label: "Qualification",
-    fields: [
-      { value: "lead_score", label: "Score lead" },
-      { value: "estimated_budget", label: "Budget estimé" },
-      { value: "decision_role", label: "Rôle décision" },
-      { value: "identified_needs", label: "Besoins identifiés" },
-    ],
-  },
-  {
-    label: "Préférences",
-    fields: [
-      { value: "preferred_channel", label: "Canal préféré" },
-      { value: "timezone", label: "Fuseau horaire" },
-      { value: "language", label: "Langue" },
-      { value: "birthday", label: "Anniversaire" },
-    ],
-  },
-  {
-    label: "Réseaux",
-    fields: [
-      { value: "linkedin_url", label: "LinkedIn" },
-      { value: "twitter_url", label: "Twitter" },
-      { value: "website", label: "Site web" },
-    ],
-  },
-  {
-    label: "Divers",
-    fields: [
-      { value: "notes", label: "Notes" },
-      { value: "source", label: "Source" },
-    ],
-  },
-]
-
 interface CustomFieldDef {
   id: string
   label: string
@@ -131,22 +65,28 @@ function FieldMappingCombobox({
   onChange,
   groups,
   usedValues,
+  ignoreLabel,
+  searchPlaceholder,
+  emptyMessage,
 }: {
   value: string
   onChange: (value: string) => void
   groups: FieldGroup[]
   usedValues: Set<string>
+  ignoreLabel: string
+  searchPlaceholder: string
+  emptyMessage: string
 }) {
   const [open, setOpen] = useState(false)
 
   const selectedLabel = useMemo(() => {
-    if (!value) return "— Ignorer —"
+    if (!value) return ignoreLabel
     for (const group of groups) {
       const field = group.fields.find((f) => f.value === value)
       if (field) return field.label
     }
     return value
-  }, [value, groups])
+  }, [value, groups, ignoreLabel])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -163,9 +103,9 @@ function FieldMappingCombobox({
       </PopoverTrigger>
       <PopoverContent className="w-64 p-0" align="start">
         <Command>
-          <CommandInput placeholder="Rechercher un champ..." />
+          <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
-            <CommandEmpty>Aucun champ trouvé.</CommandEmpty>
+            <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
               <CommandItem
                 value="__ignore__"
@@ -180,7 +120,7 @@ function FieldMappingCombobox({
                     !value ? "opacity-100" : "opacity-0"
                   )}
                 />
-                — Ignorer —
+                {ignoreLabel}
               </CommandItem>
             </CommandGroup>
             {groups.map((group) => (
@@ -218,6 +158,75 @@ function FieldMappingCombobox({
 }
 
 export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
+  const t = useTranslations("contacts")
+
+  const NATIVE_FIELD_GROUPS: FieldGroup[] = [
+    {
+      label: t("import.fieldGroups.identity"),
+      fields: [
+        { value: "first_name", label: t("import.fields.firstName") },
+        { value: "last_name", label: t("import.fields.lastName") },
+        { value: "email", label: t("import.fields.email") },
+        { value: "phone", label: t("import.fields.phone") },
+        { value: "mobile_phone", label: t("import.fields.mobile") },
+        { value: "secondary_email", label: t("import.fields.secondaryEmail") },
+        { value: "secondary_phone", label: t("import.fields.secondaryPhone") },
+      ],
+    },
+    {
+      label: t("import.fieldGroups.company"),
+      fields: [
+        { value: "company", label: t("import.fields.company") },
+        { value: "job_title", label: t("import.fields.jobTitle") },
+        { value: "industry", label: t("import.fields.industry") },
+        { value: "siret", label: t("import.fields.siret") },
+      ],
+    },
+    {
+      label: t("import.fieldGroups.location"),
+      fields: [
+        { value: "address", label: t("import.fields.address") },
+        { value: "city", label: t("import.fields.city") },
+        { value: "postal_code", label: t("import.fields.postalCode") },
+        { value: "country", label: t("import.fields.country") },
+        { value: "state", label: t("import.fields.region") },
+      ],
+    },
+    {
+      label: t("import.fieldGroups.qualification"),
+      fields: [
+        { value: "lead_score", label: t("import.fields.leadScore") },
+        { value: "estimated_budget", label: t("import.fields.estimatedBudget") },
+        { value: "decision_role", label: t("import.fields.decisionRole") },
+        { value: "identified_needs", label: t("import.fields.identifiedNeeds") },
+      ],
+    },
+    {
+      label: t("import.fieldGroups.preferences"),
+      fields: [
+        { value: "preferred_channel", label: t("import.fields.preferredChannel") },
+        { value: "timezone", label: t("import.fields.timezone") },
+        { value: "language", label: t("import.fields.language") },
+        { value: "birthday", label: t("import.fields.birthday") },
+      ],
+    },
+    {
+      label: t("import.fieldGroups.networks"),
+      fields: [
+        { value: "linkedin_url", label: t("import.fields.linkedin") },
+        { value: "twitter_url", label: t("import.fields.twitter") },
+        { value: "website", label: t("import.fields.website") },
+      ],
+    },
+    {
+      label: t("import.fieldGroups.misc"),
+      fields: [
+        { value: "notes", label: t("import.fields.notes") },
+        { value: "source", label: t("import.fields.source") },
+      ],
+    },
+  ]
+
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [file, setFile] = useState<File | null>(null)
@@ -297,7 +306,7 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
     const groups = [...NATIVE_FIELD_GROUPS]
     if (preview?.custom_field_definitions?.length) {
       groups.push({
-        label: "Champs personnalisés",
+        label: t("import.fieldGroups.customFields"),
         fields: preview.custom_field_definitions.map((cf) => ({
           value: `custom::${cf.id}`,
           label: cf.label,
@@ -305,7 +314,8 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
       })
     }
     return groups
-  }, [preview?.custom_field_definitions])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preview?.custom_field_definitions, t])
 
   const usedValues = useMemo(
     () => new Set(Object.values(mapping).filter(Boolean)),
@@ -326,16 +336,16 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
           <Upload className="h-4 w-4" />
-          Importer CSV
+          {t("import.button")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
-            Importer des contacts
+            {t("import.title")}
             {step < 3 && (
               <span className="ml-2 text-sm font-normal text-muted-foreground font-[family-name:var(--font-body)]">
-                Étape {step}/3
+                {t("import.step", { step })}
               </span>
             )}
           </DialogTitle>
@@ -363,10 +373,10 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
                   </div>
                   <div className="text-center">
                     <p className="text-sm font-medium font-[family-name:var(--font-body)]">
-                      Glissez votre fichier CSV ici
+                      {t("import.dragDrop")}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1 font-[family-name:var(--font-body)]">
-                      ou cliquez pour sélectionner · Max 5 MB
+                      {t("import.dragDropSub")}
                     </p>
                   </div>
                 </>
@@ -389,7 +399,7 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
         {step === 2 && preview && (
           <div className="space-y-4 min-w-0 overflow-hidden font-[family-name:var(--font-body)]">
             <p className="text-sm text-muted-foreground">
-              {preview.total_rows} lignes détectées. Associez les colonnes aux champs contact.
+              {t("import.rowsDetected", { count: preview.total_rows })}
             </p>
 
             <div className="space-y-2">
@@ -398,7 +408,7 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
                   <span className="w-40 truncate text-sm font-medium">
                     {header}
                   </span>
-                  <span className="text-muted-foreground text-xs">→</span>
+                  <span className="text-muted-foreground text-xs">&rarr;</span>
                   <FieldMappingCombobox
                     value={mapping[header] || ""}
                     onChange={(value) =>
@@ -406,6 +416,9 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
                     }
                     groups={fieldGroups}
                     usedValues={usedValues}
+                    ignoreLabel={t("import.ignore")}
+                    searchPlaceholder={t("import.searchField")}
+                    emptyMessage={t("import.noField")}
                   />
                 </div>
               ))}
@@ -427,7 +440,7 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
                     <tr key={i} className="border-b last:border-0">
                       {preview.headers.map((h) => (
                         <td key={h} className="px-3 py-2 text-muted-foreground">
-                          {row[h] || "—"}
+                          {row[h] || "\u2014"}
                         </td>
                       ))}
                     </tr>
@@ -438,20 +451,20 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
 
             {!hasMandatoryField && (
               <p className="text-xs text-destructive">
-                Le champ « Prénom » est obligatoire.
+                {t("import.firstNameRequired")}
               </p>
             )}
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setStep(1)}>
-                Retour
+                {t("import.back")}
               </Button>
               <Button
                 onClick={handleImport}
                 disabled={!hasMandatoryField || loading}
               >
                 {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Importer {preview.total_rows} contacts
+                {t("import.importButton", { count: preview.total_rows })}
               </Button>
             </div>
           </div>
@@ -465,23 +478,23 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
             </div>
             <div>
               <p className="text-2xl font-light">
-                {result.created} contacts importés
+                {t("import.imported", { count: result.created })}
               </p>
               {result.skipped > 0 && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  {result.skipped} doublons ignorés
+                  {t("import.duplicatesSkipped", { count: result.skipped })}
                 </p>
               )}
               {result.errors.length > 0 && (
                 <p className="text-sm text-destructive mt-1">
-                  {result.errors.length} erreurs
+                  {t("import.errors", { count: result.errors.length })}
                 </p>
               )}
               {result.warnings && result.warnings.length > 0 && (
                 <div className="mt-3 text-left mx-auto max-w-md">
                   <div className="flex items-center gap-2 text-sm text-amber-600 mb-1">
                     <AlertTriangle className="h-4 w-4" />
-                    <span>{result.warnings.length} avertissements</span>
+                    <span>{t("import.warnings", { count: result.warnings.length })}</span>
                   </div>
                   <ul className="text-xs text-muted-foreground space-y-0.5 max-h-32 overflow-y-auto">
                     {result.warnings.map((w, i) => (
@@ -492,7 +505,7 @@ export function ImportCSVDialog({ onImported }: { onImported: () => void }) {
               )}
             </div>
             <Button onClick={() => { setOpen(false); reset() }}>
-              Fermer
+              {t("import.close")}
             </Button>
           </div>
         )}

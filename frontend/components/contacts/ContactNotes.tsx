@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import type { TimelineEntry } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -36,6 +37,7 @@ export interface ContactNotesProps {
 }
 
 export function ContactNotes({ notes, contactId, onNoteAdded }: ContactNotesProps) {
+  const t = useTranslations("contacts")
   const [newNote, setNewNote] = useState("")
   const [addingNote, setAddingNote] = useState(false)
 
@@ -63,7 +65,7 @@ export function ContactNotes({ notes, contactId, onNoteAdded }: ContactNotesProp
     <div>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-          Notes ({notes.length})
+          {t("tabs.notes")} ({notes.length})
         </h2>
       </div>
       {/* Add note input */}
@@ -71,14 +73,14 @@ export function ContactNotes({ notes, contactId, onNoteAdded }: ContactNotesProp
         <RichTextEditor
           content={newNote}
           onChange={setNewNote}
-          placeholder="Ajouter une note..."
+          placeholder={t("actions.addNotePlaceholder")}
           minHeight="100px"
           onImageUpload={apiUploadImage}
         />
         <div className="flex justify-end">
           <Button size="sm" onClick={handleAddNote} disabled={addingNote || !newNote.trim()} className="gap-1.5">
             {addingNote ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-            <span className="font-[family-name:var(--font-body)]">Ajouter</span>
+            <span className="font-[family-name:var(--font-body)]">{t("actions.addNote")}</span>
           </Button>
         </div>
       </div>
@@ -86,7 +88,7 @@ export function ContactNotes({ notes, contactId, onNoteAdded }: ContactNotesProp
       {/* Notes list */}
       {notes.length === 0 ? (
         <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
-          Aucune note pour ce contact.
+          {t("emptyState.noNotes")}
         </p>
       ) : (
         <div className="space-y-0">
