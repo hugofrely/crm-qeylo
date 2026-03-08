@@ -34,4 +34,5 @@ urlpatterns = [
     path("api/subscriptions/", include("subscriptions.urls")),
     path("api/webhooks/stripe/", include("subscriptions.webhook_urls")),
     path("api/invite/accept/<uuid:token>/", include("organizations.invite_urls")),
+    path("api/calendar/", include("calendars.urls")),
 ]

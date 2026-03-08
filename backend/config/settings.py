@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "ai_usage",
     "subscriptions",
     "sequences",
+    "calendars",
 ]
 
 # ---------------------------------------------------------------------------
