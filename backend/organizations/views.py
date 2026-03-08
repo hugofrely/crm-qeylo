@@ -161,7 +161,7 @@ def update_member_role(request, org_id, user_id):
     return Response(MemberSerializer(target).data)
 
 
-@api_view(["POST"])
+@api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def accept_invitation(request, token):
     try:
@@ -172,6 +172,12 @@ def accept_invitation(request, token):
         invitation.status = "expired"
         invitation.save(update_fields=["status"])
         return Response({"detail": "Invitation expired"}, status=status.HTTP_410_GONE)
+    # GET — return invitation info without auth
+    if request.method == "GET":
+        return Response({
+            "email": invitation.email,
+            "organization_name": invitation.organization.name,
+        })
     if not request.user.is_authenticated:
         return Response({
             "requires_auth": True,

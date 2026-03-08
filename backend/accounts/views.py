@@ -28,25 +28,46 @@ def register(request):
         last_name=data["last_name"],
     )
 
-    # Create personal organization
-    org = Organization.objects.create(
-        name=data["organization_name"],
-        slug=f"user-{user.id.hex[:8]}",
-    )
-    Membership.objects.create(
-        organization=org,
-        user=user,
-        role="owner",
-    )
-    Pipeline.create_defaults(org)
-    from deals.models import DealLossReason
-    DealLossReason.create_defaults(org)
-    from organizations.models import OrganizationSettings
-    OrganizationSettings.objects.create(organization=org)
-    from contacts.scoring import create_default_scoring_rules
-    create_default_scoring_rules(org)
+    invite_token = data.get("invite_token", "")
+    org = None
 
-    # Auto-accept pending invitations for this email
+    if invite_token:
+        # Try to accept invitation directly — skip org creation
+        try:
+            invitation = Invitation.objects.get(token=invite_token, status="pending")
+            if invitation.expires_at >= timezone.now():
+                Membership.objects.create(
+                    organization=invitation.organization,
+                    user=user,
+                    role=invitation.role,
+                )
+                invitation.status = "accepted"
+                invitation.save(update_fields=["status"])
+                org = invitation.organization
+        except Invitation.DoesNotExist:
+            pass
+
+    if not org:
+        # Default behavior — create personal org
+        org_name = data.get("organization_name") or f"Organisation de {user.first_name}"
+        org = Organization.objects.create(
+            name=org_name,
+            slug=f"user-{user.id.hex[:8]}",
+        )
+        Membership.objects.create(
+            organization=org,
+            user=user,
+            role="owner",
+        )
+        Pipeline.create_defaults(org)
+        from deals.models import DealLossReason
+        DealLossReason.create_defaults(org)
+        from organizations.models import OrganizationSettings
+        OrganizationSettings.objects.create(organization=org)
+        from contacts.scoring import create_default_scoring_rules
+        create_default_scoring_rules(org)
+
+    # Auto-accept other pending invitations for this email
     pending = Invitation.objects.filter(email=user.email, status="pending")
     for invitation in pending:
         if invitation.expires_at >= timezone.now():
