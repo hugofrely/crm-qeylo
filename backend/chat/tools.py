@@ -18,7 +18,7 @@ from pydantic_ai import RunContext
 
 from contacts.duplicates import _find_duplicates
 from contacts.models import Contact, ContactCategory, CustomFieldDefinition, DuplicateDetectionSettings
-from deals.models import Deal, Pipeline, PipelineStage
+from deals.models import Deal, Pipeline, PipelineStage, Quote
 from organizations.models import Organization
 from notes.models import TimelineEntry
 from segments.models import Segment
@@ -2335,17 +2335,21 @@ def generate_chart(
 ) -> dict:
     """Generate a chart from CRM data.
 
-    metric: one of deals_count, deals_amount, deals_by_stage, contacts_count,
-    contacts_by_source, contacts_by_category, tasks_count, tasks_by_priority,
-    tasks_completion_rate, revenue_over_time, pipeline_funnel, emails_sent,
-    workflow_executions.
+    metric: one of deals_count, deals_amount, deals_by_stage, deals_amount_by_stage,
+    deals_avg_amount_by_stage, deals_won_vs_lost, deals_amount_won_vs_lost,
+    deals_conversion_rate, deals_duration_by_stage, deals_amount_by_pipeline,
+    contacts_count, contacts_by_source, contacts_by_category, contacts_by_lead_score,
+    tasks_count, tasks_by_priority, tasks_completion_rate,
+    activities_by_type, activities_by_user,
+    revenue_over_time, pipeline_funnel, emails_sent, workflow_executions,
+    quotes_amount_by_status, quotes_acceptance_rate.
 
-    chart_type: bar, line, pie, funnel (default bar).
+    chart_type: bar, line, pie, donut, stacked_bar, area, funnel (default bar).
     period: 7d, 30d, 90d, 12m, ytd, all (default all).
     group_by: month, week, day (default month) — used for date-based truncation.
     filters: optional segment-style filters for additional filtering.
     """
-    from django.db.models import Count
+    from django.db.models import Count, Avg
     from django.db.models.functions import TruncMonth, TruncWeek, TruncDay
 
     org_id = ctx.deps.organization_id
@@ -2420,6 +2424,119 @@ def generate_chart(
         )
         data = [{"label": r["stage__name"] or "Sans étape", "value": r["value"]} for r in data]
 
+    elif metric == "deals_amount_by_stage":
+        title = "Montant total par étape"
+        series_label = "Montant"
+        color = "#10b981"
+        qs = Deal.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.values("stage__name", "stage__position")
+            .annotate(value=Sum("amount"))
+            .order_by("stage__position")
+        )
+        data = [{"label": r["stage__name"] or "Sans étape", "value": float(r["value"] or 0)} for r in data]
+
+    elif metric == "deals_avg_amount_by_stage":
+        title = "Montant moyen par étape"
+        series_label = "Montant moyen"
+        color = "#6366f1"
+        qs = Deal.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.values("stage__name", "stage__position")
+            .annotate(value=Avg("amount"))
+            .order_by("stage__position")
+        )
+        data = [{"label": r["stage__name"] or "Sans étape", "value": round(float(r["value"] or 0), 2)} for r in data]
+
+    elif metric == "deals_won_vs_lost":
+        title = "Deals gagnés vs perdus"
+        series_label = "Deals"
+        color = "#22c55e"
+        qs = Deal.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        won = qs.filter(stage__is_won=True).count()
+        lost = qs.filter(stage__is_lost=True).count()
+        data = [
+            {"label": "Gagné", "value": won},
+            {"label": "Perdu", "value": lost},
+        ]
+
+    elif metric == "deals_amount_won_vs_lost":
+        title = "Montant gagné vs perdu"
+        series_label = "Montant"
+        color = "#10b981"
+        qs = Deal.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        won_amount = qs.filter(stage__is_won=True).aggregate(v=Sum("amount"))["v"] or 0
+        lost_amount = qs.filter(stage__is_lost=True).aggregate(v=Sum("amount"))["v"] or 0
+        data = [
+            {"label": "Gagné", "value": float(won_amount)},
+            {"label": "Perdu", "value": float(lost_amount)},
+        ]
+
+    elif metric == "deals_conversion_rate":
+        title = "Taux de conversion par étape"
+        series_label = "% conversion"
+        color = "#3b82f6"
+        stages = PipelineStage.objects.filter(
+            pipeline__organization_id=org_id,
+        ).order_by("position")
+        qs = Deal.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        total = qs.count() or 1
+        data = []
+        for stage in stages:
+            count = qs.filter(stage=stage).count()
+            data.append({"label": stage.name, "value": round(count / total * 100, 1)})
+
+    elif metric == "deals_duration_by_stage":
+        title = "Durée moyenne par étape (jours)"
+        series_label = "Jours"
+        color = "#f59e0b"
+        from deals.models import DealStageTransition
+        stages = PipelineStage.objects.filter(
+            pipeline__organization_id=org_id,
+        ).order_by("position")
+        data = []
+        for stage in stages:
+            transitions = DealStageTransition.objects.filter(
+                deal__organization_id=org_id,
+                to_stage=stage,
+            )
+            if date_from:
+                transitions = transitions.filter(transitioned_at__gte=date_from)
+            durations = []
+            for t in transitions:
+                next_t = DealStageTransition.objects.filter(
+                    deal=t.deal,
+                    transitioned_at__gt=t.transitioned_at,
+                ).order_by("transitioned_at").first()
+                if next_t:
+                    durations.append((next_t.transitioned_at - t.transitioned_at).total_seconds() / 86400)
+            avg_days = round(sum(durations) / len(durations), 1) if durations else 0
+            data.append({"label": stage.name, "value": avg_days})
+
+    elif metric == "deals_amount_by_pipeline":
+        title = "Montant par pipeline"
+        series_label = "Montant"
+        color = "#8b5cf6"
+        qs = Deal.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.values("stage__pipeline__name")
+            .annotate(value=Sum("amount"))
+            .order_by("-value")
+        )
+        data = [{"label": r["stage__pipeline__name"] or "Sans pipeline", "value": float(r["value"] or 0)} for r in data]
+
     elif metric == "contacts_count":
         title = "Nombre de contacts"
         series_label = "Contacts"
@@ -2461,6 +2578,30 @@ def generate_chart(
             .order_by("-value")
         )
         data = [{"label": r["categories__name"] or "Sans catégorie", "value": r["value"]} for r in data]
+
+    elif metric == "contacts_by_lead_score":
+        title = "Contacts par score de lead"
+        series_label = "Contacts"
+        color = "#f97316"
+        from django.db.models import Case, When, CharField, Value
+        qs = Contact.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        qs = qs.annotate(
+            score_bucket=Case(
+                When(lead_score__gte=80, then=Value("Chaud (80+)")),
+                When(lead_score__gte=50, then=Value("Tiède (50-79)")),
+                When(lead_score__gte=20, then=Value("Froid (20-49)")),
+                default=Value("Très froid (0-19)"),
+                output_field=CharField(),
+            )
+        )
+        data = list(
+            qs.values("score_bucket")
+            .annotate(value=Count("id"))
+            .order_by("-value")
+        )
+        data = [{"label": r["score_bucket"], "value": r["value"]} for r in data]
 
     elif metric == "tasks_count":
         title = "Nombre de tâches"
@@ -2512,6 +2653,37 @@ def generate_chart(
                 "value": round(r["done"] / r["total"] * 100, 1) if r["total"] else 0,
             }
             for r in raw
+        ]
+
+    elif metric == "activities_by_type":
+        title = "Activités par type"
+        series_label = "Activités"
+        color = "#a855f7"
+        qs = TimelineEntry.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.values("entry_type")
+            .annotate(value=Count("id"))
+            .order_by("-value")
+        )
+        data = [{"label": r["entry_type"] or "Autre", "value": r["value"]} for r in data]
+
+    elif metric == "activities_by_user":
+        title = "Activités par membre"
+        series_label = "Activités"
+        color = "#14b8a6"
+        qs = TimelineEntry.objects.filter(organization_id=org_id).exclude(created_by=None)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.values("created_by__first_name", "created_by__last_name")
+            .annotate(value=Count("id"))
+            .order_by("-value")
+        )
+        data = [
+            {"label": f"{r['created_by__first_name']} {r['created_by__last_name']}".strip() or "Inconnu", "value": r["value"]}
+            for r in data
         ]
 
     elif metric == "revenue_over_time":
@@ -2579,6 +2751,37 @@ def generate_chart(
             .annotate(value=Count("id"))
             .order_by("period")
         )
+
+    elif metric == "quotes_amount_by_status":
+        title = "Montant des devis par statut"
+        series_label = "Montant"
+        color = "#0ea5e9"
+        qs = Quote.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        data = list(
+            qs.values("status")
+            .annotate(value=Sum("deal__amount"))
+            .order_by("-value")
+        )
+        data = [{"label": r["status"] or "Autre", "value": float(r["value"] or 0)} for r in data]
+
+    elif metric == "quotes_acceptance_rate":
+        title = "Taux d'acceptation des devis"
+        series_label = "% accepté"
+        color = "#22c55e"
+        qs = Quote.objects.filter(organization_id=org_id)
+        if date_from:
+            qs = qs.filter(created_at__gte=date_from)
+        total_q = qs.count() or 1
+        accepted = qs.filter(status="accepted").count()
+        rejected = qs.filter(status="rejected").count()
+        pending_q = qs.filter(status__in=["draft", "sent"]).count()
+        data = [
+            {"label": "Accepté", "value": accepted},
+            {"label": "Rejeté", "value": rejected},
+            {"label": "En attente", "value": pending_q},
+        ]
 
     else:
         return {"action": "error", "message": f"Métrique inconnue: {metric}"}
