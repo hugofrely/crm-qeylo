@@ -57,6 +57,7 @@ export function DuplicateDetectionDialog({
       key === "lead_score" ? "leadScore" :
       key === "decision_role" ? "decisionRole" :
       key === "preferred_channel" ? "preferredChannel" :
+      key === "state" ? "region" :
       key
     }`),
   }))
