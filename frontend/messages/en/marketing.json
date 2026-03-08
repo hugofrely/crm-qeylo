@@ -8,7 +8,7 @@
     "megaMenu": {
       "ai": {
         "title": "Artificial Intelligence",
-        "description": "Your AI assistant that understands and executes your requests in natural language.",
+        "description": "Your AI assistant that understands and executes your requests simply.",
         "explore": "Explore AI"
       },
       "sales": {
@@ -18,17 +18,17 @@
       },
       "contacts": {
         "title": "Contacts & Relations",
-        "description": "Contact management, dynamic segments, duplicate detection and CSV import.",
+        "description": "Contact management, smart groups, duplicate detection and file import.",
         "explore": "Explore contacts"
       },
       "productivity": {
         "title": "Productivity",
-        "description": "Tasks, automated workflows, smart reminders, dashboard and global search.",
+        "description": "Tasks, automations, smart reminders, dashboard and global search.",
         "explore": "Explore productivity"
       },
       "communication": {
         "title": "Communication",
-        "description": "Email templates, email integration and automated sequences.",
+        "description": "Email templates, email connection and automatic follow-up sequences.",
         "explore": "Explore communication"
       },
       "allFeatures": "View all features"
@@ -177,7 +177,7 @@
       },
       "workflows": {
         "title": "Workflows & Automations",
-        "description": "Automate your processes: triggers on deals, contacts, or tasks, custom conditions, automatic actions."
+        "description": "Automate your processes: when a deal is created or a contact updated, Qeylo acts for you automatically."
       },
       "dashboard": {
         "title": "Dashboard & Reports",
@@ -193,7 +193,7 @@
         "ai": {
           "title": "Artificial Intelligence",
           "points": {
-            "0": "Natural language conversational chat",
+            "0": "Chat naturally with your CRM",
             "1": "Automatic actions on your data",
             "2": "AI-powered insights and analysis"
           }
@@ -209,7 +209,7 @@
         "contacts": {
           "title": "Contacts & Relations",
           "points": {
-            "0": "Dynamic segments",
+            "0": "Smart contact groups",
             "1": "Duplicate detection",
             "2": "CSV Import / Export"
           }
@@ -218,16 +218,16 @@
           "title": "Productivity",
           "points": {
             "0": "Tasks & calendar",
-            "1": "Automated workflows",
+            "1": "Automations",
             "2": "Customizable dashboard"
           }
         },
         "communication": {
           "title": "Communication",
           "points": {
-            "0": "Email templates",
-            "1": "Gmail & Outlook integration",
-            "2": "Automated sequences"
+            "0": "Ready-to-use email templates",
+            "1": "Connect Gmail & Outlook in one click",
+            "2": "Automatic follow-up email series"
           }
         }
       }
@@ -266,7 +266,7 @@
       },
       "1": {
         "title": "The AI understands and acts",
-        "description": "Qeylo analyzes your message, identifies entities (contact, deal, amount) and executes actions in one second."
+        "description": "Qeylo analyzes your message, recognizes contacts, deals and amounts, then executes actions in one second."
       },
       "2": {
         "title": "Everything is organized",
@@ -386,10 +386,10 @@
         "title": "AI Chat — Your CRM assistant",
         "description": "Speak naturally and the AI executes. Create a contact, move a deal, schedule a reminder — everything happens in one sentence.",
         "details": {
-          "0": "Natural language understanding in French and English",
+          "0": "Speak in French or English, the AI understands",
           "1": "Over 9 integrated tools: contacts, deals, tasks, notes, dashboard",
-          "2": "Multiple conversations with persistent history",
-          "3": "Real-time streaming with Markdown rendering"
+          "2": "Multiple conversations with saved history",
+          "3": "Instant, clear and well-formatted responses"
         }
       },
       "1": {
@@ -426,12 +426,12 @@
       },
       "4": {
         "title": "Workflows & Automations",
-        "description": "Automate your business processes. Define triggers, conditions, and actions to save time every day.",
+        "description": "Automate your business processes. When a deal is created or a stage changes, Qeylo acts for you automatically.",
         "details": {
-          "0": "Triggers: deal created, stage changed, contact updated...",
+          "0": "When a deal is created, a stage changes, a contact is updated...",
           "1": "Custom conditions and delays",
           "2": "Automatic actions on contacts, deals, tasks",
-          "3": "Ready-to-use workflow templates"
+          "3": "Ready-to-use automation templates"
         }
       },
       "5": {
@@ -440,7 +440,7 @@
         "details": {
           "0": "Customizable dashboard with drag-and-drop widgets",
           "1": "Custom reports: performance, pipeline, activity, sources",
-          "2": "Real-time KPIs: revenue, pipeline, conversion rate",
+          "2": "Real-time key metrics: revenue, pipeline, conversion rate",
           "3": "Ready-to-use report templates"
         }
       }
@@ -593,23 +593,23 @@
         },
         "2": {
           "question": "Is my data secure?",
-          "answer": "Absolutely. Your data is encrypted, isolated by organization, and hosted in Europe. JWT authentication with refresh token."
+          "answer": "Absolutely. Your data is encrypted, isolated by organization, and hosted in Europe. Secure login with enhanced protection."
         },
         "3": {
           "question": "Which AI model is used?",
-          "answer": "Claude (Anthropic) by default, with GPT as fallback. You can configure the model of your choice via settings."
+          "answer": "Claude (Anthropic) by default, with GPT as an alternative. You can choose your preferred model in settings."
         },
         "4": {
           "question": "Can I import my existing contacts?",
-          "answer": "Yes, you can import and export your contacts in CSV format from the Contacts page. The import includes intelligent column mapping."
+          "answer": "Yes, you can import and export your contacts in CSV format from the Contacts page. The import automatically matches your columns."
         },
         "5": {
           "question": "What automations can I create?",
-          "answer": "You can create automated workflows based on triggers: deal created, stage changed, contact updated, overdue task, etc. Add conditions and automatic actions like sending an email, creating a task, or updating a field."
+          "answer": "You can create automations that run when a deal is created, a stage changes, a contact is updated, a task is overdue, etc. Add conditions and automatic actions like sending an email, creating a task, or updating information."
         },
         "6": {
           "question": "Can I connect my email?",
-          "answer": "Yes! Qeylo integrates with Gmail and Outlook via OAuth. Connect your mailbox in one click from settings to centralize your communications."
+          "answer": "Yes! Qeylo integrates with Gmail and Outlook. Connect your mailbox in one click from settings to centralize your communications."
         }
       }
     }
@@ -866,30 +866,30 @@
         "title": "Conversational chat",
         "description": "Type in natural language and the AI executes. Create a contact, move a deal, schedule a reminder — everything happens in one sentence.",
         "details": {
-          "0": "Natural language understanding in French and English",
+          "0": "Speak in French or English, the AI understands",
           "1": "Over 9 integrated tools",
-          "2": "Real-time streaming with Markdown rendering",
-          "3": "Multiple conversations with persistent history"
+          "2": "Instant, clear and well-formatted responses",
+          "3": "Multiple conversations with saved history"
         }
       },
       "1": {
         "title": "Automatic actions",
-        "description": "The AI identifies entities in your messages — contacts, amounts, dates — and automatically creates the corresponding records.",
+        "description": "The AI recognizes contacts, amounts and dates in your messages — and automatically creates the corresponding records.",
         "details": {
-          "0": "Automatic entity detection",
+          "0": "Automatically recognizes names, dates and amounts",
           "1": "Create contacts, deals and tasks in one sentence",
-          "2": "Intelligent update of existing fields",
-          "3": "Contextual suggestions based on your data"
+          "2": "Intelligent update of existing information",
+          "3": "Suggestions tailored to your business"
         }
       },
       "2": {
         "title": "Analysis and insights",
         "description": "Query your data in natural language. Ask for a pipeline summary, your tasks for the day, or a contact's history.",
         "details": {
-          "0": "Natural language queries on your data",
-          "1": "Instant pipeline and KPI summary",
+          "0": "Ask questions about your data in plain English",
+          "1": "Instant summary of your sales and key metrics",
           "2": "Interaction history per contact",
-          "3": "Action recommendations based on activity"
+          "3": "Action recommendations based on your activity"
         }
       }
     },
@@ -968,17 +968,17 @@
         "details": {
           "0": "Custom segmentation rules",
           "1": "Automatic real-time updates",
-          "2": "Multi-criteria filters",
+          "2": "Combine multiple filters to find the right contacts",
           "3": "Export segments as CSV"
         }
       },
       "2": {
         "title": "Duplicates & Import",
-        "description": "Intelligent duplicate detection with assisted merging. Import your existing contacts via CSV with column mapping.",
+        "description": "Intelligent duplicate detection with assisted merging. Import your existing contacts via CSV with automatic column matching.",
         "details": {
           "0": "Automatic duplicate detection",
           "1": "Assisted profile merging",
-          "2": "CSV import with intelligent mapping",
+          "2": "CSV import with automatic column matching",
           "3": "Complete data export"
         }
       }
@@ -1009,12 +1009,12 @@
       },
       "1": {
         "title": "Automated workflows",
-        "description": "Define triggers, conditions and actions to automate your business processes.",
+        "description": "When a deal is created or a stage changes, Qeylo automatically runs the actions you've set up.",
         "details": {
-          "0": "Triggers: deal created, stage changed, contact updated",
+          "0": "When a deal is created, a stage changes, a contact is updated...",
           "1": "Custom conditions and delays",
           "2": "Automatic actions on contacts, deals, tasks",
-          "3": "Ready-to-use workflow templates"
+          "3": "Ready-to-use automation templates"
         }
       },
       "2": {
@@ -1023,7 +1023,7 @@
         "details": {
           "0": "Customizable drag-and-drop dashboard",
           "1": "Custom reports: performance, pipeline, activity",
-          "2": "Real-time KPIs",
+          "2": "Real-time key metrics",
           "3": "Instant global search"
         }
       }
@@ -1046,8 +1046,8 @@
         "title": "Email templates",
         "description": "Create reusable and customizable email templates. Save time on every send.",
         "details": {
-          "0": "Rich template editor",
-          "1": "Dynamic variables (name, company...)",
+          "0": "Full-featured template editor",
+          "1": "Personalization fields (name, company...)",
           "2": "Templates shared with the team",
           "3": "Preview before sending"
         }
@@ -1056,19 +1056,19 @@
         "title": "Email integration",
         "description": "Connect Gmail and Outlook in one click. Centralize all your communications in Qeylo.",
         "details": {
-          "0": "Gmail & Outlook OAuth connection",
-          "1": "Bidirectional synchronization",
+          "0": "Connect Gmail or Outlook in one click",
+          "1": "Automatic two-way sync",
           "2": "Email history on every contact",
           "3": "Send emails from Qeylo"
         }
       },
       "2": {
         "title": "Automated sequences",
-        "description": "Create automated email sequences for your follow-ups and nurturing. Set delays and conditions.",
+        "description": "Create automatic email series for your follow-ups. Set the timing and conditions for each step.",
         "details": {
-          "0": "Multi-step sequences",
-          "1": "Customizable delays between emails",
-          "2": "Automatic stop conditions",
+          "0": "Send automatic follow-up email series",
+          "1": "Choose the delay between each email",
+          "2": "Stops automatically when the contact replies",
           "3": "Open and click tracking"
         }
       }

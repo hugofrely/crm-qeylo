@@ -8,7 +8,7 @@
     "megaMenu": {
       "ai": {
         "title": "Intelligence Artificielle",
-        "description": "Votre assistant IA qui comprend et execute vos demandes en langage naturel.",
+        "description": "Votre assistant IA qui comprend et execute vos demandes simplement.",
         "explore": "Explorer l'IA"
       },
       "sales": {
@@ -18,17 +18,17 @@
       },
       "contacts": {
         "title": "Contacts & Relations",
-        "description": "Gestion des contacts, segments dynamiques, detection de doublons et import CSV.",
+        "description": "Gestion des contacts, groupes intelligents, detection de doublons et import de fichiers.",
         "explore": "Explorer les contacts"
       },
       "productivity": {
         "title": "Productivite",
-        "description": "Taches, workflows automatises, rappels intelligents, dashboard et recherche globale.",
+        "description": "Taches, automatisations, rappels intelligents, tableau de bord et recherche globale.",
         "explore": "Explorer la productivite"
       },
       "communication": {
         "title": "Communication",
-        "description": "Templates email, integration email et sequences automatisees.",
+        "description": "Modeles d'emails, connexion email et sequences de suivi automatiques.",
         "explore": "Explorer la communication"
       },
       "allFeatures": "Voir toutes les fonctionnalites"
@@ -177,7 +177,7 @@
       },
       "workflows": {
         "title": "Workflows & Automations",
-        "description": "Automatisez vos processus : triggers sur deals, contacts ou taches, conditions personnalisees, actions automatiques."
+        "description": "Automatisez vos processus : quand un deal est cree ou un contact mis a jour, Qeylo agit pour vous automatiquement."
       },
       "dashboard": {
         "title": "Dashboard & Rapports",
@@ -193,7 +193,7 @@
         "ai": {
           "title": "Intelligence Artificielle",
           "points": {
-            "0": "Chat conversationnel en langage naturel",
+            "0": "Discutez naturellement avec votre CRM",
             "1": "Actions automatiques sur vos donnees",
             "2": "Insights et analyse par l'IA"
           }
@@ -209,8 +209,8 @@
         "contacts": {
           "title": "Contacts & Relations",
           "points": {
-            "0": "Segments dynamiques",
-            "1": "Detection de doublons",
+            "0": "Groupes de contacts intelligents",
+            "1": "Detection des doublons",
             "2": "Import / Export CSV"
           }
         },
@@ -218,16 +218,16 @@
           "title": "Productivite",
           "points": {
             "0": "Taches & calendrier",
-            "1": "Workflows automatises",
+            "1": "Automatisations",
             "2": "Dashboard personnalisable"
           }
         },
         "communication": {
           "title": "Communication",
           "points": {
-            "0": "Templates email",
-            "1": "Integration Gmail & Outlook",
-            "2": "Sequences automatisees"
+            "0": "Modeles d'emails prets a l'emploi",
+            "1": "Connexion Gmail & Outlook en un clic",
+            "2": "Envoi automatique de series d'emails de suivi"
           }
         }
       }
@@ -242,7 +242,7 @@
     "countLabel": "fonctionnalites integrees",
     "items": {
       "csv": { "title": "Import / Export CSV", "description": "Importez et exportez vos contacts en un clic" },
-      "email_templates": { "title": "Email templates", "description": "Modeles d'emails reutilisables et personnalisables" },
+      "email_templates": { "title": "Modeles d'emails", "description": "Modeles d'emails reutilisables et personnalisables" },
       "products": { "title": "Produits & Catalogue", "description": "Gerez vos produits, tarifs et categories" },
       "search": { "title": "Recherche globale", "description": "Trouvez contacts, deals et taches instantanement" },
       "notes": { "title": "Notes riches", "description": "Editeur de notes complet sur chaque contact" },
@@ -266,7 +266,7 @@
       },
       "1": {
         "title": "L'IA comprend et agit",
-        "description": "Qeylo analyse votre message, identifie les entites (contact, deal, montant) et execute les actions en une seconde."
+        "description": "Qeylo analyse votre message, reconnait les contacts, deals et montants, puis execute les actions en une seconde."
       },
       "2": {
         "title": "Tout est organise",
@@ -386,10 +386,10 @@
         "title": "Chat IA — Votre assistant CRM",
         "description": "Parlez naturellement et l'IA execute. Creer un contact, deplacer un deal, planifier un rappel — tout se fait en une phrase.",
         "details": {
-          "0": "Comprehension du langage naturel en francais",
-          "1": "Plus de 9 outils integres : contacts, deals, taches, notes, dashboard",
-          "2": "Conversations multiples avec historique persistant",
-          "3": "Streaming en temps reel avec rendu Markdown"
+          "0": "Parlez en francais, l'IA comprend",
+          "1": "Plus de 9 outils integres : contacts, deals, taches, notes, tableau de bord",
+          "2": "Plusieurs conversations avec historique sauvegarde",
+          "3": "Reponses instantanees, claires et bien formatees"
         }
       },
       "1": {
@@ -426,22 +426,22 @@
       },
       "4": {
         "title": "Workflows & Automations",
-        "description": "Automatisez vos processus metier. Definissez des triggers, des conditions et des actions pour gagner du temps chaque jour.",
+        "description": "Automatisez vos processus metier. Quand un deal est cree ou une etape changee, Qeylo agit pour vous automatiquement.",
         "details": {
-          "0": "Triggers : deal cree, etape changee, contact mis a jour...",
+          "0": "Quand un deal est cree, une etape changee, un contact mis a jour...",
           "1": "Conditions personnalisees et delais",
           "2": "Actions automatiques sur contacts, deals, taches",
-          "3": "Templates de workflows prets a l'emploi"
+          "3": "Modeles d'automatisations prets a l'emploi"
         }
       },
       "5": {
-        "title": "Dashboard & Rapports sur mesure",
-        "description": "Construisez votre dashboard avec des widgets personnalisables. Creez des rapports sur mesure pour suivre votre performance.",
+        "title": "Tableau de bord & Rapports sur mesure",
+        "description": "Construisez votre tableau de bord avec des indicateurs personnalisables. Creez des rapports sur mesure pour suivre votre performance.",
         "details": {
-          "0": "Dashboard personnalisable avec widgets drag-and-drop",
-          "1": "Rapports custom : performance, pipeline, activite, sources",
-          "2": "KPI en temps reel : CA, pipeline, taux de conversion",
-          "3": "Templates de rapports prets a l'emploi"
+          "0": "Tableau de bord personnalisable avec widgets drag-and-drop",
+          "1": "Rapports sur mesure : performance, pipeline, activite, sources",
+          "2": "Indicateurs en temps reel : CA, pipeline, taux de conversion",
+          "3": "Modeles de rapports prets a l'emploi"
         }
       }
     },
@@ -490,7 +490,7 @@
           "5": "Workflows & automations",
           "6": "Segments dynamiques",
           "7": "Produits & catalogue",
-          "8": "Email templates",
+          "8": "Modeles d'emails",
           "9": "Import/Export CSV",
           "10": "Integration email",
           "11": "Support prioritaire"
@@ -542,8 +542,8 @@
             "tasks": { "name": "Taches & rappels" },
             "calendar": { "name": "Vue calendrier" },
             "teamAssignment": { "name": "Assignation d'equipe" },
-            "workflows": { "name": "Workflows & automations" },
-            "emailTemplates": { "name": "Email templates" }
+            "workflows": { "name": "Automatisations" },
+            "emailTemplates": { "name": "Modeles d'emails" }
           }
         },
         "ai": {
@@ -593,23 +593,23 @@
         },
         "2": {
           "question": "Mes donnees sont-elles securisees ?",
-          "answer": "Absolument. Vos donnees sont chiffrees, isolees par organisation, et hebergees en Europe. Authentification JWT avec refresh token."
+          "answer": "Absolument. Vos donnees sont chiffrees, isolees par organisation, et hebergees en Europe. Connexion securisee avec protection renforcee."
         },
         "3": {
           "question": "Quel modele d'IA est utilise ?",
-          "answer": "Claude (Anthropic) par defaut, avec GPT en fallback. Vous pouvez configurer le modele de votre choix via les parametres."
+          "answer": "Claude (Anthropic) par defaut, avec GPT en alternative. Vous pouvez choisir le modele de votre choix dans les parametres."
         },
         "4": {
           "question": "Puis-je importer mes contacts existants ?",
-          "answer": "Oui, vous pouvez importer et exporter vos contacts au format CSV depuis la page Contacts. L'import inclut un mapping de colonnes intelligent."
+          "answer": "Oui, vous pouvez importer et exporter vos contacts au format CSV depuis la page Contacts. L'import reconnait automatiquement vos colonnes."
         },
         "5": {
           "question": "Quelles automations puis-je creer ?",
-          "answer": "Vous pouvez creer des workflows automatises bases sur des triggers : deal cree, etape changee, contact mis a jour, tache en retard, etc. Ajoutez des conditions et des actions automatiques comme envoyer un email, creer une tache, ou mettre a jour un champ."
+          "answer": "Vous pouvez creer des automatisations qui se declenchent quand un deal est cree, une etape change, un contact est mis a jour, une tache est en retard, etc. Ajoutez des conditions et des actions automatiques comme envoyer un email, creer une tache, ou mettre a jour une information."
         },
         "6": {
           "question": "Puis-je connecter mon email ?",
-          "answer": "Oui ! Qeylo s'integre avec Gmail et Outlook via OAuth. Connectez votre boite mail en un clic depuis les parametres pour centraliser vos communications."
+          "answer": "Oui ! Qeylo s'integre avec Gmail et Outlook. Connectez votre boite mail en un clic depuis les parametres pour centraliser vos communications."
         }
       }
     }
@@ -866,30 +866,30 @@
         "title": "Chat conversationnel",
         "description": "Tapez en langage naturel et l'IA execute. Creer un contact, deplacer un deal, planifier un rappel — tout se fait en une phrase.",
         "details": {
-          "0": "Comprehension du langage naturel en francais et anglais",
+          "0": "Parlez en francais ou en anglais, l'IA comprend",
           "1": "Plus de 9 outils integres",
-          "2": "Streaming en temps reel avec rendu Markdown",
-          "3": "Conversations multiples avec historique persistant"
+          "2": "Reponses instantanees, claires et bien formatees",
+          "3": "Plusieurs conversations avec historique sauvegarde"
         }
       },
       "1": {
         "title": "Actions automatiques",
-        "description": "L'IA identifie les entites dans vos messages — contacts, montants, dates — et cree automatiquement les enregistrements correspondants.",
+        "description": "L'IA reconnait les contacts, montants et dates dans vos messages — et cree automatiquement les fiches correspondantes.",
         "details": {
-          "0": "Detection automatique des entites",
+          "0": "Reconnait automatiquement les noms, dates et montants",
           "1": "Creation de contacts, deals et taches en une phrase",
-          "2": "Mise a jour intelligente des champs existants",
-          "3": "Suggestions contextuelles basees sur vos donnees"
+          "2": "Mise a jour intelligente des informations existantes",
+          "3": "Suggestions adaptees a votre activite"
         }
       },
       "2": {
         "title": "Analyse et insights",
         "description": "Interrogez vos donnees en langage naturel. Demandez un resume de votre pipeline, vos taches du jour, ou l'historique d'un contact.",
         "details": {
-          "0": "Requetes en langage naturel sur vos donnees",
-          "1": "Resume instantane du pipeline et des KPIs",
+          "0": "Posez vos questions simplement, en francais",
+          "1": "Resume instantane de vos ventes et indicateurs cles",
           "2": "Historique des interactions par contact",
-          "3": "Recommandations d'actions basees sur l'activite"
+          "3": "Recommandations d'actions selon votre activite"
         }
       }
     },
@@ -968,17 +968,17 @@
         "details": {
           "0": "Regles de segmentation personnalisees",
           "1": "Mise a jour automatique en temps reel",
-          "2": "Filtres multi-criteres",
+          "2": "Combinez plusieurs filtres pour trouver les bons contacts",
           "3": "Export des segments en CSV"
         }
       },
       "2": {
         "title": "Doublons & Import",
-        "description": "Detection intelligente des doublons avec fusion assistee. Importez vos contacts existants en CSV avec mapping de colonnes.",
+        "description": "Detection intelligente des doublons avec fusion assistee. Importez vos contacts existants en CSV avec correspondance automatique des colonnes.",
         "details": {
           "0": "Detection automatique des doublons",
           "1": "Fusion assistee des fiches",
-          "2": "Import CSV avec mapping intelligent",
+          "2": "Import CSV avec correspondance automatique des colonnes",
           "3": "Export complet de vos donnees"
         }
       }
@@ -1009,21 +1009,21 @@
       },
       "1": {
         "title": "Workflows automatises",
-        "description": "Definissez des triggers, des conditions et des actions pour automatiser vos processus metier.",
+        "description": "Quand un deal est cree ou une etape change, Qeylo lance automatiquement les actions que vous avez definies.",
         "details": {
-          "0": "Triggers : deal cree, etape changee, contact mis a jour",
+          "0": "Quand un deal est cree, une etape changee, un contact mis a jour...",
           "1": "Conditions personnalisees et delais",
           "2": "Actions automatiques sur contacts, deals, taches",
-          "3": "Templates de workflows prets a l'emploi"
+          "3": "Modeles d'automatisations prets a l'emploi"
         }
       },
       "2": {
         "title": "Dashboard & Rapports",
         "description": "Dashboard personnalisable avec widgets KPI. Creez des rapports sur mesure pour suivre votre performance.",
         "details": {
-          "0": "Dashboard drag-and-drop personnalisable",
-          "1": "Rapports custom : performance, pipeline, activite",
-          "2": "KPI en temps reel",
+          "0": "Tableau de bord drag-and-drop personnalisable",
+          "1": "Rapports sur mesure : performance, pipeline, activite",
+          "2": "Indicateurs cles en temps reel",
           "3": "Recherche globale instantanee"
         }
       }
@@ -1043,12 +1043,12 @@
     "ctaSecondary": "Voir une demo",
     "features": {
       "0": {
-        "title": "Templates email",
+        "title": "Modeles d'emails",
         "description": "Creez des modeles d'emails reutilisables et personnalisables. Gagnez du temps sur chaque envoi.",
         "details": {
-          "0": "Editeur de templates riche",
-          "1": "Variables dynamiques (nom, entreprise...)",
-          "2": "Templates partages avec l'equipe",
+          "0": "Editeur de modeles complet",
+          "1": "Champs personnalisables (nom, entreprise...)",
+          "2": "Modeles partages avec l'equipe",
           "3": "Apercu avant envoi"
         }
       },
@@ -1056,19 +1056,19 @@
         "title": "Integration email",
         "description": "Connectez Gmail et Outlook en un clic. Centralisez toutes vos communications dans Qeylo.",
         "details": {
-          "0": "Connexion OAuth Gmail & Outlook",
-          "1": "Synchronisation bidirectionnelle",
+          "0": "Connectez Gmail ou Outlook en un clic",
+          "1": "Synchronisation automatique dans les deux sens",
           "2": "Historique email sur chaque contact",
           "3": "Envoi d'emails depuis Qeylo"
         }
       },
       "2": {
         "title": "Sequences automatisees",
-        "description": "Creez des sequences d'emails automatisees pour vos relances et nurturing. Definissez les delais et les conditions.",
+        "description": "Creez des series d'emails automatiques pour vos relances et suivis. Choisissez les delais et les conditions d'envoi.",
         "details": {
-          "0": "Sequences multi-etapes",
-          "1": "Delais personnalisables entre les emails",
-          "2": "Conditions d'arret automatiques",
+          "0": "Envoyez des series d'emails de suivi automatiquement",
+          "1": "Choisissez le delai entre chaque email",
+          "2": "Arret automatique quand le contact repond",
           "3": "Suivi des ouvertures et clics"
         }
       }
