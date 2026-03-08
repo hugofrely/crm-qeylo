@@ -300,6 +300,19 @@
   animation: shimmer 4s ease-in-out infinite;
 }
 
+/* Responsive tabs: icon-only for inactive, icon+text for active below 1250px */
+@layer base {
+  @media (max-width: 1250px) {
+    [data-responsive] [data-slot="tabs-trigger"]:not([data-state="active"]) > span {
+      display: none;
+    }
+    [data-responsive] [data-slot="tabs-trigger"]:not([data-state="active"]) {
+      flex: 0 0 auto;
+      padding-inline: 0.5rem;
+    }
+  }
+}
+
 /* Scrollbar hide utility */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

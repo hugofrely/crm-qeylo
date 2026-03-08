@@ -573,7 +573,7 @@ Sois concis et actionnable."""
         agent = Agent(model=settings.AI_MODEL)
         result = agent.run_sync(prompt)
         # Try to parse JSON from response
-        text = result.data
+        text = result.output
         # Find JSON array in response
         start_idx = text.find("[")
         end_idx = text.rfind("]") + 1

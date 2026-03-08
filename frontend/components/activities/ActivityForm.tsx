@@ -60,26 +60,26 @@ export function ActivityForm({
       value={activeTab}
       onValueChange={(v) => onTabChange(v as ActivityEntryType)}
     >
-      <TabsList className="w-full">
+      <TabsList responsive className="w-full">
         <TabsTrigger value="call" className="gap-1.5">
           <Phone className="h-3.5 w-3.5" />
-          Appel
+          <span>Appel</span>
         </TabsTrigger>
         <TabsTrigger value="email_sent" className="gap-1.5">
           <Mail className="h-3.5 w-3.5" />
-          Email envoy&eacute;
+          <span>Email envoy&eacute;</span>
         </TabsTrigger>
         <TabsTrigger value="email_received" className="gap-1.5">
           <MailOpen className="h-3.5 w-3.5" />
-          Email re&ccedil;u
+          <span>Email re&ccedil;u</span>
         </TabsTrigger>
         <TabsTrigger value="meeting" className="gap-1.5">
           <Calendar className="h-3.5 w-3.5" />
-          R&eacute;union
+          <span>R&eacute;union</span>
         </TabsTrigger>
         <TabsTrigger value="custom" className="gap-1.5">
           <Tag className="h-3.5 w-3.5" />
-          Custom
+          <span>Custom</span>
         </TabsTrigger>
       </TabsList>
 

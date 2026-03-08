@@ -43,13 +43,17 @@ const tabsListVariants = cva(
 function TabsList({
   className,
   variant = "default",
+  responsive = false,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List> &
-  VariantProps<typeof tabsListVariants>) {
+  VariantProps<typeof tabsListVariants> & {
+    responsive?: boolean
+  }) {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
       data-variant={variant}
+      {...(responsive ? { "data-responsive": "" } : {})}
       className={cn(tabsListVariants({ variant }), className)}
       {...props}
     />

@@ -189,7 +189,7 @@ export default function CompanyDetailPage() {
         <div className="flex-1 min-w-0 rounded-xl border border-border bg-card overflow-hidden pt-2 w-full">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="px-2">
-              <TabsList className="w-full justify-start overflow-x-auto scrollbar-hide">
+              <TabsList responsive className="w-full justify-start overflow-x-auto scrollbar-hide">
                 <TabsTrigger value="resume" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <BarChart3 className="h-3.5 w-3.5" />
                   <span>Resume</span>
