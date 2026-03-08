@@ -2,6 +2,12 @@ import Cookies from "js-cookie"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
 
+function getLocaleFromCookie(): string {
+  if (typeof document === 'undefined') return 'fr';
+  const match = document.cookie.match(/NEXT_LOCALE=(\w+)/);
+  return match?.[1] || 'fr';
+}
+
 interface FetchOptions extends RequestInit {
   json?: unknown
 }
@@ -12,6 +18,7 @@ export async function apiFetch<T = unknown>(
 ): Promise<T> {
   const { json, headers: customHeaders, ...rest } = options
   const headers: Record<string, string> = {
+    "Accept-Language": getLocaleFromCookie(),
     ...(customHeaders as Record<string, string>),
   }
 
