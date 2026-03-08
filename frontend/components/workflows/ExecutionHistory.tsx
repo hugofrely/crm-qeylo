@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { fetchWorkflowExecutions } from "@/services/workflows"
 import { Loader2, ChevronDown, ChevronRight } from "lucide-react"
 import type { Execution } from "@/types"
@@ -14,36 +15,28 @@ const STATUS_COLORS: Record<string, string> = {
   skipped: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500",
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  completed: "Terminé",
-  failed: "Échoué",
-  running: "En cours",
-  cancelled: "Annulé",
-  pending: "En attente",
-  skipped: "Ignoré",
-}
-
-function timeAgo(dateStr: string): string {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return "à l'instant"
-  if (diffMin < 60) return `il y a ${diffMin}min`
-  const diffH = Math.floor(diffMin / 60)
-  if (diffH < 24) return `il y a ${diffH}h`
-  const diffD = Math.floor(diffH / 24)
-  return `il y a ${diffD}j`
-}
-
 interface ExecutionHistoryProps {
   workflowId: string
 }
 
 export default function ExecutionHistory({ workflowId }: ExecutionHistoryProps) {
+  const t = useTranslations("workflows.executionHistory")
   const [executions, setExecutions] = useState<Execution[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  function timeAgo(dateStr: string): string {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMin = Math.floor(diffMs / 60000)
+    if (diffMin < 1) return t("timeAgo.now")
+    if (diffMin < 60) return t("timeAgo.minutes", { value: diffMin })
+    const diffH = Math.floor(diffMin / 60)
+    if (diffH < 24) return t("timeAgo.hours", { value: diffH })
+    const diffD = Math.floor(diffH / 24)
+    return t("timeAgo.days", { value: diffD })
+  }
 
   useEffect(() => {
     async function load() {
@@ -70,7 +63,7 @@ export default function ExecutionHistory({ workflowId }: ExecutionHistoryProps) 
   if (executions.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-        Aucune exécution pour ce workflow.
+        {t("empty")}
       </div>
     )
   }
@@ -89,7 +82,7 @@ export default function ExecutionHistory({ workflowId }: ExecutionHistoryProps) 
               <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
             )}
             <span className={`text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full ${STATUS_COLORS[exec.status] || ""}`}>
-              {STATUS_LABELS[exec.status] || exec.status}
+              {t(`statusLabels.${exec.status}` as any) || exec.status}
             </span>
             <span className="text-xs text-muted-foreground flex-1 truncate">
               {exec.trigger_event}
@@ -110,7 +103,7 @@ export default function ExecutionHistory({ workflowId }: ExecutionHistoryProps) 
                 <div key={step.id} className="flex items-start gap-2 text-xs">
                   <span className="text-muted-foreground/50 w-4 shrink-0 text-right">{i + 1}.</span>
                   <span className={`text-[9px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0 ${STATUS_COLORS[step.status] || ""}`}>
-                    {STATUS_LABELS[step.status] || step.status}
+                    {t(`statusLabels.${step.status}` as any) || step.status}
                   </span>
                   <span className="text-muted-foreground">
                     {step.node_type}: {step.node_subtype}

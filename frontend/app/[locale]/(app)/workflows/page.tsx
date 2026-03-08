@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { fetchWorkflows as fetchWorkflowsApi, fetchWorkflowTemplates as fetchTemplatesApi, createWorkflow, toggleWorkflow, deleteWorkflow } from "@/services/workflows"
 import { Button } from "@/components/ui/button"
 import {
@@ -35,23 +36,9 @@ import { toast } from "sonner"
 import posthog from "posthog-js"
 import type { Workflow, WorkflowTemplate } from "@/types"
 
-const TRIGGER_LABELS: Record<string, string> = {
-  "deal.stage_changed": "Deal change de stage",
-  "deal.created": "Deal créé",
-  "deal.won": "Deal gagné",
-  "deal.lost": "Deal perdu",
-  "contact.created": "Contact créé",
-  "contact.updated": "Contact mis à jour",
-  "contact.lead_score_changed": "Score changé",
-  "task.created": "Tâche créée",
-  "task.completed": "Tâche complétée",
-  "task.overdue": "Tâche en retard",
-  "email.sent": "Email envoyé",
-  "note.added": "Note ajoutée",
-}
-
 export default function WorkflowsPage() {
   const router = useRouter()
+  const t = useTranslations("workflows")
   const [workflows, setWorkflows] = useState<Workflow[]>([])
   const [templates, setTemplates] = useState<WorkflowTemplate[]>([])
   const [loading, setLoading] = useState(true)
@@ -99,7 +86,7 @@ export default function WorkflowsPage() {
       setNewName("")
       router.push(`/workflows/${data.id}`)
     } catch {
-      toast.error("Erreur lors de la création")
+      toast.error(t("createError"))
     } finally {
       setCreating(false)
     }
@@ -117,7 +104,7 @@ export default function WorkflowsPage() {
       setTemplateDialogOpen(false)
       router.push(`/workflows/${data.id}`)
     } catch {
-      toast.error("Erreur lors de la création")
+      toast.error(t("createError"))
     }
   }
 
@@ -130,9 +117,9 @@ export default function WorkflowsPage() {
         )
       )
       posthog.capture("workflow_toggled", { is_active: data.is_active })
-      toast.success(data.is_active ? "Workflow activé" : "Workflow désactivé")
+      toast.success(data.is_active ? t("activated") : t("deactivated"))
     } catch {
-      toast.error("Erreur")
+      toast.error(t("error"))
     }
   }
 
@@ -141,9 +128,9 @@ export default function WorkflowsPage() {
       await deleteWorkflow(id)
       posthog.capture("workflow_deleted")
       setWorkflows((prev) => prev.filter((w) => w.id !== id))
-      toast.success("Workflow supprimé")
+      toast.success(t("deleted"))
     } catch {
-      toast.error("Erreur lors de la suppression")
+      toast.error(t("deleteError"))
     }
   }
 
@@ -154,31 +141,31 @@ export default function WorkflowsPage() {
       headerClassName: "w-10",
       className: "w-10",
       render: (w) => (
-        <button onClick={(e) => { e.stopPropagation(); handleToggle(w) }} title={w.is_active ? "Désactiver" : "Activer"}>
+        <button onClick={(e) => { e.stopPropagation(); handleToggle(w) }} title={w.is_active ? t("deactivate") : t("activate")}>
           {w.is_active ? <Zap className="h-5 w-5 text-primary" /> : <ZapOff className="h-5 w-5 text-muted-foreground/40" />}
         </button>
       ),
     },
     {
       key: "name",
-      header: "Nom",
+      header: t("columnName"),
       render: (w) => (
         <div>
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm">{w.name}</span>
             {w.is_active && (
-              <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">Actif</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">{t("active")}</span>
             )}
           </div>
           {w.trigger_type && (
-            <span className="text-xs text-muted-foreground">{TRIGGER_LABELS[w.trigger_type] || w.trigger_type}</span>
+            <span className="text-xs text-muted-foreground">{t(`triggerLabels.${w.trigger_type}` as any) || w.trigger_type}</span>
           )}
         </div>
       ),
     },
     {
       key: "executions",
-      header: "Executions",
+      header: t("columnExecutions"),
       headerClassName: "hidden md:table-cell text-right",
       className: "hidden md:table-cell text-right text-sm text-muted-foreground tabular-nums",
       render: (w) => <>{w.execution_count}</>,
@@ -195,13 +182,13 @@ export default function WorkflowsPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/workflows/${w.id}`) }}>
-              <Pencil className="h-4 w-4 mr-2" /> Modifier
+              <Pencil className="h-4 w-4 mr-2" /> {t("edit")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); router.push(`/workflows/${w.id}?tab=history`) }}>
-              <History className="h-4 w-4 mr-2" /> Historique
+              <History className="h-4 w-4 mr-2" /> {t("history")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(w.id) }} className="text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" /> Supprimer
+              <Trash2 className="h-4 w-4 mr-2" /> {t("delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -212,16 +199,16 @@ export default function WorkflowsPage() {
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-6 animate-fade-in-up">
       <PageHeader
-        title="Workflows"
-        subtitle="Automatisez vos processus CRM avec des workflows visuels"
+        title={t("title")}
+        subtitle={t("subtitle")}
       >
         <Button variant="outline" onClick={() => setTemplateDialogOpen(true)} className="gap-2">
           <LayoutTemplate className="h-4 w-4" />
-          Templates
+          {t("templates")}
         </Button>
         <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
-          Nouveau
+          {t("new")}
         </Button>
       </PageHeader>
 
@@ -230,14 +217,14 @@ export default function WorkflowsPage() {
         data={workflows}
         loading={loading}
         emptyIcon={<Zap className="h-10 w-10 text-muted-foreground/30 mb-2" />}
-        emptyMessage="Aucun workflow. Créez votre premier workflow ou utilisez un template."
+        emptyMessage={t("emptyMessage")}
         onRowClick={(w) => router.push(`/workflows/${w.id}`)}
         rowKey={(w) => w.id}
       />
 
       {workflows.length < 3 && templates.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground">Templates disponibles</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">{t("availableTemplates")}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {templates.map((template) => (
               <button
@@ -259,31 +246,31 @@ export default function WorkflowsPage() {
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nouveau workflow</DialogTitle>
+            <DialogTitle>{t("createDialog.title")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 font-[family-name:var(--font-body)]">
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Nom
+                {t("createDialog.name")}
               </Label>
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Ex: Suivi de négociation"
+                placeholder={t("createDialog.placeholder")}
                 className="h-11 bg-secondary/30 border-border/60"
                 onKeyDown={(e) => e.key === "Enter" && handleCreateBlank()}
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                Annuler
+                {t("createDialog.cancel")}
               </Button>
               <Button
                 onClick={handleCreateBlank}
                 disabled={creating || !newName.trim()}
               >
                 {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Créer
+                {t("createDialog.create")}
               </Button>
             </div>
           </div>
@@ -294,7 +281,7 @@ export default function WorkflowsPage() {
       <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Templates de workflows</DialogTitle>
+            <DialogTitle>{t("templateDialog.title")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 font-[family-name:var(--font-body)] max-h-[60vh] overflow-y-auto">
             {templates.map((template) => (
@@ -311,7 +298,7 @@ export default function WorkflowsPage() {
                   {template.description}
                 </p>
                 <span className="text-[10px] text-muted-foreground/60 ml-6 mt-1 block">
-                  {TRIGGER_LABELS[template.trigger_type] || template.trigger_type}
+                  {t(`triggerLabels.${template.trigger_type}` as any) || template.trigger_type}
                 </span>
               </button>
             ))}

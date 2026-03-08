@@ -1,24 +1,26 @@
 import { memo } from "react"
 import { Handle, Position, type NodeProps } from "@xyflow/react"
+import { useTranslations } from "next-intl"
 import { Clock } from "lucide-react"
 
-function formatDuration(seconds: number): string {
-  if (seconds >= 86400) {
-    const days = Math.round(seconds / 86400)
-    return `${days} jour${days > 1 ? "s" : ""}`
-  }
-  if (seconds >= 3600) {
-    const hours = Math.round(seconds / 3600)
-    return `${hours} heure${hours > 1 ? "s" : ""}`
-  }
-  const minutes = Math.round(seconds / 60)
-  return `${minutes} minute${minutes > 1 ? "s" : ""}`
-}
-
 function DelayNode({ data, selected }: NodeProps) {
+  const t = useTranslations("workflows.nodes")
   const config = (data as Record<string, unknown>).config as Record<string, number> | undefined
   const seconds = config?.duration_seconds || 3600
-  const label = `Attendre ${formatDuration(seconds)}`
+
+  let durationLabel: string
+  if (seconds >= 86400) {
+    const days = Math.round(seconds / 86400)
+    durationLabel = t("day", { count: days })
+  } else if (seconds >= 3600) {
+    const hours = Math.round(seconds / 3600)
+    durationLabel = t("hour", { count: hours })
+  } else {
+    const minutes = Math.round(seconds / 60)
+    durationLabel = t("minute", { count: minutes })
+  }
+
+  const label = `${t("wait")} ${durationLabel}`
 
   return (
     <div
@@ -37,7 +39,7 @@ function DelayNode({ data, selected }: NodeProps) {
         </div>
         <div>
           <div className="text-[10px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-            Délai
+            {t("delay")}
           </div>
           <div className="text-xs font-medium text-foreground">{label}</div>
         </div>

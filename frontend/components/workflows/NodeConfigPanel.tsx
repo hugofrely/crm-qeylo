@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
@@ -19,13 +20,14 @@ interface NodeConfigPanelProps {
 }
 
 export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigPanelProps) {
+  const t = useTranslations("workflows.configPanel")
   const nodeData = node.data as Record<string, unknown>
   const nodeType = nodeData.node_type as string
 
   return (
     <div className="w-80 border-l border-border bg-card h-full overflow-y-auto">
       <div className="flex items-center justify-between p-4 border-b border-border">
-        <h3 className="text-sm font-medium">Configuration</h3>
+        <h3 className="text-sm font-medium">{t("configuration")}</h3>
         <button onClick={onClose} className="rounded-md p-1 hover:bg-secondary transition-colors">
           <X className="h-4 w-4" />
         </button>
@@ -41,7 +43,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
         {(nodeType === "action" || nodeType === "condition") && (
           <div className="space-y-2 pt-2 border-t border-border">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Variables disponibles
+              {t("availableVariables")}
             </Label>
             <div className="space-y-2">
               {TEMPLATE_VARIABLES.map((group) => (
@@ -80,7 +82,7 @@ export default function NodeConfigPanel({ node, onClose, onUpdate }: NodeConfigP
               onClose()
             }}
           >
-            Supprimer ce n{"\u0153"}ud
+            {t("deleteNode")}
           </Button>
         </div>
       </div>

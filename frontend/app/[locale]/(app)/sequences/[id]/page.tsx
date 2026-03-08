@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import {
   fetchSequence,
   updateSequence,
@@ -45,23 +47,6 @@ import { toast } from "sonner"
 import type { Sequence, SequenceStep, SequenceEnrollment } from "@/types/sequences"
 import type { ContactSearchResult } from "@/types/contacts"
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Brouillon",
-  active: "Active",
-  paused: "En pause",
-  archived: "Archivée",
-}
-
-const ENROLLMENT_STATUS_LABELS: Record<string, string> = {
-  active: "Actif",
-  completed: "Terminé",
-  replied: "Répondu",
-  bounced: "Bounced",
-  opted_out: "Désinscrit",
-  paused: "En pause",
-  unenrolled: "Désinscrit",
-}
-
 const ENROLLMENT_STATUS_COLORS: Record<string, string> = {
   active: "bg-green-500/10 text-green-600",
   completed: "bg-blue-500/10 text-blue-600",
@@ -75,6 +60,7 @@ const ENROLLMENT_STATUS_COLORS: Record<string, string> = {
 export default function SequenceDetailPage() {
   const router = useRouter()
   const params = useParams()
+  const t = useTranslations("sequences")
   const sequenceId = params.id as string
 
   const [sequence, setSequence] = useState<Sequence | null>(null)
@@ -112,12 +98,12 @@ export default function SequenceDetailPage() {
       setSequence(data)
       setName(data.name)
     } catch {
-      toast.error("Séquence introuvable")
+      toast.error(t("detail.notFound"))
       router.push("/sequences")
     } finally {
       setLoading(false)
     }
-  }, [sequenceId, router])
+  }, [sequenceId, router, t])
 
   const loadEnrollments = useCallback(async () => {
     setEnrollmentsLoading(true)
@@ -141,9 +127,9 @@ export default function SequenceDetailPage() {
     try {
       const updated = await updateSequence(sequenceId, { name })
       setSequence(updated)
-      toast.success("Nom mis à jour")
+      toast.success(t("detail.nameUpdated"))
     } catch {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(t("detail.updateError"))
       setName(sequence.name)
     }
   }
@@ -157,9 +143,9 @@ export default function SequenceDetailPage() {
     try {
       const updated = await updateSequence(sequenceId, { status: newStatus })
       setSequence(updated)
-      toast.success(newStatus === "active" ? "Séquence activée" : "Séquence mise en pause")
+      toast.success(newStatus === "active" ? t("detail.activated") : t("detail.paused"))
     } catch {
-      toast.error("Erreur lors du changement de statut")
+      toast.error(t("detail.statusError"))
     }
   }
 
@@ -167,10 +153,10 @@ export default function SequenceDetailPage() {
     setDeleting(true)
     try {
       await deleteSequence(sequenceId)
-      toast.success("Séquence supprimée")
+      toast.success(t("detail.deleted"))
       router.push("/sequences")
     } catch {
-      toast.error("Erreur lors de la suppression")
+      toast.error(t("detail.deleteError"))
     } finally {
       setDeleting(false)
       setConfirmDelete(false)
@@ -194,9 +180,9 @@ export default function SequenceDetailPage() {
       setSequence({ ...sequence, steps: [...sequence.steps, newStep] })
       setAddingStep(false)
       resetStepForm()
-      toast.success("Étape ajoutée")
+      toast.success(t("detail.stepAdded"))
     } catch {
-      toast.error("Erreur lors de l'ajout de l'étape")
+      toast.error(t("detail.stepAddError"))
     } finally {
       setSavingStep(false)
     }
@@ -227,9 +213,9 @@ export default function SequenceDetailPage() {
       })
       setEditingStepId(null)
       resetStepForm()
-      toast.success("Étape mise à jour")
+      toast.success(t("detail.stepUpdated"))
     } catch {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(t("detail.stepUpdateError"))
     } finally {
       setSavingStep(false)
     }
@@ -243,9 +229,9 @@ export default function SequenceDetailPage() {
         ...sequence,
         steps: sequence.steps.filter((s) => s.id !== stepId),
       })
-      toast.success("Étape supprimée")
+      toast.success(t("detail.stepDeleted"))
     } catch {
-      toast.error("Erreur lors de la suppression")
+      toast.error(t("detail.stepDeleteError"))
     }
   }
 
@@ -285,14 +271,14 @@ export default function SequenceDetailPage() {
         sequenceId,
         selectedContacts.map((c) => c.id)
       )
-      toast.success(`${result.enrolled_count} contact(s) inscrit(s)`)
+      toast.success(t("enrollments.enrolledSuccess", { count: result.enrolled_count }))
       setEnrollDialogOpen(false)
       setSelectedContacts([])
       setContactSearch("")
       loadEnrollments()
       loadSequence()
     } catch {
-      toast.error("Erreur lors de l'inscription")
+      toast.error(t("enrollments.enrollError"))
     } finally {
       setEnrolling(false)
     }
@@ -302,9 +288,9 @@ export default function SequenceDetailPage() {
     try {
       await unenrollContact(enrollmentId)
       setEnrollments((prev) => prev.filter((e) => e.id !== enrollmentId))
-      toast.success("Contact désinscrit")
+      toast.success(t("detail.unenrolled"))
     } catch {
-      toast.error("Erreur lors de la désinscription")
+      toast.error(t("detail.unenrollError"))
     }
   }
 
@@ -353,7 +339,7 @@ export default function SequenceDetailPage() {
             </button>
           )}
           <p className="text-xs text-muted-foreground mt-0.5">
-            {STATUS_LABELS[sequence.status] || sequence.status}
+            {t(`statusLabels.${sequence.status}` as any) || sequence.status}
           </p>
         </div>
 
@@ -363,12 +349,12 @@ export default function SequenceDetailPage() {
               {sequence.status === "active" ? (
                 <>
                   <Pause className="h-3.5 w-3.5" />
-                  Pause
+                  {t("detail.pause")}
                 </>
               ) : (
                 <>
                   <Play className="h-3.5 w-3.5" />
-                  Activer
+                  {t("detail.activate")}
                 </>
               )}
             </Button>
@@ -390,10 +376,10 @@ export default function SequenceDetailPage() {
                 onClick={handleDelete}
                 disabled={deleting}
               >
-                {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Confirmer"}
+                {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t("detail.confirm")}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(false)}>
-                Annuler
+                {t("detail.cancel")}
               </Button>
             </div>
           )}
@@ -403,8 +389,8 @@ export default function SequenceDetailPage() {
       {/* Tabs */}
       <Tabs defaultValue="steps" onValueChange={(v) => { if (v === "enrollments") loadEnrollments() }}>
         <TabsList>
-          <TabsTrigger value="steps">Étapes</TabsTrigger>
-          <TabsTrigger value="enrollments">Contacts inscrits</TabsTrigger>
+          <TabsTrigger value="steps">{t("detail.stepsTab")}</TabsTrigger>
+          <TabsTrigger value="enrollments">{t("detail.enrollmentsTab")}</TabsTrigger>
         </TabsList>
 
         {/* Steps tab */}
@@ -412,7 +398,7 @@ export default function SequenceDetailPage() {
           {sortedSteps.length === 0 && !addingStep && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Zap className="h-8 w-8 text-muted-foreground/30 mb-2" />
-              <p className="text-sm text-muted-foreground">Aucune étape. Ajoutez votre première étape.</p>
+              <p className="text-sm text-muted-foreground">{t("detail.noSteps")}</p>
             </div>
           )}
 
@@ -439,9 +425,9 @@ export default function SequenceDetailPage() {
                           : "bg-orange-500/10 text-orange-600"
                       }`}>
                         {step.step_type === "email" ? (
-                          <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> Email</span>
+                          <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {t("detail.email")}</span>
                         ) : (
-                          <span className="flex items-center gap-1"><ClipboardList className="h-3 w-3" /> Tâche manuelle</span>
+                          <span className="flex items-center gap-1"><ClipboardList className="h-3 w-3" /> {t("detail.manualTask")}</span>
                         )}
                       </span>
                     </div>
@@ -460,8 +446,11 @@ export default function SequenceDetailPage() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Après {step.delay_days} jour{step.delay_days !== 1 ? "s" : ""}
-                    {step.delay_hours > 0 && `, ${step.delay_hours} heure${step.delay_hours !== 1 ? "s" : ""}`}
+                    {t("detail.afterDelay", {
+                      days: step.delay_days,
+                      hasHours: step.delay_hours > 0 ? "true" : "false",
+                      hours: step.delay_hours,
+                    })}
                   </p>
                   {step.subject && (
                     <p className="text-sm font-medium mt-2">{step.subject}</p>
@@ -493,7 +482,7 @@ export default function SequenceDetailPage() {
               className="gap-2 w-full border-dashed"
             >
               <Plus className="h-4 w-4" />
-              Ajouter une étape
+              {t("detail.addStep")}
             </Button>
           )}
         </TabsContent>
@@ -503,11 +492,11 @@ export default function SequenceDetailPage() {
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {[
-              { label: "Inscrits", value: sequence.stats.total_enrolled, icon: Users },
-              { label: "Actifs", value: sequence.stats.active, icon: Play },
-              { label: "Terminés", value: sequence.stats.completed, icon: CheckCircle2 },
-              { label: "Répondu", value: sequence.stats.replied, icon: Reply },
-              { label: "Taux réponse", value: `${sequence.stats.reply_rate.toFixed(1)}%`, icon: Reply },
+              { label: t("enrollments.enrolled"), value: sequence.stats.total_enrolled, icon: Users },
+              { label: t("enrollments.active"), value: sequence.stats.active, icon: Play },
+              { label: t("enrollments.completed"), value: sequence.stats.completed, icon: CheckCircle2 },
+              { label: t("enrollments.replied"), value: sequence.stats.replied, icon: Reply },
+              { label: t("enrollments.replyRate"), value: `${sequence.stats.reply_rate.toFixed(1)}%`, icon: Reply },
             ].map((stat) => (
               <div key={stat.label} className="bg-card border border-border rounded-lg p-3 text-center">
                 <stat.icon className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
@@ -520,7 +509,7 @@ export default function SequenceDetailPage() {
           <div className="flex justify-end">
             <Button onClick={() => setEnrollDialogOpen(true)} className="gap-2" size="sm">
               <Plus className="h-4 w-4" />
-              Inscrire des contacts
+              {t("enrollments.enrollContacts")}
             </Button>
           </div>
 
@@ -531,7 +520,7 @@ export default function SequenceDetailPage() {
           ) : enrollments.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Users className="h-8 w-8 text-muted-foreground/30 mb-2" />
-              <p className="text-sm text-muted-foreground">Aucun contact inscrit</p>
+              <p className="text-sm text-muted-foreground">{t("enrollments.noEnrollments")}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -549,11 +538,11 @@ export default function SequenceDetailPage() {
                       ENROLLMENT_STATUS_COLORS[enrollment.status] || "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {ENROLLMENT_STATUS_LABELS[enrollment.status] || enrollment.status}
+                    {t(`enrollments.statusLabels.${enrollment.status}` as any) || enrollment.status}
                   </span>
                   {enrollment.current_step && (
                     <span className="text-xs text-muted-foreground shrink-0">
-                      Étape en cours
+                      {t("detail.currentStep")}
                     </span>
                   )}
                   {enrollment.status === "active" && (
@@ -562,7 +551,7 @@ export default function SequenceDetailPage() {
                       size="icon-sm"
                       onClick={() => handleUnenroll(enrollment.id)}
                       className="shrink-0 text-destructive hover:text-destructive"
-                      title="Désinscrire"
+                      title={t("detail.unenroll")}
                     >
                       <UserMinus className="h-3.5 w-3.5" />
                     </Button>
@@ -578,7 +567,7 @@ export default function SequenceDetailPage() {
       <Dialog open={enrollDialogOpen} onOpenChange={setEnrollDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Inscrire des contacts</DialogTitle>
+            <DialogTitle>{t("enrollments.enrollDialogTitle")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 font-[family-name:var(--font-body)]">
             <div className="relative">
@@ -586,7 +575,7 @@ export default function SequenceDetailPage() {
               <Input
                 value={contactSearch}
                 onChange={(e) => handleSearchContacts(e.target.value)}
-                placeholder="Rechercher un contact..."
+                placeholder={t("enrollments.searchPlaceholder")}
                 className="h-11 pl-10 bg-secondary/30 border-border/60"
               />
             </div>
@@ -620,7 +609,7 @@ export default function SequenceDetailPage() {
             {selectedContacts.length > 0 && (
               <div className="space-y-1">
                 <p className="text-xs font-medium text-muted-foreground">
-                  {selectedContacts.length} contact(s) sélectionné(s)
+                  {t("enrollments.selectedCount", { count: selectedContacts.length })}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {selectedContacts.map((contact) => (
@@ -643,14 +632,14 @@ export default function SequenceDetailPage() {
 
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={() => setEnrollDialogOpen(false)}>
-                Annuler
+                {t("enrollments.cancel")}
               </Button>
               <Button
                 onClick={handleEnroll}
                 disabled={enrolling || selectedContacts.length === 0}
               >
                 {enrolling && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Inscrire
+                {t("enrollments.enroll")}
               </Button>
             </div>
           </div>
@@ -674,25 +663,27 @@ function StepForm({
   onCancel: () => void
   saving: boolean
 }) {
+  const t = useTranslations("sequences.stepForm")
+
   return (
     <div className="space-y-4 font-[family-name:var(--font-body)]">
       <div className="space-y-2">
         <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Type
+          {t("type")}
         </Label>
         <select
           value={form.step_type}
           onChange={(e) => onChange({ ...form, step_type: e.target.value as "email" | "manual_task" })}
           className="flex h-9 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-1 text-sm"
         >
-          <option value="email">Email</option>
-          <option value="manual_task">Tâche manuelle</option>
+          <option value="email">{t("email")}</option>
+          <option value="manual_task">{t("manualTask")}</option>
         </select>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Délai (jours)
+            {t("delayDays")}
           </Label>
           <Input
             type="number"
@@ -704,7 +695,7 @@ function StepForm({
         </div>
         <div className="space-y-2">
           <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Délai (heures)
+            {t("delayHours")}
           </Label>
           <Input
             type="number"
@@ -718,34 +709,34 @@ function StepForm({
       </div>
       <div className="space-y-2">
         <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Objet
+          {t("subject")}
         </Label>
         <Input
           value={form.subject}
           onChange={(e) => onChange({ ...form, subject: e.target.value })}
-          placeholder="Objet de l'email"
+          placeholder={t("subjectPlaceholder")}
           className="h-9 bg-secondary/30 border-border/60"
         />
       </div>
       <div className="space-y-2">
         <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Contenu
+          {t("content")}
         </Label>
         <textarea
           value={form.body_html}
           onChange={(e) => onChange({ ...form, body_html: e.target.value })}
-          placeholder="Corps du message..."
+          placeholder={t("contentPlaceholder")}
           rows={4}
           className="flex w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
       </div>
       <div className="flex justify-end gap-2">
         <Button variant="outline" size="sm" onClick={onCancel}>
-          Annuler
+          {t("cancel")}
         </Button>
         <Button size="sm" onClick={onSave} disabled={saving}>
           {saving && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-          Enregistrer
+          {t("save")}
         </Button>
       </div>
     </div>

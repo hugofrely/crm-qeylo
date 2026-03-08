@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { fetchSequences, createSequence } from "@/services/sequences"
 import { fetchEmailAccounts } from "@/services/emails"
 import { Button } from "@/components/ui/button"
@@ -27,13 +28,6 @@ import type { EmailAccount } from "@/types"
 
 type FilterTab = "all" | "draft" | "active" | "paused"
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Brouillon",
-  active: "Active",
-  paused: "En pause",
-  archived: "Archivée",
-}
-
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
   active: "bg-green-500/10 text-green-600",
@@ -41,15 +35,9 @@ const STATUS_COLORS: Record<string, string> = {
   archived: "bg-red-500/10 text-red-600",
 }
 
-const FILTER_TABS: { key: FilterTab; label: string }[] = [
-  { key: "all", label: "Toutes" },
-  { key: "draft", label: "Brouillon" },
-  { key: "active", label: "Actives" },
-  { key: "paused", label: "En pause" },
-]
-
 export default function SequencesPage() {
   const router = useRouter()
+  const t = useTranslations("sequences")
   const [sequences, setSequences] = useState<Sequence[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<FilterTab>("all")
@@ -59,6 +47,13 @@ export default function SequencesPage() {
   const [newEmailAccount, setNewEmailAccount] = useState("")
   const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([])
   const [creating, setCreating] = useState(false)
+
+  const FILTER_TABS: { key: FilterTab; label: string }[] = [
+    { key: "all", label: t("filterTabs.all") },
+    { key: "draft", label: t("filterTabs.draft") },
+    { key: "active", label: t("filterTabs.active") },
+    { key: "paused", label: t("filterTabs.paused") },
+  ]
 
   const loadSequences = useCallback(async () => {
     try {
@@ -98,7 +93,7 @@ export default function SequencesPage() {
       setNewEmailAccount("")
       router.push(`/sequences/${data.id}`)
     } catch {
-      toast.error("Erreur lors de la création")
+      toast.error(t("createError"))
     } finally {
       setCreating(false)
     }
@@ -111,12 +106,12 @@ export default function SequencesPage() {
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-6 animate-fade-in-up">
       <PageHeader
-        title="Séquences"
-        subtitle="Automatisez vos séquences d'emails de prospection"
+        title={t("title")}
+        subtitle={t("subtitle")}
       >
         <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
-          Nouvelle séquence
+          {t("newSequence")}
         </Button>
       </PageHeader>
 
@@ -145,7 +140,7 @@ export default function SequencesPage() {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Zap className="h-10 w-10 text-muted-foreground/30 mb-2" />
-          <p className="text-sm text-muted-foreground">Aucune séquence</p>
+          <p className="text-sm text-muted-foreground">{t("emptyMessage")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -160,7 +155,7 @@ export default function SequencesPage() {
                 <span
                   className={`shrink-0 text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-full ${STATUS_COLORS[seq.status] || ""}`}
                 >
-                  {STATUS_LABELS[seq.status] || seq.status}
+                  {t(`statusLabels.${seq.status}` as any) || seq.status}
                 </span>
               </div>
               {seq.description && (
@@ -179,7 +174,7 @@ export default function SequencesPage() {
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground/60 mt-3">
-                Par {seq.created_by_name}
+                {t("by", { name: seq.created_by_name })}
               </p>
             </div>
           ))}
@@ -190,42 +185,42 @@ export default function SequencesPage() {
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nouvelle séquence</DialogTitle>
+            <DialogTitle>{t("createDialog.title")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 font-[family-name:var(--font-body)]">
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Nom
+                {t("createDialog.name")}
               </Label>
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Ex: Prospection à froid"
+                placeholder={t("createDialog.namePlaceholder")}
                 className="h-11 bg-secondary/30 border-border/60"
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
               />
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Description
+                {t("createDialog.description")}
               </Label>
               <Input
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
-                placeholder="Description optionnelle"
+                placeholder={t("createDialog.descriptionPlaceholder")}
                 className="h-11 bg-secondary/30 border-border/60"
               />
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Compte email
+                {t("createDialog.emailAccount")}
               </Label>
               <select
                 value={newEmailAccount}
                 onChange={(e) => setNewEmailAccount(e.target.value)}
                 className="flex h-11 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-2 text-sm"
               >
-                <option value="">Aucun (sélectionner plus tard)</option>
+                <option value="">{t("createDialog.noAccount")}</option>
                 {emailAccounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
                     {acc.email_address}
@@ -235,14 +230,14 @@ export default function SequencesPage() {
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                Annuler
+                {t("createDialog.cancel")}
               </Button>
               <Button
                 onClick={handleCreate}
                 disabled={creating || !newName.trim()}
               >
                 {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Créer
+                {t("createDialog.create")}
               </Button>
             </div>
           </div>

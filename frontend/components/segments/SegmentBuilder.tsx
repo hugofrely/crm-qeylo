@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
+  const t = useTranslations("segments.builder")
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [color, setColor] = useState("#3b82f6")
@@ -149,7 +151,7 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{segment ? "Modifier le segment" : "Nouveau segment"}</DialogTitle>
+          <DialogTitle>{segment ? t("editTitle") : t("newTitle")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -157,23 +159,23 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                Nom
+                {t("name")}
               </Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Contacts chauds ce mois"
+                placeholder={t("namePlaceholder")}
                 className="h-10 bg-secondary/30 border-border/60"
               />
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                Description
+                {t("description")}
               </Label>
               <Input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Optionnel..."
+                placeholder={t("descriptionPlaceholder")}
                 className="h-10 bg-secondary/30 border-border/60"
               />
             </div>
@@ -183,7 +185,7 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
           <div className="flex flex-wrap items-center gap-4">
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                Couleur
+                {t("color")}
               </Label>
               <div className="flex gap-1.5">
                 {COLORS.map((c) => (
@@ -205,7 +207,7 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
                 className="rounded"
               />
               <Label htmlFor="is_pinned" className="text-sm font-[family-name:var(--font-body)]">
-                Epingler dans les contacts
+                {t("pinInContacts")}
               </Label>
             </div>
           </div>
@@ -214,7 +216,7 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                Regles
+                {t("rules")}
               </Label>
               {rules.groups.length > 1 && (
                 <select
@@ -222,8 +224,8 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
                   onChange={(e) => setRules({ ...rules, logic: e.target.value as "AND" | "OR" })}
                   className="h-7 rounded-md border border-border/60 bg-secondary/30 px-2 text-xs font-medium"
                 >
-                  <option value="AND">Tous les groupes (ET)</option>
-                  <option value="OR">Au moins un groupe (OU)</option>
+                  <option value="AND">{t("allGroups")}</option>
+                  <option value="OR">{t("anyGroup")}</option>
                 </select>
               )}
             </div>
@@ -233,7 +235,7 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
                 {index > 0 && (
                   <div className="flex items-center justify-center py-1">
                     <span className="text-xs font-medium text-muted-foreground bg-background px-2">
-                      {rules.logic === "AND" ? "ET" : "OU"}
+                      {rules.logic === "AND" ? t("and") : t("or")}
                     </span>
                   </div>
                 )}
@@ -257,7 +259,7 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
               onClick={addGroup}
             >
               <Plus className="h-3.5 w-3.5" />
-              Ajouter un groupe
+              {t("addGroup")}
             </Button>
           </div>
 
@@ -268,14 +270,14 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
               {previewLoading ? (
                 <span className="flex items-center gap-2 text-muted-foreground">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Calcul...
+                  {t("calculating")}
                 </span>
               ) : previewCount !== null ? (
                 <span>
-                  <strong>{previewCount}</strong> contact{previewCount !== 1 ? "s" : ""} correspondent
+                  {t("matchingContacts", { count: previewCount })}
                 </span>
               ) : (
-                <span className="text-muted-foreground">Definissez des regles pour voir le nombre de contacts</span>
+                <span className="text-muted-foreground">{t("defineRules")}</span>
               )}
             </span>
           </div>
@@ -283,11 +285,11 @@ export function SegmentBuilder({ open, onOpenChange, segment, onSave }: Props) {
           {/* Actions */}
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Annuler
+              {t("cancel")}
             </Button>
             <Button onClick={handleSave} disabled={saving || !name.trim()}>
               {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {segment ? "Enregistrer" : "Creer le segment"}
+              {segment ? t("save") : t("create")}
             </Button>
           </div>
         </div>

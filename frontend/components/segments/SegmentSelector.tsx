@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { fetchSegments } from "@/services/segments"
 import {
   DropdownMenu,
@@ -21,6 +22,7 @@ interface Props {
 
 export function SegmentSelector({ selectedSegmentId, onSelect }: Props) {
   const router = useRouter()
+  const t = useTranslations("segments.selector")
   const [segments, setSegments] = useState<Segment[]>([])
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export function SegmentSelector({ selectedSegmentId, onSelect }: Props) {
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8">
               <ListFilter className="h-3.5 w-3.5" />
-              Segments
+              {t("segments")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
@@ -104,7 +106,7 @@ export function SegmentSelector({ selectedSegmentId, onSelect }: Props) {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push("/segments")} className="flex items-center gap-2">
               <ExternalLink className="h-3.5 w-3.5" />
-              Voir tous les segments
+              {t("viewAll")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

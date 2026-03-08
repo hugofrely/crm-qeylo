@@ -1,1 +1,150 @@
-{}
+{
+  "title": "Workflows",
+  "subtitle": "Automate your CRM processes with visual workflows",
+  "templates": "Templates",
+  "new": "New",
+  "columnName": "Name",
+  "columnExecutions": "Executions",
+  "active": "Active",
+  "inactive": "Inactive",
+  "activate": "Activate",
+  "deactivate": "Deactivate",
+  "edit": "Edit",
+  "history": "History",
+  "delete": "Delete",
+  "emptyMessage": "No workflows. Create your first workflow or use a template.",
+  "availableTemplates": "Available templates",
+  "createError": "Error creating workflow",
+  "activated": "Workflow activated",
+  "deactivated": "Workflow deactivated",
+  "error": "Error",
+  "deleted": "Workflow deleted",
+  "deleteError": "Error deleting workflow",
+  "triggerLabels": {
+    "deal.stage_changed": "Deal stage changed",
+    "deal.created": "Deal created",
+    "deal.won": "Deal won",
+    "deal.lost": "Deal lost",
+    "contact.created": "Contact created",
+    "contact.updated": "Contact updated",
+    "contact.lead_score_changed": "Score changed",
+    "task.created": "Task created",
+    "task.completed": "Task completed",
+    "task.overdue": "Task overdue",
+    "email.sent": "Email sent",
+    "note.added": "Note added"
+  },
+  "createDialog": {
+    "title": "New workflow",
+    "name": "Name",
+    "placeholder": "E.g.: Follow-up negotiation",
+    "cancel": "Cancel",
+    "create": "Create"
+  },
+  "templateDialog": {
+    "title": "Workflow templates"
+  },
+  "builder": {
+    "notFound": "Workflow not found",
+    "saved": "Workflow saved",
+    "saveError": "Error saving workflow",
+    "builderTab": "Builder",
+    "historyTab": "History",
+    "save": "Save",
+    "add": "Add",
+    "paletteDelay": "Delay"
+  },
+  "executionHistory": {
+    "empty": "No executions for this workflow.",
+    "statusLabels": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "running": "Running",
+      "cancelled": "Cancelled",
+      "pending": "Pending",
+      "skipped": "Skipped"
+    },
+    "timeAgo": {
+      "now": "just now",
+      "minutes": "{value}min ago",
+      "hours": "{value}h ago",
+      "days": "{value}d ago"
+    }
+  },
+  "configPanel": {
+    "configuration": "Configuration",
+    "availableVariables": "Available variables",
+    "deleteNode": "Delete this node"
+  },
+  "triggerConfig": {
+    "triggerEvent": "Trigger event",
+    "choose": "Choose...",
+    "stageFilter": "Filter: new stage name"
+  },
+  "actionConfig": {
+    "actionType": "Action type",
+    "choose": "Choose...",
+    "actionLabels": {
+      "create_task": "Create task",
+      "send_notification": "Send notification",
+      "create_note": "Create note",
+      "move_deal": "Move deal",
+      "update_contact": "Update contact",
+      "send_email": "Send email",
+      "webhook": "Webhook"
+    },
+    "description": "Description",
+    "dueDate": "Due date (offset)",
+    "priority": "Priority",
+    "priorityLow": "Low",
+    "priorityNormal": "Normal",
+    "priorityHigh": "High",
+    "notifTitle": "Title",
+    "message": "Message",
+    "content": "Content",
+    "targetStage": "Target stage name",
+    "templateOptional": "Template (optional)",
+    "noTemplate": "No template",
+    "subject": "Subject",
+    "emailBody": "Email body",
+    "url": "URL",
+    "method": "Method"
+  },
+  "conditionConfig": {
+    "field": "Field",
+    "operator": "Operator",
+    "value": "Value",
+    "operatorLabels": {
+      "equals": "Equals",
+      "not_equals": "Not equal to",
+      "greater_than": "Greater than",
+      "less_than": "Less than",
+      "contains": "Contains",
+      "not_contains": "Does not contain",
+      "is_empty": "Is empty",
+      "is_not_empty": "Is not empty"
+    }
+  },
+  "delayConfig": {
+    "duration": "Duration (in seconds)",
+    "hint": "3600 = 1h, 86400 = 1 day, 604800 = 7 days"
+  },
+  "nodes": {
+    "trigger": "Trigger",
+    "action": "Action",
+    "condition": "Condition",
+    "delay": "Delay",
+    "wait": "Wait",
+    "yes": "Yes",
+    "no": "No",
+    "day": "{count} day{count, plural, one {} other {s}}",
+    "hour": "{count} hour{count, plural, one {} other {s}}",
+    "minute": "{count} minute{count, plural, one {} other {s}}",
+    "operatorLabels": {
+      "contains": "contains",
+      "not_contains": "does not contain",
+      "is_empty": "is empty",
+      "is_not_empty": "is not empty"
+    }
+  }
+}

@@ -1,21 +1,22 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { Node } from "@xyflow/react"
 import { fetchEmailTemplates } from "@/services/emails"
 import type { EmailTemplate } from "@/types"
 
-const ACTION_OPTIONS = [
-  { value: "create_task", label: "Créer une tâche" },
-  { value: "send_notification", label: "Envoyer une notification" },
-  { value: "create_note", label: "Créer une note" },
-  { value: "move_deal", label: "Déplacer le deal" },
-  { value: "update_contact", label: "Mettre à jour le contact" },
-  { value: "send_email", label: "Envoyer un email" },
-  { value: "webhook", label: "Webhook" },
-]
+const ACTION_KEYS = [
+  "create_task",
+  "send_notification",
+  "create_note",
+  "move_deal",
+  "update_contact",
+  "send_email",
+  "webhook",
+] as const
 
 interface NodeConfigFormProps {
   node: Node
@@ -23,6 +24,7 @@ interface NodeConfigFormProps {
 }
 
 export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
+  const t = useTranslations("workflows.actionConfig")
   const nodeData = node.data as Record<string, unknown>
   const nodeSubtype = (nodeData.node_subtype as string) || ""
   const config = (nodeData.config as Record<string, unknown>) || {}
@@ -53,16 +55,16 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
     <>
       <div className="space-y-2">
         <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Type d&apos;action
+          {t("actionType")}
         </Label>
         <select
           value={nodeSubtype}
           onChange={(e) => updateSubtype(e.target.value)}
           className="w-full h-9 rounded-md border border-border bg-secondary/30 px-3 text-sm"
         >
-          <option value="">Choisir...</option>
-          {ACTION_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          <option value="">{t("choose")}</option>
+          {ACTION_KEYS.map((key) => (
+            <option key={key} value={key}>{t(`actionLabels.${key}`)}</option>
           ))}
         </select>
       </div>
@@ -71,7 +73,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
         <>
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Description
+              {t("description")}
             </Label>
             <Input
               value={(config.description as string) || ""}
@@ -82,7 +84,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
           </div>
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Échéance (offset)
+              {t("dueDate")}
             </Label>
             <Input
               value={(config.due_date_offset as string) || "+1d"}
@@ -93,16 +95,16 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
           </div>
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Priorité
+              {t("priority")}
             </Label>
             <select
               value={(config.priority as string) || "normal"}
               onChange={(e) => updateConfig("priority", e.target.value)}
               className="w-full h-9 rounded-md border border-border bg-secondary/30 px-3 text-sm"
             >
-              <option value="low">Basse</option>
-              <option value="normal">Normale</option>
-              <option value="high">Haute</option>
+              <option value="low">{t("priorityLow")}</option>
+              <option value="normal">{t("priorityNormal")}</option>
+              <option value="high">{t("priorityHigh")}</option>
             </select>
           </div>
         </>
@@ -112,7 +114,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
         <>
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Titre
+              {t("notifTitle")}
             </Label>
             <Input
               value={(config.title as string) || ""}
@@ -123,12 +125,12 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
           </div>
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Message
+              {t("message")}
             </Label>
             <textarea
               value={(config.message as string) || ""}
               onChange={(e) => updateConfig("message", e.target.value)}
-              placeholder={"{{deal.name}} — {{deal.amount}}€"}
+              placeholder={"{{deal.name}} \u2014 {{deal.amount}}\u20AC"}
               className="w-full rounded-md border border-border bg-secondary/30 px-3 py-2 text-sm min-h-[80px] resize-none"
             />
           </div>
@@ -138,7 +140,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
       {nodeSubtype === "create_note" && (
         <div className="space-y-2">
           <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Contenu
+            {t("content")}
           </Label>
           <textarea
             value={(config.content as string) || ""}
@@ -152,12 +154,12 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
       {nodeSubtype === "move_deal" && (
         <div className="space-y-2">
           <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Nom du stage cible
+            {t("targetStage")}
           </Label>
           <Input
             value={(config.stage_name as string) || ""}
             onChange={(e) => updateConfig("stage_name", e.target.value)}
-            placeholder="Ex: Gagné"
+            placeholder="Ex: Won"
             className="h-9 bg-secondary/30 border-border/60"
           />
         </div>
@@ -168,7 +170,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
           {emailTemplates.length > 0 && (
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Template (optionnel)
+                {t("templateOptional")}
               </Label>
               <select
                 value={(config.template_id as string) || ""}
@@ -176,7 +178,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
                   const templateId = e.target.value
                   updateConfig("template_id", templateId || null)
                   if (templateId) {
-                    const tpl = emailTemplates.find((t) => t.id === templateId)
+                    const tpl = emailTemplates.find((tmpl) => tmpl.id === templateId)
                     if (tpl) {
                       updateConfig("subject", tpl.subject)
                       updateConfig("body_template", tpl.body_html)
@@ -185,32 +187,32 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
                 }}
                 className="w-full h-9 rounded-md border border-border bg-secondary/30 px-3 text-sm"
               >
-                <option value="">Aucun template</option>
-                {emailTemplates.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
+                <option value="">{t("noTemplate")}</option>
+                {emailTemplates.map((tmpl) => (
+                  <option key={tmpl.id} value={tmpl.id}>{tmpl.name}</option>
                 ))}
               </select>
             </div>
           )}
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Objet
+              {t("subject")}
             </Label>
             <Input
               value={(config.subject as string) || ""}
               onChange={(e) => updateConfig("subject", e.target.value)}
-              placeholder="Bienvenue {{contact.first_name}}"
+              placeholder="Welcome {{contact.first_name}}"
               className="h-9 bg-secondary/30 border-border/60"
             />
           </div>
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Corps de l&apos;email
+              {t("emailBody")}
             </Label>
             <textarea
               value={(config.body_template as string) || ""}
               onChange={(e) => updateConfig("body_template", e.target.value)}
-              placeholder="Bonjour {{contact.first_name}}..."
+              placeholder="Hello {{contact.first_name}}..."
               className="w-full rounded-md border border-border bg-secondary/30 px-3 py-2 text-sm min-h-[100px] resize-none"
             />
           </div>
@@ -221,7 +223,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
         <>
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              URL
+              {t("url")}
             </Label>
             <Input
               value={(config.url as string) || ""}
@@ -232,7 +234,7 @@ export default function ActionConfig({ node, onUpdate }: NodeConfigFormProps) {
           </div>
           <div className="space-y-2">
             <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Méthode
+              {t("method")}
             </Label>
             <select
               value={(config.method as string) || "POST"}

@@ -1,1 +1,186 @@
-{}
+{
+  "title": "Segments",
+  "subtitle": "{count} dynamic segment{count, plural, one {} other {s}}",
+  "newSegment": "New segment",
+  "pinned": "Pinned",
+  "columnName": "Name",
+  "columnDescription": "Description",
+  "columnContacts": "Contacts",
+  "edit": "Edit",
+  "duplicate": "Duplicate",
+  "delete": "Delete",
+  "confirmDelete": "Delete this segment?",
+  "duplicateSuffix": "(copy)",
+  "emptyMessage": "No segments. Create your first segment to dynamically filter your contacts.",
+  "suggestedTitle": "Suggested segments",
+  "suggestion1Name": "Active contacts (30d)",
+  "suggestion1Desc": "Contacts with activity in the last 30 days",
+  "suggestion2Name": "Hot leads without deal",
+  "suggestion2Desc": "Contacts with 'hot' score without associated deal",
+  "suggestion3Name": "Contacts without email",
+  "suggestion3Desc": "Contacts without email address",
+  "detail": {
+    "backToSegments": "Segments",
+    "notFound": "Segment not found.",
+    "contactCount": "{count} contact{count, plural, one {} other {s}}",
+    "export": "Export",
+    "editRules": "Edit rules",
+    "pageOf": "Page {page} of {totalPages}"
+  },
+  "builder": {
+    "editTitle": "Edit segment",
+    "newTitle": "New segment",
+    "name": "Name",
+    "namePlaceholder": "E.g.: Hot contacts this month",
+    "description": "Description",
+    "descriptionPlaceholder": "Optional...",
+    "color": "Color",
+    "pinInContacts": "Pin in contacts",
+    "rules": "Rules",
+    "allGroups": "All groups (AND)",
+    "anyGroup": "At least one group (OR)",
+    "and": "AND",
+    "or": "OR",
+    "addGroup": "Add group",
+    "calculating": "Calculating...",
+    "matchingContacts": "{count} matching contact{count, plural, one {} other {s}}",
+    "defineRules": "Define rules to see the number of contacts",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create segment"
+  },
+  "ruleGroup": {
+    "linkedBy": "Conditions linked by",
+    "and": "AND",
+    "or": "OR",
+    "addCondition": "Add condition"
+  },
+  "conditionRow": {
+    "fieldPlaceholder": "-- Field --",
+    "categoryPlaceholder": "-- Category --",
+    "valuePlaceholder": "Value...",
+    "searchCompany": "Search for a company...",
+    "fieldGroups": {
+      "contact": "Contact",
+      "company": "Company",
+      "dates": "Dates",
+      "relations": "Relations",
+      "customFields": "Custom fields"
+    },
+    "fields": {
+      "first_name": "First name",
+      "last_name": "Last name",
+      "email": "Email",
+      "phone": "Phone",
+      "job_title": "Job title",
+      "source": "Source",
+      "lead_score": "Score",
+      "city": "City",
+      "country": "Country",
+      "industry": "Industry",
+      "language": "Language",
+      "preferred_channel": "Preferred channel",
+      "decision_role": "Decision role",
+      "tags": "Tags",
+      "categories": "Categories",
+      "estimated_budget": "Estimated budget",
+      "company_name": "Company",
+      "company_industry": "Industry (company)",
+      "company_annual_revenue": "Annual revenue",
+      "company_employee_count": "Employee count",
+      "company_health_score": "Health score",
+      "company_city": "City (company)",
+      "company_country": "Country (company)",
+      "company_source": "Source (company)",
+      "created_at": "Creation date",
+      "updated_at": "Last modified",
+      "birthday": "Birthday",
+      "deals_count": "Deal count",
+      "open_deals_count": "Open deals",
+      "tasks_count": "Task count",
+      "open_tasks_count": "Open tasks",
+      "last_interaction_date": "Last interaction",
+      "has_deal_closing_within": "Deal closing within"
+    },
+    "textOperators": {
+      "equals": "equals",
+      "not_equals": "does not equal",
+      "contains": "contains",
+      "not_contains": "does not contain",
+      "is_empty": "is empty",
+      "is_not_empty": "is not empty"
+    },
+    "selectOperators": {
+      "equals": "is",
+      "not_equals": "is not",
+      "in": "is among",
+      "not_in": "is not among"
+    },
+    "numericOperators": {
+      "equals": "equals",
+      "not_equals": "is not",
+      "greater_than": "greater than",
+      "less_than": "less than",
+      "between": "between",
+      "is_empty": "is empty"
+    },
+    "dateOperators": {
+      "within_last": "within the last",
+      "within_next": "within the next",
+      "before": "before",
+      "after": "after",
+      "is_empty": "is empty"
+    },
+    "relationOperators": {
+      "has_any": "has at least 1",
+      "has_none": "has none",
+      "greater_than": "more than",
+      "less_than": "less than",
+      "equals": "exactly"
+    },
+    "companyNameOperators": {
+      "equals": "is",
+      "not_equals": "is not",
+      "is_empty": "has no company",
+      "is_not_empty": "has a company"
+    },
+    "categoryOperators": {
+      "in": "is among",
+      "not_in": "is not among",
+      "has_any": "has at least one",
+      "has_none": "has none"
+    },
+    "leadScoreOptions": {
+      "hot": "Hot",
+      "warm": "Warm",
+      "cold": "Cold"
+    },
+    "channelOptions": {
+      "email": "Email",
+      "phone": "Phone",
+      "linkedin": "LinkedIn",
+      "other": "Other"
+    },
+    "decisionRoleOptions": {
+      "decision_maker": "Decision maker",
+      "influencer": "Influencer",
+      "user": "User",
+      "other": "Other"
+    },
+    "healthScoreOptions": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "at_risk": "At risk",
+      "churned": "Churned"
+    },
+    "dateUnits": {
+      "days": "days",
+      "weeks": "weeks",
+      "months": "months"
+    }
+  },
+  "selector": {
+    "segments": "Segments",
+    "viewAll": "View all segments"
+  }
+}

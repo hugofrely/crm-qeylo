@@ -1,1 +1,63 @@
-{}
+{
+  "title": "Products",
+  "subtitle": "{count} product{count, plural, one {} other {s}} total",
+  "newProduct": "New product",
+  "searchPlaceholder": "Search for a product...",
+  "columnReference": "Reference",
+  "columnName": "Name",
+  "columnCategory": "Category",
+  "columnUnitPrice": "Unit price",
+  "columnUnit": "Unit",
+  "columnTax": "Tax",
+  "columnStatus": "Status",
+  "statusActive": "Active",
+  "statusArchived": "Archived",
+  "emptyMessage": "No products found.",
+  "units": {
+    "unit": "Unit",
+    "hour": "Hour",
+    "day": "Day",
+    "fixed": "Fixed price"
+  },
+  "filters": {
+    "category": "Category",
+    "allCategories": "All categories",
+    "status": "Status",
+    "active": "Active",
+    "archived": "Archived",
+    "all": "All",
+    "search": "Search",
+    "searchPlaceholder": "Search for a product...",
+    "categoryLabel": "Category",
+    "allOption": "All",
+    "manageCategories": "Manage categories"
+  },
+  "form": {
+    "editTitle": "Edit product",
+    "newTitle": "New product",
+    "name": "Name *",
+    "description": "Description",
+    "reference": "Reference",
+    "category": "Category",
+    "categoryNone": "-- None --",
+    "unitPrice": "Unit price",
+    "unit": "Unit",
+    "taxRate": "Tax (%)",
+    "productActive": "Active product",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create"
+  },
+  "deleteDialog": {
+    "title": "Delete product",
+    "message": "Are you sure you want to delete <strong>{name}</strong>? This action is irreversible.",
+    "cancel": "Cancel",
+    "confirm": "Delete"
+  },
+  "categoryDialog": {
+    "title": "Manage categories",
+    "placeholder": "New category...",
+    "empty": "No categories."
+  }
+}

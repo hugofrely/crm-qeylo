@@ -24,6 +24,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const segments = (await import(`@/messages/${locale}/segments.json`)).default;
   const products = (await import(`@/messages/${locale}/products.json`)).default;
   const workflows = (await import(`@/messages/${locale}/workflows.json`)).default;
+  const sequences = (await import(`@/messages/${locale}/sequences.json`)).default;
   const notifications = (await import(`@/messages/${locale}/notifications.json`)).default;
 
   return {
@@ -45,6 +46,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       segments,
       products,
       workflows,
+      sequences,
       notifications,
     },
   };

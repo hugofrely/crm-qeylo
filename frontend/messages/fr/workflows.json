@@ -1,1 +1,150 @@
-{}
+{
+  "title": "Workflows",
+  "subtitle": "Automatisez vos processus CRM avec des workflows visuels",
+  "templates": "Templates",
+  "new": "Nouveau",
+  "columnName": "Nom",
+  "columnExecutions": "Executions",
+  "active": "Actif",
+  "inactive": "Inactif",
+  "activate": "Activer",
+  "deactivate": "Desactiver",
+  "edit": "Modifier",
+  "history": "Historique",
+  "delete": "Supprimer",
+  "emptyMessage": "Aucun workflow. Creez votre premier workflow ou utilisez un template.",
+  "availableTemplates": "Templates disponibles",
+  "createError": "Erreur lors de la creation",
+  "activated": "Workflow active",
+  "deactivated": "Workflow desactive",
+  "error": "Erreur",
+  "deleted": "Workflow supprime",
+  "deleteError": "Erreur lors de la suppression",
+  "triggerLabels": {
+    "deal.stage_changed": "Deal change de stage",
+    "deal.created": "Deal cree",
+    "deal.won": "Deal gagne",
+    "deal.lost": "Deal perdu",
+    "contact.created": "Contact cree",
+    "contact.updated": "Contact mis a jour",
+    "contact.lead_score_changed": "Score change",
+    "task.created": "Tache creee",
+    "task.completed": "Tache completee",
+    "task.overdue": "Tache en retard",
+    "email.sent": "Email envoye",
+    "note.added": "Note ajoutee"
+  },
+  "createDialog": {
+    "title": "Nouveau workflow",
+    "name": "Nom",
+    "placeholder": "Ex: Suivi de negociation",
+    "cancel": "Annuler",
+    "create": "Creer"
+  },
+  "templateDialog": {
+    "title": "Templates de workflows"
+  },
+  "builder": {
+    "notFound": "Workflow introuvable",
+    "saved": "Workflow sauvegarde",
+    "saveError": "Erreur lors de la sauvegarde",
+    "builderTab": "Builder",
+    "historyTab": "Historique",
+    "save": "Sauvegarder",
+    "add": "Ajouter",
+    "paletteDelay": "Delai"
+  },
+  "executionHistory": {
+    "empty": "Aucune execution pour ce workflow.",
+    "statusLabels": {
+      "completed": "Termine",
+      "failed": "Echoue",
+      "running": "En cours",
+      "cancelled": "Annule",
+      "pending": "En attente",
+      "skipped": "Ignore"
+    },
+    "timeAgo": {
+      "now": "a l'instant",
+      "minutes": "il y a {value}min",
+      "hours": "il y a {value}h",
+      "days": "il y a {value}j"
+    }
+  },
+  "configPanel": {
+    "configuration": "Configuration",
+    "availableVariables": "Variables disponibles",
+    "deleteNode": "Supprimer ce noeud"
+  },
+  "triggerConfig": {
+    "triggerEvent": "Evenement declencheur",
+    "choose": "Choisir...",
+    "stageFilter": "Filtre: nom du nouveau stage"
+  },
+  "actionConfig": {
+    "actionType": "Type d'action",
+    "choose": "Choisir...",
+    "actionLabels": {
+      "create_task": "Creer une tache",
+      "send_notification": "Envoyer une notification",
+      "create_note": "Creer une note",
+      "move_deal": "Deplacer le deal",
+      "update_contact": "Mettre a jour le contact",
+      "send_email": "Envoyer un email",
+      "webhook": "Webhook"
+    },
+    "description": "Description",
+    "dueDate": "Echeance (offset)",
+    "priority": "Priorite",
+    "priorityLow": "Basse",
+    "priorityNormal": "Normale",
+    "priorityHigh": "Haute",
+    "notifTitle": "Titre",
+    "message": "Message",
+    "content": "Contenu",
+    "targetStage": "Nom du stage cible",
+    "templateOptional": "Template (optionnel)",
+    "noTemplate": "Aucun template",
+    "subject": "Objet",
+    "emailBody": "Corps de l'email",
+    "url": "URL",
+    "method": "Methode"
+  },
+  "conditionConfig": {
+    "field": "Champ",
+    "operator": "Operateur",
+    "value": "Valeur",
+    "operatorLabels": {
+      "equals": "Egal a",
+      "not_equals": "Different de",
+      "greater_than": "Superieur a",
+      "less_than": "Inferieur a",
+      "contains": "Contient",
+      "not_contains": "Ne contient pas",
+      "is_empty": "Est vide",
+      "is_not_empty": "N'est pas vide"
+    }
+  },
+  "delayConfig": {
+    "duration": "Duree (en secondes)",
+    "hint": "3600 = 1h, 86400 = 1 jour, 604800 = 7 jours"
+  },
+  "nodes": {
+    "trigger": "Trigger",
+    "action": "Action",
+    "condition": "Condition",
+    "delay": "Delai",
+    "wait": "Attendre",
+    "yes": "Oui",
+    "no": "Non",
+    "day": "{count} jour{count, plural, one {} other {s}}",
+    "hour": "{count} heure{count, plural, one {} other {s}}",
+    "minute": "{count} minute{count, plural, one {} other {s}}",
+    "operatorLabels": {
+      "contains": "contient",
+      "not_contains": "ne contient pas",
+      "is_empty": "est vide",
+      "is_not_empty": "n'est pas vide"
+    }
+  }
+}

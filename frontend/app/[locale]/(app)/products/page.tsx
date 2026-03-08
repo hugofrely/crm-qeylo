@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import {
   fetchProducts,
   createProduct,
@@ -36,13 +37,6 @@ import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
 
 const PAGE_SIZE = 20
 
-const UNIT_LABELS: Record<Product["unit"], string> = {
-  unit: "Unite",
-  hour: "Heure",
-  day: "Jour",
-  fixed: "Forfait",
-}
-
 function formatEUR(price: string | number): string {
   const num = typeof price === "string" ? parseFloat(price) : price
   return new Intl.NumberFormat("fr-FR", {
@@ -63,6 +57,7 @@ const emptyForm = {
 }
 
 export default function ProductsPage() {
+  const t = useTranslations("products")
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -89,6 +84,13 @@ export default function ProductsPage() {
   const [newCategoryName, setNewCategoryName] = useState("")
   const [creatingCategory, setCreatingCategory] = useState(false)
   const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null)
+
+  const UNIT_LABELS: Record<Product["unit"], string> = {
+    unit: t("units.unit"),
+    hour: t("units.hour"),
+    day: t("units.day"),
+    fixed: t("units.fixed"),
+  }
 
   const loadCategories = useCallback(async () => {
     try {
@@ -229,52 +231,52 @@ export default function ProductsPage() {
   const columns: DataTableColumn<Product>[] = [
     ...(hasReferences ? [{
       key: "reference" as const,
-      header: "Reference",
+      header: t("columnReference"),
       className: "text-muted-foreground text-sm font-[family-name:var(--font-body)]",
       render: (p: Product) => p.reference || "-",
     }] : []),
     {
       key: "name",
-      header: "Nom",
+      header: t("columnName"),
       className: "font-medium text-sm",
       render: (p) => p.name,
     },
     {
       key: "category",
-      header: "Categorie",
+      header: t("columnCategory"),
       headerClassName: "hidden md:table-cell",
       className: "hidden md:table-cell text-muted-foreground text-sm font-[family-name:var(--font-body)]",
       render: (p) => p.category_name || "-",
     },
     {
       key: "price",
-      header: "Prix unitaire",
+      header: t("columnUnitPrice"),
       headerClassName: "text-right",
       className: "text-right tabular-nums text-sm",
       render: (p) => p.unit_price ? formatEUR(p.unit_price) : "-",
     },
     {
       key: "unit",
-      header: "Unite",
+      header: t("columnUnit"),
       headerClassName: "hidden lg:table-cell",
       className: "hidden lg:table-cell text-muted-foreground text-sm font-[family-name:var(--font-body)]",
       render: (p) => UNIT_LABELS[p.unit],
     },
     {
       key: "tax",
-      header: "TVA",
+      header: t("columnTax"),
       headerClassName: "hidden lg:table-cell text-right",
       className: "hidden lg:table-cell text-right text-muted-foreground tabular-nums text-sm",
       render: (p) => p.tax_rate ? `${p.tax_rate}%` : "-",
     },
     {
       key: "status",
-      header: "Statut",
+      header: t("columnStatus"),
       render: (p) => (
         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
           p.is_active ? "bg-green-500/10 text-green-600" : "bg-muted text-muted-foreground"
         }`}>
-          {p.is_active ? "Actif" : "Archive"}
+          {p.is_active ? t("statusActive") : t("statusArchived")}
         </span>
       ),
     },
@@ -284,13 +286,13 @@ export default function ProductsPage() {
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       {/* Header */}
       <PageHeader
-        title="Produits"
-        subtitle={`${totalCount} produit${totalCount !== 1 ? "s" : ""} au total`}
+        title={t("title")}
+        subtitle={t("subtitle", { count: totalCount })}
       >
         <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
         <Button className="gap-2" onClick={openCreateDialog}>
           <Plus className="h-4 w-4" />
-          Nouveau produit
+          {t("newProduct")}
         </Button>
       </PageHeader>
 
@@ -303,22 +305,22 @@ export default function ProductsPage() {
         <FilterSearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Rechercher un produit..."
+          placeholder={t("searchPlaceholder")}
           className="w-64"
         />
         <FilterSelect
-          label="Catégorie"
+          label={t("filters.category")}
           options={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
           value={selectedCategory}
           onChange={setSelectedCategory}
-          placeholder="Toutes catégories"
+          placeholder={t("filters.allCategories")}
         />
         <FilterPills
-          label="Statut"
+          label={t("filters.status")}
           options={[
-            { value: "active", label: "Actifs" },
-            { value: "archived", label: "Archivés" },
-            { value: "all", label: "Tous" },
+            { value: "active", label: t("filters.active") },
+            { value: "archived", label: t("filters.archived") },
+            { value: "all", label: t("filters.all") },
           ]}
           value={showActive}
           onChange={(v) => setShowActive((v ?? "active") as "active" | "archived" | "all")}
@@ -329,7 +331,7 @@ export default function ProductsPage() {
         columns={columns}
         data={products}
         loading={loading}
-        emptyMessage="Aucun produit trouve."
+        emptyMessage={t("emptyMessage")}
         onRowClick={openEditDialog}
         rowKey={(p) => p.id}
       />
@@ -341,22 +343,22 @@ export default function ProductsPage() {
         onReset={() => { setSearch(""); setSelectedCategory(""); setShowActive("active") }}
         activeFilterCount={activeFilterCount}
       >
-        <FilterSection label="Recherche">
+        <FilterSection label={t("filters.search")}>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Rechercher un produit..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9 bg-secondary/30 border-border/60" />
+            <Input placeholder={t("filters.searchPlaceholder")} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9 bg-secondary/30 border-border/60" />
           </div>
         </FilterSection>
-        <FilterSection label="Categorie">
+        <FilterSection label={t("filters.categoryLabel")}>
           <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="flex h-9 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-1.5 text-sm">
-            <option value="">Toutes</option>
+            <option value="">{t("filters.allOption")}</option>
             {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
           </select>
           <button onClick={() => setCategoryDialogOpen(true)} className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 mt-1 font-[family-name:var(--font-body)]">
-            Gerer les categories
+            {t("filters.manageCategories")}
           </button>
         </FilterSection>
-        <FilterSection label="Statut">
+        <FilterSection label={t("filters.status")}>
           <div className="flex flex-col gap-1">
             {(["active", "archived", "all"] as const).map((status) => (
               <button key={status} onClick={() => setShowActive(status)}
@@ -364,7 +366,7 @@ export default function ProductsPage() {
                   showActive === status ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
                 }`}
               >
-                {status === "active" ? "Actifs" : status === "archived" ? "Archives" : "Tous"}
+                {status === "active" ? t("filters.active") : status === "archived" ? t("filters.archived") : t("filters.all")}
               </button>
             ))}
           </div>
@@ -376,7 +378,7 @@ export default function ProductsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingProduct ? "Modifier le produit" : "Nouveau produit"}
+              {editingProduct ? t("form.editTitle") : t("form.newTitle")}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4">
@@ -385,7 +387,7 @@ export default function ProductsPage() {
                 htmlFor="product-name"
                 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]"
               >
-                Nom *
+                {t("form.name")}
               </Label>
               <Input
                 id="product-name"
@@ -403,7 +405,7 @@ export default function ProductsPage() {
                 htmlFor="product-description"
                 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]"
               >
-                Description
+                {t("form.description")}
               </Label>
               <Textarea
                 id="product-description"
@@ -422,7 +424,7 @@ export default function ProductsPage() {
                   htmlFor="product-reference"
                   className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]"
                 >
-                  Reference
+                  {t("form.reference")}
                 </Label>
                 <Input
                   id="product-reference"
@@ -439,7 +441,7 @@ export default function ProductsPage() {
                   htmlFor="product-category"
                   className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]"
                 >
-                  Categorie
+                  {t("form.category")}
                 </Label>
                 <select
                   id="product-category"
@@ -449,7 +451,7 @@ export default function ProductsPage() {
                   }
                   className="flex h-11 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
-                  <option value="">-- Aucune --</option>
+                  <option value="">{t("form.categoryNone")}</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
@@ -465,7 +467,7 @@ export default function ProductsPage() {
                   htmlFor="product-price"
                   className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]"
                 >
-                  Prix unitaire
+                  {t("form.unitPrice")}
                 </Label>
                 <Input
                   id="product-price"
@@ -485,7 +487,7 @@ export default function ProductsPage() {
                   htmlFor="product-unit"
                   className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]"
                 >
-                  Unite
+                  {t("form.unit")}
                 </Label>
                 <select
                   id="product-unit"
@@ -498,10 +500,10 @@ export default function ProductsPage() {
                   }
                   className="flex h-11 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
-                  <option value="unit">Unite</option>
-                  <option value="hour">Heure</option>
-                  <option value="day">Jour</option>
-                  <option value="fixed">Forfait</option>
+                  <option value="unit">{t("units.unit")}</option>
+                  <option value="hour">{t("units.hour")}</option>
+                  <option value="day">{t("units.day")}</option>
+                  <option value="fixed">{t("units.fixed")}</option>
                 </select>
               </div>
 
@@ -510,7 +512,7 @@ export default function ProductsPage() {
                   htmlFor="product-tax"
                   className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]"
                 >
-                  TVA (%)
+                  {t("form.taxRate")}
                 </Label>
                 <Input
                   id="product-tax"
@@ -536,7 +538,7 @@ export default function ProductsPage() {
                   }
                   className="h-4 w-4 rounded border-border"
                 />
-                <span className="text-sm">Produit actif</span>
+                <span className="text-sm">{t("form.productActive")}</span>
               </label>
             </div>
 
@@ -550,7 +552,7 @@ export default function ProductsPage() {
                     onClick={() => setDeleteDialogOpen(true)}
                   >
                     <Trash2 className="h-4 w-4" />
-                    Supprimer
+                    {t("form.delete")}
                   </Button>
                 )}
               </div>
@@ -560,13 +562,13 @@ export default function ProductsPage() {
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                 >
-                  Annuler
+                  {t("form.cancel")}
                 </Button>
                 <Button type="submit" disabled={saving}>
                   {saving && (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   )}
-                  {editingProduct ? "Enregistrer" : "Creer"}
+                  {editingProduct ? t("form.save") : t("form.create")}
                 </Button>
               </div>
             </div>
@@ -578,19 +580,20 @@ export default function ProductsPage() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Supprimer le produit</DialogTitle>
+            <DialogTitle>{t("deleteDialog.title")}</DialogTitle>
           </DialogHeader>
           <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-            Etes-vous sur de vouloir supprimer{" "}
-            <strong>{editingProduct?.name}</strong> ? Cette action est
-            irreversible.
+            {t.rich("deleteDialog.message", {
+              name: editingProduct?.name ?? "",
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </p>
           <div className="flex justify-end gap-2 mt-4">
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
             >
-              Annuler
+              {t("deleteDialog.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -600,7 +603,7 @@ export default function ProductsPage() {
               {deleting && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
-              Supprimer
+              {t("deleteDialog.confirm")}
             </Button>
           </div>
         </DialogContent>
@@ -610,12 +613,12 @@ export default function ProductsPage() {
       <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Gerer les categories</DialogTitle>
+            <DialogTitle>{t("categoryDialog.title")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Nouvelle categorie..."
+                placeholder={t("categoryDialog.placeholder")}
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 className="h-10 bg-secondary/30 border-border/60"
@@ -642,7 +645,7 @@ export default function ProductsPage() {
 
             {categories.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4 font-[family-name:var(--font-body)]">
-                Aucune categorie.
+                {t("categoryDialog.empty")}
               </p>
             ) : (
               <div className="space-y-1">

@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useRouter, useParams, useSearchParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { fetchWorkflow, saveWorkflow, toggleWorkflow } from "@/services/workflows"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,6 +32,7 @@ export default function WorkflowBuilderPage() {
   const router = useRouter()
   const params = useParams()
   const searchParams = useSearchParams()
+  const t = useTranslations("workflows")
   const workflowId = params.id as string
 
   const [workflow, setWorkflow] = useState<WorkflowData | null>(null)
@@ -51,14 +54,14 @@ export default function WorkflowBuilderPage() {
         setWorkflow(data)
         setName(data.name)
       } catch {
-        toast.error("Workflow introuvable")
+        toast.error(t("builder.notFound"))
         router.push("/workflows")
       } finally {
         setLoading(false)
       }
     }
     load()
-  }, [workflowId, router])
+  }, [workflowId, router, t])
 
   const handleGraphChange = useCallback((nodes: Node[], edges: Edge[]) => {
     graphRef.current = { nodes, edges }
@@ -95,9 +98,9 @@ export default function WorkflowBuilderPage() {
         nodes: apiNodes,
         edges: apiEdges,
       })
-      toast.success("Workflow sauvegardé")
+      toast.success(t("builder.saved"))
     } catch {
-      toast.error("Erreur lors de la sauvegarde")
+      toast.error(t("builder.saveError"))
     } finally {
       setSaving(false)
     }
@@ -108,9 +111,9 @@ export default function WorkflowBuilderPage() {
     try {
       const data = await toggleWorkflow(workflowId)
       setWorkflow({ ...workflow, is_active: data.is_active })
-      toast.success(data.is_active ? "Workflow activé" : "Workflow désactivé")
+      toast.success(data.is_active ? t("activated") : t("deactivated"))
     } catch {
-      toast.error("Erreur")
+      toast.error(t("error"))
     }
   }
 
@@ -184,10 +187,10 @@ export default function WorkflowBuilderPage() {
 
         {/* Tabs */}
         <TabsList className="ml-4">
-          <TabsTrigger value="builder">Builder</TabsTrigger>
+          <TabsTrigger value="builder">{t("builder.builderTab")}</TabsTrigger>
           <TabsTrigger value="history">
             <History className="h-3 w-3" />
-            Historique
+            {t("builder.historyTab")}
           </TabsTrigger>
         </TabsList>
 
@@ -197,17 +200,17 @@ export default function WorkflowBuilderPage() {
         <button
           onClick={handleToggle}
           className="flex items-center gap-1.5 text-xs font-medium transition-colors"
-          title={workflow.is_active ? "Désactiver" : "Activer"}
+          title={workflow.is_active ? t("deactivate") : t("activate")}
         >
           {workflow.is_active ? (
             <>
               <Zap className="h-4 w-4 text-primary" />
-              <span className="text-primary">Actif</span>
+              <span className="text-primary">{t("active")}</span>
             </>
           ) : (
             <>
               <ZapOff className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Inactif</span>
+              <span className="text-muted-foreground">{t("inactive")}</span>
             </>
           )}
         </button>
@@ -220,7 +223,7 @@ export default function WorkflowBuilderPage() {
             ) : (
               <Save className="h-3.5 w-3.5" />
             )}
-            Sauvegarder
+            {t("builder.save")}
           </Button>
         )}
       </div>

@@ -1,23 +1,24 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { Node } from "@xyflow/react"
 
-const TRIGGER_OPTIONS = [
-  { value: "deal.stage_changed", label: "Deal change de stage" },
-  { value: "deal.created", label: "Deal créé" },
-  { value: "deal.won", label: "Deal gagné" },
-  { value: "deal.lost", label: "Deal perdu" },
-  { value: "contact.created", label: "Contact créé" },
-  { value: "contact.updated", label: "Contact mis à jour" },
-  { value: "contact.lead_score_changed", label: "Score changé" },
-  { value: "task.created", label: "Tâche créée" },
-  { value: "task.completed", label: "Tâche complétée" },
-  { value: "task.overdue", label: "Tâche en retard" },
-  { value: "email.sent", label: "Email envoyé" },
-  { value: "note.added", label: "Note ajoutée" },
-]
+const TRIGGER_KEYS = [
+  "deal.stage_changed",
+  "deal.created",
+  "deal.won",
+  "deal.lost",
+  "contact.created",
+  "contact.updated",
+  "contact.lead_score_changed",
+  "task.created",
+  "task.completed",
+  "task.overdue",
+  "email.sent",
+  "note.added",
+] as const
 
 interface NodeConfigFormProps {
   node: Node
@@ -25,6 +26,7 @@ interface NodeConfigFormProps {
 }
 
 export default function TriggerConfig({ node, onUpdate }: NodeConfigFormProps) {
+  const t = useTranslations("workflows")
   const nodeData = node.data as Record<string, unknown>
   const nodeSubtype = (nodeData.node_subtype as string) || ""
   const config = (nodeData.config as Record<string, unknown>) || {}
@@ -47,16 +49,16 @@ export default function TriggerConfig({ node, onUpdate }: NodeConfigFormProps) {
     <>
       <div className="space-y-2">
         <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Événement déclencheur
+          {t("triggerConfig.triggerEvent")}
         </Label>
         <select
           value={nodeSubtype}
           onChange={(e) => updateSubtype(e.target.value)}
           className="w-full h-9 rounded-md border border-border bg-secondary/30 px-3 text-sm"
         >
-          <option value="">Choisir...</option>
-          {TRIGGER_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          <option value="">{t("triggerConfig.choose")}</option>
+          {TRIGGER_KEYS.map((key) => (
+            <option key={key} value={key}>{t(`triggerLabels.${key}`)}</option>
           ))}
         </select>
       </div>
@@ -64,12 +66,12 @@ export default function TriggerConfig({ node, onUpdate }: NodeConfigFormProps) {
       {nodeSubtype === "deal.stage_changed" && (
         <div className="space-y-2">
           <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Filtre: nom du nouveau stage
+            {t("triggerConfig.stageFilter")}
           </Label>
           <Input
             value={(config.filters as Record<string, string>)?.new_stage_name || ""}
             onChange={(e) => updateConfig("filters", { ...((config.filters as Record<string, string>) || {}), new_stage_name: e.target.value })}
-            placeholder="Ex: Négociation"
+            placeholder="Ex: Negotiation"
             className="h-9 bg-secondary/30 border-border/60"
           />
         </div>

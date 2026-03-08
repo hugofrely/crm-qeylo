@@ -1,1 +1,186 @@
-{}
+{
+  "title": "Segments",
+  "subtitle": "{count} segment{count, plural, one { dynamique} other {s dynamiques}}",
+  "newSegment": "Nouveau segment",
+  "pinned": "Epingle",
+  "columnName": "Nom",
+  "columnDescription": "Description",
+  "columnContacts": "Contacts",
+  "edit": "Modifier",
+  "duplicate": "Dupliquer",
+  "delete": "Supprimer",
+  "confirmDelete": "Supprimer ce segment ?",
+  "duplicateSuffix": "(copie)",
+  "emptyMessage": "Aucun segment. Creez votre premier segment pour filtrer vos contacts dynamiquement.",
+  "suggestedTitle": "Segments suggeres",
+  "suggestion1Name": "Contacts actifs (30j)",
+  "suggestion1Desc": "Contacts avec activite dans les 30 derniers jours",
+  "suggestion2Name": "Leads chauds sans deal",
+  "suggestion2Desc": "Contacts avec score 'chaud' sans deal associe",
+  "suggestion3Name": "Contacts sans email",
+  "suggestion3Desc": "Contacts sans adresse email renseignee",
+  "detail": {
+    "backToSegments": "Segments",
+    "notFound": "Segment non trouve.",
+    "contactCount": "{count} contact{count, plural, one {} other {s}}",
+    "export": "Exporter",
+    "editRules": "Modifier les regles",
+    "pageOf": "Page {page} sur {totalPages}"
+  },
+  "builder": {
+    "editTitle": "Modifier le segment",
+    "newTitle": "Nouveau segment",
+    "name": "Nom",
+    "namePlaceholder": "Ex: Contacts chauds ce mois",
+    "description": "Description",
+    "descriptionPlaceholder": "Optionnel...",
+    "color": "Couleur",
+    "pinInContacts": "Epingler dans les contacts",
+    "rules": "Regles",
+    "allGroups": "Tous les groupes (ET)",
+    "anyGroup": "Au moins un groupe (OU)",
+    "and": "ET",
+    "or": "OU",
+    "addGroup": "Ajouter un groupe",
+    "calculating": "Calcul...",
+    "matchingContacts": "{count} contact{count, plural, one { correspond} other {s correspondent}}",
+    "defineRules": "Definissez des regles pour voir le nombre de contacts",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "create": "Creer le segment"
+  },
+  "ruleGroup": {
+    "linkedBy": "Conditions liees par",
+    "and": "ET",
+    "or": "OU",
+    "addCondition": "Ajouter une condition"
+  },
+  "conditionRow": {
+    "fieldPlaceholder": "-- Champ --",
+    "categoryPlaceholder": "-- Categorie --",
+    "valuePlaceholder": "Valeur...",
+    "searchCompany": "Rechercher une entreprise...",
+    "fieldGroups": {
+      "contact": "Contact",
+      "company": "Entreprise",
+      "dates": "Dates",
+      "relations": "Relations",
+      "customFields": "Champs personnalises"
+    },
+    "fields": {
+      "first_name": "Prenom",
+      "last_name": "Nom",
+      "email": "Email",
+      "phone": "Telephone",
+      "job_title": "Poste",
+      "source": "Source",
+      "lead_score": "Score",
+      "city": "Ville",
+      "country": "Pays",
+      "industry": "Industrie",
+      "language": "Langue",
+      "preferred_channel": "Canal prefere",
+      "decision_role": "Role de decision",
+      "tags": "Tags",
+      "categories": "Categories",
+      "estimated_budget": "Budget estime",
+      "company_name": "Entreprise",
+      "company_industry": "Industrie (entreprise)",
+      "company_annual_revenue": "CA annuel",
+      "company_employee_count": "Nombre d'employes",
+      "company_health_score": "Score sante",
+      "company_city": "Ville (entreprise)",
+      "company_country": "Pays (entreprise)",
+      "company_source": "Source (entreprise)",
+      "created_at": "Date de creation",
+      "updated_at": "Date de modification",
+      "birthday": "Anniversaire",
+      "deals_count": "Nombre de deals",
+      "open_deals_count": "Deals ouverts",
+      "tasks_count": "Nombre de taches",
+      "open_tasks_count": "Taches ouvertes",
+      "last_interaction_date": "Derniere interaction",
+      "has_deal_closing_within": "Deal qui ferme dans"
+    },
+    "textOperators": {
+      "equals": "est egal a",
+      "not_equals": "n'est pas egal a",
+      "contains": "contient",
+      "not_contains": "ne contient pas",
+      "is_empty": "est vide",
+      "is_not_empty": "n'est pas vide"
+    },
+    "selectOperators": {
+      "equals": "est",
+      "not_equals": "n'est pas",
+      "in": "est parmi",
+      "not_in": "n'est pas parmi"
+    },
+    "numericOperators": {
+      "equals": "est egal a",
+      "not_equals": "n'est pas",
+      "greater_than": "superieur a",
+      "less_than": "inferieur a",
+      "between": "entre",
+      "is_empty": "est vide"
+    },
+    "dateOperators": {
+      "within_last": "dans les derniers",
+      "within_next": "dans les prochains",
+      "before": "avant le",
+      "after": "apres le",
+      "is_empty": "est vide"
+    },
+    "relationOperators": {
+      "has_any": "a au moins 1",
+      "has_none": "n'en a aucun",
+      "greater_than": "plus de",
+      "less_than": "moins de",
+      "equals": "exactement"
+    },
+    "companyNameOperators": {
+      "equals": "est",
+      "not_equals": "n'est pas",
+      "is_empty": "n'a pas d'entreprise",
+      "is_not_empty": "a une entreprise"
+    },
+    "categoryOperators": {
+      "in": "est parmi",
+      "not_in": "n'est pas parmi",
+      "has_any": "a au moins une",
+      "has_none": "n'en a aucune"
+    },
+    "leadScoreOptions": {
+      "hot": "Chaud",
+      "warm": "Tiede",
+      "cold": "Froid"
+    },
+    "channelOptions": {
+      "email": "Email",
+      "phone": "Telephone",
+      "linkedin": "LinkedIn",
+      "other": "Autre"
+    },
+    "decisionRoleOptions": {
+      "decision_maker": "Decideur",
+      "influencer": "Influenceur",
+      "user": "Utilisateur",
+      "other": "Autre"
+    },
+    "healthScoreOptions": {
+      "excellent": "Excellent",
+      "good": "Bon",
+      "at_risk": "A risque",
+      "churned": "Perdu"
+    },
+    "dateUnits": {
+      "days": "jours",
+      "weeks": "semaines",
+      "months": "mois"
+    }
+  },
+  "selector": {
+    "segments": "Segments",
+    "viewAll": "Voir tous les segments"
+  }
+}

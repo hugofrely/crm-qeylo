@@ -1,19 +1,20 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { Node } from "@xyflow/react"
 
-const OPERATOR_OPTIONS = [
-  { value: "equals", label: "Égal à" },
-  { value: "not_equals", label: "Différent de" },
-  { value: "greater_than", label: "Supérieur à" },
-  { value: "less_than", label: "Inférieur à" },
-  { value: "contains", label: "Contient" },
-  { value: "not_contains", label: "Ne contient pas" },
-  { value: "is_empty", label: "Est vide" },
-  { value: "is_not_empty", label: "N'est pas vide" },
-]
+const OPERATOR_KEYS = [
+  "equals",
+  "not_equals",
+  "greater_than",
+  "less_than",
+  "contains",
+  "not_contains",
+  "is_empty",
+  "is_not_empty",
+] as const
 
 interface NodeConfigFormProps {
   node: Node
@@ -21,6 +22,7 @@ interface NodeConfigFormProps {
 }
 
 export default function ConditionConfig({ node, onUpdate }: NodeConfigFormProps) {
+  const t = useTranslations("workflows.conditionConfig")
   const nodeData = node.data as Record<string, unknown>
   const config = (nodeData.config as Record<string, unknown>) || {}
 
@@ -35,7 +37,7 @@ export default function ConditionConfig({ node, onUpdate }: NodeConfigFormProps)
     <>
       <div className="space-y-2">
         <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Champ
+          {t("field")}
         </Label>
         <Input
           value={(config.field as string) || ""}
@@ -46,21 +48,21 @@ export default function ConditionConfig({ node, onUpdate }: NodeConfigFormProps)
       </div>
       <div className="space-y-2">
         <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Opérateur
+          {t("operator")}
         </Label>
         <select
           value={(config.operator as string) || "equals"}
           onChange={(e) => updateConfig("operator", e.target.value)}
           className="w-full h-9 rounded-md border border-border bg-secondary/30 px-3 text-sm"
         >
-          {OPERATOR_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          {OPERATOR_KEYS.map((key) => (
+            <option key={key} value={key}>{t(`operatorLabels.${key}`)}</option>
           ))}
         </select>
       </div>
       <div className="space-y-2">
         <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Valeur
+          {t("value")}
         </Label>
         <Input
           value={(config.value as string) || ""}

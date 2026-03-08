@@ -1,25 +1,12 @@
 import { memo } from "react"
 import { Handle, Position, type NodeProps } from "@xyflow/react"
+import { useTranslations } from "next-intl"
 import { Zap } from "lucide-react"
 
-const TRIGGER_LABELS: Record<string, string> = {
-  "deal.stage_changed": "Deal change de stage",
-  "deal.created": "Deal créé",
-  "deal.won": "Deal gagné",
-  "deal.lost": "Deal perdu",
-  "contact.created": "Contact créé",
-  "contact.updated": "Contact mis à jour",
-  "contact.lead_score_changed": "Score changé",
-  "task.created": "Tâche créée",
-  "task.completed": "Tâche complétée",
-  "task.overdue": "Tâche en retard",
-  "email.sent": "Email envoyé",
-  "note.added": "Note ajoutée",
-}
-
 function TriggerNode({ data, selected }: NodeProps) {
+  const t = useTranslations("workflows")
   const subtype = (data as Record<string, unknown>).node_subtype as string || ""
-  const label = TRIGGER_LABELS[subtype] || subtype || "Trigger"
+  const label = subtype ? (t(`triggerLabels.${subtype}` as any) || subtype) : t("nodes.trigger")
 
   return (
     <div
@@ -33,7 +20,7 @@ function TriggerNode({ data, selected }: NodeProps) {
         </div>
         <div>
           <div className="text-[10px] font-medium uppercase tracking-wider text-blue-600 dark:text-blue-400">
-            Trigger
+            {t("nodes.trigger")}
           </div>
           <div className="text-xs font-medium text-foreground">{label}</div>
         </div>

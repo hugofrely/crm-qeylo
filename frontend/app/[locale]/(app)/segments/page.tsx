@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { fetchSegments, createSegment, updateSegment, deleteSegment } from "@/services/segments"
 import { SegmentBuilder } from "@/components/segments/SegmentBuilder"
 import { Button } from "@/components/ui/button"
@@ -18,6 +19,7 @@ import type { Segment } from "@/types"
 
 export default function SegmentsPage() {
   const router = useRouter()
+  const t = useTranslations("segments")
   const [segments, setSegments] = useState<Segment[]>([])
   const [loading, setLoading] = useState(true)
   const [builderOpen, setBuilderOpen] = useState(false)
@@ -55,7 +57,7 @@ export default function SegmentsPage() {
 
   const handleDuplicate = async (segment: Segment) => {
     await createSegment({
-      name: `${segment.name} (copie)`,
+      name: `${segment.name} ${t("duplicateSuffix")}`,
       description: segment.description,
       color: segment.color,
       icon: segment.icon,
@@ -66,7 +68,7 @@ export default function SegmentsPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer ce segment ?")) return
+    if (!confirm(t("confirmDelete"))) return
     await deleteSegment(id)
     loadSegments()
   }
@@ -79,27 +81,27 @@ export default function SegmentsPage() {
   const columns: DataTableColumn<Segment>[] = [
     {
       key: "name",
-      header: "Nom",
+      header: t("columnName"),
       render: (s) => (
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
           <span className="font-medium text-sm">{s.name}</span>
           {s.is_pinned && (
-            <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-[family-name:var(--font-body)]">Épinglé</span>
+            <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-[family-name:var(--font-body)]">{t("pinned")}</span>
           )}
         </div>
       ),
     },
     {
       key: "description",
-      header: "Description",
+      header: t("columnDescription"),
       headerClassName: "hidden md:table-cell",
       className: "hidden md:table-cell text-sm text-muted-foreground font-[family-name:var(--font-body)]",
-      render: (s) => s.description || "—",
+      render: (s) => s.description || "\u2014",
     },
     {
       key: "contacts",
-      header: "Contacts",
+      header: t("columnContacts"),
       headerClassName: "text-right",
       className: "text-right text-sm text-muted-foreground tabular-nums",
       render: (s) => <>{s.contact_count ?? 0}</>,
@@ -116,13 +118,13 @@ export default function SegmentsPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(s) }}>
-              <Pencil className="h-4 w-4 mr-2" /> Modifier
+              <Pencil className="h-4 w-4 mr-2" /> {t("edit")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDuplicate(s) }}>
-              <Copy className="h-4 w-4 mr-2" /> Dupliquer
+              <Copy className="h-4 w-4 mr-2" /> {t("duplicate")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(s.id) }} className="text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" /> Supprimer
+              <Trash2 className="h-4 w-4 mr-2" /> {t("delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -133,12 +135,12 @@ export default function SegmentsPage() {
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       <PageHeader
-        title="Segments"
-        subtitle={`${segments.length} segment${segments.length !== 1 ? "s" : ""} dynamique${segments.length !== 1 ? "s" : ""}`}
+        title={t("title")}
+        subtitle={t("subtitle", { count: segments.length })}
       >
         <Button className="gap-2" onClick={handleNew}>
           <Plus className="h-4 w-4" />
-          Nouveau segment
+          {t("newSegment")}
         </Button>
       </PageHeader>
 
@@ -147,19 +149,19 @@ export default function SegmentsPage() {
         data={segments}
         loading={loading}
         emptyIcon={<ListFilter className="h-12 w-12 text-muted-foreground/30 mb-4" />}
-        emptyMessage="Aucun segment. Créez votre premier segment pour filtrer vos contacts dynamiquement."
+        emptyMessage={t("emptyMessage")}
         onRowClick={(s) => router.push(`/segments/${s.id}`)}
         rowKey={(s) => s.id}
       />
 
       {segments.length < 5 && (
         <div className="space-y-4">
-          <h3 className="text-sm font-medium text-muted-foreground">Segments suggérés</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">{t("suggestedTitle")}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[
-              { name: "Contacts actifs (30j)", description: "Contacts avec activité dans les 30 derniers jours" },
-              { name: "Leads chauds sans deal", description: "Contacts avec score 'chaud' sans deal associé" },
-              { name: "Contacts sans email", description: "Contacts sans adresse email renseignée" },
+              { name: t("suggestion1Name"), description: t("suggestion1Desc") },
+              { name: t("suggestion2Name"), description: t("suggestion2Desc") },
+              { name: t("suggestion3Name"), description: t("suggestion3Desc") },
             ].map((suggestion) => (
               <div
                 key={suggestion.name}

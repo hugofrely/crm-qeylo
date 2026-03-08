@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   ReactFlow,
   Background,
@@ -29,19 +30,21 @@ interface WorkflowBuilderProps {
   onChange: (nodes: Node[], edges: Edge[]) => void
 }
 
-const PALETTE_ITEMS = [
-  { type: "trigger", label: "Trigger", icon: Zap, color: "text-blue-500" },
-  { type: "condition", label: "Condition", icon: HelpCircle, color: "text-amber-500" },
-  { type: "action", label: "Action", icon: Cog, color: "text-emerald-500" },
-  { type: "delay", label: "Délai", icon: Clock, color: "text-gray-500" },
-]
-
 let nodeIdCounter = 0
 function generateNodeId() {
   return `node_${Date.now()}_${++nodeIdCounter}`
 }
 
 export default function WorkflowBuilder({ initialNodes, initialEdges, onChange }: WorkflowBuilderProps) {
+  const t = useTranslations("workflows")
+
+  const PALETTE_ITEMS = [
+    { type: "trigger", label: t("nodes.trigger"), icon: Zap, color: "text-blue-500" },
+    { type: "condition", label: t("nodes.condition"), icon: HelpCircle, color: "text-amber-500" },
+    { type: "action", label: t("nodes.action"), icon: Cog, color: "text-emerald-500" },
+    { type: "delay", label: t("builder.paletteDelay"), icon: Clock, color: "text-gray-500" },
+  ]
+
   const nodeTypes: NodeTypes = useMemo(
     () => ({
       trigger: TriggerNode,
@@ -214,7 +217,7 @@ export default function WorkflowBuilder({ initialNodes, initialEdges, onChange }
           <Panel position="top-left" className="!m-3">
             <div className="bg-card border border-border rounded-lg shadow-sm p-2 space-y-1">
               <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground px-2 pb-1">
-                Ajouter
+                {t("builder.add")}
               </div>
               {PALETTE_ITEMS.map((item) => (
                 <button

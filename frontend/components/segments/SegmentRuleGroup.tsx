@@ -1,6 +1,7 @@
 // frontend/components/segments/SegmentRuleGroup.tsx
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Plus, Trash2 } from "lucide-react"
 import { SegmentConditionRow } from "./SegmentConditionRow"
@@ -18,6 +19,8 @@ interface Props {
 }
 
 export function SegmentRuleGroup({ group, onChange, onRemove, canRemove, customFields, categories, companies, onCompanySearch }: Props) {
+  const t = useTranslations("segments.ruleGroup")
+
   const updateCondition = (index: number, condition: SegmentCondition) => {
     const conditions = [...group.conditions]
     conditions[index] = condition
@@ -41,15 +44,15 @@ export function SegmentRuleGroup({ group, onChange, onRemove, canRemove, customF
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground font-[family-name:var(--font-body)]">
-            Conditions liees par
+            {t("linkedBy")}
           </span>
           <select
             value={group.logic}
             onChange={(e) => onChange({ ...group, logic: e.target.value as "AND" | "OR" })}
             className="h-7 rounded-md border border-border/60 bg-background px-2 text-xs font-medium"
           >
-            <option value="AND">ET</option>
-            <option value="OR">OU</option>
+            <option value="AND">{t("and")}</option>
+            <option value="OR">{t("or")}</option>
           </select>
         </div>
         {canRemove && (
@@ -81,7 +84,7 @@ export function SegmentRuleGroup({ group, onChange, onRemove, canRemove, customF
         onClick={addCondition}
       >
         <Plus className="h-3.5 w-3.5" />
-        Ajouter une condition
+        {t("addCondition")}
       </Button>
     </div>
   )

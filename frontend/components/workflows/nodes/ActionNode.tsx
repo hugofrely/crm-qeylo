@@ -1,20 +1,12 @@
 import { memo } from "react"
 import { Handle, Position, type NodeProps } from "@xyflow/react"
+import { useTranslations } from "next-intl"
 import { Cog } from "lucide-react"
 
-const ACTION_LABELS: Record<string, string> = {
-  create_task: "Créer une tâche",
-  send_notification: "Envoyer une notification",
-  create_note: "Créer une note",
-  move_deal: "Déplacer le deal",
-  update_contact: "Mettre à jour le contact",
-  send_email: "Envoyer un email",
-  webhook: "Webhook",
-}
-
 function ActionNode({ data, selected }: NodeProps) {
+  const t = useTranslations("workflows")
   const subtype = (data as Record<string, unknown>).node_subtype as string || ""
-  const label = ACTION_LABELS[subtype] || subtype || "Action"
+  const label = subtype ? (t(`actionConfig.actionLabels.${subtype}` as any) || subtype) : t("nodes.action")
 
   return (
     <div
@@ -33,7 +25,7 @@ function ActionNode({ data, selected }: NodeProps) {
         </div>
         <div>
           <div className="text-[10px] font-medium uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-            Action
+            {t("nodes.action")}
           </div>
           <div className="text-xs font-medium text-foreground">{label}</div>
         </div>

@@ -1,1 +1,63 @@
-{}
+{
+  "title": "Produits",
+  "subtitle": "{count} produit{count, plural, one {} other {s}} au total",
+  "newProduct": "Nouveau produit",
+  "searchPlaceholder": "Rechercher un produit...",
+  "columnReference": "Reference",
+  "columnName": "Nom",
+  "columnCategory": "Categorie",
+  "columnUnitPrice": "Prix unitaire",
+  "columnUnit": "Unite",
+  "columnTax": "TVA",
+  "columnStatus": "Statut",
+  "statusActive": "Actif",
+  "statusArchived": "Archive",
+  "emptyMessage": "Aucun produit trouve.",
+  "units": {
+    "unit": "Unite",
+    "hour": "Heure",
+    "day": "Jour",
+    "fixed": "Forfait"
+  },
+  "filters": {
+    "category": "Categorie",
+    "allCategories": "Toutes categories",
+    "status": "Statut",
+    "active": "Actifs",
+    "archived": "Archives",
+    "all": "Tous",
+    "search": "Recherche",
+    "searchPlaceholder": "Rechercher un produit...",
+    "categoryLabel": "Categorie",
+    "allOption": "Toutes",
+    "manageCategories": "Gerer les categories"
+  },
+  "form": {
+    "editTitle": "Modifier le produit",
+    "newTitle": "Nouveau produit",
+    "name": "Nom *",
+    "description": "Description",
+    "reference": "Reference",
+    "category": "Categorie",
+    "categoryNone": "-- Aucune --",
+    "unitPrice": "Prix unitaire",
+    "unit": "Unite",
+    "taxRate": "TVA (%)",
+    "productActive": "Produit actif",
+    "delete": "Supprimer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "create": "Creer"
+  },
+  "deleteDialog": {
+    "title": "Supprimer le produit",
+    "message": "Etes-vous sur de vouloir supprimer <strong>{name}</strong> ? Cette action est irreversible.",
+    "cancel": "Annuler",
+    "confirm": "Supprimer"
+  },
+  "categoryDialog": {
+    "title": "Gerer les categories",
+    "placeholder": "Nouvelle categorie...",
+    "empty": "Aucune categorie."
+  }
+}
