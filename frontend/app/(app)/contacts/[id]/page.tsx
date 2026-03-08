@@ -29,6 +29,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { ActivityDialog } from "@/components/activities/ActivityDialog"
 import { ComposeEmailDialog } from "@/components/emails/ComposeEmailDialog"
+import { LogCallDialog } from "@/components/calls/LogCallDialog"
 
 import { ContactHeader } from "@/components/contacts/ContactHeader"
 import { ContactInfo } from "@/components/contacts/ContactInfo"
@@ -69,6 +70,7 @@ export default function ContactDetailPage() {
   // Dialogs
   const [activityDialogOpen, setActivityDialogOpen] = useState(false)
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+  const [callDialogOpen, setCallDialogOpen] = useState(false)
   const [hasEmailAccount, setHasEmailAccount] = useState(false)
 
   /* ── Fetch contact ── */
@@ -320,6 +322,7 @@ export default function ContactDetailPage() {
                 onToggleCategory={toggleCategory}
                 onOpenActivityDialog={() => setActivityDialogOpen(true)}
                 onOpenEmailDialog={() => setEmailDialogOpen(true)}
+                onOpenCallDialog={() => setCallDialogOpen(true)}
               />
               <ContactInfo
                 contact={contact}
@@ -575,6 +578,14 @@ export default function ContactDetailPage() {
           onSent={() => fetchTabData()}
         />
       )}
+
+      <LogCallDialog
+        open={callDialogOpen}
+        onOpenChange={setCallDialogOpen}
+        contactId={id}
+        contactName={contact ? `${contact.first_name} ${contact.last_name}` : undefined}
+        onSuccess={() => fetchTabData()}
+      />
     </div>
   )
 }
