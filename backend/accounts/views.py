@@ -114,5 +114,8 @@ def me(request):
         if "email_notifications" in request.data:
             user.email_notifications = request.data["email_notifications"]
             user.save(update_fields=["email_notifications"])
+        if "preferred_language" in request.data:
+            user.preferred_language = request.data["preferred_language"]
+            user.save(update_fields=["preferred_language"])
         return Response(UserSerializer(user).data)
     return Response(UserSerializer(request.user).data)

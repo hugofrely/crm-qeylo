@@ -24,6 +24,11 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     username = None
     email_notifications = models.BooleanField(default=True)
+    preferred_language = models.CharField(
+        max_length=5,
+        choices=[("fr", "Français"), ("en", "English")],
+        default="fr",
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]

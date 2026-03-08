@@ -80,6 +80,11 @@ class OrganizationSettings(models.Model):
     task_reminder_offsets = models.JSONField(default=default_reminder_offsets)
     scoring_hot_threshold = models.IntegerField(default=70)
     scoring_warm_threshold = models.IntegerField(default=30)
+    default_language = models.CharField(
+        max_length=5,
+        choices=[("fr", "Français"), ("en", "English")],
+        default="fr",
+    )
 
     def __str__(self):
         return f"Settings for {self.organization.name}"
