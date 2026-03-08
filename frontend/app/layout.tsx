@@ -31,8 +31,19 @@ export const viewport = {
 }
 
 export const metadata: Metadata = {
-  title: "Qeylo CRM",
-  description: "CRM intelligent pour independants, PME et entreprises",
+  metadataBase: new URL('https://qeylo.com'),
+  title: {
+    default: 'Qeylo CRM',
+    template: '%s | Qeylo CRM',
+  },
+  description: 'CRM intelligent pour indépendants, PME et entreprises',
+  openGraph: {
+    type: 'website',
+    siteName: 'Qeylo CRM',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 }
 
 export default function RootLayout({
