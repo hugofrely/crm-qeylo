@@ -17,6 +17,7 @@ import type { OrgChartData } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Plus, Loader2 } from "lucide-react"
 import { RelationshipDialog } from "./RelationshipDialog"
+import { useTranslations } from "next-intl"
 
 // Custom node component for org chart
 function ContactNode({ data }: { data: { name: string; job_title: string; email: string } }) {
@@ -40,6 +41,7 @@ interface Props {
 }
 
 export function CompanyOrgChart({ companyId }: Props) {
+  const t = useTranslations('companies')
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
   const [loading, setLoading] = useState(true)
@@ -91,8 +93,8 @@ export function CompanyOrgChart({ companyId }: Props) {
   if (nodes.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        <p>Aucun contact dans cette entreprise.</p>
-        <p className="text-sm mt-1">Liez des contacts pour voir l'organigramme.</p>
+        <p>{t('orgChart.noContacts')}</p>
+        <p className="text-sm mt-1">{t('orgChart.linkContactsHint')}</p>
       </div>
     )
   }
@@ -102,7 +104,7 @@ export function CompanyOrgChart({ companyId }: Props) {
       <div className="flex justify-end">
         <Button variant="outline" size="sm" onClick={() => setShowDialog(true)}>
           <Plus className="h-4 w-4 mr-1" />
-          Ajouter une relation
+          {t('orgChart.addRelationship')}
         </Button>
       </div>
       <div className="h-[500px] border rounded-lg overflow-hidden">

@@ -17,6 +17,7 @@ import { restoreItems } from "@/services/trash"
 import { toast } from "sonner"
 import posthog from "posthog-js"
 import { handleQuotaError } from "@/lib/quota-error"
+import { useTranslations } from "next-intl"
 import type { Company } from "@/types"
 
 interface CompanyFormProps {
@@ -32,6 +33,7 @@ export function CompanyForm({
   company,
   onCreated,
 }: CompanyFormProps) {
+  const t = useTranslations('companies')
   const isEditing = !!company
 
   const [name, setName] = useState("")
@@ -108,22 +110,22 @@ export function CompanyForm({
 
   const handleDelete = async () => {
     if (!company) return
-    if (!window.confirm("Supprimer cette entreprise ? Cette action est irreversible.")) return
+    if (!window.confirm(t('form.deleteConfirm'))) return
     setDeleting(true)
     try {
       const companyId = company.id
       await deleteCompany(companyId)
       posthog.capture("company_deleted")
-      toast("Element supprime", {
+      toast(t('toast.deleted'), {
         action: {
-          label: "Annuler",
+          label: t('toast.undo'),
           onClick: async () => {
             try {
               await restoreItems("company", [companyId])
-              toast.success("Element restaure")
+              toast.success(t('toast.restored'))
               onCreated()
             } catch {
-              toast.error("Erreur lors de la restauration")
+              toast.error(t('toast.restoreError'))
             }
           },
         },
@@ -146,19 +148,19 @@ export function CompanyForm({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Modifier l'entreprise" : "Nouvelle entreprise"}
+            {isEditing ? t('form.editTitle') : t('form.createTitle')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 font-[family-name:var(--font-body)]">
           {/* Nom */}
           <div className="space-y-1.5">
-            <Label htmlFor="company-name">Nom de l'entreprise *</Label>
+            <Label htmlFor="company-name">{t('form.nameLabel')}</Label>
             <Input
               id="company-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Acme Corp"
+              placeholder={t('form.namePlaceholder')}
               required
             />
           </div>
@@ -166,27 +168,27 @@ export function CompanyForm({
           {/* Secteur + Sante */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="company-industry">Secteur</Label>
+              <Label htmlFor="company-industry">{t('form.industryLabel')}</Label>
               <Input
                 id="company-industry"
                 value={industry}
                 onChange={(e) => setIndustry(e.target.value)}
-                placeholder="Ex: Tech, Finance..."
+                placeholder={t('form.industryPlaceholder')}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="company-health">Sante</Label>
+              <Label htmlFor="company-health">{t('form.healthLabel')}</Label>
               <select
                 id="company-health"
                 value={healthScore}
                 onChange={(e) => setHealthScore(e.target.value)}
                 className={selectClass}
               >
-                <option value="">-- Aucun --</option>
-                <option value="excellent">Excellent</option>
-                <option value="good">Bon</option>
-                <option value="at_risk">A risque</option>
-                <option value="churned">Churned</option>
+                <option value="">{t('form.healthNone')}</option>
+                <option value="excellent">{t('healthScore.excellent')}</option>
+                <option value="good">{t('healthScore.good')}</option>
+                <option value="at_risk">{t('healthScore.atRisk')}</option>
+                <option value="churned">{t('healthScore.churned')}</option>
               </select>
             </div>
           </div>
@@ -194,41 +196,41 @@ export function CompanyForm({
           {/* Email + Telephone */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="company-email">Email</Label>
+              <Label htmlFor="company-email">{t('form.emailLabel')}</Label>
               <Input
                 id="company-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="contact@entreprise.fr"
+                placeholder={t('form.emailPlaceholder')}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="company-phone">Telephone</Label>
+              <Label htmlFor="company-phone">{t('form.phoneLabel')}</Label>
               <Input
                 id="company-phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+33 1 23 45 67 89"
+                placeholder={t('form.phonePlaceholder')}
               />
             </div>
           </div>
 
           {/* Website */}
           <div className="space-y-1.5">
-            <Label htmlFor="company-website">Site web</Label>
+            <Label htmlFor="company-website">{t('form.websiteLabel')}</Label>
             <Input
               id="company-website"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
-              placeholder="https://..."
+              placeholder={t('form.websitePlaceholder')}
             />
           </div>
 
           {/* CA + Effectif */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="company-revenue">CA annuel (EUR)</Label>
+              <Label htmlFor="company-revenue">{t('form.revenueLabel')}</Label>
               <Input
                 id="company-revenue"
                 type="number"
@@ -240,7 +242,7 @@ export function CompanyForm({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="company-employees">Effectif</Label>
+              <Label htmlFor="company-employees">{t('form.employeeCountLabel')}</Label>
               <Input
                 id="company-employees"
                 type="number"
@@ -254,12 +256,12 @@ export function CompanyForm({
 
           {/* Description */}
           <div className="space-y-1.5">
-            <Label htmlFor="company-description">Description</Label>
+            <Label htmlFor="company-description">{t('form.descriptionLabel')}</Label>
             <textarea
               id="company-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Description de l'entreprise..."
+              placeholder={t('form.descriptionPlaceholder')}
               className="flex min-h-[80px] w-full rounded-lg border border-border/60 bg-secondary/30 px-3 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             />
           </div>
@@ -278,7 +280,7 @@ export function CompanyForm({
               ) : (
                 <Trash2 className="h-4 w-4" />
               )}
-              Supprimer
+              {t('form.deleteButton')}
             </Button>
           ) : (
             <div />
@@ -288,7 +290,7 @@ export function CompanyForm({
             disabled={!name.trim() || saving}
           >
             {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {isEditing ? "Enregistrer" : "Creer"}
+            {isEditing ? t('form.saveButton') : t('form.createButton')}
           </Button>
         </DialogFooter>
       </DialogContent>

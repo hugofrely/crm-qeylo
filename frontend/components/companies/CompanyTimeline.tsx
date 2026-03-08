@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Loader2, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { fetchCompanyTimeline } from "@/services/companies"
+import { useTranslations } from "next-intl"
 import type { TimelineEntry } from "@/types"
 import {
   Mail,
@@ -16,7 +17,7 @@ import {
   MessageSquare,
 } from "lucide-react"
 
-/* ── Helpers ── */
+/* -- Helpers -- */
 
 function formatDateTime(dateStr: string): string {
   const date = new Date(dateStr)
@@ -77,31 +78,19 @@ function getTimelineColor(entryType: string) {
   }
 }
 
-function getEntryTypeLabel(entryType: string): string {
-  const labels: Record<string, string> = {
-    contact_created: "Contact cree",
-    deal_created: "Deal cree",
-    deal_moved: "Deal deplace",
-    note_added: "Note",
-    task_created: "Tache creee",
-    chat_action: "Action chat",
-    contact_updated: "Contact modifie",
-    call: "Appel",
-    email_sent: "Email envoye",
-    email_received: "Email recu",
-    meeting: "Reunion",
-    custom: "Activite",
-  }
-  return labels[entryType] || entryType
-}
-
 export interface CompanyTimelineProps {
   companyId: string
 }
 
 export function CompanyTimeline({ companyId }: CompanyTimelineProps) {
+  const t = useTranslations('companies')
   const [entries, setEntries] = useState<TimelineEntry[]>([])
   const [loading, setLoading] = useState(true)
+
+  function getEntryTypeLabel(entryType: string): string {
+    const key = `timeline.entryTypes.${entryType}` as const
+    return t.has(key) ? t(key) : entryType
+  }
 
   useEffect(() => {
     setLoading(true)
@@ -124,7 +113,7 @@ export function CompanyTimeline({ companyId }: CompanyTimelineProps) {
       <div className="flex flex-col items-center justify-center py-10">
         <Clock className="h-8 w-8 text-muted-foreground/40 mb-2" />
         <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-          Aucune activite pour cette entreprise.
+          {t('timeline.empty')}
         </p>
       </div>
     )

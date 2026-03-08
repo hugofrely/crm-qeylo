@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Loader2, Building2, ChevronRight, ChevronDown, GitBranch } from "lucide-react"
 import { fetchCompanyHierarchy } from "@/services/companies"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import type { CompanyHierarchyNode } from "@/types"
 
 export interface CompanyHierarchyProps {
@@ -87,6 +88,7 @@ function HierarchyNode({
 }
 
 export function CompanyHierarchy({ companyId }: CompanyHierarchyProps) {
+  const t = useTranslations('companies')
   const [hierarchy, setHierarchy] = useState<CompanyHierarchyNode | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -111,7 +113,7 @@ export function CompanyHierarchy({ companyId }: CompanyHierarchyProps) {
       <div className="flex flex-col items-center justify-center py-10">
         <GitBranch className="h-8 w-8 text-muted-foreground/40 mb-2" />
         <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-          Aucune hierarchie disponible.
+          {t('hierarchy.empty')}
         </p>
       </div>
     )

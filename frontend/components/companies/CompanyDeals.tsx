@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { Loader2, ExternalLink, Briefcase } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { fetchCompanyDeals } from "@/services/companies"
+import { useTranslations } from "next-intl"
 import type { Deal } from "@/types"
 
 function formatCurrency(value: string | number | null): string {
@@ -24,6 +25,7 @@ export interface CompanyDealsProps {
 }
 
 export function CompanyDeals({ companyId }: CompanyDealsProps) {
+  const t = useTranslations('companies')
   const [deals, setDeals] = useState<Deal[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -48,7 +50,7 @@ export function CompanyDeals({ companyId }: CompanyDealsProps) {
       <div className="flex flex-col items-center justify-center py-10">
         <Briefcase className="h-8 w-8 text-muted-foreground/40 mb-2" />
         <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-          Aucun deal lie a cette entreprise.
+          {t('deals.empty')}
         </p>
       </div>
     )

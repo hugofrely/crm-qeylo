@@ -20,18 +20,19 @@ import {
 } from "@/components/ui/select"
 import { toast } from "sonner"
 import { fetchCompanyContacts, createContactRelationship } from "@/services/companies"
+import { useTranslations } from "next-intl"
 import type { Contact } from "@/types"
 
-const RELATIONSHIP_TYPES = [
-  { value: "reports_to", label: "Rend compte a" },
-  { value: "manages", label: "Manage" },
-  { value: "assistant_of", label: "Assistant de" },
-  { value: "colleague", label: "Collegue" },
-  { value: "decision_maker", label: "Decideur" },
-  { value: "influencer", label: "Influenceur" },
-  { value: "champion", label: "Champion" },
-  { value: "blocker", label: "Bloqueur" },
-]
+const RELATIONSHIP_TYPE_KEYS = [
+  "reports_to",
+  "manages",
+  "assistant_of",
+  "colleague",
+  "decision_maker",
+  "influencer",
+  "champion",
+  "blocker",
+] as const
 
 interface Props {
   companyId: string
@@ -41,6 +42,7 @@ interface Props {
 }
 
 export function RelationshipDialog({ companyId, open, onOpenChange, onCreated }: Props) {
+  const t = useTranslations('companies')
   const [contacts, setContacts] = useState<Contact[]>([])
   const [fromContact, setFromContact] = useState("")
   const [toContact, setToContact] = useState("")
@@ -64,7 +66,7 @@ export function RelationshipDialog({ companyId, open, onOpenChange, onCreated }:
         relationship_type: relType,
         notes,
       })
-      toast.success("Relation creee")
+      toast.success(t('relationship.created'))
       onOpenChange(false)
       onCreated()
       setFromContact("")
@@ -72,7 +74,7 @@ export function RelationshipDialog({ companyId, open, onOpenChange, onCreated }:
       setRelType("")
       setNotes("")
     } catch {
-      toast.error("Erreur lors de la creation")
+      toast.error(t('relationship.createError'))
     } finally {
       setSaving(false)
     }
@@ -82,14 +84,14 @@ export function RelationshipDialog({ companyId, open, onOpenChange, onCreated }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nouvelle relation</DialogTitle>
+          <DialogTitle>{t('relationship.title')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>De (contact)</Label>
+            <Label>{t('relationship.fromContact')}</Label>
             <Select value={fromContact} onValueChange={setFromContact}>
               <SelectTrigger>
-                <SelectValue placeholder="Selectionner un contact" />
+                <SelectValue placeholder={t('relationship.selectContact')} />
               </SelectTrigger>
               <SelectContent>
                 {contacts.map((c) => (
@@ -101,25 +103,25 @@ export function RelationshipDialog({ companyId, open, onOpenChange, onCreated }:
             </Select>
           </div>
           <div>
-            <Label>Type de relation</Label>
+            <Label>{t('relationship.relationType')}</Label>
             <Select value={relType} onValueChange={setRelType}>
               <SelectTrigger>
-                <SelectValue placeholder="Type" />
+                <SelectValue placeholder={t('relationship.typePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                {RELATIONSHIP_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
+                {RELATIONSHIP_TYPE_KEYS.map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {t(`relationship.types.${key}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label>Vers (contact)</Label>
+            <Label>{t('relationship.toContact')}</Label>
             <Select value={toContact} onValueChange={setToContact}>
               <SelectTrigger>
-                <SelectValue placeholder="Selectionner un contact" />
+                <SelectValue placeholder={t('relationship.selectContact')} />
               </SelectTrigger>
               <SelectContent>
                 {contacts.map((c) => (
@@ -131,15 +133,15 @@ export function RelationshipDialog({ companyId, open, onOpenChange, onCreated }:
             </Select>
           </div>
           <div>
-            <Label>Notes</Label>
+            <Label>{t('relationship.notes')}</Label>
             <Textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Notes optionnelles..."
+              placeholder={t('relationship.notesPlaceholder')}
             />
           </div>
           <Button onClick={handleSubmit} disabled={saving || !fromContact || !toContact || !relType} className="w-full">
-            {saving ? "Creation..." : "Creer la relation"}
+            {saving ? t('relationship.creating') : t('relationship.createButton')}
           </Button>
         </div>
       </DialogContent>

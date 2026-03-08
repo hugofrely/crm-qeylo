@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import { useCompany } from "@/hooks/useCompanies"
 import { updateCompany, deleteCompany as deleteCompanyApi } from "@/services/companies"
 import { restoreItems } from "@/services/trash"
@@ -11,6 +11,8 @@ import type { Company } from "@/types"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, Users, Briefcase, GitBranch, Clock, BarChart3 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 
 import { CompanyHeader } from "@/components/companies/CompanyHeader"
 import { CompanyInfo } from "@/components/companies/CompanyInfo"
@@ -23,6 +25,7 @@ import { CompanyTimeline } from "@/components/companies/CompanyTimeline"
 export default function CompanyDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const t = useTranslations('companies')
   const id = params.id as string
 
   const { company, loading, reload } = useCompany(id)
@@ -32,7 +35,7 @@ export default function CompanyDetailPage() {
   const [editForm, setEditForm] = useState<Record<string, unknown>>({})
   const [activeTab, setActiveTab] = useState<string>("resume")
 
-  /* ── Start editing ── */
+  /* -- Start editing -- */
   const startEditing = () => {
     if (!company) return
     setEditForm({
@@ -62,7 +65,7 @@ export default function CompanyDetailPage() {
     setEditForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  /* ── Save handler ── */
+  /* -- Save handler -- */
   const handleSave = async () => {
     if (!company) return
     setSaving(true)
@@ -82,20 +85,20 @@ export default function CompanyDetailPage() {
     }
   }
 
-  /* ── Delete handler ── */
+  /* -- Delete handler -- */
   const handleDelete = async () => {
     try {
       await deleteCompanyApi(id)
       posthog.capture("company_deleted")
-      toast("Element supprime", {
+      toast(t('toast.deleted'), {
         action: {
-          label: "Annuler",
+          label: t('toast.undo'),
           onClick: async () => {
             try {
               await restoreItems("company", [id])
-              toast.success("Element restaure")
+              toast.success(t('toast.restored'))
             } catch {
-              toast.error("Erreur lors de la restauration")
+              toast.error(t('toast.restoreError'))
             }
           },
         },
@@ -107,7 +110,7 @@ export default function CompanyDetailPage() {
     }
   }
 
-  /* ── Loading state ── */
+  /* -- Loading state -- */
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -116,28 +119,28 @@ export default function CompanyDetailPage() {
     )
   }
 
-  /* ── Not found ── */
+  /* -- Not found -- */
   if (!company) {
     return (
       <div className="p-8 lg:p-12 max-w-5xl mx-auto">
         <Button variant="ghost" onClick={() => router.push("/companies")} className="gap-2 text-muted-foreground">
           <ArrowLeft className="h-4 w-4" />
-          Retour
+          {t('detail.back')}
         </Button>
         <div className="flex flex-col items-center justify-center py-20">
-          <p className="text-muted-foreground font-[family-name:var(--font-body)]">Entreprise introuvable.</p>
+          <p className="text-muted-foreground font-[family-name:var(--font-body)]">{t('detail.notFound')}</p>
         </div>
       </div>
     )
   }
 
-  /* ── RENDER ── */
+  /* -- RENDER -- */
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto animate-fade-in-up">
       {/* Back button */}
       <Button variant="ghost" onClick={() => router.push("/companies")} className="gap-2 text-muted-foreground -ml-2 mb-6">
         <ArrowLeft className="h-4 w-4" />
-        <span className="font-[family-name:var(--font-body)] text-sm">Retour aux entreprises</span>
+        <span className="font-[family-name:var(--font-body)] text-sm">{t('detail.backToCompanies')}</span>
       </Button>
 
       {/* 2-column layout */}
@@ -192,23 +195,23 @@ export default function CompanyDetailPage() {
               <TabsList responsive className="w-full justify-start overflow-x-auto scrollbar-hide">
                 <TabsTrigger value="resume" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <BarChart3 className="h-3.5 w-3.5" />
-                  <span>Resume</span>
+                  <span>{t('detail.tabs.resume')}</span>
                 </TabsTrigger>
                 <TabsTrigger value="contacts" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Users className="h-3.5 w-3.5" />
-                  <span>Contacts</span>
+                  <span>{t('detail.tabs.contacts')}</span>
                 </TabsTrigger>
                 <TabsTrigger value="deals" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Briefcase className="h-3.5 w-3.5" />
-                  <span>Deals</span>
+                  <span>{t('detail.tabs.deals')}</span>
                 </TabsTrigger>
                 <TabsTrigger value="hierarchy" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <GitBranch className="h-3.5 w-3.5" />
-                  <span>Hierarchie</span>
+                  <span>{t('detail.tabs.hierarchy')}</span>
                 </TabsTrigger>
                 <TabsTrigger value="timeline" className="gap-1.5 px-2.5 py-1.5 text-xs shrink-0">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>Timeline</span>
+                  <span>{t('detail.tabs.timeline')}</span>
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -217,7 +220,7 @@ export default function CompanyDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-                    Vue d'ensemble
+                    {t('detail.overview')}
                   </h2>
                 </div>
                 <CompanyStats companyId={id} />
@@ -228,7 +231,7 @@ export default function CompanyDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-                    Contacts ({company.contacts_count})
+                    {t('detail.contactsTitle', { count: company.contacts_count })}
                   </h2>
                 </div>
                 <CompanyContacts companyId={id} />
@@ -239,7 +242,7 @@ export default function CompanyDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-                    Deals ({company.deals_count})
+                    {t('detail.dealsTitle', { count: company.deals_count })}
                   </h2>
                 </div>
                 <CompanyDeals companyId={id} />
@@ -250,7 +253,7 @@ export default function CompanyDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-                    Hierarchie
+                    {t('detail.hierarchyTitle')}
                   </h2>
                 </div>
                 <CompanyHierarchy companyId={id} />
@@ -261,7 +264,7 @@ export default function CompanyDetailPage() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-                    Timeline
+                    {t('detail.timelineTitle')}
                   </h2>
                 </div>
                 <CompanyTimeline companyId={id} />

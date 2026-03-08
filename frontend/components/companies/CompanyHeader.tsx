@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useTranslations } from "next-intl"
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr)
@@ -27,21 +28,6 @@ function formatDate(dateStr: string): string {
     month: "long",
     year: "numeric",
   }).format(date)
-}
-
-function getHealthBadge(score: string) {
-  switch (score) {
-    case "excellent":
-      return <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">Excellent</Badge>
-    case "good":
-      return <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">Bon</Badge>
-    case "at_risk":
-      return <Badge className="bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100">A risque</Badge>
-    case "churned":
-      return <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100">Churned</Badge>
-    default:
-      return null
-  }
 }
 
 export interface CompanyHeaderProps {
@@ -63,8 +49,24 @@ export function CompanyHeader({
   onCancelEdit,
   onDelete,
 }: CompanyHeaderProps) {
+  const t = useTranslations('companies')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  function getHealthBadge(score: string) {
+    switch (score) {
+      case "excellent":
+        return <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">{t('healthScore.excellent')}</Badge>
+      case "good":
+        return <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">{t('healthScore.good')}</Badge>
+      case "at_risk":
+        return <Badge className="bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100">{t('healthScore.atRisk')}</Badge>
+      case "churned":
+        return <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100">{t('healthScore.churned')}</Badge>
+      default:
+        return null
+    }
+  }
 
   const handleDelete = async () => {
     setDeleting(true)
@@ -80,11 +82,11 @@ export function CompanyHeader({
       <div className="flex gap-2">
         <Button size="sm" onClick={onSave} disabled={saving} className="gap-1.5">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          <span className="font-[family-name:var(--font-body)]">Sauvegarder</span>
+          <span className="font-[family-name:var(--font-body)]">{t('detail.save')}</span>
         </Button>
         <Button size="sm" variant="outline" onClick={onCancelEdit} className="gap-1.5">
           <X className="h-4 w-4" />
-          <span className="font-[family-name:var(--font-body)]">Annuler</span>
+          <span className="font-[family-name:var(--font-body)]">{t('detail.cancel')}</span>
         </Button>
       </div>
     )
@@ -112,7 +114,7 @@ export function CompanyHeader({
             </div>
           )}
           <p className="text-muted-foreground text-xs mt-2 font-[family-name:var(--font-body)]">
-            Cree le {formatDate(company.created_at)}
+            {t('detail.createdAt', { date: formatDate(company.created_at) })}
           </p>
         </div>
 
@@ -129,20 +131,21 @@ export function CompanyHeader({
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Supprimer l'entreprise</DialogTitle>
+                <DialogTitle>{t('detail.deleteTitle')}</DialogTitle>
               </DialogHeader>
               <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-                Etes-vous sur de vouloir supprimer{" "}
-                <strong>{company.name}</strong> ?
-                Cette action est irreversible.
+                {t.rich('detail.deleteConfirm', {
+                  name: company.name,
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </p>
               <div className="flex justify-end gap-2 mt-4">
                 <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                  Annuler
+                  {t('detail.cancel')}
                 </Button>
                 <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
                   {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Supprimer
+                  {t('detail.delete')}
                 </Button>
               </div>
             </DialogContent>

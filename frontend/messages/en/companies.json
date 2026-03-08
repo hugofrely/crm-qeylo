@@ -1,1 +1,160 @@
-{}
+{
+  "title": "Companies",
+  "subtitle": "{count, plural, =0 {0 companies total} =1 {1 company total} other {# companies total}}",
+  "newCompany": "New company",
+  "searchPlaceholder": "Search for a company...",
+  "noCompanyFound": "No company found.",
+  "table": {
+    "name": "Name",
+    "industry": "Industry",
+    "contacts": "Contacts",
+    "openDeals": "Open deals",
+    "wonRevenue": "Won revenue",
+    "health": "Health"
+  },
+  "healthScore": {
+    "excellent": "Excellent",
+    "good": "Good",
+    "atRisk": "At risk",
+    "churned": "Churned"
+  },
+  "detail": {
+    "back": "Back",
+    "backToCompanies": "Back to companies",
+    "notFound": "Company not found.",
+    "tabs": {
+      "resume": "Overview",
+      "contacts": "Contacts",
+      "deals": "Deals",
+      "hierarchy": "Hierarchy",
+      "timeline": "Timeline"
+    },
+    "overview": "Overview",
+    "contactsTitle": "Contacts ({count})",
+    "dealsTitle": "Deals ({count})",
+    "hierarchyTitle": "Hierarchy",
+    "timelineTitle": "Timeline",
+    "createdAt": "Created on {date}",
+    "save": "Save",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete company",
+    "deleteConfirm": "Are you sure you want to delete <strong>{name}</strong>? This action is irreversible.",
+    "delete": "Delete"
+  },
+  "toast": {
+    "deleted": "Item deleted",
+    "undo": "Undo",
+    "restored": "Item restored",
+    "restoreError": "Error while restoring"
+  },
+  "form": {
+    "editTitle": "Edit company",
+    "createTitle": "New company",
+    "nameLabel": "Company name *",
+    "namePlaceholder": "E.g.: Acme Corp",
+    "industryLabel": "Industry",
+    "industryPlaceholder": "E.g.: Tech, Finance...",
+    "healthLabel": "Health",
+    "healthNone": "-- None --",
+    "emailLabel": "Email",
+    "emailPlaceholder": "contact@company.com",
+    "phoneLabel": "Phone",
+    "phonePlaceholder": "+1 234 567 8900",
+    "websiteLabel": "Website",
+    "websitePlaceholder": "https://...",
+    "revenueLabel": "Annual revenue (EUR)",
+    "employeeCountLabel": "Headcount",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Company description...",
+    "deleteButton": "Delete",
+    "deleteConfirm": "Delete this company? This action is irreversible.",
+    "saveButton": "Save",
+    "createButton": "Create"
+  },
+  "info": {
+    "contactDetails": "Contact details",
+    "phone": "Phone",
+    "email": "Email",
+    "website": "Website",
+    "address": "Address",
+    "city": "City",
+    "country": "Country",
+    "noContactDetails": "No contact details provided.",
+    "financial": "Financial",
+    "annualRevenue": "Annual revenue (EUR)",
+    "employeeCount": "Headcount",
+    "siret": "SIRET",
+    "vatNumber": "VAT number",
+    "legalStatus": "Legal status",
+    "employees": "{count} employees",
+    "siretLabel": "SIRET: {value}",
+    "vatLabel": "VAT: {value}",
+    "relational": "Relational",
+    "source": "Source",
+    "healthScore": "Health",
+    "healthNone": "-- None --",
+    "description": "Description"
+  },
+  "contacts": {
+    "empty": "No contact linked to this company."
+  },
+  "deals": {
+    "empty": "No deal linked to this company."
+  },
+  "timeline": {
+    "empty": "No activity for this company.",
+    "entryTypes": {
+      "contact_created": "Contact created",
+      "deal_created": "Deal created",
+      "deal_moved": "Deal moved",
+      "note_added": "Note",
+      "task_created": "Task created",
+      "chat_action": "Chat action",
+      "contact_updated": "Contact updated",
+      "call": "Call",
+      "email_sent": "Email sent",
+      "email_received": "Email received",
+      "meeting": "Meeting",
+      "custom": "Activity"
+    }
+  },
+  "stats": {
+    "unavailable": "Statistics unavailable.",
+    "wonRevenue": "Won revenue",
+    "openPipeline": "Open pipeline",
+    "contacts": "Contacts",
+    "deals": "Deals"
+  },
+  "hierarchy": {
+    "empty": "No hierarchy available."
+  },
+  "orgChart": {
+    "noContacts": "No contacts in this company.",
+    "linkContactsHint": "Link contacts to see the org chart.",
+    "addRelationship": "Add a relationship"
+  },
+  "relationship": {
+    "title": "New relationship",
+    "fromContact": "From (contact)",
+    "selectContact": "Select a contact",
+    "relationType": "Relationship type",
+    "typePlaceholder": "Type",
+    "toContact": "To (contact)",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional notes...",
+    "creating": "Creating...",
+    "createButton": "Create relationship",
+    "created": "Relationship created",
+    "createError": "Error while creating",
+    "types": {
+      "reports_to": "Reports to",
+      "manages": "Manages",
+      "assistant_of": "Assistant of",
+      "colleague": "Colleague",
+      "decision_maker": "Decision maker",
+      "influencer": "Influencer",
+      "champion": "Champion",
+      "blocker": "Blocker"
+    }
+  }
+}

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
 import { Building2, Plus, Search, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,24 +9,11 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { Pagination } from "@/components/shared/Pagination"
 import { CompanyForm } from "@/components/companies/CompanyForm"
 import { fetchCompanies } from "@/services/companies"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import type { CompanyListItem } from "@/types"
 
 const PAGE_SIZE = 20
-
-function getHealthBadge(score: string) {
-  switch (score) {
-    case "excellent":
-      return <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">Excellent</Badge>
-    case "good":
-      return <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">Bon</Badge>
-    case "at_risk":
-      return <Badge className="bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100">A risque</Badge>
-    case "churned":
-      return <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100">Churned</Badge>
-    default:
-      return <Badge variant="secondary">--</Badge>
-  }
-}
 
 function formatCurrency(value: string | null): string {
   if (!value) return "--"
@@ -43,12 +29,28 @@ function formatCurrency(value: string | null): string {
 
 export default function CompaniesPage() {
   const router = useRouter()
+  const t = useTranslations('companies')
   const [companies, setCompanies] = useState<CompanyListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [dialogOpen, setDialogOpen] = useState(false)
+
+  function getHealthBadge(score: string) {
+    switch (score) {
+      case "excellent":
+        return <Badge className="bg-green-100 text-green-700 border-green-200 hover:bg-green-100">{t('healthScore.excellent')}</Badge>
+      case "good":
+        return <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">{t('healthScore.good')}</Badge>
+      case "at_risk":
+        return <Badge className="bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100">{t('healthScore.atRisk')}</Badge>
+      case "churned":
+        return <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-100">{t('healthScore.churned')}</Badge>
+      default:
+        return <Badge variant="secondary">--</Badge>
+    }
+  }
 
   const loadCompanies = useCallback(async () => {
     setLoading(true)
@@ -83,12 +85,12 @@ export default function CompaniesPage() {
     <div className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       {/* Header */}
       <PageHeader
-        title="Entreprises"
-        subtitle={`${totalCount} entreprise${totalCount !== 1 ? "s" : ""} au total`}
+        title={t('title')}
+        subtitle={t('subtitle', { count: totalCount })}
       >
         <Button className="gap-2" onClick={() => setDialogOpen(true)}>
           <Building2 className="h-4 w-4" />
-          Nouvelle entreprise
+          {t('newCompany')}
         </Button>
       </PageHeader>
 
@@ -96,7 +98,7 @@ export default function CompaniesPage() {
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Rechercher une entreprise..."
+          placeholder={t('searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9 h-11 bg-secondary/30 border-border/60"
@@ -112,7 +114,7 @@ export default function CompaniesPage() {
         <div className="flex flex-col items-center justify-center py-20">
           <Building2 className="h-10 w-10 text-muted-foreground/40 mb-3" />
           <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-            Aucune entreprise trouvee.
+            {t('noCompanyFound')}
           </p>
         </div>
       ) : (
@@ -122,22 +124,22 @@ export default function CompaniesPage() {
               <thead>
                 <tr className="border-b border-border bg-secondary/30">
                   <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                    Nom
+                    {t('table.name')}
                   </th>
                   <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)] hidden sm:table-cell">
-                    Secteur
+                    {t('table.industry')}
                   </th>
                   <th className="text-center px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)] hidden md:table-cell">
-                    Contacts
+                    {t('table.contacts')}
                   </th>
                   <th className="text-center px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)] hidden md:table-cell">
-                    Deals ouverts
+                    {t('table.openDeals')}
                   </th>
                   <th className="text-right px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)] hidden lg:table-cell">
-                    CA gagne
+                    {t('table.wonRevenue')}
                   </th>
                   <th className="text-center px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                    Sante
+                    {t('table.health')}
                   </th>
                 </tr>
               </thead>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Loader2, DollarSign, Briefcase, Users, TrendingUp } from "lucide-react"
 import { fetchCompanyStats } from "@/services/companies"
+import { useTranslations } from "next-intl"
 import type { CompanyStats as CompanyStatsType } from "@/types"
 
 function formatCurrency(value: string | null): string {
@@ -22,6 +23,7 @@ export interface CompanyStatsProps {
 }
 
 export function CompanyStats({ companyId }: CompanyStatsProps) {
+  const t = useTranslations('companies')
   const [stats, setStats] = useState<CompanyStatsType | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -44,32 +46,32 @@ export function CompanyStats({ companyId }: CompanyStatsProps) {
   if (!stats) {
     return (
       <p className="text-muted-foreground text-sm text-center py-10 font-[family-name:var(--font-body)]">
-        Statistiques indisponibles.
+        {t('stats.unavailable')}
       </p>
     )
   }
 
   const cards = [
     {
-      label: "CA gagne",
+      label: t('stats.wonRevenue'),
       value: formatCurrency(stats.won_deals_value),
       icon: DollarSign,
       color: "text-green-600 bg-green-50",
     },
     {
-      label: "Pipeline ouvert",
+      label: t('stats.openPipeline'),
       value: formatCurrency(stats.open_deals_value),
       icon: TrendingUp,
       color: "text-blue-600 bg-blue-50",
     },
     {
-      label: "Contacts",
+      label: t('stats.contacts'),
       value: String(stats.contacts_count),
       icon: Users,
       color: "text-purple-600 bg-purple-50",
     },
     {
-      label: "Deals",
+      label: t('stats.deals'),
       value: String(stats.total_deals),
       icon: Briefcase,
       color: "text-orange-600 bg-orange-50",

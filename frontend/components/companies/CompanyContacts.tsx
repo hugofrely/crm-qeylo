@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 import { Loader2, ExternalLink, Users } from "lucide-react"
 import { fetchCompanyContacts } from "@/services/companies"
+import { useTranslations } from "next-intl"
 import type { Contact } from "@/types"
 
 export interface CompanyContactsProps {
@@ -11,6 +12,7 @@ export interface CompanyContactsProps {
 }
 
 export function CompanyContacts({ companyId }: CompanyContactsProps) {
+  const t = useTranslations('companies')
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -35,7 +37,7 @@ export function CompanyContacts({ companyId }: CompanyContactsProps) {
       <div className="flex flex-col items-center justify-center py-10">
         <Users className="h-8 w-8 text-muted-foreground/40 mb-2" />
         <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-          Aucun contact lie a cette entreprise.
+          {t('contacts.empty')}
         </p>
       </div>
     )

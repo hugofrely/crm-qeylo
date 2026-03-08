@@ -15,8 +15,9 @@ import {
   Hash,
   UserCircle,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
-/* ── Helpers ── */
+/* -- Helpers -- */
 
 function formatCurrency(value: string | null): string {
   if (!value) return ""
@@ -30,24 +31,14 @@ function formatCurrency(value: string | null): string {
   }).format(num)
 }
 
-function getHealthLabel(score: string): string {
-  switch (score) {
-    case "excellent": return "Excellent"
-    case "good": return "Bon"
-    case "at_risk": return "A risque"
-    case "churned": return "Churned"
-    default: return score
-  }
-}
-
-/* ── Styles ── */
+/* -- Styles -- */
 
 const inputClass = "h-9 bg-secondary/30 border-border/60"
 const selectClass =
   "flex h-9 w-full rounded-lg border border-border/60 bg-secondary/30 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 const labelClass = "text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]"
 
-/* ── Props ── */
+/* -- Props -- */
 
 export interface CompanyInfoProps {
   company: Company
@@ -62,39 +53,50 @@ export function CompanyInfo({
   editForm,
   onEditFormChange,
 }: CompanyInfoProps) {
+  const t = useTranslations('companies')
   const addressParts = [company.address, company.city, company.zip_code, company.state, company.country].filter(Boolean)
   const fullAddress = addressParts.join(", ")
+
+  function getHealthLabel(score: string): string {
+    switch (score) {
+      case "excellent": return t('healthScore.excellent')
+      case "good": return t('healthScore.good')
+      case "at_risk": return t('healthScore.atRisk')
+      case "churned": return t('healthScore.churned')
+      default: return score
+    }
+  }
 
   if (editing) {
     return (
       <div className="space-y-4">
         {/* Coordonnees */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          <h3 className={labelClass}>Coordonnees</h3>
+          <h3 className={labelClass}>{t('info.contactDetails')}</h3>
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Telephone</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.phone')}</Label>
               <Input value={editForm.phone as string} onChange={(e) => onEditFormChange("phone", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Email</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.email')}</Label>
               <Input type="email" value={editForm.email as string} onChange={(e) => onEditFormChange("email", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Site web</Label>
-              <Input value={editForm.website as string} onChange={(e) => onEditFormChange("website", e.target.value)} placeholder="https://..." className={inputClass} />
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.website')}</Label>
+              <Input value={editForm.website as string} onChange={(e) => onEditFormChange("website", e.target.value)} placeholder={t('form.websitePlaceholder')} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Adresse</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.address')}</Label>
               <Input value={editForm.address as string} onChange={(e) => onEditFormChange("address", e.target.value)} className={inputClass} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs font-[family-name:var(--font-body)]">Ville</Label>
+                <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.city')}</Label>
                 <Input value={editForm.city as string} onChange={(e) => onEditFormChange("city", e.target.value)} className={inputClass} />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs font-[family-name:var(--font-body)]">Pays</Label>
+                <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.country')}</Label>
                 <Input value={editForm.country as string} onChange={(e) => onEditFormChange("country", e.target.value)} className={inputClass} />
               </div>
             </div>
@@ -103,26 +105,26 @@ export function CompanyInfo({
 
         {/* Financier */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          <h3 className={labelClass}>Financier</h3>
+          <h3 className={labelClass}>{t('info.financial')}</h3>
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">CA annuel (EUR)</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.annualRevenue')}</Label>
               <Input type="number" value={editForm.annual_revenue as string} onChange={(e) => onEditFormChange("annual_revenue", e.target.value)} placeholder="0" className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Effectif</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.employeeCount')}</Label>
               <Input type="number" value={editForm.employee_count as string} onChange={(e) => onEditFormChange("employee_count", e.target.value)} placeholder="0" className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">SIRET</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.siret')}</Label>
               <Input value={editForm.siret as string} onChange={(e) => onEditFormChange("siret", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Numero TVA</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.vatNumber')}</Label>
               <Input value={editForm.vat_number as string} onChange={(e) => onEditFormChange("vat_number", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Forme juridique</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.legalStatus')}</Label>
               <Input value={editForm.legal_status as string} onChange={(e) => onEditFormChange("legal_status", e.target.value)} className={inputClass} />
             </div>
           </div>
@@ -130,20 +132,20 @@ export function CompanyInfo({
 
         {/* Relationnel */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          <h3 className={labelClass}>Relationnel</h3>
+          <h3 className={labelClass}>{t('info.relational')}</h3>
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Source</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.source')}</Label>
               <Input value={editForm.source as string} onChange={(e) => onEditFormChange("source", e.target.value)} className={inputClass} />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-[family-name:var(--font-body)]">Sante</Label>
+              <Label className="text-xs font-[family-name:var(--font-body)]">{t('info.healthScore')}</Label>
               <select className={selectClass} value={editForm.health_score as string} onChange={(e) => onEditFormChange("health_score", e.target.value)}>
-                <option value="">-- Aucun --</option>
-                <option value="excellent">Excellent</option>
-                <option value="good">Bon</option>
-                <option value="at_risk">A risque</option>
-                <option value="churned">Churned</option>
+                <option value="">{t('info.healthNone')}</option>
+                <option value="excellent">{t('healthScore.excellent')}</option>
+                <option value="good">{t('healthScore.good')}</option>
+                <option value="at_risk">{t('healthScore.atRisk')}</option>
+                <option value="churned">{t('healthScore.churned')}</option>
               </select>
             </div>
           </div>
@@ -151,7 +153,7 @@ export function CompanyInfo({
 
         {/* Description */}
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-          <h3 className={labelClass}>Description</h3>
+          <h3 className={labelClass}>{t('info.description')}</h3>
           <textarea
             className="flex min-h-[80px] w-full rounded-lg border border-border/60 bg-secondary/30 px-3 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             value={editForm.description as string}
@@ -163,13 +165,13 @@ export function CompanyInfo({
     )
   }
 
-  /* ── VIEW MODE ── */
+  /* -- VIEW MODE -- */
   return (
     <div className="space-y-4">
       {/* Coordonnees */}
       <div className="bg-card border border-border rounded-xl p-5 space-y-3">
         <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-          Coordonnees
+          {t('info.contactDetails')}
         </h3>
         <div className="space-y-2">
           {company.phone && (
@@ -197,7 +199,7 @@ export function CompanyInfo({
             </div>
           )}
           {!company.phone && !company.email && !company.website && !fullAddress && (
-            <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">Aucune coordonnee renseignee.</p>
+            <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">{t('info.noContactDetails')}</p>
           )}
         </div>
       </div>
@@ -206,7 +208,7 @@ export function CompanyInfo({
       {(company.annual_revenue || company.employee_count || company.siret || company.vat_number || company.legal_status) && (
         <div className="bg-card border border-border rounded-xl p-5 space-y-3">
           <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Financier
+            {t('info.financial')}
           </h3>
           <div className="space-y-2">
             {company.annual_revenue && (
@@ -218,19 +220,19 @@ export function CompanyInfo({
             {company.employee_count && (
               <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
                 <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <span className="truncate">{company.employee_count} employes</span>
+                <span className="truncate">{t('info.employees', { count: company.employee_count })}</span>
               </div>
             )}
             {company.siret && (
               <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
                 <Hash className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <span className="truncate">SIRET: {company.siret}</span>
+                <span className="truncate">{t('info.siretLabel', { value: company.siret })}</span>
               </div>
             )}
             {company.vat_number && (
               <div className="flex items-center gap-2 text-sm font-[family-name:var(--font-body)]">
                 <Hash className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <span className="truncate">TVA: {company.vat_number}</span>
+                <span className="truncate">{t('info.vatLabel', { value: company.vat_number })}</span>
               </div>
             )}
             {company.legal_status && (
@@ -247,7 +249,7 @@ export function CompanyInfo({
       {(company.source || company.health_score || company.owner_name) && (
         <div className="bg-card border border-border rounded-xl p-5 space-y-3">
           <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Relationnel
+            {t('info.relational')}
           </h3>
           <div className="space-y-2">
             {company.source && (
@@ -276,7 +278,7 @@ export function CompanyInfo({
       {company.description && (
         <div className="bg-card border border-border rounded-xl p-5 space-y-3">
           <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Description
+            {t('info.description')}
           </h3>
           <p className="text-sm whitespace-pre-wrap leading-relaxed font-[family-name:var(--font-body)]">
             {company.description}

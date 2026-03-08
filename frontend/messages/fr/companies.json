@@ -1,1 +1,160 @@
-{}
+{
+  "title": "Entreprises",
+  "subtitle": "{count, plural, =0 {0 entreprise au total} =1 {1 entreprise au total} other {# entreprises au total}}",
+  "newCompany": "Nouvelle entreprise",
+  "searchPlaceholder": "Rechercher une entreprise...",
+  "noCompanyFound": "Aucune entreprise trouvee.",
+  "table": {
+    "name": "Nom",
+    "industry": "Secteur",
+    "contacts": "Contacts",
+    "openDeals": "Deals ouverts",
+    "wonRevenue": "CA gagne",
+    "health": "Sante"
+  },
+  "healthScore": {
+    "excellent": "Excellent",
+    "good": "Bon",
+    "atRisk": "A risque",
+    "churned": "Churned"
+  },
+  "detail": {
+    "back": "Retour",
+    "backToCompanies": "Retour aux entreprises",
+    "notFound": "Entreprise introuvable.",
+    "tabs": {
+      "resume": "Resume",
+      "contacts": "Contacts",
+      "deals": "Deals",
+      "hierarchy": "Hierarchie",
+      "timeline": "Timeline"
+    },
+    "overview": "Vue d'ensemble",
+    "contactsTitle": "Contacts ({count})",
+    "dealsTitle": "Deals ({count})",
+    "hierarchyTitle": "Hierarchie",
+    "timelineTitle": "Timeline",
+    "createdAt": "Cree le {date}",
+    "save": "Sauvegarder",
+    "cancel": "Annuler",
+    "deleteTitle": "Supprimer l'entreprise",
+    "deleteConfirm": "Etes-vous sur de vouloir supprimer <strong>{name}</strong> ? Cette action est irreversible.",
+    "delete": "Supprimer"
+  },
+  "toast": {
+    "deleted": "Element supprime",
+    "undo": "Annuler",
+    "restored": "Element restaure",
+    "restoreError": "Erreur lors de la restauration"
+  },
+  "form": {
+    "editTitle": "Modifier l'entreprise",
+    "createTitle": "Nouvelle entreprise",
+    "nameLabel": "Nom de l'entreprise *",
+    "namePlaceholder": "Ex: Acme Corp",
+    "industryLabel": "Secteur",
+    "industryPlaceholder": "Ex: Tech, Finance...",
+    "healthLabel": "Sante",
+    "healthNone": "-- Aucun --",
+    "emailLabel": "Email",
+    "emailPlaceholder": "contact@entreprise.fr",
+    "phoneLabel": "Telephone",
+    "phonePlaceholder": "+33 1 23 45 67 89",
+    "websiteLabel": "Site web",
+    "websitePlaceholder": "https://...",
+    "revenueLabel": "CA annuel (EUR)",
+    "employeeCountLabel": "Effectif",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Description de l'entreprise...",
+    "deleteButton": "Supprimer",
+    "deleteConfirm": "Supprimer cette entreprise ? Cette action est irreversible.",
+    "saveButton": "Enregistrer",
+    "createButton": "Creer"
+  },
+  "info": {
+    "contactDetails": "Coordonnees",
+    "phone": "Telephone",
+    "email": "Email",
+    "website": "Site web",
+    "address": "Adresse",
+    "city": "Ville",
+    "country": "Pays",
+    "noContactDetails": "Aucune coordonnee renseignee.",
+    "financial": "Financier",
+    "annualRevenue": "CA annuel (EUR)",
+    "employeeCount": "Effectif",
+    "siret": "SIRET",
+    "vatNumber": "Numero TVA",
+    "legalStatus": "Forme juridique",
+    "employees": "{count} employes",
+    "siretLabel": "SIRET: {value}",
+    "vatLabel": "TVA: {value}",
+    "relational": "Relationnel",
+    "source": "Source",
+    "healthScore": "Sante",
+    "healthNone": "-- Aucun --",
+    "description": "Description"
+  },
+  "contacts": {
+    "empty": "Aucun contact lie a cette entreprise."
+  },
+  "deals": {
+    "empty": "Aucun deal lie a cette entreprise."
+  },
+  "timeline": {
+    "empty": "Aucune activite pour cette entreprise.",
+    "entryTypes": {
+      "contact_created": "Contact cree",
+      "deal_created": "Deal cree",
+      "deal_moved": "Deal deplace",
+      "note_added": "Note",
+      "task_created": "Tache creee",
+      "chat_action": "Action chat",
+      "contact_updated": "Contact modifie",
+      "call": "Appel",
+      "email_sent": "Email envoye",
+      "email_received": "Email recu",
+      "meeting": "Reunion",
+      "custom": "Activite"
+    }
+  },
+  "stats": {
+    "unavailable": "Statistiques indisponibles.",
+    "wonRevenue": "CA gagne",
+    "openPipeline": "Pipeline ouvert",
+    "contacts": "Contacts",
+    "deals": "Deals"
+  },
+  "hierarchy": {
+    "empty": "Aucune hierarchie disponible."
+  },
+  "orgChart": {
+    "noContacts": "Aucun contact dans cette entreprise.",
+    "linkContactsHint": "Liez des contacts pour voir l'organigramme.",
+    "addRelationship": "Ajouter une relation"
+  },
+  "relationship": {
+    "title": "Nouvelle relation",
+    "fromContact": "De (contact)",
+    "selectContact": "Selectionner un contact",
+    "relationType": "Type de relation",
+    "typePlaceholder": "Type",
+    "toContact": "Vers (contact)",
+    "notes": "Notes",
+    "notesPlaceholder": "Notes optionnelles...",
+    "creating": "Creation...",
+    "createButton": "Creer la relation",
+    "created": "Relation creee",
+    "createError": "Erreur lors de la creation",
+    "types": {
+      "reports_to": "Rend compte a",
+      "manages": "Manage",
+      "assistant_of": "Assistant de",
+      "colleague": "Collegue",
+      "decision_maker": "Decideur",
+      "influencer": "Influenceur",
+      "champion": "Champion",
+      "blocker": "Bloqueur"
+    }
+  }
+}
