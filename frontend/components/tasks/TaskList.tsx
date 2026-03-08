@@ -117,6 +117,9 @@ export function TaskList({ tasks, onToggle, onEdit, onViewDetails }: TaskListPro
                   }`}
                 >
                   {task.description}
+                  {task.is_recurring && (
+                    <span className="text-muted-foreground ml-1" title="Tâche récurrente">↻</span>
+                  )}
                 </p>
                 {task.due_date && (
                   <span className={`md:hidden text-xs mt-0.5 block font-[family-name:var(--font-body)] ${

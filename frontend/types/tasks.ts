@@ -16,6 +16,8 @@ export interface Task {
   deal_name?: string
   priority: string
   is_done: boolean
+  is_recurring: boolean
+  recurrence_rule: string
   created_at: string
   assignees: TaskAssignee[]
 }
