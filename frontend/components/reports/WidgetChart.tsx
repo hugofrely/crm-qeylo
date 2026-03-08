@@ -14,6 +14,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  AreaChart, Area,
 } from "recharts"
 import type { WidgetConfig, AggregateResponse, FunnelResponse } from "@/types"
 import { fetchAggregate, fetchFunnel } from "@/services/reports"
@@ -322,6 +323,125 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
           onLeave={onLegendLeave}
         />
       </div>
+    )
+  }
+
+  if (widget.type === "donut_chart") {
+    return (
+      <div className="relative">
+        <ResponsiveContainer width="100%" height={260}>
+          <PieChart>
+            <Pie
+              data={data.data}
+              dataKey="value"
+              nameKey="label"
+              cx="50%"
+              cy="50%"
+              innerRadius={65}
+              outerRadius={90}
+              paddingAngle={2}
+              isAnimationActive={false}
+            >
+              {data.data.map((_, i) => (
+                <Cell
+                  key={i}
+                  fill={COLORS[i % COLORS.length]}
+                  style={{
+                    opacity: activeIndex !== null && activeIndex !== i ? 0.3 : 1,
+                    transition: "opacity 150ms ease",
+                  }}
+                />
+              ))}
+            </Pie>
+            <Tooltip
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null
+                const entry = payload[0]
+                return (
+                  <div className="rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-sm" style={{ backgroundColor: entry.payload?.fill }} />
+                      <span className="font-medium">{entry.name}</span>
+                      <span>{formatValue(Number(entry.value) ?? 0)}</span>
+                    </div>
+                  </div>
+                )
+              }}
+              isAnimationActive={false}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ marginBottom: 20 }}>
+          <div className="text-center">
+            <div className="text-2xl font-light">{formatValue(data.total)}</div>
+            <div className="text-[10px] text-muted-foreground">{metric}</div>
+          </div>
+        </div>
+        <ChartLegend
+          items={data.data.map((d, i) => ({ label: d.label, value: formatValue(d.value), color: COLORS[i % COLORS.length] }))}
+          activeIndex={activeIndex}
+          onEnter={onLegendEnter}
+          onLeave={onLegendLeave}
+        />
+      </div>
+    )
+  }
+
+  if (widget.type === "stacked_bar_chart") {
+    return (
+      <div className="relative">
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={data.data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+            <XAxis dataKey="label" tick={{ fontSize: 11 }} className="text-muted-foreground" />
+            <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" tickFormatter={formatValue} />
+            <Tooltip
+              content={({ active, payload, label }) => (
+                <CustomTooltip active={active} payload={payload} label={label} metric={metric} />
+              )}
+              cursor={{ fill: "hsl(var(--muted))", opacity: 0.5 }}
+              isAnimationActive={false}
+            />
+            <Bar dataKey="value" stackId="a" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+              {data.data.map((_, i) => (
+                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+        <ChartLegend
+          items={data.data.map((d, i) => ({ label: d.label, value: formatValue(d.value), color: COLORS[i % COLORS.length] }))}
+          activeIndex={activeIndex}
+          onEnter={onLegendEnter}
+          onLeave={onLegendLeave}
+          metric={metric}
+        />
+      </div>
+    )
+  }
+
+  if (widget.type === "area_chart") {
+    return (
+      <ResponsiveContainer width="100%" height={250}>
+        <AreaChart data={data.data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+          <defs>
+            <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+          <XAxis dataKey="label" tick={{ fontSize: 11 }} className="text-muted-foreground" />
+          <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" tickFormatter={formatValue} />
+          <Tooltip
+            content={({ active, payload, label }) => (
+              <CustomTooltip active={active} payload={payload} label={label} metric={metric} />
+            )}
+            isAnimationActive={false}
+          />
+          <Area type="monotone" dataKey="value" stroke="#6366F1" strokeWidth={2} fill="url(#areaGradient)" />
+        </AreaChart>
+      </ResponsiveContainer>
     )
   }
 
