@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { useAuth } from "@/lib/auth"
 import { useOrganization } from "@/lib/organization"
 import { cn } from "@/lib/utils"
@@ -41,42 +42,6 @@ import {
 import { CreateOrgDialog } from "@/components/organizations/CreateOrgDialog"
 import { useOverdueCount } from "@/hooks/useOverdueCount"
 
-const navigationGroups = [
-  {
-    label: "CRM",
-    items: [
-      { name: "Chat", href: "/chat", icon: MessageSquare },
-      { name: "Inbox", href: "/inbox", icon: Mail },
-      { name: "Contacts", href: "/contacts", icon: Users },
-      { name: "Entreprises", href: "/companies", icon: Building2 },
-      { name: "Segments", href: "/segments", icon: ListFilter },
-      { name: "Pipeline", href: "/deals", icon: Kanban },
-      { name: "Entonnoir", href: "/pipeline/funnel", icon: Filter },
-    ],
-  },
-  {
-    label: "Gestion",
-    items: [
-      { name: "Produits", href: "/products", icon: Package },
-      { name: "Tâches", href: "/tasks", icon: CheckSquare },
-      { name: "Workflows", href: "/workflows", icon: Workflow },
-      { name: "Séquences", href: "/sequences", icon: Zap },
-      { name: "Calendrier", href: "/calendar", icon: Calendar },
-    ],
-  },
-  {
-    label: "Analyse",
-    items: [
-      { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
-      { name: "Rapports", href: "/reports", icon: FileBarChart },
-    ],
-  },
-]
-
-const utilityItems = [
-  { name: "Corbeille", href: "/trash", icon: Trash2 },
-]
-
 export function Sidebar() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
@@ -84,6 +49,43 @@ export function Sidebar() {
   const { organizations, currentOrganization, switchOrganization } = useOrganization()
   const [showCreateOrg, setShowCreateOrg] = useState(false)
   const overdueCount = useOverdueCount()
+  const t = useTranslations('sidebar')
+
+  const navigationGroups = [
+    {
+      label: t('groups.crm'),
+      items: [
+        { name: t('items.chat'), href: "/chat", icon: MessageSquare, key: "chat" },
+        { name: t('items.inbox'), href: "/inbox", icon: Mail, key: "inbox" },
+        { name: t('items.contacts'), href: "/contacts", icon: Users, key: "contacts" },
+        { name: t('items.companies'), href: "/companies", icon: Building2, key: "companies" },
+        { name: t('items.segments'), href: "/segments", icon: ListFilter, key: "segments" },
+        { name: t('items.pipeline'), href: "/deals", icon: Kanban, key: "pipeline" },
+        { name: t('items.funnel'), href: "/pipeline/funnel", icon: Filter, key: "funnel" },
+      ],
+    },
+    {
+      label: t('groups.management'),
+      items: [
+        { name: t('items.products'), href: "/products", icon: Package, key: "products" },
+        { name: t('items.tasks'), href: "/tasks", icon: CheckSquare, key: "tasks" },
+        { name: t('items.workflows'), href: "/workflows", icon: Workflow, key: "workflows" },
+        { name: t('items.sequences'), href: "/sequences", icon: Zap, key: "sequences" },
+        { name: t('items.calendar'), href: "/calendar", icon: Calendar, key: "calendar" },
+      ],
+    },
+    {
+      label: t('groups.analytics'),
+      items: [
+        { name: t('items.dashboard'), href: "/dashboard", icon: BarChart3, key: "dashboard" },
+        { name: t('items.reports'), href: "/reports", icon: FileBarChart, key: "reports" },
+      ],
+    },
+  ]
+
+  const utilityItems = [
+    { name: t('trash'), href: "/trash", icon: Trash2 },
+  ]
 
   const initials = user
     ? `${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase()
@@ -91,7 +93,7 @@ export function Sidebar() {
 
   const fullName = user
     ? `${user.first_name} ${user.last_name}`.trim()
-    : "Utilisateur"
+    : t('user')
 
   return (
     <>
@@ -140,7 +142,7 @@ export function Sidebar() {
                   </span>
                 </div>
                 <span className="flex-1 truncate text-sm font-medium text-[var(--sidebar-foreground)] font-[family-name:var(--font-body)]">
-                  {currentOrganization?.name ?? "Organisation"}
+                  {currentOrganization?.name ?? t('organization')}
                 </span>
                 <ChevronsUpDown className="h-4 w-4 shrink-0 text-[var(--sidebar-foreground)]/40" />
               </button>
@@ -164,7 +166,7 @@ export function Sidebar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setShowCreateOrg(true)} className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
-                Créer une organisation
+                {t('createOrganization')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -196,7 +198,7 @@ export function Sidebar() {
                   >
                     <item.icon className={cn("h-[18px] w-[18px] shrink-0", isActive && "text-[var(--sidebar-primary)]")} />
                     {item.name}
-                    {item.name === "Tâches" && overdueCount > 0 && (
+                    {item.key === "tasks" && overdueCount > 0 && (
                       <span className="ml-auto inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold">
                         {overdueCount}
                       </span>
@@ -241,7 +243,7 @@ export function Sidebar() {
             )}
           >
             <Settings className="h-[18px] w-[18px] shrink-0" />
-            Paramètres
+            {t('settings')}
           </Link>
         </div>
 
@@ -262,7 +264,7 @@ export function Sidebar() {
             <button
               onClick={logout}
               className="shrink-0 rounded-md p-1.5 text-[var(--sidebar-foreground)]/40 hover:text-[var(--sidebar-foreground)] hover:bg-[var(--sidebar-accent)] transition-colors"
-              title="Se déconnecter"
+              title={t('logout')}
             >
               <LogOut className="h-4 w-4" />
             </button>
