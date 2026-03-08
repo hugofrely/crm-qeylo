@@ -1,0 +1,39 @@
+{
+  "siteName": "Qeylo CRM",
+  "home": {
+    "title": "Smart CRM for freelancers, SMBs, and enterprises",
+    "description": "Manage your contacts, deals, tasks, and communications with an AI-powered smart CRM. Free trial available."
+  },
+  "pricing": {
+    "title": "Pricing",
+    "description": "Explore our Solo, Pro, and Team plans. Free CRM for freelancers, advanced plans for growing businesses."
+  },
+  "features": {
+    "title": "Features",
+    "description": "Discover all Qeylo CRM features: contact management, sales pipeline, AI, productivity tools, and more.",
+    "ai": {
+      "title": "Artificial Intelligence",
+      "description": "A built-in AI assistant that analyzes your data, suggests actions, and automates your sales tasks."
+    },
+    "sales": {
+      "title": "Sales Management",
+      "description": "Visual pipeline, deal tracking, revenue forecasts, and conversion tools to boost your sales."
+    },
+    "contacts": {
+      "title": "Contact Management",
+      "description": "Centralize and enrich your contacts, segment audiences, and track every interaction."
+    },
+    "communication": {
+      "title": "Communication",
+      "description": "Integrated email, customizable templates, and automated sequences for effective communication."
+    },
+    "productivity": {
+      "title": "Productivity",
+      "description": "Tasks, calendar, automated workflows, and collaboration tools to boost efficiency."
+    }
+  },
+  "og": {
+    "imageTitle": "Qeylo CRM",
+    "imageSubtitle": "AI-powered smart CRM"
+  }
+}

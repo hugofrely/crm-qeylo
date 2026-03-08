@@ -26,6 +26,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const workflows = (await import(`@/messages/${locale}/workflows.json`)).default;
   const sequences = (await import(`@/messages/${locale}/sequences.json`)).default;
   const notifications = (await import(`@/messages/${locale}/notifications.json`)).default;
+  const seo = (await import(`@/messages/${locale}/seo.json`)).default;
 
   return {
     locale,
@@ -48,6 +49,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       workflows,
       sequences,
       notifications,
+      seo,
     },
   };
 });

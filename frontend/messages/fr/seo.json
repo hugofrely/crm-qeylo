@@ -1,0 +1,39 @@
+{
+  "siteName": "Qeylo CRM",
+  "home": {
+    "title": "CRM intelligent pour indépendants, PME et entreprises",
+    "description": "Gérez vos contacts, deals, tâches et communications avec un CRM intelligent propulsé par l'IA. Essai gratuit."
+  },
+  "pricing": {
+    "title": "Tarifs",
+    "description": "Découvrez nos offres Solo, Pro et Équipe. CRM gratuit pour les indépendants, plans avancés pour les PME."
+  },
+  "features": {
+    "title": "Fonctionnalités",
+    "description": "Découvrez toutes les fonctionnalités de Qeylo CRM : gestion des contacts, pipeline de ventes, IA, productivité et plus.",
+    "ai": {
+      "title": "Intelligence Artificielle",
+      "description": "Un assistant IA intégré qui analyse vos données, suggère des actions et automatise vos tâches commerciales."
+    },
+    "sales": {
+      "title": "Gestion des ventes",
+      "description": "Pipeline visuel, suivi des deals, prévisions de revenus et outils de conversion pour booster vos ventes."
+    },
+    "contacts": {
+      "title": "Gestion des contacts",
+      "description": "Centralisez et enrichissez vos contacts, segmentez vos audiences et suivez chaque interaction."
+    },
+    "communication": {
+      "title": "Communication",
+      "description": "Email intégré, modèles personnalisables et séquences automatisées pour communiquer efficacement."
+    },
+    "productivity": {
+      "title": "Productivité",
+      "description": "Tâches, calendrier, workflows automatisés et outils de collaboration pour gagner en efficacité."
+    }
+  },
+  "og": {
+    "imageTitle": "Qeylo CRM",
+    "imageSubtitle": "CRM intelligent propulsé par l'IA"
+  }
+}
