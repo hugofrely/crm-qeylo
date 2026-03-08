@@ -3,6 +3,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from accounts.models import User
 from notifications.helpers import create_notification
@@ -13,6 +15,23 @@ from .serializers import (
     ReactionCreateSerializer,
 )
 from .utils import extract_mention_ids
+
+
+def broadcast_to_entity(entity_type, entity_id, event_type, data):
+    channel_layer = get_channel_layer()
+    group_name = f"{entity_type}_{entity_id}"
+    async_to_sync(channel_layer.group_send)(
+        group_name,
+        {"type": "comment.event", "data": {"event": event_type, **data}},
+    )
+
+
+def broadcast_to_user(user_id, data):
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"user_{user_id}",
+        {"type": "notification.message", "data": data},
+    )
 
 
 @api_view(["GET", "POST"])
@@ -78,6 +97,26 @@ def comment_list_create(request):
                 )
 
     result = CommentSerializer(comment).data
+
+    # Broadcast new comment to entity viewers
+    broadcast_to_entity(
+        comment.entity_type,
+        str(comment.entity_id),
+        "comment_created",
+        {"comment": result},
+    )
+
+    # Broadcast notification to mentioned users via WebSocket
+    for mid in mention_ids:
+        if str(mid) != str(request.user.id):
+            author_name = f"{request.user.first_name} {request.user.last_name}".strip() or request.user.email
+            broadcast_to_user(str(mid), {
+                "type": "mention",
+                "title": f"{author_name} vous a mentionne",
+                "message": comment.content[:200],
+                "link": f"/{comment.entity_type}s/{comment.entity_id}",
+            })
+
     return Response(result, status=status.HTTP_201_CREATED)
 
 
@@ -93,7 +132,10 @@ def comment_detail(request, pk):
         return Response({"detail": "Non autorise."}, status=status.HTTP_403_FORBIDDEN)
 
     if request.method == "DELETE":
+        entity_type = comment.entity_type
+        entity_id = str(comment.entity_id)
         comment.delete()
+        broadcast_to_entity(entity_type, entity_id, "comment_deleted", {"comment_id": str(pk)})
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     # PATCH
@@ -118,7 +160,14 @@ def comment_detail(request, pk):
         comment.is_private = is_private
 
     comment.save()
-    return Response(CommentSerializer(comment).data)
+    result = CommentSerializer(comment).data
+    broadcast_to_entity(
+        comment.entity_type,
+        str(comment.entity_id),
+        "comment_updated",
+        {"comment": result},
+    )
+    return Response(result)
 
 
 @api_view(["POST"])
@@ -138,6 +187,14 @@ def reaction_toggle(request, comment_id):
     existing = Reaction.objects.filter(comment=comment, user=request.user, emoji=emoji).first()
     if existing:
         existing.delete()
+        # Refresh comment for updated reactions
+        comment.refresh_from_db()
+        broadcast_to_entity(
+            comment.entity_type,
+            str(comment.entity_id),
+            "reaction_updated",
+            {"comment_id": str(comment_id), "reactions": CommentSerializer(comment).data["reactions"]},
+        )
         return Response({"action": "removed"})
 
     Reaction.objects.create(comment=comment, user=request.user, emoji=emoji)
@@ -152,6 +209,21 @@ def reaction_toggle(request, comment_id):
             message=comment.content[:100],
             link=f"/{comment.entity_type}s/{comment.entity_id}",
         )
+        broadcast_to_user(str(comment.author.id), {
+            "type": "reaction",
+            "title": f"{author_name} a reagi {emoji}",
+            "message": comment.content[:100],
+            "link": f"/{comment.entity_type}s/{comment.entity_id}",
+        })
+
+    # Refresh comment for updated reactions
+    comment.refresh_from_db()
+    broadcast_to_entity(
+        comment.entity_type,
+        str(comment.entity_id),
+        "reaction_updated",
+        {"comment_id": str(comment_id), "reactions": CommentSerializer(comment).data["reactions"]},
+    )
 
     return Response({"action": "added"}, status=status.HTTP_201_CREATED)
 
