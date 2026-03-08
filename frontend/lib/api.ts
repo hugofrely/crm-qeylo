@@ -82,11 +82,19 @@ export async function refreshToken(): Promise<boolean> {
 export function setTokens(access: string, refresh: string) {
   Cookies.set("access_token", access, { expires: 1 / 24 })
   Cookies.set("refresh_token", refresh, { expires: 7 })
+  // Store user_id for collaboration features (e.g. comment ownership)
+  try {
+    const payload = JSON.parse(atob(access.split(".")[1]))
+    Cookies.set("user_id", String(payload.user_id), { expires: 7 })
+  } catch {
+    // ignore decode errors
+  }
 }
 
 export function clearTokens() {
   Cookies.remove("access_token")
   Cookies.remove("refresh_token")
+  Cookies.remove("user_id")
 }
 
 export async function apiUploadImage(file: File): Promise<string> {
