@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, useEffect, FormEvent, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth"
 import { apiFetch } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
+import { Link, useRouter } from "@/i18n/navigation"
 
 function RegisterForm() {
   const searchParams = useSearchParams()
@@ -25,6 +26,7 @@ function RegisterForm() {
   const [inviteOrgName, setInviteOrgName] = useState("")
   const { register } = useAuth()
   const router = useRouter()
+  const t = useTranslations("auth")
 
   // Pre-fill email from invite
   useEffect(() => {
@@ -63,24 +65,24 @@ function RegisterForm() {
         try {
           const parsed = JSON.parse(err.message)
           const messages: string[] = []
-          if (parsed.email) messages.push(`Email: ${parsed.email.join(", ")}`)
+          if (parsed.email) messages.push(`${t("errors.emailPrefix")}: ${parsed.email.join(", ")}`)
           if (parsed.password)
-            messages.push(`Mot de passe: ${parsed.password.join(", ")}`)
+            messages.push(`${t("errors.passwordPrefix")}: ${parsed.password.join(", ")}`)
           if (parsed.organization_name)
-            messages.push(`Organisation: ${parsed.organization_name.join(", ")}`)
+            messages.push(`${t("errors.organizationPrefix")}: ${parsed.organization_name.join(", ")}`)
           if (parsed.detail) messages.push(parsed.detail)
           if (parsed.non_field_errors)
             messages.push(parsed.non_field_errors.join(", "))
           setError(
             messages.length > 0
               ? messages.join(" ")
-              : "Erreur lors de la création du compte."
+              : t("errors.registrationError")
           )
         } catch {
-          setError("Erreur lors de la création du compte.")
+          setError(t("errors.registrationError"))
         }
       } else {
-        setError("Une erreur est survenue. Veuillez réessayer.")
+        setError(t("errors.genericError"))
       }
     } finally {
       setIsLoading(false)
@@ -95,9 +97,9 @@ function RegisterForm() {
       </div>
 
       <div className="space-y-2 mb-8">
-        <h2 className="text-3xl tracking-tight">Créer un compte</h2>
+        <h2 className="text-3xl tracking-tight">{t("register.title")}</h2>
         <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-          Inscrivez-vous pour commencer à utiliser Qeylo
+          {t("register.subtitle")}
         </p>
       </div>
 
@@ -110,19 +112,19 @@ function RegisterForm() {
 
         {inviteOrgName && (
           <div className="rounded-lg bg-primary/5 border border-primary/20 px-4 py-3 text-sm font-[family-name:var(--font-body)]">
-            Vous rejoignez l&apos;organisation <span className="font-semibold">{inviteOrgName}</span>
+            {t("register.joiningOrganization")} <span className="font-semibold">{inviteOrgName}</span>
           </div>
         )}
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="firstName" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-              Prénom
+              {t("register.firstName")}
             </Label>
             <Input
               id="firstName"
               type="text"
-              placeholder="Jean"
+              placeholder={t("register.firstNamePlaceholder")}
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               required
@@ -132,12 +134,12 @@ function RegisterForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="lastName" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-              Nom
+              {t("register.lastName")}
             </Label>
             <Input
               id="lastName"
               type="text"
-              placeholder="Dupont"
+              placeholder={t("register.lastNamePlaceholder")}
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               required
@@ -150,12 +152,12 @@ function RegisterForm() {
         {!inviteToken && (
           <div className="space-y-2">
             <Label htmlFor="organizationName" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-              Nom de votre organisation
+              {t("register.organizationName")}
             </Label>
             <Input
               id="organizationName"
               type="text"
-              placeholder="Mon entreprise"
+              placeholder={t("register.organizationNamePlaceholder")}
               value={organizationName}
               onChange={(e) => setOrganizationName(e.target.value)}
               required
@@ -167,12 +169,12 @@ function RegisterForm() {
 
         <div className="space-y-2">
           <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Email
+            {t("register.email")}
           </Label>
           <Input
             id="email"
             type="email"
-            placeholder="vous@exemple.com"
+            placeholder={t("register.emailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -184,12 +186,12 @@ function RegisterForm() {
 
         <div className="space-y-2">
           <Label htmlFor="password" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Mot de passe
+            {t("register.password")}
           </Label>
           <Input
             id="password"
             type="password"
-            placeholder="Minimum 8 caractères"
+            placeholder={t("register.passwordPlaceholder")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -207,22 +209,22 @@ function RegisterForm() {
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Création...
+              {t("register.submitting")}
             </>
           ) : (
-            "Créer un compte"
+            t("register.submit")
           )}
         </Button>
       </form>
 
       <div className="mt-8 text-center">
         <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">
-          Déjà un compte ?{" "}
+          {t("register.alreadyHaveAccount")}{" "}
           <Link
             href="/login"
             className="text-foreground font-medium underline underline-offset-4 decoration-primary/40 hover:decoration-primary transition-colors"
           >
-            Se connecter
+            {t("register.signIn")}
           </Link>
         </p>
       </div>

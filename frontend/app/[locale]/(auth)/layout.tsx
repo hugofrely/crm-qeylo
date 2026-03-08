@@ -1,8 +1,12 @@
+import { useTranslations } from "next-intl"
+
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const t = useTranslations("auth")
+
   return (
     <div className="min-h-screen flex">
       {/* Left side – decorative */}
@@ -36,10 +40,10 @@ export default function AuthLayout({
           </div>
           <div className="max-w-md">
             <blockquote className="text-xl leading-relaxed text-white/80" style={{ fontFamily: 'var(--font-display), Georgia, serif', fontStyle: 'italic' }}>
-              &ldquo;La relation client est un art qui se cultive avec attention.&rdquo;
+              &ldquo;{t("layout.quote")}&rdquo;
             </blockquote>
             <p className="mt-6 text-sm text-[#3DD9D9]/50 tracking-wide uppercase">
-              Votre CRM intelligent
+              {t("layout.tagline")}
             </p>
           </div>
         </div>

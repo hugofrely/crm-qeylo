@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, FormEvent } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { useAuth } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
+import { Link, useRouter } from "@/i18n/navigation"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const { login } = useAuth()
   const router = useRouter()
+  const t = useTranslations("auth")
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -32,13 +33,13 @@ export default function LoginPage() {
           setError(
             parsed.detail ||
               parsed.non_field_errors?.[0] ||
-              "Email ou mot de passe incorrect."
+              t("errors.invalidCredentials")
           )
         } catch {
-          setError("Email ou mot de passe incorrect.")
+          setError(t("errors.invalidCredentials"))
         }
       } else {
-        setError("Une erreur est survenue. Veuillez réessayer.")
+        setError(t("errors.genericError"))
       }
     } finally {
       setIsLoading(false)
@@ -53,9 +54,9 @@ export default function LoginPage() {
       </div>
 
       <div className="space-y-2 mb-8">
-        <h2 className="text-3xl tracking-tight">Connexion</h2>
+        <h2 className="text-3xl tracking-tight">{t("login.title")}</h2>
         <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-          Connectez-vous pour accéder à votre CRM
+          {t("login.subtitle")}
         </p>
       </div>
 
@@ -68,12 +69,12 @@ export default function LoginPage() {
 
         <div className="space-y-2">
           <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Email
+            {t("login.email")}
           </Label>
           <Input
             id="email"
             type="email"
-            placeholder="vous@exemple.com"
+            placeholder={t("login.emailPlaceholder")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -84,12 +85,12 @@ export default function LoginPage() {
 
         <div className="space-y-2">
           <Label htmlFor="password" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Mot de passe
+            {t("login.password")}
           </Label>
           <Input
             id="password"
             type="password"
-            placeholder="Votre mot de passe"
+            placeholder={t("login.passwordPlaceholder")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -106,22 +107,22 @@ export default function LoginPage() {
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Connexion...
+              {t("login.submitting")}
             </>
           ) : (
-            "Se connecter"
+            t("login.submit")
           )}
         </Button>
       </form>
 
       <div className="mt-8 text-center">
         <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">
-          Pas encore de compte ?{" "}
+          {t("login.noAccount")}{" "}
           <Link
             href="/register"
             className="text-foreground font-medium underline underline-offset-4 decoration-primary/40 hover:decoration-primary transition-colors"
           >
-            Créer un compte
+            {t("login.createAccount")}
           </Link>
         </p>
       </div>
