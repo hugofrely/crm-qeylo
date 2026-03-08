@@ -24,6 +24,18 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     username = None
     email_notifications = models.BooleanField(default=True)
+    # Granular email notification preferences
+    email_notify_task_reminder = models.BooleanField(default=True)
+    email_notify_task_assigned = models.BooleanField(default=True)
+    email_notify_task_due = models.BooleanField(default=True)
+    email_notify_daily_digest = models.BooleanField(default=True)
+    email_notify_deal_update = models.BooleanField(default=True)
+    email_notify_mention = models.BooleanField(default=True)
+    email_notify_new_comment = models.BooleanField(default=True)
+    email_notify_reaction = models.BooleanField(default=True)
+    email_notify_import_complete = models.BooleanField(default=True)
+    email_notify_invitation = models.BooleanField(default=True)
+    email_notify_workflow = models.BooleanField(default=True)
     preferred_language = models.CharField(
         max_length=5,
         choices=[("fr", "Français"), ("en", "English")],
