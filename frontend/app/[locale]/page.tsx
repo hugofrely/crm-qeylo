@@ -1,40 +1,29 @@
-"use client"
+import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
+import { locales, defaultLocale } from '@/i18n/config'
+import HomePage from '@/components/landing/home-page'
 
-import { useAuth } from "@/lib/auth"
-import { Navbar } from "@/components/landing/navbar"
-import { Hero } from "@/components/landing/hero"
-import { AIDemo } from "@/components/landing/ai-demo"
-import { FeaturesShowcase } from "@/components/landing/features-showcase"
-import { HowItWorks } from "@/components/landing/how-it-works"
-import { Pricing } from "@/components/landing/pricing"
-import { CTA } from "@/components/landing/cta"
-import { Footer } from "@/components/landing/footer"
-import { useTranslations } from "next-intl"
+type Props = {
+  params: Promise<{ locale: string }>
+}
 
-export default function HomePage() {
-  const { loading } = useAuth()
-  const t = useTranslations("common")
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'seo' })
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-muted-foreground">{t("loading")}</div>
-      </div>
-    )
+  const languages: Record<string, string> = {}
+  for (const loc of locales) {
+    languages[loc] = `/${loc}`
   }
+  languages['x-default'] = `/${defaultLocale}`
 
-  return (
-    <>
-      <Navbar />
-      <main>
-        <Hero />
-        <AIDemo />
-        <FeaturesShowcase />
-        <HowItWorks />
-        <Pricing />
-        <CTA />
-      </main>
-      <Footer />
-    </>
-  )
+  return {
+    title: t('home.title'),
+    description: t('home.description'),
+    alternates: { languages },
+  }
+}
+
+export default function Page() {
+  return <HomePage />
 }
