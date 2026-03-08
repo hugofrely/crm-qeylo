@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { locales, defaultLocale } from '@/i18n/config';
 import { CookieConsentBanner } from '@/components/CookieConsentBanner';
+import { JsonLd } from '@/components/seo/json-ld';
 
 type Props = {
   children: React.ReactNode;
@@ -51,6 +52,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
+      <JsonLd locale={locale} />
       {children}
       <CookieConsentBanner />
     </NextIntlClientProvider>
