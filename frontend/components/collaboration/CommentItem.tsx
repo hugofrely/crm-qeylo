@@ -1,8 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import rehypeRaw from "rehype-raw"
 import type { Comment } from "@/types/collaboration"
-import { MarkdownContent } from "@/components/chat/MarkdownContent"
 import { Button } from "@/components/ui/button"
 import { Lock, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { toggleReaction, deleteComment, updateComment } from "@/services/collaboration"
@@ -11,6 +13,16 @@ import { apiUploadImage } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
 const EMOJI_OPTIONS = ["👍", "❤️", "🎉", "😄", "🤔", "👀"]
+
+function CommentContent({ content }: { content: string }) {
+  return (
+    <div className="prose prose-sm dark:prose-invert max-w-none [&_.mention]:bg-primary/15 [&_.mention]:text-primary [&_.mention]:rounded [&_.mention]:px-1 [&_.mention]:py-0.5 [&_.mention]:text-sm [&_.mention]:font-medium">
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+        {content}
+      </ReactMarkdown>
+    </div>
+  )
+}
 
 function formatDateTime(dateStr: string): string {
   return new Intl.DateTimeFormat("fr-FR", {
@@ -152,7 +164,7 @@ export function CommentItem({ comment, currentUserId, onUpdated, onDeleted }: Co
           </div>
         ) : (
           <div className="mt-1 text-sm font-[family-name:var(--font-body)]">
-            <MarkdownContent content={comment.content} />
+            <CommentContent content={comment.content} />
           </div>
         )}
 

@@ -231,7 +231,7 @@ def reaction_toggle(request, comment_id):
         comment.entity_type,
         str(comment.entity_id),
         "reaction_updated",
-        {"comment_id": str(comment_id), "reactions": CommentSerializer(comment).data["reactions"]},
+        {"comment_id": str(comment_id), "reactions": _json_safe(CommentSerializer(comment).data["reactions"])},
     )
 
     return Response({"action": "added"}, status=status.HTTP_201_CREATED)

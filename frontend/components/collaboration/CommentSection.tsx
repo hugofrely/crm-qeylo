@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import type { Comment } from "@/types/collaboration"
 import { fetchComments, createComment, searchMembers } from "@/services/collaboration"
 import { CommentItem } from "./CommentItem"
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
 import { Button } from "@/components/ui/button"
-import { Lock, Unlock, Loader2, MessageSquare } from "lucide-react"
+import { Loader2, MessageSquare } from "lucide-react"
 import { apiUploadImage } from "@/lib/api"
 import { useWebSocket } from "@/hooks/useWebSocket"
 import Cookies from "js-cookie"
@@ -19,12 +19,12 @@ interface CommentSectionProps {
 export function CommentSection({ entityType, entityId }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState("")
-  const [isPrivate, setIsPrivate] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const currentUserId = Cookies.get("user_id") || ""
   const orgId = Cookies.get("organization_id") || ""
+  const editorKeyRef = useRef(0)
 
   const loadComments = useCallback(async () => {
     try {
@@ -85,14 +85,16 @@ export function CommentSection({ entityType, entityId }: CommentSectionProps) {
     if (!newComment.trim()) return
     setSubmitting(true)
     try {
-      await createComment({
+      const created = await createComment({
         content: newComment,
-        is_private: isPrivate,
         [entityType]: entityId,
       })
       setNewComment("")
-      setIsPrivate(false)
-      loadComments()
+      editorKeyRef.current += 1
+      setComments((prev) => {
+        if (prev.some((c) => c.id === created.id)) return prev
+        return [...prev, created]
+      })
     } catch (err) {
       console.error("Failed to create comment:", err)
     } finally {
@@ -118,9 +120,36 @@ export function CommentSection({ entityType, entityId }: CommentSectionProps) {
         </h2>
       </div>
 
+      {/* Comments list */}
+      {loading ? (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : comments.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-10">
+          <MessageSquare className="h-5 w-5 text-muted-foreground/30 mb-2" />
+          <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">
+            Aucun commentaire
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-border/50 mb-4">
+          {comments.map((comment) => (
+            <CommentItem
+              key={comment.id}
+              comment={comment}
+              currentUserId={currentUserId}
+              onUpdated={loadComments}
+              onDeleted={(id) => setComments((prev) => prev.filter((c) => c.id !== id))}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Comment input */}
-      <div className="mb-6 space-y-2">
+      <div className="space-y-2">
         <RichTextEditor
+          key={editorKeyRef.current}
           content={newComment}
           onChange={setNewComment}
           placeholder="Ecrire un commentaire... Utilisez @ pour mentionner"
@@ -128,17 +157,7 @@ export function CommentSection({ entityType, entityId }: CommentSectionProps) {
           onImageUpload={apiUploadImage}
           onMentionQuery={handleMentionQuery}
         />
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => setIsPrivate(!isPrivate)}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            title={isPrivate ? "Commentaire prive (visible uniquement par vous)" : "Commentaire visible par tous"}
-          >
-            {isPrivate ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
-            <span className="font-[family-name:var(--font-body)]">
-              {isPrivate ? "Prive" : "Visible par tous"}
-            </span>
-          </button>
+        <div className="flex justify-end">
           <Button
             size="sm"
             onClick={handleSubmit}
@@ -154,32 +173,6 @@ export function CommentSection({ entityType, entityId }: CommentSectionProps) {
           </Button>
         </div>
       </div>
-
-      {/* Comments list */}
-      {loading ? (
-        <div className="flex items-center justify-center py-10">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-        </div>
-      ) : comments.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10">
-          <MessageSquare className="h-5 w-5 text-muted-foreground/30 mb-2" />
-          <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">
-            Aucun commentaire
-          </p>
-        </div>
-      ) : (
-        <div className="divide-y divide-border/50">
-          {comments.map((comment) => (
-            <CommentItem
-              key={comment.id}
-              comment={comment}
-              currentUserId={currentUserId}
-              onUpdated={loadComments}
-              onDeleted={(id) => setComments((prev) => prev.filter((c) => c.id !== id))}
-            />
-          ))}
-        </div>
-      )}
     </div>
   )
 }

@@ -145,11 +145,11 @@ export function CreateMeetingDialog({
         contact: contactId || null,
         deal: dealId || null,
       })
-      toast.success("Meeting cr\u00e9\u00e9 avec succ\u00e8s")
+      toast.success("Meeting créé avec succès")
       onOpenChange(false)
       onSuccess?.()
     } catch {
-      setError("Erreur lors de la cr\u00e9ation du meeting.")
+      setError("Erreur lors de la création du meeting.")
     } finally {
       setIsLoading(false)
     }
@@ -196,7 +196,7 @@ export function CreateMeetingDialog({
             <div className="space-y-2">
               <Label htmlFor="meeting-start" className="flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" />
-                D\u00e9but
+                Début
               </Label>
               <Input
                 id="meeting-start"
@@ -234,7 +234,7 @@ export function CreateMeetingDialog({
               disabled={isLoading}
             />
             <Label htmlFor="meeting-all-day" className="text-sm font-normal cursor-pointer">
-              Journ\u00e9e enti\u00e8re
+              Journée entière
             </Label>
           </div>
 
@@ -366,10 +366,10 @@ export function CreateMeetingDialog({
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Cr\u00e9ation...
+                  Création...
                 </>
               ) : (
-                "Cr\u00e9er"
+                "Créer"
               )}
             </Button>
           </div>
