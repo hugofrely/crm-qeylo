@@ -8,11 +8,13 @@ import { useAuth } from "@/lib/auth"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MessageSquare, CheckCircle, XCircle, Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function AcceptInvitationPage() {
   const { token } = useParams<{ token: string }>()
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const t = useTranslations("notifications.invite")
   const [status, setStatus] = useState<"loading" | "needs_auth" | "accepted" | "error">("loading")
   const [orgName, setOrgName] = useState("")
   const [inviteEmail, setInviteEmail] = useState("")
@@ -36,14 +38,14 @@ export default function AcceptInvitationPage() {
         }
       } catch (err) {
         setErrorMessage(
-          err instanceof Error ? err.message : "L'invitation est invalide ou a expiré."
+          err instanceof Error ? err.message : t("invalidInvite")
         )
         setStatus("error")
       }
     }
 
     accept()
-  }, [token, authLoading, user])
+  }, [token, authLoading, user, t])
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
@@ -55,31 +57,30 @@ export default function AcceptInvitationPage() {
               <span className="text-2xl font-bold">Qeylo</span>
             </div>
           </div>
-          <CardTitle className="text-xl">Invitation</CardTitle>
+          <CardTitle className="text-xl">{t("title")}</CardTitle>
         </CardHeader>
         <CardContent className="text-center space-y-4">
           {status === "loading" && (
             <div className="py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto" />
-              <p className="mt-4 text-sm text-muted-foreground">Vérification...</p>
+              <p className="mt-4 text-sm text-muted-foreground">{t("verifying")}</p>
             </div>
           )}
 
           {status === "needs_auth" && (
             <>
               <CardDescription>
-                Vous êtes invité(e) à rejoindre <strong>{orgName}</strong>.
-                Connectez-vous ou créez un compte pour accepter.
+                {t("invitedToJoin", { orgName })}
               </CardDescription>
               <div className="flex flex-col gap-2">
                 <Button asChild>
                   <Link href={`/login?redirect=/invite/accept/${token}`}>
-                    Se connecter
+                    {t("login")}
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
                   <Link href={`/register?email=${encodeURIComponent(inviteEmail)}&invite=${token}`}>
-                    Créer un compte
+                    {t("createAccount")}
                   </Link>
                 </Button>
               </div>
@@ -90,10 +91,10 @@ export default function AcceptInvitationPage() {
             <>
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
               <p className="text-sm">
-                Vous avez rejoint <strong>{orgName}</strong> avec succès !
+                {t("accepted", { orgName })}
               </p>
               <Button onClick={() => router.push("/chat")}>
-                Aller au chat
+                {t("goToChat")}
               </Button>
             </>
           )}
@@ -103,7 +104,7 @@ export default function AcceptInvitationPage() {
               <XCircle className="h-12 w-12 text-destructive mx-auto" />
               <p className="text-sm text-muted-foreground">{errorMessage}</p>
               <Button variant="outline" asChild>
-                <Link href="/">Retour à l&apos;accueil</Link>
+                <Link href="/">{t("backToHome")}</Link>
               </Button>
             </>
           )}

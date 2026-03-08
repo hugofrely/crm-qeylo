@@ -1,1 +1,140 @@
-{}
+{
+  "title": "Notifications",
+  "markAllRead": "Tout marquer comme lu",
+  "loading": "Chargement...",
+  "empty": "Aucune notification",
+  "ariaLabel": "Notifications",
+  "relativeTime": {
+    "justNow": "À l'instant",
+    "minutesAgo": "il y a {minutes}m",
+    "hoursAgo": "il y a {hours}h",
+    "yesterday": "Hier",
+    "daysAgo": "il y a {days}j"
+  },
+  "search": {
+    "placeholder": "Rechercher contacts, deals, taches...",
+    "searching": "Recherche...",
+    "noResults": "Aucun résultat pour \"{query}\"",
+    "contacts": "Contacts",
+    "companies": "Entreprises",
+    "pipeline": "Pipeline",
+    "tasks": "Taches",
+    "priorityHigh": "Haute",
+    "priorityLow": "Basse",
+    "priorityNormal": "Normale"
+  },
+  "inbox": {
+    "searchPlaceholder": "Rechercher...",
+    "all": "Tous",
+    "unread": "Non lus",
+    "sync": "Synchroniser",
+    "loading": "Chargement...",
+    "noEmails": "Aucun email",
+    "selectConversation": "Sélectionnez une conversation",
+    "messages": "{count} message | {count} messages",
+    "reply": "Repondre",
+    "contact": "Contact",
+    "viewContact": "Voir le contact",
+    "noContact": "Aucun contact associe"
+  },
+  "trash": {
+    "title": "Corbeille",
+    "emptyTrash": "Vider la corbeille",
+    "retentionWarning": "Les éléments sont supprimés définitivement après 30 jours.",
+    "emptyState": "La corbeille est vide",
+    "name": "Nom",
+    "deletedBy": "Supprimé par",
+    "deletionDate": "Date de suppression",
+    "source": "Source",
+    "actions": "Actions",
+    "restore": "Restaurer",
+    "restoreTitle": "Restaurer",
+    "permanentDelete": "Supprimer définitivement",
+    "permanentDeleteTitle": "Supprimer définitivement",
+    "selected": "{count} sélectionné(s)",
+    "delete": "Supprimer",
+    "emptyDialogTitle": "Vider la corbeille",
+    "emptyDialogMessage": "Cette action est irréversible. Tous les éléments de la corbeille ({count}) seront supprimés définitivement.",
+    "emptyPermanently": "Vider définitivement",
+    "restoredSuccess": "{count} élément(s) restauré(s)",
+    "restoreError": "Erreur lors de la restauration",
+    "deletedSuccess": "{count} élément(s) supprimé(s) définitivement",
+    "deleteError": "Erreur lors de la suppression",
+    "emptiedSuccess": "Corbeille vidée",
+    "emptyError": "Erreur lors du vidage de la corbeille",
+    "cancel": "Annuler",
+    "tabs": {
+      "contact": "Contacts",
+      "deal": "Deals",
+      "task": "Tâches"
+    }
+  },
+  "invite": {
+    "title": "Invitation",
+    "verifying": "Vérification...",
+    "invitedToJoin": "Vous êtes invité(e) à rejoindre {orgName}. Connectez-vous ou créez un compte pour accepter.",
+    "login": "Se connecter",
+    "createAccount": "Créer un compte",
+    "accepted": "Vous avez rejoint {orgName} avec succès !",
+    "goToChat": "Aller au chat",
+    "invalidInvite": "L'invitation est invalide ou a expiré.",
+    "backToHome": "Retour à l'accueil"
+  },
+  "quickCreate": {
+    "contact": "Contact",
+    "deal": "Deal",
+    "task": "Tâche",
+    "ariaLabel": "Création rapide"
+  },
+  "comments": {
+    "title": "Commentaires ({count})",
+    "empty": "Aucun commentaire",
+    "placeholder": "Ecrire un commentaire... Utilisez @ pour mentionner",
+    "submit": "Commenter",
+    "deleteConfirm": "Supprimer ce commentaire ?",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "editPlaceholder": "Modifier le commentaire...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edited": "(modifie)",
+    "noMemberFound": "Aucun membre trouve"
+  },
+  "cookies": {
+    "message": "Ce site utilise des cookies analytiques pour ameliorer votre experience.",
+    "refuse": "Refuser",
+    "accept": "Accepter"
+  },
+  "invitations": {
+    "pending": "Invitations en attente ({count})",
+    "role": "Rôle : {role}",
+    "sentOn": "Envoyée le",
+    "status": "En attente"
+  },
+  "filters": {
+    "filtersTitle": "Filtres",
+    "resetLabel": "Réinitialiser",
+    "searchPlaceholder": "Rechercher...",
+    "all": "Tous",
+    "searchContact": "Rechercher un contact...",
+    "searchCompany": "Rechercher une entreprise...",
+    "searchMember": "Rechercher un membre...",
+    "myTasks": "Mes tâches",
+    "reset": "Réinitialiser ({count})",
+    "noResults": "Aucun résultat."
+  },
+  "dataTable": {
+    "noResults": "Aucun résultat."
+  },
+  "email": {
+    "sendError": "Erreur lors de l'envoi de l'email",
+    "cancel": "Annuler"
+  },
+  "calls": {
+    "saveError": "Erreur lors de l'enregistrement de l'appel",
+    "saveCall": "Enregistrer l'appel"
+  },
+  "activities": {
+    "save": "Enregistrer"
+  }
+}

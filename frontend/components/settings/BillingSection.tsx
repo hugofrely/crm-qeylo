@@ -25,12 +25,14 @@ import UsageBars from "./UsageBars"
 import PaymentMethodCard from "./PaymentMethodCard"
 import InvoiceList from "./InvoiceList"
 import UpgradeModal from "./UpgradeModal"
+import { useTranslations } from "next-intl"
 
 interface BillingSectionProps {
   orgId: string
 }
 
 export default function BillingSection({ orgId }: BillingSectionProps) {
+  const t = useTranslations("settings.billing")
   const [subscription, setSubscription] = useState<SubscriptionDetail | null>(null)
   const [usage, setUsage] = useState<UsageSummary | null>(null)
   const [invoices, setInvoices] = useState<Invoice[]>([])
@@ -53,11 +55,11 @@ export default function BillingSection({ orgId }: BillingSectionProps) {
       setInvoices(inv ?? [])
       setPaymentMethod(pm)
     } catch {
-      toast.error("Impossible de charger les informations d'abonnement")
+      toast.error(t("loadError"))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     loadData()
@@ -68,29 +70,29 @@ export default function BillingSection({ orgId }: BillingSectionProps) {
       const { url } = await createCheckoutSession(plan)
       window.location.href = url
     } catch {
-      toast.error("Erreur lors de la creation de la session de paiement")
+      toast.error(t("checkoutError"))
       setUpgradeOpen(false)
     }
   }
 
   const handleCancel = async () => {
-    if (!confirm("Etes-vous sur de vouloir annuler votre abonnement ?")) return
+    if (!confirm(t("cancelConfirm"))) return
     try {
       const res = await cancelSubscription()
-      toast.success(res.detail || "Abonnement annule")
+      toast.success(res.detail || t("cancelled"))
       loadData()
     } catch {
-      toast.error("Erreur lors de l'annulation")
+      toast.error(t("cancelError"))
     }
   }
 
   const handleReactivate = async () => {
     try {
       const res = await reactivateSubscription()
-      toast.success(res.detail || "Abonnement reactive")
+      toast.success(res.detail || t("reactivated"))
       loadData()
     } catch {
-      toast.error("Erreur lors de la reactivation")
+      toast.error(t("reactivateError"))
     }
   }
 
@@ -99,7 +101,7 @@ export default function BillingSection({ orgId }: BillingSectionProps) {
       const { url } = await updatePaymentMethod()
       window.location.href = url
     } catch {
-      toast.error("Erreur lors de la mise a jour du moyen de paiement")
+      toast.error(t("paymentUpdateError"))
     }
   }
 
@@ -108,7 +110,7 @@ export default function BillingSection({ orgId }: BillingSectionProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-xl tracking-tight">
           <CreditCard className="h-5 w-5 text-[#0D4F4F]" />
-          Abonnement & Facturation
+          {t("title")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -145,7 +147,7 @@ export default function BillingSection({ orgId }: BillingSectionProps) {
           </div>
         ) : (
           <p className="text-sm text-muted-foreground text-center py-8">
-            Impossible de charger les informations d&apos;abonnement
+            {t("loadError")}
           </p>
         )}
       </CardContent>

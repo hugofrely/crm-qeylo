@@ -4,6 +4,7 @@ import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { X, RotateCcw, SlidersHorizontal } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { useTranslations } from "next-intl"
 
 
 interface FilterPanelProps {
@@ -15,6 +16,7 @@ interface FilterPanelProps {
 }
 
 export function FilterPanel({ open, onOpenChange, onReset, activeFilterCount, children }: FilterPanelProps) {
+  const t = useTranslations("notifications.filters")
   if (!open) return null
 
   return (
@@ -31,12 +33,12 @@ export function FilterPanel({ open, onOpenChange, onReset, activeFilterCount, ch
       >
         {/* Header */}
         <div className="sticky top-0 bg-background border-b border-border p-4 flex items-center justify-between z-10">
-          <h3 className="font-medium text-sm">Filtres</h3>
+          <h3 className="font-medium text-sm">{t("filtersTitle")}</h3>
           <div className="flex items-center gap-1">
             {activeFilterCount > 0 && (
               <Button variant="ghost" size="xs" onClick={onReset} className="gap-1 text-muted-foreground">
                 <RotateCcw className="h-3 w-3" />
-                Réinitialiser
+                {t("resetLabel")}
               </Button>
             )}
             <Button variant="ghost" size="icon-xs" onClick={() => onOpenChange(false)}>
@@ -61,6 +63,7 @@ interface FilterTriggerButtonProps {
 }
 
 export function FilterTriggerButton({ open, onOpenChange, activeFilterCount }: FilterTriggerButtonProps) {
+  const t = useTranslations("notifications.filters")
   return (
     <Button
       variant="outline"
@@ -68,7 +71,7 @@ export function FilterTriggerButton({ open, onOpenChange, activeFilterCount }: F
       className="gap-2"
     >
       <SlidersHorizontal className="h-4 w-4" />
-      Filtres
+      {t("filtersTitle")}
       {activeFilterCount > 0 && (
         <Badge variant="default" className="h-5 min-w-5 px-1.5 text-[10px]">
           {activeFilterCount}

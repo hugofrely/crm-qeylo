@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/Sidebar"
 import { SearchHeader } from "@/components/SearchHeader"
 import { OrganizationProvider } from "@/lib/organization"
 import { QuickCreateFAB } from "@/components/shared/QuickCreateFAB"
+import { useTranslations } from "next-intl"
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -20,10 +21,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, router])
 
+  const t = useTranslations("common")
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-muted-foreground">Chargement...</div>
+        <div className="text-muted-foreground">{t("loading")}</div>
       </div>
     )
   }

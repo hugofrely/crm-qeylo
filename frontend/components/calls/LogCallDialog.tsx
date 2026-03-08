@@ -4,6 +4,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { Phone, PhoneIncoming, PhoneOutgoing, Loader2 } from "lucide-react"
 import { createCall } from "@/services/calls"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,7 @@ export function LogCallDialog({
   dealId,
   onSuccess,
 }: LogCallDialogProps) {
+  const tCalls = useTranslations("notifications.calls")
   const [direction, setDirection] = useState<"outbound" | "inbound">("outbound")
   const [outcome, setOutcome] = useState<string>("answered")
   const [minutes, setMinutes] = useState<number>(0)
@@ -78,7 +80,7 @@ export function LogCallDialog({
       setNotes("")
     } catch (err) {
       console.error("Failed to log call:", err)
-      toast.error("Erreur lors de l'enregistrement de l'appel")
+      toast.error(tCalls("saveError"))
     } finally {
       setSubmitting(false)
     }
@@ -211,7 +213,7 @@ export function LogCallDialog({
             ) : (
               <Phone className="h-4 w-4" />
             )}
-            <span className="font-[family-name:var(--font-body)]">Enregistrer l&apos;appel</span>
+            <span className="font-[family-name:var(--font-body)]">{tCalls("saveCall")}</span>
           </Button>
         </div>
       </DialogContent>

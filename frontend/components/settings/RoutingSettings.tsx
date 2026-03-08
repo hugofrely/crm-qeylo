@@ -17,6 +17,7 @@ import {
 import { fetchMembers } from "@/services/organizations"
 import type { LeadRoutingRule } from "@/types/contacts"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 interface RoutingSettingsProps {
   orgId: string
@@ -31,6 +32,7 @@ interface Member {
 }
 
 export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
+  const t = useTranslations("settings.routing")
   const [rules, setRules] = useState<LeadRoutingRule[]>([])
   const [eligibleIds, setEligibleIds] = useState<string[]>([])
   const [members, setMembers] = useState<Member[]>([])
@@ -53,9 +55,9 @@ export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
       setEligibleIds(rrState.eligible_user_ids)
       setMembers(membersData.members)
     }).catch(() => {
-      toast.error("Erreur lors du chargement")
+      toast.error(t("loadError"))
     }).finally(() => setLoading(false))
-  }, [orgId])
+  }, [orgId, t])
 
   const handleToggleEligible = async (userId: string, checked: boolean) => {
     const newIds = checked
@@ -65,13 +67,13 @@ export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
     try {
       await updateRoundRobinState(newIds)
     } catch {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(t("updateError"))
     }
   }
 
   const handleCreateRule = async () => {
     if (!newName || !newAssignTo || !newConditionValue) {
-      toast.error("Remplissez tous les champs")
+      toast.error(t("fillAllFields"))
       return
     }
     setSaving(true)
@@ -88,9 +90,9 @@ export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
       setNewName("")
       setNewAssignTo("")
       setNewConditionValue("")
-      toast.success("Règle créée")
+      toast.success(t("ruleCreated"))
     } catch {
-      toast.error("Erreur lors de la création")
+      toast.error(t("createError"))
     } finally {
       setSaving(false)
     }
@@ -100,9 +102,9 @@ export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
     try {
       await deleteRoutingRule(id)
       setRules((prev) => prev.filter((r) => r.id !== id))
-      toast.success("Règle supprimée")
+      toast.success(t("ruleDeleted"))
     } catch {
-      toast.error("Erreur lors de la suppression")
+      toast.error(t("deleteError"))
     }
   }
 
@@ -113,7 +115,7 @@ export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
         prev.map((r) => (r.id === rule.id ? { ...r, is_active: !r.is_active } : r))
       )
     } catch {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(t("updateError"))
     }
   }
 
@@ -133,9 +135,9 @@ export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
             <Route className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-xl tracking-tight">Lead routing</h2>
+            <h2 className="text-xl tracking-tight">{t("title")}</h2>
             <p className="text-xs text-muted-foreground mt-1 font-[family-name:var(--font-body)]">
-              Assignation automatique des nouveaux contacts
+              {t("subtitle")}
             </p>
           </div>
         </div>
@@ -145,10 +147,10 @@ export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
         {/* Round Robin */}
         <div>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">
-            Round-robin — Membres éligibles
+            {t("roundRobinTitle")}
           </p>
           <p className="text-xs text-muted-foreground mb-3">
-            Les nouveaux leads sans règle spécifique seront distribués tour à tour entre ces membres.
+            {t("roundRobinDesc")}
           </p>
           <div className="space-y-2">
             {members.map((m) => (
@@ -174,7 +176,7 @@ export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-              Règles prioritaires
+              {t("priorityRules")}
             </p>
             <Button
               variant="outline"
@@ -183,13 +185,13 @@ export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
               onClick={() => setShowForm(!showForm)}
             >
               <Plus className="h-3 w-3" />
-              Ajouter
+              {t("add")}
             </Button>
           </div>
 
           {rules.length === 0 && !showForm && (
             <p className="text-sm text-muted-foreground italic">
-              Aucune règle. Le round-robin sera utilisé pour tous les leads.
+              {t("noRules")}
             </p>
           )}
 
@@ -226,45 +228,45 @@ export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
           {showForm && (
             <div className="mt-4 rounded-lg border border-border p-4 space-y-3">
               <div className="space-y-1.5">
-                <Label className="text-sm">Nom de la règle</Label>
+                <Label className="text-sm">{t("ruleName")}</Label>
                 <Input
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  placeholder="Ex: Leads tech → Paul"
+                  placeholder={t("ruleNamePlaceholder")}
                   className="h-8"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-sm">Condition</Label>
+                  <Label className="text-sm">{t("condition")}</Label>
                   <select
                     value={newConditionField}
                     onChange={(e) => setNewConditionField(e.target.value)}
                     className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
                   >
-                    <option value="source">Source</option>
-                    <option value="industry">Industrie</option>
-                    <option value="country">Pays</option>
+                    <option value="source">{t("conditionSource")}</option>
+                    <option value="industry">{t("conditionIndustry")}</option>
+                    <option value="country">{t("conditionCountry")}</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-sm">Valeur</Label>
+                  <Label className="text-sm">{t("conditionValue")}</Label>
                   <Input
                     value={newConditionValue}
                     onChange={(e) => setNewConditionValue(e.target.value)}
-                    placeholder="Ex: website"
+                    placeholder={t("conditionValuePlaceholder")}
                     className="h-8"
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sm">Assigner à</Label>
+                <Label className="text-sm">{t("assignTo")}</Label>
                 <select
                   value={newAssignTo}
                   onChange={(e) => setNewAssignTo(e.target.value)}
                   className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
                 >
-                  <option value="">Sélectionner un membre</option>
+                  <option value="">{t("selectMember")}</option>
                   {members.map((m) => (
                     <option key={m.user_id} value={m.user_id}>
                       {m.first_name} {m.last_name}
@@ -275,10 +277,10 @@ export default function RoutingSettings({ orgId }: RoutingSettingsProps) {
               <div className="flex gap-2 pt-1">
                 <Button size="sm" onClick={handleCreateRule} disabled={saving}>
                   {saving && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
-                  Créer
+                  {t("create")}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setShowForm(false)}>
-                  Annuler
+                  {t("cancel")}
                 </Button>
               </div>
             </div>

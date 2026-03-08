@@ -5,12 +5,15 @@ import { useRouter } from "next/navigation"
 import { Search, Users, Kanban, CheckSquare, Building2, X } from "lucide-react"
 import { NotificationBell } from "@/components/NotificationBell"
 import { useSearch } from "@/hooks/useSearch"
+import { useTranslations, useLocale } from "next-intl"
 
 export function SearchHeader() {
   const router = useRouter()
+  const t = useTranslations("notifications.search")
   const { query, results, loading, open, setOpen, search, close } = useSearch()
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const locale = useLocale()
 
   // Close on click outside
   useEffect(() => {
@@ -64,7 +67,7 @@ export function SearchHeader() {
               onFocus={() => {
                 if (results && query.trim().length >= 2) setOpen(true)
               }}
-              placeholder="Rechercher contacts, deals, taches..."
+              placeholder={t("placeholder")}
               className="w-full rounded-lg border border-border bg-secondary/30 py-2 pl-10 pr-10 text-sm font-[family-name:var(--font-body)] placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
             />
             {query && (
@@ -89,7 +92,7 @@ export function SearchHeader() {
               {loading && (
                 <div className="flex items-center justify-center py-6">
                   <span className="text-xs text-muted-foreground font-[family-name:var(--font-body)]">
-                    Recherche...
+                    {t("searching")}
                   </span>
                 </div>
               )}
@@ -97,7 +100,7 @@ export function SearchHeader() {
               {!loading && noResults && (
                 <div className="flex items-center justify-center py-6">
                   <span className="text-xs text-muted-foreground font-[family-name:var(--font-body)]">
-                    Aucun résultat pour &quot;{query.trim()}&quot;
+                    {t("noResults", { query: query.trim() })}
                   </span>
                 </div>
               )}
@@ -108,7 +111,7 @@ export function SearchHeader() {
                   {results.contacts.length > 0 && (
                     <div>
                       <div className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-                        Contacts
+                        {t("contacts")}
                       </div>
                       {results.contacts.map((c) => (
                         <button
@@ -136,7 +139,7 @@ export function SearchHeader() {
                   {results.companies && results.companies.length > 0 && (
                     <div>
                       <div className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)] border-t border-border/50">
-                        Entreprises
+                        {t("companies")}
                       </div>
                       {results.companies.map((company) => (
                         <button
@@ -164,7 +167,7 @@ export function SearchHeader() {
                   {results.deals.length > 0 && (
                     <div>
                       <div className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)] border-t border-border/50">
-                        Pipeline
+                        {t("pipeline")}
                       </div>
                       {results.deals.map((d) => (
                         <button
@@ -179,7 +182,7 @@ export function SearchHeader() {
                             </p>
                             <p className="text-[11px] text-muted-foreground truncate font-[family-name:var(--font-body)]">
                               {d.stage_name}{d.contact_name ? ` · ${d.contact_name}` : ""}
-                              {Number(d.amount) > 0 ? ` · ${Number(d.amount).toLocaleString("fr-FR")} €` : ""}
+                              {Number(d.amount) > 0 ? ` · ${Number(d.amount).toLocaleString(locale === "fr" ? "fr-FR" : "en-US")} €` : ""}
                             </p>
                           </div>
                         </button>
@@ -191,22 +194,22 @@ export function SearchHeader() {
                   {results.tasks.length > 0 && (
                     <div>
                       <div className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)] border-t border-border/50">
-                        Taches
+                        {t("tasks")}
                       </div>
-                      {results.tasks.map((t) => (
+                      {results.tasks.map((task) => (
                         <button
-                          key={t.id}
+                          key={task.id}
                           onClick={() => navigate("/tasks")}
                           className="flex w-full items-center gap-3 px-3 py-2 hover:bg-secondary/50 transition-colors"
                         >
                           <CheckSquare className="h-4 w-4 text-muted-foreground shrink-0" />
                           <div className="min-w-0 text-left">
                             <p className="text-sm font-medium truncate font-[family-name:var(--font-body)]">
-                              {t.description}
+                              {task.description}
                             </p>
                             <p className="text-[11px] text-muted-foreground truncate font-[family-name:var(--font-body)]">
-                              {t.priority === "high" ? "Haute" : t.priority === "low" ? "Basse" : "Normale"}
-                              {t.contact_name ? ` · ${t.contact_name}` : ""}
+                              {task.priority === "high" ? t("priorityHigh") : task.priority === "low" ? t("priorityLow") : t("priorityNormal")}
+                              {task.contact_name ? ` · ${task.contact_name}` : ""}
                             </p>
                           </div>
                         </button>

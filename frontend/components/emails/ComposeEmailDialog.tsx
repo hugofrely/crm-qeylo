@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useTranslations } from "next-intl"
 import {
   Select,
   SelectContent,
@@ -41,6 +42,7 @@ export function ComposeEmailDialog({
   contactName,
   onSent,
 }: ComposeEmailDialogProps) {
+  const tEmail = useTranslations("notifications.email")
   const [accounts, setAccounts] = useState<EmailAccount[]>([])
   const [selectedProvider, setSelectedProvider] = useState("")
   const [subject, setSubject] = useState("")
@@ -91,7 +93,7 @@ export function ComposeEmailDialog({
       onOpenChange(false)
       onSent?.()
     } catch {
-      toast.error("Erreur lors de l'envoi de l'email")
+      toast.error(tEmail("sendError"))
     } finally {
       setSending(false)
     }
@@ -189,7 +191,7 @@ export function ComposeEmailDialog({
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Annuler
+              {tEmail("cancel")}
             </Button>
             <Button onClick={handleSend} disabled={sending}>
               {sending ? (

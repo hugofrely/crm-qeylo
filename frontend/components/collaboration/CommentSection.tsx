@@ -10,6 +10,7 @@ import { Loader2, MessageSquare } from "lucide-react"
 import { apiUploadImage } from "@/lib/api"
 import { useWebSocket } from "@/hooks/useWebSocket"
 import Cookies from "js-cookie"
+import { useTranslations } from "next-intl"
 
 interface CommentSectionProps {
   entityType: "contact" | "deal" | "task"
@@ -17,6 +18,7 @@ interface CommentSectionProps {
 }
 
 export function CommentSection({ entityType, entityId }: CommentSectionProps) {
+  const t = useTranslations("notifications.comments")
   const [comments, setComments] = useState<Comment[]>([])
   const [newComment, setNewComment] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -116,7 +118,7 @@ export function CommentSection({ entityType, entityId }: CommentSectionProps) {
     <div>
       <div className="flex items-center gap-2 mb-4">
         <h2 className="text-sm font-medium font-[family-name:var(--font-body)]">
-          Commentaires ({comments.length})
+          {t("title", { count: comments.length })}
         </h2>
       </div>
 
@@ -129,7 +131,7 @@ export function CommentSection({ entityType, entityId }: CommentSectionProps) {
         <div className="flex flex-col items-center justify-center py-10">
           <MessageSquare className="h-5 w-5 text-muted-foreground/30 mb-2" />
           <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">
-            Aucun commentaire
+            {t("empty")}
           </p>
         </div>
       ) : (
@@ -152,7 +154,7 @@ export function CommentSection({ entityType, entityId }: CommentSectionProps) {
           key={editorKeyRef.current}
           content={newComment}
           onChange={setNewComment}
-          placeholder="Ecrire un commentaire... Utilisez @ pour mentionner"
+          placeholder={t("placeholder")}
           minHeight="80px"
           onImageUpload={apiUploadImage}
           onMentionQuery={handleMentionQuery}
@@ -169,7 +171,7 @@ export function CommentSection({ entityType, entityId }: CommentSectionProps) {
             ) : (
               <MessageSquare className="h-3.5 w-3.5" />
             )}
-            <span className="font-[family-name:var(--font-body)]">Commenter</span>
+            <span className="font-[family-name:var(--font-body)]">{t("submit")}</span>
           </Button>
         </div>
       </div>

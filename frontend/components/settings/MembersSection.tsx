@@ -17,12 +17,14 @@ import {
 import { UserPlus, Trash2, Loader2 } from "lucide-react"
 import type { MembersResponse } from "@/types"
 import InvitationsSection from "./InvitationsSection"
+import { useTranslations } from "next-intl"
 
 interface MembersSectionProps {
   orgId: string
 }
 
 export default function MembersSection({ orgId }: MembersSectionProps) {
+  const tMembers = useTranslations("settings.members")
   const { user } = useAuth()
   const [data, setData] = useState<MembersResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -127,7 +129,7 @@ export default function MembersSection({ orgId }: MembersSectionProps) {
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                    Annuler
+                    {tMembers("cancel")}
                   </Button>
                   <Button type="submit" disabled={inviting}>
                     {inviting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

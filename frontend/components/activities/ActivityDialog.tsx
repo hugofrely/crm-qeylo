@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { createActivity } from "@/services/activities"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -74,6 +75,7 @@ export function ActivityDialog({
   onOpenChange,
   onCreated,
 }: ActivityDialogProps) {
+  const tAct = useTranslations("notifications.activities")
   const [activeTab, setActiveTab] = useState<ActivityEntryType>("call")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -213,7 +215,7 @@ export function ActivityDialog({
           <div className="flex justify-end mt-6">
             <Button onClick={handleSubmit} disabled={submitting}>
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Enregistrer
+              {tAct("save")}
             </Button>
           </div>
         </div>

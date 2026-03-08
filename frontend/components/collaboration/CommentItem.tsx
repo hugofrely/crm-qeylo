@@ -11,6 +11,7 @@ import { toggleReaction, deleteComment, updateComment } from "@/services/collabo
 import { RichTextEditor } from "@/components/ui/RichTextEditor"
 import { apiUploadImage } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import { useTranslations, useLocale } from "next-intl"
 
 const EMOJI_OPTIONS = ["👍", "❤️", "🎉", "😄", "🤔", "👀"]
 
@@ -24,8 +25,8 @@ function CommentContent({ content }: { content: string }) {
   )
 }
 
-function formatDateTime(dateStr: string): string {
-  return new Intl.DateTimeFormat("fr-FR", {
+function formatDateTime(dateStr: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -51,6 +52,8 @@ interface CommentItemProps {
 }
 
 export function CommentItem({ comment, currentUserId, onUpdated, onDeleted }: CommentItemProps) {
+  const t = useTranslations("notifications.comments")
+  const locale = useLocale()
   const [showMenu, setShowMenu] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editContent, setEditContent] = useState(comment.content)
@@ -68,7 +71,7 @@ export function CommentItem({ comment, currentUserId, onUpdated, onDeleted }: Co
   }
 
   const handleDelete = async () => {
-    if (!confirm("Supprimer ce commentaire ?")) return
+    if (!confirm(t("deleteConfirm"))) return
     try {
       await deleteComment(comment.id)
       onDeleted(comment.id)
@@ -103,11 +106,11 @@ export function CommentItem({ comment, currentUserId, onUpdated, onDeleted }: Co
             {comment.author_name}
           </span>
           <span className="text-[11px] text-muted-foreground">
-            {formatDateTime(comment.created_at)}
+            {formatDateTime(comment.created_at, locale)}
           </span>
           {comment.edited_at && (
             <span className="text-[10px] text-muted-foreground italic">
-              (modifie)
+              {t("edited")}
             </span>
           )}
           {comment.is_private && (
@@ -129,13 +132,13 @@ export function CommentItem({ comment, currentUserId, onUpdated, onDeleted }: Co
                     onClick={() => { setEditing(true); setShowMenu(false) }}
                     className="flex items-center gap-2 w-full px-3 py-1.5 text-xs hover:bg-secondary"
                   >
-                    <Pencil className="h-3 w-3" /> Modifier
+                    <Pencil className="h-3 w-3" /> {t("edit")}
                   </button>
                   <button
                     onClick={handleDelete}
                     className="flex items-center gap-2 w-full px-3 py-1.5 text-xs text-red-600 hover:bg-secondary"
                   >
-                    <Trash2 className="h-3 w-3" /> Supprimer
+                    <Trash2 className="h-3 w-3" /> {t("delete")}
                   </button>
                 </div>
               )}
@@ -149,16 +152,16 @@ export function CommentItem({ comment, currentUserId, onUpdated, onDeleted }: Co
             <RichTextEditor
               content={editContent}
               onChange={setEditContent}
-              placeholder="Modifier le commentaire..."
+              placeholder={t("editPlaceholder")}
               minHeight="80px"
               onImageUpload={apiUploadImage}
             />
             <div className="flex gap-2">
               <Button size="sm" onClick={handleSaveEdit} disabled={!editContent.trim()}>
-                Enregistrer
+                {t("save")}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
-                Annuler
+                {t("cancel")}
               </Button>
             </div>
           </div>

@@ -1,1 +1,140 @@
-{}
+{
+  "title": "Notifications",
+  "markAllRead": "Mark all as read",
+  "loading": "Loading...",
+  "empty": "No notifications",
+  "ariaLabel": "Notifications",
+  "relativeTime": {
+    "justNow": "Just now",
+    "minutesAgo": "{minutes}m ago",
+    "hoursAgo": "{hours}h ago",
+    "yesterday": "Yesterday",
+    "daysAgo": "{days}d ago"
+  },
+  "search": {
+    "placeholder": "Search contacts, deals, tasks...",
+    "searching": "Searching...",
+    "noResults": "No results for \"{query}\"",
+    "contacts": "Contacts",
+    "companies": "Companies",
+    "pipeline": "Pipeline",
+    "tasks": "Tasks",
+    "priorityHigh": "High",
+    "priorityLow": "Low",
+    "priorityNormal": "Normal"
+  },
+  "inbox": {
+    "searchPlaceholder": "Search...",
+    "all": "All",
+    "unread": "Unread",
+    "sync": "Sync",
+    "loading": "Loading...",
+    "noEmails": "No emails",
+    "selectConversation": "Select a conversation",
+    "messages": "{count} message | {count} messages",
+    "reply": "Reply",
+    "contact": "Contact",
+    "viewContact": "View contact",
+    "noContact": "No associated contact"
+  },
+  "trash": {
+    "title": "Trash",
+    "emptyTrash": "Empty trash",
+    "retentionWarning": "Items are permanently deleted after 30 days.",
+    "emptyState": "Trash is empty",
+    "name": "Name",
+    "deletedBy": "Deleted by",
+    "deletionDate": "Deletion date",
+    "source": "Source",
+    "actions": "Actions",
+    "restore": "Restore",
+    "restoreTitle": "Restore",
+    "permanentDelete": "Permanently delete",
+    "permanentDeleteTitle": "Permanently delete",
+    "selected": "{count} selected",
+    "delete": "Delete",
+    "emptyDialogTitle": "Empty trash",
+    "emptyDialogMessage": "This action is irreversible. All items in the trash ({count}) will be permanently deleted.",
+    "emptyPermanently": "Empty permanently",
+    "restoredSuccess": "{count} item(s) restored",
+    "restoreError": "Error restoring items",
+    "deletedSuccess": "{count} item(s) permanently deleted",
+    "deleteError": "Error deleting items",
+    "emptiedSuccess": "Trash emptied",
+    "emptyError": "Error emptying trash",
+    "cancel": "Cancel",
+    "tabs": {
+      "contact": "Contacts",
+      "deal": "Deals",
+      "task": "Tasks"
+    }
+  },
+  "invite": {
+    "title": "Invitation",
+    "verifying": "Verifying...",
+    "invitedToJoin": "You are invited to join {orgName}. Log in or create an account to accept.",
+    "login": "Log in",
+    "createAccount": "Create an account",
+    "accepted": "You have successfully joined {orgName}!",
+    "goToChat": "Go to chat",
+    "invalidInvite": "The invitation is invalid or has expired.",
+    "backToHome": "Back to home"
+  },
+  "quickCreate": {
+    "contact": "Contact",
+    "deal": "Deal",
+    "task": "Task",
+    "ariaLabel": "Quick create"
+  },
+  "comments": {
+    "title": "Comments ({count})",
+    "empty": "No comments",
+    "placeholder": "Write a comment... Use @ to mention",
+    "submit": "Comment",
+    "deleteConfirm": "Delete this comment?",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editPlaceholder": "Edit comment...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edited": "(edited)",
+    "noMemberFound": "No member found"
+  },
+  "cookies": {
+    "message": "This site uses analytical cookies to improve your experience.",
+    "refuse": "Refuse",
+    "accept": "Accept"
+  },
+  "invitations": {
+    "pending": "Pending invitations ({count})",
+    "role": "Role: {role}",
+    "sentOn": "Sent on",
+    "status": "Pending"
+  },
+  "filters": {
+    "filtersTitle": "Filters",
+    "resetLabel": "Reset",
+    "searchPlaceholder": "Search...",
+    "all": "All",
+    "searchContact": "Search a contact...",
+    "searchCompany": "Search a company...",
+    "searchMember": "Search a member...",
+    "myTasks": "My tasks",
+    "reset": "Reset ({count})",
+    "noResults": "No results."
+  },
+  "dataTable": {
+    "noResults": "No results."
+  },
+  "email": {
+    "sendError": "Error sending email",
+    "cancel": "Cancel"
+  },
+  "calls": {
+    "saveError": "Error saving call",
+    "saveCall": "Save call"
+  },
+  "activities": {
+    "save": "Save"
+  }
+}

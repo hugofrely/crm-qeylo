@@ -3,16 +3,18 @@
 import { useState, useRef, useEffect } from "react"
 import { Plus, X, Users, Kanban, CheckSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-const actions = [
-  { label: "Contact", icon: Users, href: "/contacts", param: "create-contact" },
-  { label: "Deal", icon: Kanban, href: "/deals", param: "create-deal" },
-  { label: "Tâche", icon: CheckSquare, href: "/tasks", param: "create-task" },
-]
+import { useTranslations } from "next-intl"
 
 export function QuickCreateFAB() {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const t = useTranslations("notifications.quickCreate")
+
+  const actions = [
+    { label: t("contact"), icon: Users, href: "/contacts", param: "create-contact" },
+    { label: t("deal"), icon: Kanban, href: "/deals", param: "create-deal" },
+    { label: t("task"), icon: CheckSquare, href: "/tasks", param: "create-task" },
+  ]
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -50,7 +52,7 @@ export function QuickCreateFAB() {
           "hover:shadow-xl hover:scale-105 active:scale-95",
           open && "rotate-45"
         )}
-        aria-label="Création rapide"
+        aria-label={t("ariaLabel")}
       >
         {open ? <X className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
       </button>

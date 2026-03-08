@@ -6,29 +6,37 @@ import { Bell } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Notification } from "@/types"
 import { useNotifications } from "@/hooks/useNotifications"
+import { useTranslations, useLocale } from "next-intl"
 
-function formatRelativeTime(dateStr: string): string {
-  const now = new Date()
-  const date = new Date(dateStr)
-  const diffMs = now.getTime() - date.getTime()
-  const diffSec = Math.floor(diffMs / 1000)
-  const diffMin = Math.floor(diffSec / 60)
-  const diffHour = Math.floor(diffMin / 60)
-  const diffDay = Math.floor(diffHour / 24)
+function useFormatRelativeTime() {
+  const t = useTranslations("notifications.relativeTime")
+  const locale = useLocale()
 
-  if (diffSec < 60) return "À l'instant"
-  if (diffMin < 60) return `il y a ${diffMin}m`
-  if (diffHour < 24) return `il y a ${diffHour}h`
-  if (diffDay === 1) return "Hier"
-  if (diffDay < 7) return `il y a ${diffDay}j`
-  return date.toLocaleDateString("fr-FR")
+  return (dateStr: string): string => {
+    const now = new Date()
+    const date = new Date(dateStr)
+    const diffMs = now.getTime() - date.getTime()
+    const diffSec = Math.floor(diffMs / 1000)
+    const diffMin = Math.floor(diffSec / 60)
+    const diffHour = Math.floor(diffMin / 60)
+    const diffDay = Math.floor(diffHour / 24)
+
+    if (diffSec < 60) return t("justNow")
+    if (diffMin < 60) return t("minutesAgo", { minutes: diffMin })
+    if (diffHour < 24) return t("hoursAgo", { hours: diffHour })
+    if (diffDay === 1) return t("yesterday")
+    if (diffDay < 7) return t("daysAgo", { days: diffDay })
+    return date.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US")
+  }
 }
 
 export function NotificationBell() {
   const router = useRouter()
+  const t = useTranslations("notifications")
   const { notifications, unreadCount, loading, loadNotifications, markRead, markAllRead } = useNotifications()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const formatRelativeTime = useFormatRelativeTime()
 
   const handleToggle = () => {
     const willOpen = !open
@@ -82,7 +90,7 @@ export function NotificationBell() {
     <div ref={containerRef} className="relative">
       <button
         onClick={handleToggle}
-        aria-label="Notifications"
+        aria-label={t("ariaLabel")}
         className="relative rounded-lg p-2 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
       >
         <Bell className="h-[18px] w-[18px]" />
@@ -98,14 +106,14 @@ export function NotificationBell() {
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h3 className="text-sm font-medium" style={{ fontFamily: 'var(--font-display), Georgia, serif' }}>
-              Notifications
+              {t("title")}
             </h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
                 className="text-[11px] text-primary hover:underline font-medium"
               >
-                Tout marquer comme lu
+                {t("markAllRead")}
               </button>
             )}
           </div>
@@ -115,14 +123,14 @@ export function NotificationBell() {
             {loading ? (
               <div className="flex items-center justify-center py-10">
                 <span className="text-xs text-muted-foreground">
-                  Chargement...
+                  {t("loading")}
                 </span>
               </div>
             ) : notifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10">
                 <Bell className="h-5 w-5 text-muted-foreground/30 mb-2" />
                 <span className="text-xs text-muted-foreground">
-                  Aucune notification
+                  {t("empty")}
                 </span>
               </div>
             ) : (

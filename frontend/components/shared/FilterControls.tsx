@@ -7,6 +7,7 @@ import { Search, X, RotateCcw, Loader2 } from "lucide-react"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 import { useCompanyAutocomplete } from "@/hooks/useCompanyAutocomplete"
 import { useMemberAutocomplete } from "@/hooks/useMemberAutocomplete"
+import { useTranslations } from "next-intl"
 
 // --- FilterLabel (internal helper) ---
 function FilterLabel({ children }: { children: React.ReactNode }) {
@@ -37,13 +38,14 @@ interface FilterSearchInputProps {
   label?: string
 }
 
-export function FilterSearchInput({ value, onChange, placeholder = "Rechercher...", className, label }: FilterSearchInputProps) {
+export function FilterSearchInput({ value, onChange, placeholder, className, label }: FilterSearchInputProps) {
+  const t = useTranslations("notifications.filters")
   return (
     <FilterGroup label={label} className={className}>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder={placeholder}
+          placeholder={placeholder ?? t("searchPlaceholder")}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="pl-9 h-9 bg-background border-border w-full"
@@ -71,7 +73,8 @@ interface FilterPillsProps {
   label?: string
 }
 
-export function FilterPills({ options, value, onChange, allLabel = "Tous", showAll = false, label }: FilterPillsProps) {
+export function FilterPills({ options, value, onChange, allLabel, showAll = false, label }: FilterPillsProps) {
+  const t = useTranslations("notifications.filters")
   const activeClass = "bg-primary text-primary-foreground shadow-sm"
   const inactiveClass = "bg-background text-muted-foreground border border-border hover:bg-secondary/80 hover:text-foreground"
 
@@ -85,7 +88,7 @@ export function FilterPills({ options, value, onChange, allLabel = "Tous", showA
               value === null ? activeClass : inactiveClass
             }`}
           >
-            {allLabel}
+            {allLabel ?? t("all")}
           </button>
         )}
         {options.map((opt) => (
@@ -116,7 +119,8 @@ interface FilterSelectProps {
   label?: string
 }
 
-export function FilterSelect({ options, value, onChange, placeholder = "Tous", className, label }: FilterSelectProps) {
+export function FilterSelect({ options, value, onChange, placeholder, className, label }: FilterSelectProps) {
+  const t = useTranslations("notifications.filters")
   return (
     <FilterGroup label={label}>
       <select
@@ -124,7 +128,7 @@ export function FilterSelect({ options, value, onChange, placeholder = "Tous", c
         onChange={(e) => onChange(e.target.value)}
         className={`h-9 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-[family-name:var(--font-body)] ${className ?? ""}`}
       >
-        <option value="">{placeholder}</option>
+        <option value="">{placeholder ?? t("all")}</option>
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>
         ))}
@@ -192,6 +196,7 @@ interface FilterContactSearchProps {
 }
 
 export function FilterContactSearch({ contactId, contactLabel, onSelect, onClear, label, className }: FilterContactSearchProps) {
+  const t = useTranslations("notifications.filters")
   const autocomplete = useContactAutocomplete()
 
   return (
@@ -209,7 +214,7 @@ export function FilterContactSearch({ contactId, contactLabel, onSelect, onClear
           <>
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
-              placeholder="Rechercher un contact..."
+              placeholder={t("searchContact")}
               value={autocomplete.query}
               onChange={(e) => autocomplete.search(e.target.value)}
               onFocus={() => { if (autocomplete.results.length > 0) autocomplete.setOpen(true) }}
@@ -253,6 +258,7 @@ interface FilterCompanySearchProps {
 }
 
 export function FilterCompanySearch({ companyId, companyLabel, onSelect, onClear, label, className }: FilterCompanySearchProps) {
+  const t = useTranslations("notifications.filters")
   const autocomplete = useCompanyAutocomplete()
 
   return (
@@ -270,7 +276,7 @@ export function FilterCompanySearch({ companyId, companyLabel, onSelect, onClear
           <>
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
-              placeholder="Rechercher une entreprise..."
+              placeholder={t("searchCompany")}
               value={autocomplete.query}
               onChange={(e) => autocomplete.search(e.target.value)}
               onFocus={() => { if (autocomplete.results.length > 0) autocomplete.setOpen(true) }}
@@ -315,8 +321,10 @@ interface FilterMemberSearchProps {
   className?: string
 }
 
-export function FilterMemberSearch({ memberId, memberLabel, onSelect, onClear, showMyTasks, myTasksLabel = "Mes tâches", label, className }: FilterMemberSearchProps) {
+export function FilterMemberSearch({ memberId, memberLabel, onSelect, onClear, showMyTasks, myTasksLabel, label, className }: FilterMemberSearchProps) {
+  const t = useTranslations("notifications.filters")
   const autocomplete = useMemberAutocomplete()
+  const resolvedMyTasksLabel = myTasksLabel ?? t("myTasks")
 
   return (
     <FilterGroup label={label} className={className}>
@@ -324,13 +332,13 @@ export function FilterMemberSearch({ memberId, memberLabel, onSelect, onClear, s
         {showMyTasks && (
           <button
             onClick={() => {
-              if (memberId === "me") { onClear() } else { onSelect("me", myTasksLabel) }
+              if (memberId === "me") { onClear() } else { onSelect("me", resolvedMyTasksLabel) }
             }}
             className={`px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors text-left font-[family-name:var(--font-body)] ${
               memberId === "me" ? "bg-primary text-primary-foreground shadow-sm" : "bg-background text-muted-foreground border border-border hover:bg-secondary/80 hover:text-foreground"
             }`}
           >
-            {myTasksLabel}
+            {resolvedMyTasksLabel}
           </button>
         )}
         <div className="relative" ref={autocomplete.wrapperRef}>
@@ -346,7 +354,7 @@ export function FilterMemberSearch({ memberId, memberLabel, onSelect, onClear, s
             <>
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
-                placeholder="Rechercher un membre..."
+                placeholder={t("searchMember")}
                 value={autocomplete.query}
                 onChange={(e) => autocomplete.search(e.target.value)}
                 onFocus={() => { if (autocomplete.results.length > 0) autocomplete.setOpen(true) }}
@@ -384,11 +392,12 @@ interface FilterResetButtonProps {
 }
 
 export function FilterResetButton({ activeFilterCount, onReset }: FilterResetButtonProps) {
+  const t = useTranslations("notifications.filters")
   if (activeFilterCount === 0) return null
   return (
     <Button variant="ghost" size="sm" onClick={onReset} className="gap-1 text-muted-foreground h-9 text-xs">
       <RotateCcw className="h-3 w-3" />
-      Réinitialiser ({activeFilterCount})
+      {t("reset", { count: activeFilterCount })}
     </Button>
   )
 }

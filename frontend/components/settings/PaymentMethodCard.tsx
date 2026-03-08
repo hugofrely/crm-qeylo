@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { CreditCard } from "lucide-react"
 import type { PaymentMethod } from "@/types/subscriptions"
+import { useTranslations } from "next-intl"
 
 interface PaymentMethodCardProps {
   paymentMethod: PaymentMethod | null
@@ -11,11 +12,13 @@ interface PaymentMethodCardProps {
 }
 
 export default function PaymentMethodCard({ paymentMethod, onUpdate }: PaymentMethodCardProps) {
+  const t = useTranslations("settings.billing")
+
   return (
     <Card className="border-border">
       <CardContent className="p-6 font-[family-name:var(--font-body)]">
         <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
-          Moyen de paiement
+          {t("paymentMethod")}
         </h3>
 
         {paymentMethod ? (
@@ -31,22 +34,22 @@ export default function PaymentMethodCard({ paymentMethod, onUpdate }: PaymentMe
                 <p className="text-sm text-muted-foreground">
                   &bull;&bull;&bull;&bull; {paymentMethod.last4}
                   <span className="ml-3">
-                    Expire {String(paymentMethod.exp_month).padStart(2, "0")}/{paymentMethod.exp_year}
+                    {t("expires")} {String(paymentMethod.exp_month).padStart(2, "0")}/{paymentMethod.exp_year}
                   </span>
                 </p>
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={onUpdate}>
-              Modifier
+              {t("editPayment")}
             </Button>
           </div>
         ) : (
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Aucun moyen de paiement
+              {t("noPaymentMethod")}
             </p>
             <Button variant="outline" size="sm" onClick={onUpdate}>
-              Ajouter
+              {t("addPaymentMethod")}
             </Button>
           </div>
         )}

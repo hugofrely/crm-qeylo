@@ -9,25 +9,14 @@ import { fetchScoringRules, updateScoringRule } from "@/services/scoring"
 import { fetchOrgSettings, updateOrgSettings } from "@/services/organizations"
 import type { ScoringRule } from "@/types/contacts"
 import { toast } from "sonner"
-
-const EVENT_LABELS: Record<string, string> = {
-  email_sent: "Email envoyé",
-  email_opened: "Email ouvert",
-  email_clicked: "Email cliqué",
-  call_made: "Appel effectué",
-  call_answered: "Appel décroché",
-  deal_created: "Deal créé",
-  deal_won: "Deal gagné",
-  meeting: "Réunion",
-  note_added: "Note ajoutée",
-  task_completed: "Tâche terminée",
-}
+import { useTranslations } from "next-intl"
 
 interface ScoringSettingsProps {
   orgId: string
 }
 
 export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
+  const t = useTranslations("settings.scoring")
   const [rules, setRules] = useState<ScoringRule[]>([])
   const [hotThreshold, setHotThreshold] = useState(70)
   const [warmThreshold, setWarmThreshold] = useState(30)
@@ -43,9 +32,9 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
       setHotThreshold(settings.scoring_hot_threshold ?? 70)
       setWarmThreshold(settings.scoring_warm_threshold ?? 30)
     }).catch(() => {
-      toast.error("Erreur lors du chargement des règles de scoring")
+      toast.error(t("loadError"))
     }).finally(() => setLoading(false))
-  }, [orgId])
+  }, [orgId, t])
 
   const handlePointsChange = async (rule: ScoringRule, points: number) => {
     setSaving(true)
@@ -53,7 +42,7 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
       await updateScoringRule(rule.id, { points })
       setRules((prev) => prev.map((r) => (r.id === rule.id ? { ...r, points } : r)))
     } catch {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(t("updateError"))
     } finally {
       setSaving(false)
     }
@@ -65,7 +54,7 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
       await updateScoringRule(rule.id, { is_active })
       setRules((prev) => prev.map((r) => (r.id === rule.id ? { ...r, is_active } : r)))
     } catch {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(t("updateError"))
     } finally {
       setSaving(false)
     }
@@ -78,11 +67,19 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
         scoring_hot_threshold: hotThreshold,
         scoring_warm_threshold: warmThreshold,
       })
-      toast.success("Seuils mis à jour")
+      toast.success(t("thresholdsUpdated"))
     } catch {
-      toast.error("Erreur lors de la mise à jour")
+      toast.error(t("updateError"))
     } finally {
       setSaving(false)
+    }
+  }
+
+  const getEventLabel = (eventType: string): string => {
+    try {
+      return t(`events.${eventType}`)
+    } catch {
+      return eventType
     }
   }
 
@@ -102,9 +99,9 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
             <Flame className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-xl tracking-tight">Lead scoring</h2>
+            <h2 className="text-xl tracking-tight">{t("title")}</h2>
             <p className="text-xs text-muted-foreground mt-1 font-[family-name:var(--font-body)]">
-              Attribuez des points automatiquement selon les activités des contacts
+              {t("subtitle")}
             </p>
           </div>
           {saving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground ml-auto" />}
@@ -115,7 +112,7 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
         {/* Scoring rules */}
         <div>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">
-            Points par activité
+            {t("pointsPerActivity")}
           </p>
           <div className="space-y-3">
             {rules.map((rule) => (
@@ -125,7 +122,7 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
                     checked={rule.is_active}
                     onCheckedChange={(checked) => handleToggle(rule, !!checked)}
                   />
-                  <span className="text-sm">{EVENT_LABELS[rule.event_type] || rule.event_type}</span>
+                  <span className="text-sm">{getEventLabel(rule.event_type)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Input
@@ -143,7 +140,7 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
                     }}
                     className="w-20 h-8 text-center text-sm"
                   />
-                  <span className="text-xs text-muted-foreground">pts</span>
+                  <span className="text-xs text-muted-foreground">{t("pts")}</span>
                 </div>
               </div>
             ))}
@@ -155,13 +152,13 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
         {/* Thresholds */}
         <div>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">
-            Seuils de qualification
+            {t("qualificationThresholds")}
           </p>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-sm">
                 <span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-1.5" />
-                Chaud (HOT) ≥
+                {t("hotLabel")}
               </Label>
               <Input
                 type="number"
@@ -176,7 +173,7 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
             <div className="space-y-1.5">
               <Label className="text-sm">
                 <span className="inline-block w-2 h-2 rounded-full bg-orange-500 mr-1.5" />
-                Tiède (WARM) ≥
+                {t("warmLabel")}
               </Label>
               <Input
                 type="number"
@@ -190,7 +187,7 @@ export default function ScoringSettings({ orgId }: ScoringSettingsProps) {
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            En dessous de {warmThreshold} = Froid (COLD)
+            {t("coldBelow", { threshold: warmThreshold })}
           </p>
         </div>
       </div>

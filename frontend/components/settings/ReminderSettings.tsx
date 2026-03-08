@@ -4,36 +4,38 @@ import { useState, useEffect } from "react"
 import { Bell, Plus, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { fetchOrgSettings, updateOrgSettings } from "@/services/organizations"
+import { useTranslations } from "next-intl"
 
 interface ReminderSettingsProps {
   orgId: string
 }
 
-const PRESET_OPTIONS = [
-  { value: 15, label: "15 minutes" },
-  { value: 30, label: "30 minutes" },
-  { value: 60, label: "1 heure" },
-  { value: 120, label: "2 heures" },
-  { value: 1440, label: "1 jour" },
-  { value: 2880, label: "2 jours" },
-]
-
-function formatOffset(minutes: number): string {
-  if (minutes >= 1440) {
-    const days = minutes / 1440
-    return days === 1 ? "1 jour" : `${days} jours`
-  }
-  if (minutes >= 60) {
-    const hours = minutes / 60
-    return hours === 1 ? "1 heure" : `${hours} heures`
-  }
-  return `${minutes} minutes`
-}
-
 export default function ReminderSettings({ orgId }: ReminderSettingsProps) {
+  const t = useTranslations("settings.reminders")
   const [offsets, setOffsets] = useState<number[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+
+  const PRESET_OPTIONS = [
+    { value: 15, label: t("presets.15") },
+    { value: 30, label: t("presets.30") },
+    { value: 60, label: t("presets.60") },
+    { value: 120, label: t("presets.120") },
+    { value: 1440, label: t("presets.1440") },
+    { value: 2880, label: t("presets.2880") },
+  ]
+
+  function formatOffset(minutes: number): string {
+    if (minutes >= 1440) {
+      const days = minutes / 1440
+      return days === 1 ? t("format.oneDay") : t("format.days", { count: days })
+    }
+    if (minutes >= 60) {
+      const hours = minutes / 60
+      return hours === 1 ? t("format.oneHour") : t("format.hours", { count: hours })
+    }
+    return t("format.minutes", { count: minutes })
+  }
 
   useEffect(() => {
     fetchOrgSettings(orgId)
@@ -79,24 +81,24 @@ export default function ReminderSettings({ orgId }: ReminderSettingsProps) {
     <div className="rounded-xl border border-border bg-card p-6 space-y-4">
       <div className="flex items-center gap-2">
         <Bell className="h-5 w-5 text-primary" />
-        <h2 className="text-lg font-semibold tracking-tight">Rappels de tâches</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t("title")}</h2>
         {saving && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
       </div>
       <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">
-        Recevez une notification avant l&apos;échéance de vos tâches.
+        {t("description")}
       </p>
 
       {/* Current offsets */}
       <div className="flex flex-wrap gap-2">
         {offsets.length === 0 && (
-          <p className="text-sm text-muted-foreground italic">Aucun rappel configuré</p>
+          <p className="text-sm text-muted-foreground italic">{t("noReminders")}</p>
         )}
         {offsets.map((offset) => (
           <span
             key={offset}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium"
           >
-            {formatOffset(offset)} avant
+            {formatOffset(offset)} {t("before")}
             <button
               onClick={() => removeOffset(offset)}
               className="rounded-full p-0.5 hover:bg-primary/20 transition-colors"

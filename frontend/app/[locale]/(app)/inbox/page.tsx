@@ -18,6 +18,7 @@ import { ComposeEmailDialog } from "@/components/emails/ComposeEmailDialog"
 import { cn } from "@/lib/utils"
 import type { EmailThread, Email, SyncStatus, EmailAccount } from "@/types/emails"
 import Link from "next/link"
+import { useTranslations, useLocale } from "next-intl"
 
 function formatRelativeTime(dateStr: string): string {
   const now = new Date()
@@ -35,6 +36,8 @@ function formatRelativeTime(dateStr: string): string {
 }
 
 export default function InboxPage() {
+  const t = useTranslations("notifications.inbox")
+  const locale = useLocale()
   const [threads, setThreads] = useState<EmailThread[]>([])
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null)
   const [emails, setEmails] = useState<Email[]>([])
@@ -135,7 +138,7 @@ export default function InboxPage() {
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher..."
+              placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 h-9 text-sm"
@@ -148,7 +151,7 @@ export default function InboxPage() {
               className="h-7 text-xs"
               onClick={() => setFilter("all")}
             >
-              Tous
+              {t("all")}
             </Button>
             <Button
               variant={filter === "unread" ? "default" : "ghost"}
@@ -156,7 +159,7 @@ export default function InboxPage() {
               className="h-7 text-xs"
               onClick={() => setFilter("unread")}
             >
-              Non lus
+              {t("unread")}
             </Button>
             <div className="flex-1" />
             <Button
@@ -165,7 +168,7 @@ export default function InboxPage() {
               className="h-7 w-7 p-0"
               onClick={handleSync}
               disabled={syncing}
-              title="Synchroniser"
+              title={t("sync")}
             >
               <RefreshCw
                 className={cn("h-3.5 w-3.5", syncing && "animate-spin")}
@@ -178,12 +181,12 @@ export default function InboxPage() {
         <ScrollArea className="flex-1">
           {loadingThreads ? (
             <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
-              Chargement...
+              {t("loading")}
             </div>
           ) : threads.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Inbox className="h-8 w-8 mb-2 opacity-40" />
-              <p className="text-sm">Aucun email</p>
+              <p className="text-sm">{t("noEmails")}</p>
             </div>
           ) : (
             <div className="divide-y divide-border">
@@ -253,7 +256,7 @@ export default function InboxPage() {
         {!selectedThread ? (
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
             <Inbox className="h-12 w-12 mb-3 opacity-30" />
-            <p className="text-sm">Select a conversation</p>
+            <p className="text-sm">{t("selectConversation")}</p>
           </div>
         ) : (
           <>
@@ -281,7 +284,7 @@ export default function InboxPage() {
             <ScrollArea className="flex-1">
               {loadingEmails ? (
                 <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
-                  Chargement...
+                  {t("loading")}
                 </div>
               ) : (
                 <div className="p-4 space-y-4">
@@ -309,7 +312,7 @@ export default function InboxPage() {
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {new Date(email.sent_at).toLocaleDateString("fr-FR", {
+                            {new Date(email.sent_at).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
                               day: "numeric",
                               month: "short",
                               year: "numeric",
@@ -337,7 +340,7 @@ export default function InboxPage() {
                 disabled={!contactId}
               >
                 <Send className="h-4 w-4 mr-2" />
-                Repondre
+                {t("reply")}
               </Button>
             </div>
           </>
@@ -348,7 +351,7 @@ export default function InboxPage() {
       <div className="hidden lg:flex w-[280px] shrink-0 border-l border-border flex-col">
         {selectedThread && contactId ? (
           <div className="p-4 space-y-4">
-            <h3 className="text-sm font-semibold">Contact</h3>
+            <h3 className="text-sm font-semibold">{t("contact")}</h3>
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
                 <User className="h-5 w-5 text-muted-foreground" />
@@ -366,12 +369,12 @@ export default function InboxPage() {
               href={`/contacts/${contactId}`}
               className="block text-sm text-primary hover:underline"
             >
-              Voir le contact
+              {t("viewContact")}
             </Link>
           </div>
         ) : selectedThread ? (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            <p className="text-xs">Aucun contact associe</p>
+            <p className="text-xs">{t("noContact")}</p>
           </div>
         ) : null}
       </div>

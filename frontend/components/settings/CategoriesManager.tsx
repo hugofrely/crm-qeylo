@@ -14,8 +14,10 @@ import {
 } from "@/components/ui/dialog"
 import { Trash2, Loader2, Plus, Pencil } from "lucide-react"
 import type { ContactCategory } from "@/types"
+import { useTranslations } from "next-intl"
 
 export default function CategoriesManager() {
+  const t = useTranslations("settings.categories")
   const [categories, setCategories] = useState<ContactCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -73,7 +75,7 @@ export default function CategoriesManager() {
 
   const handleDelete = async (category: ContactCategory) => {
     if (category.is_default) return
-    if (!confirm(`Supprimer la catégorie "${category.name}" ?`)) return
+    if (!confirm(t("deleteConfirm", { name: category.name }))) return
     try {
       await deleteContactCategory(category.id)
       fetchCategories()
@@ -85,9 +87,9 @@ export default function CategoriesManager() {
   return (
     <div className="rounded-xl border border-border bg-card p-6 space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">Catégories de contacts</h2>
+        <h2 className="text-lg font-semibold">{t("title")}</h2>
         <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">
-          Organisez vos contacts par catégorie
+          {t("subtitle")}
         </p>
       </div>
 
@@ -114,7 +116,7 @@ export default function CategoriesManager() {
               </Badge>
               {category.is_default && (
                 <Badge variant="outline" className="text-[10px] font-normal">
-                  Défaut
+                  {t("default")}
                 </Badge>
               )}
               <button
@@ -142,33 +144,33 @@ export default function CategoriesManager() {
         onClick={() => openDialog()}
       >
         <Plus className="h-4 w-4" />
-        Ajouter une catégorie
+        {t("addCategory")}
       </Button>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? "Modifier la catégorie" : "Nouvelle catégorie"}
+              {editingCategory ? t("editTitle") : t("newTitle")}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4 font-[family-name:var(--font-body)]">
             <div className="space-y-2">
               <Label htmlFor="category-name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Nom
+                {t("name")}
               </Label>
               <Input
                 id="category-name"
                 value={categoryName}
                 onChange={(e) => setCategoryName(e.target.value)}
-                placeholder="Nom de la catégorie"
+                placeholder={t("namePlaceholder")}
                 required
                 className="h-11 bg-secondary/30 border-border/60"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="category-color" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Couleur
+                {t("color")}
               </Label>
               <div className="flex items-center gap-3">
                 <input
@@ -188,11 +190,11 @@ export default function CategoriesManager() {
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Annuler
+                {t("cancel")}
               </Button>
               <Button type="submit" disabled={saving}>
                 {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {editingCategory ? "Enregistrer" : "Créer"}
+                {editingCategory ? t("save") : t("create")}
               </Button>
             </div>
           </form>

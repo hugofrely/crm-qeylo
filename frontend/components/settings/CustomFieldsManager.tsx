@@ -14,20 +14,10 @@ import {
 } from "@/components/ui/dialog"
 import { Trash2, Loader2, Plus, Pencil } from "lucide-react"
 import type { CustomFieldDefinition } from "@/types"
-
-const FIELD_TYPE_LABELS: Record<string, string> = {
-  text: "Texte",
-  long_text: "Texte long",
-  number: "Nombre",
-  date: "Date",
-  select: "Sélection",
-  email: "Email",
-  phone: "Téléphone",
-  url: "URL",
-  checkbox: "Case à cocher",
-}
+import { useTranslations } from "next-intl"
 
 export default function CustomFieldsManager() {
+  const t = useTranslations("settings.customFields")
   const [customFields, setCustomFields] = useState<CustomFieldDefinition[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -37,6 +27,18 @@ export default function CustomFieldsManager() {
   const [fieldRequired, setFieldRequired] = useState(false)
   const [fieldOptions, setFieldOptions] = useState("")
   const [saving, setSaving] = useState(false)
+
+  const FIELD_TYPE_LABELS: Record<string, string> = {
+    text: t("types.text"),
+    long_text: t("types.long_text"),
+    number: t("types.number"),
+    date: t("types.date"),
+    select: t("types.select"),
+    email: t("types.email"),
+    phone: t("types.phone"),
+    url: t("types.url"),
+    checkbox: t("types.checkbox"),
+  }
 
   const fetchFields = useCallback(async () => {
     setLoading(true)
@@ -101,7 +103,7 @@ export default function CustomFieldsManager() {
   }
 
   const handleDelete = async (field: CustomFieldDefinition) => {
-    if (!confirm(`Supprimer le champ "${field.label}" ?`)) return
+    if (!confirm(t("deleteConfirm", { label: field.label }))) return
     try {
       await deleteCustomFieldDefinition(field.id)
       fetchFields()
@@ -113,9 +115,9 @@ export default function CustomFieldsManager() {
   return (
     <div className="rounded-xl border border-border bg-card p-6 space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">Champs personnalisés</h2>
+        <h2 className="text-lg font-semibold">{t("title")}</h2>
         <p className="text-sm text-muted-foreground font-[family-name:var(--font-body)]">
-          Définissez des champs additionnels pour vos contacts
+          {t("subtitle")}
         </p>
       </div>
 
@@ -138,7 +140,7 @@ export default function CustomFieldsManager() {
               </Badge>
               {field.is_required && (
                 <Badge variant="outline" className="text-[10px] font-normal">
-                  Requis
+                  {t("required")}
                 </Badge>
               )}
               <button
@@ -164,33 +166,33 @@ export default function CustomFieldsManager() {
         onClick={() => openDialog()}
       >
         <Plus className="h-4 w-4" />
-        Ajouter un champ
+        {t("addField")}
       </Button>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingField ? "Modifier le champ" : "Nouveau champ personnalisé"}
+              {editingField ? t("editTitle") : t("newTitle")}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4 font-[family-name:var(--font-body)]">
             <div className="space-y-2">
               <Label htmlFor="field-label" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Libellé
+                {t("label")}
               </Label>
               <Input
                 id="field-label"
                 value={fieldLabel}
                 onChange={(e) => setFieldLabel(e.target.value)}
-                placeholder="Nom du champ"
+                placeholder={t("labelPlaceholder")}
                 required
                 className="h-11 bg-secondary/30 border-border/60"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="field-type" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Type
+                {t("type")}
               </Label>
               <select
                 id="field-type"
@@ -208,13 +210,13 @@ export default function CustomFieldsManager() {
             {fieldType === "select" && (
               <div className="space-y-2">
                 <Label htmlFor="field-options" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Options
+                  {t("options")}
                 </Label>
                 <textarea
                   id="field-options"
                   value={fieldOptions}
                   onChange={(e) => setFieldOptions(e.target.value)}
-                  placeholder="Une option par ligne"
+                  placeholder={t("optionsPlaceholder")}
                   rows={4}
                   className="w-full rounded-lg border border-border/60 bg-secondary/30 px-3 py-2.5 text-sm resize-none"
                 />
@@ -229,16 +231,16 @@ export default function CustomFieldsManager() {
                 className="h-4 w-4 rounded border-border/60"
               />
               <Label htmlFor="field-required" className="text-sm font-[family-name:var(--font-body)] cursor-pointer">
-                Champ requis
+                {t("requiredField")}
               </Label>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Annuler
+                {t("cancel")}
               </Button>
               <Button type="submit" disabled={saving}>
                 {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {editingField ? "Enregistrer" : "Créer"}
+                {editingField ? t("save") : t("create")}
               </Button>
             </div>
           </form>

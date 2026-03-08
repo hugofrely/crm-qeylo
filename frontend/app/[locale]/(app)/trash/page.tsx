@@ -15,12 +15,7 @@ import { PageHeader } from "@/components/shared/PageHeader"
 import { useTrash } from "@/hooks/useTrash"
 import { restoreItems, permanentDeleteItems, emptyTrash } from "@/services/trash"
 import type { TrashItem } from "@/types/trash"
-
-const TYPE_LABELS: Record<string, string> = {
-  contact: "Contacts",
-  deal: "Deals",
-  task: "Tâches",
-}
+import { useTranslations, useLocale } from "next-intl"
 
 function TrashTable({
   items,
@@ -29,6 +24,8 @@ function TrashTable({
   onToggleAll,
   onRestore,
   onPermanentDelete,
+  t,
+  locale,
 }: {
   items: TrashItem[]
   selectedIds: Set<string>
@@ -36,12 +33,14 @@ function TrashTable({
   onToggleAll: () => void
   onRestore: (ids: string[]) => void
   onPermanentDelete: (ids: string[]) => void
+  t: ReturnType<typeof useTranslations>
+  locale: string
 }) {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
         <Trash2 className="h-12 w-12 mb-4 opacity-30" />
-        <p>La corbeille est vide</p>
+        <p>{t("emptyState")}</p>
       </div>
     )
   }
@@ -59,11 +58,11 @@ function TrashTable({
                 className="rounded border-input"
               />
             </th>
-            <th className="p-3">Nom</th>
-            <th className="p-3">Supprimé par</th>
-            <th className="p-3">Date de suppression</th>
-            <th className="p-3">Source</th>
-            <th className="p-3 text-right">Actions</th>
+            <th className="p-3">{t("name")}</th>
+            <th className="p-3">{t("deletedBy")}</th>
+            <th className="p-3">{t("deletionDate")}</th>
+            <th className="p-3">{t("source")}</th>
+            <th className="p-3 text-right">{t("actions")}</th>
           </tr>
         </thead>
         <tbody>
@@ -82,7 +81,7 @@ function TrashTable({
                 {item.deleted_by_name || "-"}
               </td>
               <td className="p-3 text-muted-foreground">
-                {new Date(item.deleted_at).toLocaleDateString("fr-FR", {
+                {new Date(item.deleted_at).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
                   day: "numeric",
                   month: "short",
                   year: "numeric",
@@ -104,7 +103,7 @@ function TrashTable({
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => onRestore([item.id])}
-                  title="Restaurer"
+                  title={t("restoreTitle")}
                 >
                   <RotateCcw className="h-4 w-4" />
                 </Button>
@@ -113,7 +112,7 @@ function TrashTable({
                   size="icon-sm"
                   className="text-destructive hover:text-destructive"
                   onClick={() => onPermanentDelete([item.id])}
-                  title="Supprimer définitivement"
+                  title={t("permanentDeleteTitle")}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -127,11 +126,19 @@ function TrashTable({
 }
 
 export default function TrashPage() {
+  const t = useTranslations("notifications.trash")
+  const locale = useLocale()
   const [activeTab, setActiveTab] = useState("contact")
   const { items, counts, loading, refresh } = useTrash(activeTab)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [emptyDialogOpen, setEmptyDialogOpen] = useState(false)
   const [emptying, setEmptying] = useState(false)
+
+  const TYPE_LABELS: Record<string, string> = {
+    contact: t("tabs.contact"),
+    deal: t("tabs.deal"),
+    task: t("tabs.task"),
+  }
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -153,22 +160,22 @@ export default function TrashPage() {
   const handleRestore = async (ids: string[]) => {
     try {
       await restoreItems(activeTab, ids)
-      toast.success(`${ids.length} élément(s) restauré(s)`)
+      toast.success(t("restoredSuccess", { count: ids.length }))
       setSelectedIds(new Set())
       refresh()
     } catch {
-      toast.error("Erreur lors de la restauration")
+      toast.error(t("restoreError"))
     }
   }
 
   const handlePermanentDelete = async (ids: string[]) => {
     try {
       await permanentDeleteItems(activeTab, ids)
-      toast.success(`${ids.length} élément(s) supprimé(s) définitivement`)
+      toast.success(t("deletedSuccess", { count: ids.length }))
       setSelectedIds(new Set())
       refresh()
     } catch {
-      toast.error("Erreur lors de la suppression")
+      toast.error(t("deleteError"))
     }
   }
 
@@ -176,12 +183,12 @@ export default function TrashPage() {
     setEmptying(true)
     try {
       await emptyTrash()
-      toast.success("Corbeille vidée")
+      toast.success(t("emptiedSuccess"))
       setEmptyDialogOpen(false)
       setSelectedIds(new Set())
       refresh()
     } catch {
-      toast.error("Erreur lors du vidage de la corbeille")
+      toast.error(t("emptyError"))
     } finally {
       setEmptying(false)
     }
@@ -189,7 +196,7 @@ export default function TrashPage() {
 
   return (
     <div className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
-      <PageHeader title="Corbeille">
+      <PageHeader title={t("title")}>
         {counts.total > 0 && (
           <Button
             variant="outline"
@@ -198,7 +205,7 @@ export default function TrashPage() {
             onClick={() => setEmptyDialogOpen(true)}
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            Vider la corbeille
+            {t("emptyTrash")}
           </Button>
         )}
       </PageHeader>
@@ -206,7 +213,7 @@ export default function TrashPage() {
       <div>
         <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/20 p-3 text-sm text-amber-800 dark:text-amber-200 flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 shrink-0" />
-          Les éléments sont supprimés définitivement après 30 jours.
+          {t("retentionWarning")}
         </div>
       </div>
 
@@ -229,7 +236,7 @@ export default function TrashPage() {
             {selectedIds.size > 0 && (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
-                  {selectedIds.size} sélectionné(s)
+                  {t("selected", { count: selectedIds.size })}
                 </span>
                 <Button
                   variant="outline"
@@ -237,7 +244,7 @@ export default function TrashPage() {
                   onClick={() => handleRestore(Array.from(selectedIds))}
                 >
                   <RotateCcw className="h-4 w-4 mr-1" />
-                  Restaurer
+                  {t("restore")}
                 </Button>
                 <Button
                   variant="outline"
@@ -246,7 +253,7 @@ export default function TrashPage() {
                   onClick={() => handlePermanentDelete(Array.from(selectedIds))}
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
-                  Supprimer
+                  {t("delete")}
                 </Button>
               </div>
             )}
@@ -266,6 +273,8 @@ export default function TrashPage() {
                   onToggleAll={toggleAll}
                   onRestore={handleRestore}
                   onPermanentDelete={handlePermanentDelete}
+                  t={t}
+                  locale={locale}
                 />
               </TabsContent>
             ))
@@ -276,19 +285,18 @@ export default function TrashPage() {
       <Dialog open={emptyDialogOpen} onOpenChange={setEmptyDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Vider la corbeille</DialogTitle>
+            <DialogTitle>{t("emptyDialogTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Cette action est irréversible. Tous les éléments de la corbeille
-            ({counts.total}) seront supprimés définitivement.
+            {t("emptyDialogMessage", { count: counts.total })}
           </p>
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setEmptyDialogOpen(false)}>
-              Annuler
+              {t("cancel")}
             </Button>
             <Button variant="destructive" onClick={handleEmpty} disabled={emptying}>
               {emptying && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Vider définitivement
+              {t("emptyPermanently")}
             </Button>
           </div>
         </DialogContent>

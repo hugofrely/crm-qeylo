@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
 export interface DataTableColumn<T> {
   key: string
@@ -35,10 +36,12 @@ export function DataTable<T>({
   data,
   loading,
   emptyIcon,
-  emptyMessage = "Aucun résultat.",
+  emptyMessage: emptyMessageProp,
   onRowClick,
   rowKey,
 }: DataTableProps<T>) {
+  const t = useTranslations("notifications.dataTable")
+  const emptyMessage = emptyMessageProp ?? t("noResults")
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">

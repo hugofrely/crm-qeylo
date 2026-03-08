@@ -12,11 +12,13 @@ import { HowItWorks } from "@/components/landing/how-it-works"
 import { Pricing } from "@/components/landing/pricing"
 import { CTA } from "@/components/landing/cta"
 import { Footer } from "@/components/landing/footer"
+import { useTranslations } from "next-intl"
 
 export default function HomePage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const [showLanding, setShowLanding] = useState(false)
+  const t = useTranslations("common")
 
   useEffect(() => {
     if (!loading) {
@@ -31,7 +33,7 @@ export default function HomePage() {
   if (!showLanding) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-muted-foreground">Chargement...</div>
+        <div className="text-muted-foreground">{t("loading")}</div>
       </div>
     )
   }

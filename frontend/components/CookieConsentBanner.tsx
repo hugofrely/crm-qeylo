@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import posthog from "posthog-js"
 import { AnimatePresence, motion } from "motion/react"
 import { Button } from "@/components/ui/button"
+import { useTranslations } from "next-intl"
 
 const CONSENT_KEY = "ph_cookie_consent"
 
@@ -15,6 +16,7 @@ function getStoredConsent(): "granted" | "denied" | null {
 }
 
 export function CookieConsentBanner() {
+  const t = useTranslations("notifications.cookies")
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -50,14 +52,14 @@ export function CookieConsentBanner() {
         >
           <div className="mx-auto max-w-2xl flex items-center justify-between gap-4 rounded-xl border bg-background/80 backdrop-blur-lg px-5 py-3 shadow-lg">
             <p className="text-sm text-muted-foreground">
-              Ce site utilise des cookies analytiques pour ameliorer votre experience.
+              {t("message")}
             </p>
             <div className="flex items-center gap-2 shrink-0">
               <Button variant="ghost" size="sm" onClick={refuse}>
-                Refuser
+                {t("refuse")}
               </Button>
               <Button size="sm" onClick={accept}>
-                Accepter
+                {t("accept")}
               </Button>
             </div>
           </div>
