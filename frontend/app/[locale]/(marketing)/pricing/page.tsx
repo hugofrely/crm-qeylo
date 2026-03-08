@@ -1,179 +1,100 @@
 "use client"
 
 import React from "react"
-import Link from "next/link"
+import { useTranslations } from "next-intl"
+import { Link } from "@/i18n/navigation"
 import { motion } from "motion/react"
 import { Check, ArrowRight, HelpCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Navbar } from "@/components/landing/navbar"
 import { Footer } from "@/components/landing/footer"
 
-const plans = [
-  {
-    name: "Solo",
-    price: "0",
-    period: "Gratuit pour toujours",
-    description: "Parfait pour demarrer en solo",
-    features: [
-      "1 utilisateur",
-      "100 contacts",
-      "1 pipeline (6 etapes)",
-      "Chat IA — 50 messages/mois",
-      "Dashboard basique",
-      "Taches & rappels",
-      "Recherche globale",
-    ],
-    cta: "Commencer gratuitement",
-    href: "/register",
-    highlight: false,
-    accent: "#3D7A7A",
-  },
-  {
-    name: "Pro",
-    price: "19",
-    period: "/ mois",
-    description: "Pour les independants qui grandissent",
-    features: [
-      "1 utilisateur",
-      "Contacts illimites",
-      "Multi-pipeline personnalisable",
-      "Chat IA illimite",
-      "Dashboard & rapports avances",
-      "Workflows & automations",
-      "Segments dynamiques",
-      "Produits & catalogue",
-      "Email templates",
-      "Import/Export CSV",
-      "Integration email",
-      "Support prioritaire",
-    ],
-    cta: "Essai gratuit 14 jours",
-    href: "/register",
-    highlight: true,
-    accent: "#0D4F4F",
-  },
-  {
-    name: "Equipe",
-    price: "49",
-    period: "/ mois",
-    description: "Pour les equipes ambitieuses",
-    features: [
-      "Utilisateurs illimites",
-      "Tout du plan Pro",
-      "Organisation partagee",
-      "Roles & permissions",
-      "Assignation de taches",
-      "Rapports d'equipe",
-      "API access",
-      "Onboarding dedie",
-    ],
-    cta: "Contacter l'equipe",
-    href: "/register",
-    highlight: false,
-    accent: "#C9946E",
-  },
-]
+const planKeys = ["solo", "pro", "equipe"] as const
 
-const comparisonData = [
+const planConfigs = {
+  solo: { price: "0", href: "/register" as const, highlight: false, accent: "#3D7A7A", featureCount: 7 },
+  pro: { price: "19", href: "/register" as const, highlight: true, accent: "#0D4F4F", featureCount: 12 },
+  equipe: { price: "49", href: "/register" as const, highlight: false, accent: "#C9946E", featureCount: 8 },
+}
+
+interface ComparisonFeature {
+  key: string
+  solo: boolean | string
+  pro: boolean | string
+  equipe: boolean | string
+}
+
+interface ComparisonCategory {
+  categoryKey: string
+  features: ComparisonFeature[]
+}
+
+const comparisonData: ComparisonCategory[] = [
   {
-    category: "General",
+    categoryKey: "general",
     features: [
-      { name: "Utilisateurs", solo: "1", pro: "1", equipe: "Illimite" },
-      { name: "Contacts", solo: "100", pro: "Illimite", equipe: "Illimite" },
+      { key: "users", solo: "value", pro: "value", equipe: "value" },
+      { key: "contacts", solo: "value", pro: "value", equipe: "value" },
     ],
   },
   {
-    category: "CRM",
+    categoryKey: "crm",
     features: [
-      { name: "Pipelines", solo: "1", pro: "Illimite", equipe: "Illimite" },
-      { name: "Etapes personnalisables", solo: false, pro: true, equipe: true },
-      { name: "Deals", solo: "Illimite", pro: "Illimite", equipe: "Illimite" },
-      { name: "Segments dynamiques", solo: false, pro: true, equipe: true },
-      { name: "Produits & catalogue", solo: false, pro: true, equipe: true },
-      { name: "Detection de doublons", solo: false, pro: true, equipe: true },
+      { key: "pipelines", solo: "value", pro: "value", equipe: "value" },
+      { key: "customStages", solo: false, pro: true, equipe: true },
+      { key: "deals", solo: "value", pro: "value", equipe: "value" },
+      { key: "segments", solo: false, pro: true, equipe: true },
+      { key: "products", solo: false, pro: true, equipe: true },
+      { key: "duplicates", solo: false, pro: true, equipe: true },
     ],
   },
   {
-    category: "Productivite",
+    categoryKey: "productivity",
     features: [
-      { name: "Taches & rappels", solo: true, pro: true, equipe: true },
-      { name: "Vue calendrier", solo: true, pro: true, equipe: true },
-      { name: "Assignation d'equipe", solo: false, pro: false, equipe: true },
-      { name: "Workflows & automations", solo: false, pro: true, equipe: true },
-      { name: "Email templates", solo: false, pro: true, equipe: true },
+      { key: "tasks", solo: true, pro: true, equipe: true },
+      { key: "calendar", solo: true, pro: true, equipe: true },
+      { key: "teamAssignment", solo: false, pro: false, equipe: true },
+      { key: "workflows", solo: false, pro: true, equipe: true },
+      { key: "emailTemplates", solo: false, pro: true, equipe: true },
     ],
   },
   {
-    category: "IA",
+    categoryKey: "ai",
     features: [
-      { name: "Chat IA", solo: "50 msg/mois", pro: "Illimite", equipe: "Illimite" },
+      { key: "chatAi", solo: "value", pro: "value", equipe: "value" },
     ],
   },
   {
-    category: "Analytics",
+    categoryKey: "analytics",
     features: [
-      { name: "Dashboard", solo: "Basique", pro: "Avance", equipe: "Avance" },
-      { name: "Rapports personnalises", solo: false, pro: true, equipe: true },
-      { name: "Entonnoir de conversion", solo: false, pro: true, equipe: true },
+      { key: "dashboard", solo: "value", pro: "value", equipe: "value" },
+      { key: "customReports", solo: false, pro: true, equipe: true },
+      { key: "conversionFunnel", solo: false, pro: true, equipe: true },
     ],
   },
   {
-    category: "Integrations",
+    categoryKey: "integrations",
     features: [
-      { name: "Integration email", solo: false, pro: true, equipe: true },
-      { name: "Import/Export CSV", solo: false, pro: true, equipe: true },
-      { name: "API access", solo: false, pro: false, equipe: true },
+      { key: "emailIntegration", solo: false, pro: true, equipe: true },
+      { key: "csvImportExport", solo: false, pro: true, equipe: true },
+      { key: "apiAccess", solo: false, pro: false, equipe: true },
     ],
   },
   {
-    category: "Support",
+    categoryKey: "support",
     features: [
-      { name: "Email", solo: true, pro: true, equipe: true },
-      { name: "Support prioritaire", solo: false, pro: true, equipe: true },
-      { name: "Onboarding dedie", solo: false, pro: false, equipe: true },
+      { key: "email", solo: true, pro: true, equipe: true },
+      { key: "prioritySupport", solo: false, pro: true, equipe: true },
+      { key: "dedicatedOnboarding", solo: false, pro: false, equipe: true },
     ],
   },
 ]
 
-const faqs = [
-  {
-    question: "Puis-je changer de plan a tout moment ?",
-    answer:
-      "Oui, vous pouvez upgrader ou downgrader votre plan a tout moment. Le changement prend effet immediatement.",
-  },
-  {
-    question: "Y a-t-il un engagement ?",
-    answer:
-      "Aucun engagement. Vous pouvez annuler a tout moment. Le plan gratuit reste disponible sans limite de temps.",
-  },
-  {
-    question: "Mes donnees sont-elles securisees ?",
-    answer:
-      "Absolument. Vos donnees sont chiffrees, isolees par organisation, et hebergees en Europe. Authentification JWT avec refresh token.",
-  },
-  {
-    question: "Quel modele d'IA est utilise ?",
-    answer:
-      "Claude (Anthropic) par defaut, avec GPT en fallback. Vous pouvez configurer le modele de votre choix via les parametres.",
-  },
-  {
-    question: "Puis-je importer mes contacts existants ?",
-    answer:
-      "Oui, vous pouvez importer et exporter vos contacts au format CSV depuis la page Contacts. L'import inclut un mapping de colonnes intelligent.",
-  },
-  {
-    question: "Quelles automations puis-je creer ?",
-    answer:
-      "Vous pouvez creer des workflows automatises bases sur des triggers : deal cree, etape changee, contact mis a jour, tache en retard, etc. Ajoutez des conditions et des actions automatiques comme envoyer un email, creer une tache, ou mettre a jour un champ.",
-  },
-  {
-    question: "Puis-je connecter mon email ?",
-    answer:
-      "Oui ! Qeylo s'integre avec Gmail et Outlook via OAuth. Connectez votre boite mail en un clic depuis les parametres pour centraliser vos communications.",
-  },
-]
+const FAQ_COUNT = 7
 
 export default function PricingPage() {
+  const t = useTranslations("marketing.pricingPage")
+
   return (
     <>
       <Navbar />
@@ -192,15 +113,15 @@ export default function PricingPage() {
               transition={{ duration: 0.5 }}
             >
               <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
-                Tarifs
+                {t("label")}
               </span>
               <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl leading-[1.1]">
-                Simple et transparent
+                {t("title")}
               </h1>
               <p className="mx-auto mt-6 max-w-lg text-lg text-muted-foreground">
-                Commencez gratuitement. Evoluez quand vous etes pret.
+                {t("descriptionLine1")}
                 <br />
-                Aucune carte bancaire requise.
+                {t("descriptionLine2")}
               </p>
             </motion.div>
           </div>
@@ -210,83 +131,89 @@ export default function PricingPage() {
         <section className="pb-28">
           <div className="mx-auto max-w-6xl px-6">
             <div className="grid gap-6 md:grid-cols-3 items-start">
-              {plans.map((plan, index) => (
-                <motion.div
-                  key={plan.name}
-                  initial={{ opacity: 0, y: 28 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, delay: index * 0.1 }}
-                  className={`group relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-500 ${
-                    plan.highlight
-                      ? "border-primary/20 bg-card shadow-2xl shadow-primary/[0.06] scale-[1.03] z-10"
-                      : "border-border/50 bg-card/80 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/[0.03]"
-                  }`}
-                >
-                  {/* Gradient top bar */}
-                  <div
-                    className="h-1 w-full"
-                    style={{
-                      background: `linear-gradient(90deg, ${plan.accent}, ${plan.accent}60)`,
-                    }}
-                  />
+              {planKeys.map((key, index) => {
+                const plan = planConfigs[key]
+                const features = Array.from({ length: plan.featureCount }, (_, i) =>
+                  t(`plans.${key}.features.${i}`)
+                )
+                return (
+                  <motion.div
+                    key={key}
+                    initial={{ opacity: 0, y: 28 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, delay: index * 0.1 }}
+                    className={`group relative flex flex-col rounded-2xl border overflow-hidden transition-all duration-500 ${
+                      plan.highlight
+                        ? "border-primary/20 bg-card shadow-2xl shadow-primary/[0.06] scale-[1.03] z-10"
+                        : "border-border/50 bg-card/80 backdrop-blur-sm hover:shadow-xl hover:shadow-primary/[0.03]"
+                    }`}
+                  >
+                    {/* Gradient top bar */}
+                    <div
+                      className="h-1 w-full"
+                      style={{
+                        background: `linear-gradient(90deg, ${plan.accent}, ${plan.accent}60)`,
+                      }}
+                    />
 
-                  {plan.highlight && (
-                    <div className="absolute -top-0 left-1/2 -translate-x-1/2 translate-y-3 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/20">
-                      Populaire
-                    </div>
-                  )}
+                    {plan.highlight && (
+                      <div className="absolute -top-0 left-1/2 -translate-x-1/2 translate-y-3 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/20">
+                        {t("popular")}
+                      </div>
+                    )}
 
-                  <div className={`p-8 ${plan.highlight ? "pt-10" : ""}`}>
-                    <div>
-                      <h3 className="text-lg font-semibold">{plan.name}</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {plan.description}
-                      </p>
-                      <div className="mt-6 flex items-baseline gap-1">
-                        <span className="text-5xl font-bold tracking-tight">
-                          {plan.price}&euro;
-                        </span>
-                        <span className="text-sm text-muted-foreground ml-1">
-                          {plan.period}
-                        </span>
+                    <div className={`p-8 ${plan.highlight ? "pt-10" : ""}`}>
+                      <div>
+                        <h3 className="text-lg font-semibold">{t(`plans.${key}.name`)}</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {t(`plans.${key}.description`)}
+                        </p>
+                        <div className="mt-6 flex items-baseline gap-1">
+                          <span className="text-5xl font-bold tracking-tight">
+                            {plan.price}&euro;
+                          </span>
+                          <span className="text-sm text-muted-foreground ml-1">
+                            {t(`plans.${key}.period`)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-8 h-px bg-gradient-to-r from-border via-border to-transparent" />
+
+                      <ul className="mt-8 flex-1 space-y-3.5">
+                        {features.map((feature) => (
+                          <li
+                            key={feature}
+                            className="flex items-start gap-3 text-sm"
+                          >
+                            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5" style={{ backgroundColor: plan.accent + '10' }}>
+                              <Check className="h-3 w-3" style={{ color: plan.accent }} />
+                            </div>
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      <div className="mt-10">
+                        <Button
+                          asChild
+                          className={`w-full rounded-full h-12 text-sm font-medium transition-all ${
+                            plan.highlight
+                              ? "shadow-lg shadow-primary/15 hover:shadow-xl hover:shadow-primary/20 hover:scale-[1.01]"
+                              : ""
+                          }`}
+                          variant={plan.highlight ? "default" : "outline"}
+                        >
+                          <Link href={plan.href}>
+                            {t(`plans.${key}.cta`)}
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
                       </div>
                     </div>
-
-                    <div className="mt-8 h-px bg-gradient-to-r from-border via-border to-transparent" />
-
-                    <ul className="mt-8 flex-1 space-y-3.5">
-                      {plan.features.map((feature) => (
-                        <li
-                          key={feature}
-                          className="flex items-start gap-3 text-sm"
-                        >
-                          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full mt-0.5" style={{ backgroundColor: plan.accent + '10' }}>
-                            <Check className="h-3 w-3" style={{ color: plan.accent }} />
-                          </div>
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="mt-10">
-                      <Button
-                        asChild
-                        className={`w-full rounded-full h-12 text-sm font-medium transition-all ${
-                          plan.highlight
-                            ? "shadow-lg shadow-primary/15 hover:shadow-xl hover:shadow-primary/20 hover:scale-[1.01]"
-                            : ""
-                        }`}
-                        variant={plan.highlight ? "default" : "outline"}
-                      >
-                        <Link href={plan.href}>
-                          {plan.cta}
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                )
+              })}
             </div>
           </div>
         </section>
@@ -302,10 +229,10 @@ export default function PricingPage() {
               className="text-center mb-14"
             >
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Comparaison detaillee
+                {t("comparison.title")}
               </h2>
               <p className="mt-4 text-muted-foreground">
-                Toutes les fonctionnalites, plan par plan.
+                {t("comparison.description")}
               </p>
             </motion.div>
 
@@ -314,37 +241,41 @@ export default function PricingPage() {
                 <thead>
                   <tr className="border-b border-border/40">
                     <th className="py-5 pl-6 pr-4 text-left text-sm font-medium text-muted-foreground w-[40%]">
-                      Fonctionnalite
+                      {t("comparison.featureCol")}
                     </th>
                     <th className="py-5 px-4 text-center text-sm font-semibold w-[20%]">Solo</th>
                     <th className="py-5 px-4 text-center text-sm font-semibold text-primary w-[20%]">Pro</th>
-                    <th className="py-5 px-4 text-center text-sm font-semibold w-[20%]">Equipe</th>
+                    <th className="py-5 px-4 text-center text-sm font-semibold w-[20%]">{t("plans.equipe.name")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {comparisonData.map((group) => (
-                    <React.Fragment key={group.category}>
+                    <React.Fragment key={group.categoryKey}>
                       <tr>
                         <td
                           colSpan={4}
                           className="pt-8 pb-3 pl-6 text-xs font-bold uppercase tracking-[0.15em] text-primary"
                         >
-                          {group.category}
+                          {t(`comparison.categories.${group.categoryKey}.label`)}
                         </td>
                       </tr>
                       {group.features.map((feature) => (
-                        <tr key={feature.name} className="border-b border-border/20 hover:bg-muted/20 transition-colors">
-                          <td className="py-3.5 pl-6 pr-4 text-sm">{feature.name}</td>
-                          {(["solo", "pro", "equipe"] as const).map((plan) => {
-                            const value = feature[plan]
+                        <tr key={feature.key} className="border-b border-border/20 hover:bg-muted/20 transition-colors">
+                          <td className="py-3.5 pl-6 pr-4 text-sm">
+                            {t(`comparison.categories.${group.categoryKey}.features.${feature.key}.name`)}
+                          </td>
+                          {(["solo", "pro", "equipe"] as const).map((planKey) => {
+                            const value = feature[planKey]
                             return (
-                              <td key={plan} className="py-3.5 px-4 text-center">
+                              <td key={planKey} className="py-3.5 px-4 text-center">
                                 {value === true ? (
                                   <Check className="mx-auto h-4 w-4 text-primary" />
                                 ) : value === false ? (
                                   <X className="mx-auto h-4 w-4 text-muted-foreground/50" />
                                 ) : (
-                                  <span className="text-sm font-medium">{value}</span>
+                                  <span className="text-sm font-medium">
+                                    {t(`comparison.categories.${group.categoryKey}.features.${feature.key}.${planKey}`)}
+                                  </span>
                                 )}
                               </td>
                             )
@@ -373,14 +304,14 @@ export default function PricingPage() {
               className="text-center"
             >
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Questions frequentes
+                {t("faq.title")}
               </h2>
             </motion.div>
 
             <div className="mt-14 space-y-4">
-              {faqs.map((faq, index) => (
+              {Array.from({ length: FAQ_COUNT }).map((_, index) => (
                 <motion.div
-                  key={faq.question}
+                  key={index}
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -391,10 +322,10 @@ export default function PricingPage() {
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/[0.06]">
                       <HelpCircle className="h-4 w-4 text-primary" />
                     </div>
-                    {faq.question}
+                    {t(`faq.items.${index}.question`)}
                   </h3>
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground pl-10">
-                    {faq.answer}
+                    {t(`faq.items.${index}.answer`)}
                   </p>
                 </motion.div>
               ))}
@@ -402,12 +333,12 @@ export default function PricingPage() {
 
             <div className="mt-14 text-center">
               <p className="text-muted-foreground">
-                Une autre question ?{" "}
+                {t("faq.contactQuestion")}{" "}
                 <a
                   href="mailto:hello@qeylo.com"
                   className="text-primary font-medium underline-offset-4 hover:underline"
                 >
-                  Contactez-nous
+                  {t("faq.contactUs")}
                 </a>
               </p>
             </div>

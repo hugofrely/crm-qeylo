@@ -1,28 +1,31 @@
 "use client"
 
-import Link from "next/link"
+import { useTranslations } from "next-intl"
+import { Link } from "@/i18n/navigation"
 import { MessageSquare } from "lucide-react"
 
-const footerLinks = {
-  Produit: [
-    { label: "Fonctionnalites", href: "/features" },
-    { label: "Tarifs", href: "/pricing" },
-    { label: "Connexion", href: "/login" },
-    { label: "Inscription", href: "/register" },
-  ],
-  Ressources: [
-    { label: "Documentation", href: "#" },
-    { label: "API", href: "#" },
-    { label: "Changelog", href: "#" },
-  ],
-  Legal: [
-    { label: "Mentions legales", href: "/mentions-legales" },
-    { label: "Confidentialite", href: "/confidentialite" },
-    { label: "CGU", href: "/cgu" },
-  ],
-}
-
 export function Footer() {
+  const t = useTranslations("marketing.footer")
+
+  const footerLinks = {
+    [t("product")]: [
+      { label: t("productLinks.features"), href: "/features" as const },
+      { label: t("productLinks.pricing"), href: "/pricing" as const },
+      { label: t("productLinks.login"), href: "/login" as const },
+      { label: t("productLinks.register"), href: "/register" as const },
+    ],
+    [t("resources")]: [
+      { label: t("resourceLinks.documentation"), href: "#" as const },
+      { label: t("resourceLinks.api"), href: "#" as const },
+      { label: t("resourceLinks.changelog"), href: "#" as const },
+    ],
+    [t("legal")]: [
+      { label: t("legalLinks.legalNotice"), href: "/mentions-legales" as const },
+      { label: t("legalLinks.privacy"), href: "/confidentialite" as const },
+      { label: t("legalLinks.terms"), href: "/cgu" as const },
+    ],
+  }
+
   return (
     <footer className="relative border-t border-border/30 overflow-hidden">
       {/* Subtle background gradient */}
@@ -41,8 +44,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="mt-5 text-sm leading-relaxed text-muted-foreground max-w-[240px]">
-              Le CRM conversationnel propulse par l&apos;IA,
-              concu pour les independants et les entreprises.
+              {t("description")}
             </p>
             {/* Decorative accent */}
             <div className="mt-6 h-1 w-12 rounded-full bg-gradient-to-r from-primary to-warm opacity-40" />
@@ -70,10 +72,10 @@ export function Footer() {
 
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-border/30 pt-8 sm:flex-row">
           <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Qeylo. Tous droits reserves.
+            &copy; {new Date().getFullYear()} {t("copyright")}
           </p>
           <p className="text-xs text-muted-foreground">
-            Fait avec soin pour ceux qui entreprennent
+            {t("madeWith")}
           </p>
         </div>
       </div>

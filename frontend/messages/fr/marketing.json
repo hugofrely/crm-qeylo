@@ -1,1 +1,775 @@
-{}
+{
+  "navbar": {
+    "features": "Fonctionnalites",
+    "pricing": "Tarifs",
+    "login": "Connexion",
+    "startFree": "Commencer gratuitement"
+  },
+  "hero": {
+    "badge": "CRM conversationnel IA",
+    "titleLine1": "Dis-le.",
+    "titleLine2": "C'est fait.",
+    "description": "Le CRM qui comprend ce que vous dites. Contacts, deals, taches, automations, rapports — Qeylo gere tout depuis une simple conversation.",
+    "descriptionBold": "Simple, rapide, sans friction.",
+    "ctaTry": "Essayer gratuitement",
+    "ctaFeatures": "Voir les fonctionnalites",
+    "freeToStart": "Gratuit pour commencer",
+    "noCard": "Aucune carte requise"
+  },
+  "aiDemo": {
+    "windowTitle": "Qeylo Chat IA",
+    "executingActions": "Execution des actions...",
+    "scenarios": {
+      "0": {
+        "prompt": "J'ai contacte Marcel Deschamps par telephone ce matin, il aimerait faire un deal avec nous. On se voit demain a 15h30 en reunion dans leurs locaux.",
+        "aiResponse": "J'ai bien compris. Je m'occupe de tout :",
+        "successText": "4 actions executees avec succes",
+        "actions": {
+          "0": {
+            "label": "Activite enregistree",
+            "title": "Appel telephonique",
+            "detail": "Marcel Deschamps — ce matin",
+            "tag": "Activite"
+          },
+          "1": {
+            "label": "Contact mis a jour",
+            "title": "Marcel Deschamps",
+            "detail": "Dernier contact : aujourd'hui",
+            "tag": "Contact"
+          },
+          "2": {
+            "label": "Deal cree",
+            "title": "Nouveau deal — Marcel Deschamps",
+            "detail": "Pipeline : Prospection → Qualification",
+            "tag": "Deal"
+          },
+          "3": {
+            "label": "Tache planifiee",
+            "title": "Reunion avec Marcel Deschamps",
+            "detail": "Demain a 15h30 — Locaux Marcel Deschamps",
+            "tag": "Tache"
+          }
+        }
+      },
+      "1": {
+        "prompt": "Ajoute le numero 06 12 34 56 78 au contact Sophie Martin.",
+        "aiResponse": "C'est fait !",
+        "successText": "Contact mis a jour",
+        "actions": {
+          "0": {
+            "label": "Telephone ajoute",
+            "title": "Sophie Martin",
+            "detail": "06 12 34 56 78 — Mobile",
+            "tag": "Contact"
+          }
+        }
+      },
+      "2": {
+        "prompt": "Quelles sont mes taches pour aujourd'hui ?",
+        "aiResponse": "Voici vos 3 taches du jour :",
+        "successText": "3 taches trouvees pour aujourd'hui",
+        "actions": {
+          "0": {
+            "label": "09:30",
+            "title": "Appeler Fabien Moreau",
+            "detail": "Relance devis — Deal 8 500\u20ac",
+            "tag": "Tache"
+          },
+          "1": {
+            "label": "14:00",
+            "title": "Demo produit — Agence Pixel",
+            "detail": "Visio Google Meet",
+            "tag": "Tache"
+          },
+          "2": {
+            "label": "17:00",
+            "title": "Envoyer proposition commerciale",
+            "detail": "Claire Dubois — Studio Crea",
+            "tag": "Tache"
+          }
+        }
+      },
+      "3": {
+        "prompt": "Ajoute une note sur le contact Pierre Leroy : il prefere etre contacte le matin avant 10h.",
+        "aiResponse": "Note ajoutee avec succes :",
+        "successText": "Note enregistree sur le contact",
+        "actions": {
+          "0": {
+            "label": "Note creee",
+            "title": "Pierre Leroy",
+            "detail": "Prefere etre contacte le matin avant 10h",
+            "tag": "Note"
+          }
+        }
+      },
+      "4": {
+        "prompt": "Passe le deal 'Refonte site web' de Qualification a Proposition envoyee.",
+        "aiResponse": "Deal mis a jour :",
+        "successText": "Deal avance dans le pipeline",
+        "actions": {
+          "0": {
+            "label": "Etape modifiee",
+            "title": "Refonte site web",
+            "detail": "Qualification → Proposition envoyee",
+            "tag": "Deal"
+          },
+          "1": {
+            "label": "Activite enregistree",
+            "title": "Changement d'etape",
+            "detail": "Pipeline mis a jour automatiquement",
+            "tag": "Activite"
+          }
+        }
+      }
+    }
+  },
+  "features": {
+    "label": "Fonctionnalites",
+    "titleLine1": "Tout ce qu'il faut.",
+    "titleLine2": "Rien de superflu.",
+    "description": "Un CRM pense pour ceux qui veulent passer moins de temps sur l'administratif et plus sur ce qui compte.",
+    "aiLabel": "Intelligence artificielle",
+    "items": {
+      "chat": {
+        "title": "Chat IA intelligent",
+        "description": "Parlez naturellement. L'IA comprend vos intentions et execute les actions : creer un contact, deplacer un deal, planifier une relance. Plus de 9 outils integres."
+      },
+      "contacts": {
+        "title": "Contacts & Segments",
+        "description": "Base de contacts enrichie automatiquement. Segments dynamiques, detection de doublons intelligente, lead scoring et timeline complete."
+      },
+      "pipeline": {
+        "title": "Pipeline & Deals",
+        "description": "Multi-pipeline personnalisable avec Kanban drag-and-drop. Entonnoir de conversion et suivi complet."
+      },
+      "tasks": {
+        "title": "Taches & Rappels",
+        "description": "Assignation a l'equipe, vue liste et calendrier, rappels automatiques. Ne ratez plus jamais une relance."
+      },
+      "workflows": {
+        "title": "Workflows & Automations",
+        "description": "Automatisez vos processus : triggers sur deals, contacts ou taches, conditions personnalisees, actions automatiques."
+      },
+      "dashboard": {
+        "title": "Dashboard & Rapports",
+        "description": "Dashboard personnalisable avec widgets KPI. Rapports custom, analyse du pipeline, suivi de performance en temps reel."
+      }
+    }
+  },
+  "everything": {
+    "label": "Et bien plus encore",
+    "titleLine1": "Tout ce que",
+    "titleLine2": "Qeylo peut",
+    "titleLine3": "faire.",
+    "description": "Un CRM complet avec tout ce dont vous avez besoin pour gerer et developper votre activite.",
+    "countLabel": "fonctionnalites integrees",
+    "items": {
+      "csv": { "title": "Import / Export CSV", "description": "Importez et exportez vos contacts en un clic" },
+      "email_templates": { "title": "Email templates", "description": "Modeles d'emails reutilisables et personnalisables" },
+      "products": { "title": "Produits & Catalogue", "description": "Gerez vos produits, tarifs et categories" },
+      "search": { "title": "Recherche globale", "description": "Trouvez contacts, deals et taches instantanement" },
+      "notes": { "title": "Notes riches", "description": "Editeur de notes complet sur chaque contact" },
+      "duplicates": { "title": "Detection de doublons", "description": "Detection intelligente et fusion assistee" },
+      "multi_org": { "title": "Multi-organisation", "description": "Gerez plusieurs structures depuis un compte" },
+      "roles": { "title": "Roles & Permissions", "description": "Controlez les acces de chaque membre" },
+      "funnel": { "title": "Entonnoir de conversion", "description": "Visualisez vos taux de conversion par etape" },
+      "segments": { "title": "Segments dynamiques", "description": "Groupes de contacts avec regles automatiques" },
+      "email_integration": { "title": "Integration email", "description": "Connectez Gmail et Outlook en un clic" },
+      "reminders": { "title": "Rappels & Notifications", "description": "Alertes automatiques pour ne rien oublier" }
+    }
+  },
+  "howItWorks": {
+    "label": "Comment ca marche",
+    "titleLine1": "Aussi simple que",
+    "titleLine2": "de parler.",
+    "steps": {
+      "0": {
+        "title": "Dites ce que vous voulez",
+        "description": "Tapez en langage naturel : \"Ajoute Marie de chez Acme, elle veut un devis pour 15k\". Rapide, intuitif, sans friction."
+      },
+      "1": {
+        "title": "L'IA comprend et agit",
+        "description": "Qeylo analyse votre message, identifie les entites (contact, deal, montant) et execute les actions en une seconde."
+      },
+      "2": {
+        "title": "Tout est organise",
+        "description": "Contact cree, deal ajoute au pipeline, tache de suivi planifiee. Verifiez dans les vues dediees ou continuez a discuter."
+      }
+    }
+  },
+  "pricing": {
+    "label": "Tarifs",
+    "titleLine1": "Simple et",
+    "titleLine2": "transparent.",
+    "description": "Commencez gratuitement. Evoluez quand vous etes pret.",
+    "popular": "Populaire",
+    "plans": {
+      "solo": {
+        "name": "Solo",
+        "period": "Gratuit pour toujours",
+        "description": "Parfait pour demarrer en solo",
+        "cta": "Commencer gratuitement",
+        "features": {
+          "0": "1 utilisateur",
+          "1": "100 contacts",
+          "2": "1 pipeline (6 etapes)",
+          "3": "Chat IA — 50 messages/mois",
+          "4": "Dashboard basique",
+          "5": "Taches & rappels",
+          "6": "Recherche globale"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "period": "/ mois",
+        "description": "Pour les independants qui grandissent",
+        "cta": "Essai gratuit 14 jours",
+        "features": {
+          "0": "1 utilisateur",
+          "1": "Contacts illimites",
+          "2": "Multi-pipeline personnalisable",
+          "3": "Chat IA illimite",
+          "4": "Dashboard & rapports avances",
+          "5": "Workflows & automations",
+          "6": "Segments dynamiques",
+          "7": "Import/Export CSV",
+          "8": "Integration email",
+          "9": "Support prioritaire"
+        }
+      },
+      "equipe": {
+        "name": "Equipe",
+        "period": "/ mois",
+        "description": "Pour les equipes ambitieuses",
+        "cta": "Contacter l'equipe",
+        "features": {
+          "0": "Utilisateurs illimites",
+          "1": "Tout du plan Pro",
+          "2": "Organisation partagee",
+          "3": "Roles & permissions",
+          "4": "Assignation de taches",
+          "5": "Rapports d'equipe",
+          "6": "API access",
+          "7": "Onboarding dedie"
+        }
+      }
+    }
+  },
+  "cta": {
+    "title": "Pret a simplifier",
+    "titleGradient": "votre relation client ?",
+    "description": "Rejoignez les independants et entreprises qui gagnent du temps chaque jour avec un CRM qui les comprend vraiment.",
+    "startFree": "Commencer gratuitement",
+    "learnMore": "En savoir plus"
+  },
+  "footer": {
+    "description": "Le CRM conversationnel propulse par l'IA, concu pour les independants et les entreprises.",
+    "product": "Produit",
+    "resources": "Ressources",
+    "legal": "Legal",
+    "productLinks": {
+      "features": "Fonctionnalites",
+      "pricing": "Tarifs",
+      "login": "Connexion",
+      "register": "Inscription"
+    },
+    "resourceLinks": {
+      "documentation": "Documentation",
+      "api": "API",
+      "changelog": "Changelog"
+    },
+    "legalLinks": {
+      "legalNotice": "Mentions legales",
+      "privacy": "Confidentialite",
+      "terms": "CGU"
+    },
+    "copyright": "Qeylo. Tous droits reserves.",
+    "madeWith": "Fait avec soin pour ceux qui entreprennent"
+  },
+  "cookie": {
+    "message": "Ce site utilise des cookies analytiques pour ameliorer votre experience.",
+    "refuse": "Refuser",
+    "accept": "Accepter"
+  },
+  "landing": {
+    "loading": "Chargement..."
+  },
+  "featuresPage": {
+    "label": "Fonctionnalites",
+    "titleLine1": "Tout pour gerer vos clients.",
+    "titleLine2": "En parlant.",
+    "description": "Qeylo combine la puissance d'un CRM complet avec la simplicite d'une conversation.",
+    "mainFeatures": {
+      "0": {
+        "title": "Chat IA — Votre assistant CRM",
+        "description": "Parlez naturellement et l'IA execute. Creer un contact, deplacer un deal, planifier un rappel — tout se fait en une phrase.",
+        "details": {
+          "0": "Comprehension du langage naturel en francais",
+          "1": "Plus de 9 outils integres : contacts, deals, taches, notes, dashboard",
+          "2": "Conversations multiples avec historique persistant",
+          "3": "Streaming en temps reel avec rendu Markdown"
+        }
+      },
+      "1": {
+        "title": "Contacts & Segments intelligents",
+        "description": "Vos contacts se creent et s'enrichissent automatiquement. Segmentez dynamiquement, detectez les doublons, et suivez chaque interaction.",
+        "details": {
+          "0": "Creation automatique depuis le chat",
+          "1": "Segments dynamiques avec regles personnalisees",
+          "2": "Detection de doublons intelligente avec fusion assistee",
+          "3": "Lead scoring (chaud, tiede, froid) et categories",
+          "4": "Timeline complete d'interactions par contact"
+        }
+      },
+      "2": {
+        "title": "Pipeline & Deals multi-pipeline",
+        "description": "Suivez vos deals sur un Kanban intuitif. Creez plusieurs pipelines, visualisez votre entonnoir de conversion, et filtrez avec precision.",
+        "details": {
+          "0": "Multi-pipeline : Prospection, Upsell, Partenariats...",
+          "1": "Glisser-deposer intuitif entre les etapes",
+          "2": "Entonnoir de conversion avec taux par etape",
+          "3": "Filtres avances : contact, montant, probabilite, dates"
+        }
+      },
+      "3": {
+        "title": "Taches, rappels & calendrier",
+        "description": "Gerez vos taches en liste ou en calendrier. Assignez a l'equipe, configurez des rappels automatiques, ne ratez plus rien.",
+        "details": {
+          "0": "Vue liste et vue calendrier",
+          "1": "Assignation aux membres de l'equipe",
+          "2": "Rappels automatiques configurables",
+          "3": "3 niveaux de priorite avec filtres avances",
+          "4": "Taches recurrentes"
+        }
+      },
+      "4": {
+        "title": "Workflows & Automations",
+        "description": "Automatisez vos processus metier. Definissez des triggers, des conditions et des actions pour gagner du temps chaque jour.",
+        "details": {
+          "0": "Triggers : deal cree, etape changee, contact mis a jour...",
+          "1": "Conditions personnalisees et delais",
+          "2": "Actions automatiques sur contacts, deals, taches",
+          "3": "Templates de workflows prets a l'emploi"
+        }
+      },
+      "5": {
+        "title": "Dashboard & Rapports sur mesure",
+        "description": "Construisez votre dashboard avec des widgets personnalisables. Creez des rapports sur mesure pour suivre votre performance.",
+        "details": {
+          "0": "Dashboard personnalisable avec widgets drag-and-drop",
+          "1": "Rapports custom : performance, pipeline, activite, sources",
+          "2": "KPI en temps reel : CA, pipeline, taux de conversion",
+          "3": "Templates de rapports prets a l'emploi"
+        }
+      }
+    },
+    "extraFeatures": {
+      "0": { "title": "Import / Export CSV", "description": "Importez et exportez vos contacts facilement" },
+      "1": { "title": "Integration email", "description": "Connectez Gmail et Outlook en un clic" },
+      "2": { "title": "Multi-organisation", "description": "Gerez plusieurs structures depuis un compte" },
+      "3": { "title": "Produits & Catalogue", "description": "Gerez vos produits, tarifs et categories" },
+      "4": { "title": "Recherche globale", "description": "Trouvez contacts, deals et taches instantanement" },
+      "5": { "title": "Detection de doublons", "description": "Detection intelligente et fusion assistee" }
+    }
+  },
+  "pricingPage": {
+    "label": "Tarifs",
+    "title": "Simple et transparent",
+    "descriptionLine1": "Commencez gratuitement. Evoluez quand vous etes pret.",
+    "descriptionLine2": "Aucune carte bancaire requise.",
+    "popular": "Populaire",
+    "plans": {
+      "solo": {
+        "name": "Solo",
+        "period": "Gratuit pour toujours",
+        "description": "Parfait pour demarrer en solo",
+        "cta": "Commencer gratuitement",
+        "features": {
+          "0": "1 utilisateur",
+          "1": "100 contacts",
+          "2": "1 pipeline (6 etapes)",
+          "3": "Chat IA — 50 messages/mois",
+          "4": "Dashboard basique",
+          "5": "Taches & rappels",
+          "6": "Recherche globale"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "period": "/ mois",
+        "description": "Pour les independants qui grandissent",
+        "cta": "Essai gratuit 14 jours",
+        "features": {
+          "0": "1 utilisateur",
+          "1": "Contacts illimites",
+          "2": "Multi-pipeline personnalisable",
+          "3": "Chat IA illimite",
+          "4": "Dashboard & rapports avances",
+          "5": "Workflows & automations",
+          "6": "Segments dynamiques",
+          "7": "Produits & catalogue",
+          "8": "Email templates",
+          "9": "Import/Export CSV",
+          "10": "Integration email",
+          "11": "Support prioritaire"
+        }
+      },
+      "equipe": {
+        "name": "Equipe",
+        "period": "/ mois",
+        "description": "Pour les equipes ambitieuses",
+        "cta": "Contacter l'equipe",
+        "features": {
+          "0": "Utilisateurs illimites",
+          "1": "Tout du plan Pro",
+          "2": "Organisation partagee",
+          "3": "Roles & permissions",
+          "4": "Assignation de taches",
+          "5": "Rapports d'equipe",
+          "6": "API access",
+          "7": "Onboarding dedie"
+        }
+      }
+    },
+    "comparison": {
+      "title": "Comparaison detaillee",
+      "description": "Toutes les fonctionnalites, plan par plan.",
+      "featureCol": "Fonctionnalite",
+      "categories": {
+        "general": {
+          "label": "General",
+          "features": {
+            "users": { "name": "Utilisateurs", "solo": "1", "pro": "1", "equipe": "Illimite" },
+            "contacts": { "name": "Contacts", "solo": "100", "pro": "Illimite", "equipe": "Illimite" }
+          }
+        },
+        "crm": {
+          "label": "CRM",
+          "features": {
+            "pipelines": { "name": "Pipelines", "solo": "1", "pro": "Illimite", "equipe": "Illimite" },
+            "customStages": { "name": "Etapes personnalisables" },
+            "deals": { "name": "Deals", "solo": "Illimite", "pro": "Illimite", "equipe": "Illimite" },
+            "segments": { "name": "Segments dynamiques" },
+            "products": { "name": "Produits & catalogue" },
+            "duplicates": { "name": "Detection de doublons" }
+          }
+        },
+        "productivity": {
+          "label": "Productivite",
+          "features": {
+            "tasks": { "name": "Taches & rappels" },
+            "calendar": { "name": "Vue calendrier" },
+            "teamAssignment": { "name": "Assignation d'equipe" },
+            "workflows": { "name": "Workflows & automations" },
+            "emailTemplates": { "name": "Email templates" }
+          }
+        },
+        "ai": {
+          "label": "IA",
+          "features": {
+            "chatAi": { "name": "Chat IA", "solo": "50 msg/mois", "pro": "Illimite", "equipe": "Illimite" }
+          }
+        },
+        "analytics": {
+          "label": "Analytics",
+          "features": {
+            "dashboard": { "name": "Dashboard", "solo": "Basique", "pro": "Avance", "equipe": "Avance" },
+            "customReports": { "name": "Rapports personnalises" },
+            "conversionFunnel": { "name": "Entonnoir de conversion" }
+          }
+        },
+        "integrations": {
+          "label": "Integrations",
+          "features": {
+            "emailIntegration": { "name": "Integration email" },
+            "csvImportExport": { "name": "Import/Export CSV" },
+            "apiAccess": { "name": "API access" }
+          }
+        },
+        "support": {
+          "label": "Support",
+          "features": {
+            "email": { "name": "Email" },
+            "prioritySupport": { "name": "Support prioritaire" },
+            "dedicatedOnboarding": { "name": "Onboarding dedie" }
+          }
+        }
+      }
+    },
+    "faq": {
+      "title": "Questions frequentes",
+      "contactQuestion": "Une autre question ?",
+      "contactUs": "Contactez-nous",
+      "items": {
+        "0": {
+          "question": "Puis-je changer de plan a tout moment ?",
+          "answer": "Oui, vous pouvez upgrader ou downgrader votre plan a tout moment. Le changement prend effet immediatement."
+        },
+        "1": {
+          "question": "Y a-t-il un engagement ?",
+          "answer": "Aucun engagement. Vous pouvez annuler a tout moment. Le plan gratuit reste disponible sans limite de temps."
+        },
+        "2": {
+          "question": "Mes donnees sont-elles securisees ?",
+          "answer": "Absolument. Vos donnees sont chiffrees, isolees par organisation, et hebergees en Europe. Authentification JWT avec refresh token."
+        },
+        "3": {
+          "question": "Quel modele d'IA est utilise ?",
+          "answer": "Claude (Anthropic) par defaut, avec GPT en fallback. Vous pouvez configurer le modele de votre choix via les parametres."
+        },
+        "4": {
+          "question": "Puis-je importer mes contacts existants ?",
+          "answer": "Oui, vous pouvez importer et exporter vos contacts au format CSV depuis la page Contacts. L'import inclut un mapping de colonnes intelligent."
+        },
+        "5": {
+          "question": "Quelles automations puis-je creer ?",
+          "answer": "Vous pouvez creer des workflows automatises bases sur des triggers : deal cree, etape changee, contact mis a jour, tache en retard, etc. Ajoutez des conditions et des actions automatiques comme envoyer un email, creer une tache, ou mettre a jour un champ."
+        },
+        "6": {
+          "question": "Puis-je connecter mon email ?",
+          "answer": "Oui ! Qeylo s'integre avec Gmail et Outlook via OAuth. Connectez votre boite mail en un clic depuis les parametres pour centraliser vos communications."
+        }
+      }
+    }
+  },
+  "cgu": {
+    "label": "Legal",
+    "title": "Conditions Generales d'Utilisation",
+    "subtitle": "Conditions regissant l'acces et l'utilisation du service Qeylo.",
+    "lastUpdated": "Derniere mise a jour : 6 mars 2026",
+    "article1": {
+      "title": "Article 1 – Objet",
+      "p1": "Les presentes Conditions Generales d'Utilisation (CGU) regissent l'acces et l'utilisation du service Qeylo, un CRM conversationnel propulse par l'intelligence artificielle, edite par Qeylo SASU.",
+      "p2": "En creant un compte sur Qeylo, l'utilisateur accepte sans reserve les presentes CGU."
+    },
+    "article2": {
+      "title": "Article 2 – Definitions",
+      "items": {
+        "0": "\u00ab Service \u00bb : la plateforme Qeylo accessible a l'adresse qeylo.com et ses applications",
+        "1": "\u00ab Utilisateur \u00bb : toute personne physique ou morale inscrite au Service",
+        "2": "\u00ab Contenu Utilisateur \u00bb : l'ensemble des donnees saisies par l'Utilisateur (contacts, deals, taches, notes, etc.)"
+      }
+    },
+    "article3": {
+      "title": "Article 3 – Inscription et compte",
+      "items": {
+        "0": "L'inscription necessite une adresse email valide et un mot de passe securise (minimum 8 caracteres)",
+        "1": "L'Utilisateur est responsable de la confidentialite de ses identifiants",
+        "2": "Chaque compte est personnel et ne peut etre partage",
+        "3": "L'Utilisateur s'engage a fournir des informations exactes et a les maintenir a jour"
+      }
+    },
+    "article4": {
+      "title": "Article 4 – Description du service",
+      "intro": "Qeylo propose trois formules :",
+      "plans": {
+        "0": "Plan Solo (gratuit) : 1 utilisateur, 100 contacts, 1 pipeline, 50 messages IA/mois",
+        "1": "Plan Pro (19\u20ac/mois) : 1 utilisateur, contacts illimites, multi-pipeline, IA illimitee, workflows, segments, rapports avances",
+        "2": "Plan Equipe (49\u20ac/mois) : utilisateurs illimites, tout du plan Pro, organisation partagee, roles & permissions, API access"
+      },
+      "outro": "Les fonctionnalites detaillees de chaque plan sont decrites sur la page Tarifs du site."
+    },
+    "article5": {
+      "title": "Article 5 – Obligations de l'utilisateur",
+      "items": {
+        "0": "Utiliser le Service conformement a sa destination et aux lois en vigueur",
+        "1": "Ne pas utiliser le Service a des fins illicites, frauduleuses ou portant atteinte aux droits de tiers",
+        "2": "Ne pas tenter d'acceder de maniere non autorisee aux systemes de Qeylo",
+        "3": "Ne pas effectuer de scraping, extraction automatisee ou reverse engineering du Service",
+        "4": "Ne pas stocker de contenu illicite via le Service"
+      }
+    },
+    "article6": {
+      "title": "Article 6 – Propriete intellectuelle",
+      "p1": "Le Service, son code source, son design, ses marques et logos sont la propriete exclusive de Qeylo SASU.",
+      "p2": "L'Utilisateur conserve l'integralite des droits sur son Contenu Utilisateur.",
+      "p3": "L'Utilisateur accorde a Qeylo une licence limitee d'utilisation de son Contenu Utilisateur aux seules fins de fourniture du Service."
+    },
+    "article7": {
+      "title": "Article 7 – Donnees personnelles",
+      "p1": "Le traitement des donnees personnelles est decrit dans notre Politique de Confidentialite accessible a l'adresse",
+      "linkText": "/confidentialite",
+      "p2": "En utilisant le Service, l'Utilisateur reconnait avoir pris connaissance de cette politique."
+    },
+    "article8": {
+      "title": "Article 8 – Disponibilite et maintenance",
+      "p1": "Qeylo s'engage a fournir ses meilleurs efforts pour assurer la disponibilite du Service 24h/24.",
+      "p2": "Des interruptions temporaires peuvent survenir pour maintenance, mises a jour ou en cas de force majeure.",
+      "p3": "Qeylo s'efforcera de notifier les utilisateurs en amont des maintenances planifiees."
+    },
+    "article9": {
+      "title": "Article 9 – Responsabilite",
+      "items": {
+        "0": "Qeylo est tenue a une obligation de moyens dans la fourniture du Service",
+        "1": "Qeylo ne saurait etre tenue responsable des dommages indirects (perte de donnees, perte de chiffre d'affaires, manque a gagner)",
+        "2": "La responsabilite totale de Qeylo est limitee au montant des sommes versees par l'Utilisateur au cours des 12 derniers mois",
+        "3": "Qeylo ne saurait etre tenue responsable en cas de force majeure"
+      }
+    },
+    "article10": {
+      "title": "Article 10 – Resiliation",
+      "items": {
+        "0": "L'Utilisateur peut resilier son compte a tout moment depuis les parametres de son compte",
+        "1": "Qeylo se reserve le droit de suspendre ou resilier un compte en cas de violation des presentes CGU, apres notification",
+        "2": "En cas de resiliation, les donnees de l'Utilisateur sont conservees pendant 30 jours, puis supprimees conformement a notre politique de confidentialite"
+      }
+    },
+    "article11": {
+      "title": "Article 11 – Modification des CGU",
+      "p1": "Qeylo se reserve le droit de modifier les presentes CGU a tout moment.",
+      "p2": "Les Utilisateurs seront informes par email de tout changement substantiel au moins 30 jours avant l'entree en vigueur.",
+      "p3": "La poursuite de l'utilisation du Service apres la date d'effet vaut acceptation des nouvelles CGU."
+    },
+    "article12": {
+      "title": "Article 12 – Droit applicable et litiges",
+      "p1": "Les presentes CGU sont regies par le droit francais.",
+      "p2": "En cas de litige, les parties s'engagent a rechercher une solution amiable.",
+      "p3": "A defaut d'accord amiable, competence est attribuee au Tribunal de commerce d'Avignon."
+    },
+    "article13": {
+      "title": "Article 13 – Contact",
+      "text": "Pour toute question relative aux presentes CGU :"
+    }
+  },
+  "mentionsLegales": {
+    "label": "Legal",
+    "title": "Mentions legales",
+    "subtitle": "Informations legales relatives au site Qeylo.",
+    "lastUpdated": "Derniere mise a jour : 6 mars 2026",
+    "section1": {
+      "title": "1. Editeur du site",
+      "companyName": "Raison sociale : Qeylo",
+      "legalForm": "Forme juridique : SASU (Societe par Actions Simplifiee Unipersonnelle)",
+      "address": "Siege social : Avignon, France",
+      "siret": "SIRET : 922 082 698",
+      "capital": "Capital social : 100 \u20ac",
+      "representative": "Representant legal : Hugo Frely, President"
+    },
+    "section2": {
+      "title": "2. Directeur de la publication",
+      "name": "Hugo Frely"
+    },
+    "section3": {
+      "title": "3. Hebergement",
+      "host": "DigitalOcean, LLC",
+      "address": "101 6th Avenue, New York, NY 10013, Etats-Unis",
+      "siteLabel": "Site :"
+    },
+    "section4": {
+      "title": "4. Contact",
+      "emailLabel": "Email :"
+    },
+    "section5": {
+      "title": "5. Propriete intellectuelle",
+      "p1": "L'ensemble du contenu du site Qeylo (textes, graphismes, logos, icones, images, logiciels) est la propriete exclusive de Qeylo SASU ou de ses partenaires et est protege par les lois francaises et internationales relatives a la propriete intellectuelle.",
+      "p2": "Toute reproduction, representation, modification, publication, transmission ou denaturation, totale ou partielle, du site ou de son contenu, par quelque procede que ce soit, et sur quelque support que ce soit, est interdite sans l'autorisation ecrite prealable de Qeylo SASU."
+    },
+    "section6": {
+      "title": "6. Limitation de responsabilite",
+      "p1": "Qeylo SASU s'efforce d'assurer au mieux l'exactitude et la mise a jour des informations diffusees sur ce site. Toutefois, Qeylo SASU ne peut garantir l'exactitude, la precision ou l'exhaustivite des informations mises a disposition.",
+      "p2": "Qeylo SASU decline toute responsabilite pour toute imprecision, inexactitude ou omission portant sur des informations disponibles sur le site.",
+      "p3": "Qeylo SASU ne saurait etre tenue responsable des dommages directs ou indirects resultant de l'acces ou de l'utilisation du site."
+    },
+    "section7": {
+      "title": "7. Droit applicable",
+      "p1": "Les presentes mentions legales sont regies par le droit francais.",
+      "p2": "En cas de litige, et apres tentative de resolution amiable, competence est attribuee au Tribunal de commerce d'Avignon."
+    }
+  },
+  "confidentialite": {
+    "label": "Legal",
+    "title": "Politique de confidentialite",
+    "subtitle": "Protection et traitement de vos donnees personnelles.",
+    "lastUpdated": "Derniere mise a jour : 6 mars 2026",
+    "section1": {
+      "title": "1. Responsable du traitement",
+      "company": "Qeylo SASU",
+      "address": "Siege social : Avignon, France",
+      "emailLabel": "Email :"
+    },
+    "section2": {
+      "title": "2. Donnees collectees",
+      "items": {
+        "0": { "label": "Donnees de compte :", "text": "nom, prenom, adresse email, mot de passe (chiffre)" },
+        "1": { "label": "Donnees d'utilisation :", "text": "logs de connexion, adresse IP, type de navigateur, pages consultees" },
+        "2": { "label": "Donnees CRM :", "text": "contacts, deals, taches, notes, workflows crees par l'utilisateur" },
+        "3": { "label": "Donnees de communication :", "text": "emails envoyes et recus via les integrations" }
+      }
+    },
+    "section3": {
+      "title": "3. Finalites du traitement",
+      "items": {
+        "0": "Fourniture et fonctionnement du service Qeylo",
+        "1": "Amelioration et personnalisation de l'experience utilisateur",
+        "2": "Communication relative au service (notifications, alertes, rappels)",
+        "3": "Securite et prevention des fraudes"
+      }
+    },
+    "section4": {
+      "title": "4. Base legale (RGPD)",
+      "items": {
+        "0": { "label": "Execution du contrat (Article 6.1.b) :", "text": "pour la fourniture du service" },
+        "1": { "label": "Interet legitime (Article 6.1.f) :", "text": "pour l'amelioration du service et la securite" },
+        "2": { "label": "Consentement (Article 6.1.a) :", "text": "pour les communications marketing optionnelles" }
+      }
+    },
+    "section5": {
+      "title": "5. Duree de conservation",
+      "items": {
+        "0": { "label": "Donnees de compte :", "text": "conservees pendant toute la duree de l'utilisation du service" },
+        "1": { "label": "Apres suppression du compte :", "text": "les donnees sont conservees 3 ans a des fins legales, puis supprimees definitivement" },
+        "2": { "label": "Logs de connexion :", "text": "12 mois" }
+      }
+    },
+    "section6": {
+      "title": "6. Destinataires des donnees",
+      "items": {
+        "0": "DigitalOcean (hebergement des donnees)",
+        "1": "Aucune vente ou location de donnees a des tiers",
+        "2": "Aucun partage de donnees a des fins publicitaires"
+      }
+    },
+    "section7": {
+      "title": "7. Transferts hors Union europeenne",
+      "p1": "Les donnees peuvent etre hebergees sur des serveurs DigitalOcean situes hors UE.",
+      "p2": "Ces transferts sont encadres par les Clauses Contractuelles Types de la Commission europeenne."
+    },
+    "section8": {
+      "title": "8. Droits des utilisateurs",
+      "items": {
+        "0": { "label": "Droit d'acces :", "text": "obtenir une copie de vos donnees personnelles" },
+        "1": { "label": "Droit de rectification :", "text": "corriger des donnees inexactes" },
+        "2": { "label": "Droit a l'effacement :", "text": "demander la suppression de vos donnees" },
+        "3": { "label": "Droit a la portabilite :", "text": "recevoir vos donnees dans un format structure" },
+        "4": { "label": "Droit d'opposition :", "text": "vous opposer au traitement de vos donnees" },
+        "5": { "label": "Droit a la limitation :", "text": "restreindre le traitement de vos donnees" }
+      },
+      "exerciseRights": "Pour exercer ces droits :",
+      "cnilText": "Vous disposez egalement du droit d'introduire une reclamation aupres de la"
+    },
+    "section9": {
+      "title": "9. Cookies",
+      "p1": "Qeylo utilise uniquement des cookies fonctionnels necessaires au bon fonctionnement du service (authentification, preferences).",
+      "p2": "Aucun cookie tiers publicitaire ou de tracking n'est utilise."
+    },
+    "section10": {
+      "title": "10. Securite",
+      "items": {
+        "0": "Chiffrement des donnees en transit (HTTPS/TLS)",
+        "1": "Authentification securisee par JWT avec refresh token",
+        "2": "Isolation des donnees par organisation",
+        "3": "Mots de passe chiffres (hachage bcrypt)"
+      }
+    },
+    "section11": {
+      "title": "11. Modifications de la politique",
+      "p1": "Qeylo se reserve le droit de modifier la presente politique de confidentialite.",
+      "p2": "Les utilisateurs seront informes par email de tout changement substantiel.",
+      "p3": "La continuation de l'utilisation du service vaut acceptation des modifications."
+    },
+    "section12": {
+      "title": "12. Contact DPO",
+      "text": "Pour toute question relative a vos donnees personnelles :"
+    }
+  }
+}

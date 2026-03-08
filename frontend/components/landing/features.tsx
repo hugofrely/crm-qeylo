@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { motion } from "motion/react"
 import {
   MessageSquare,
@@ -11,76 +12,62 @@ import {
 } from "lucide-react"
 import { FeaturesIllustration } from "./illustrations"
 
-const features = [
-  {
+const featureKeys = ["chat", "contacts", "pipeline", "tasks", "workflows", "dashboard"] as const
+
+const featureConfigs = {
+  chat: {
     icon: MessageSquare,
     illustration: "chat" as const,
-    title: "Chat IA intelligent",
-    description:
-      "Parlez naturellement. L'IA comprend vos intentions et execute les actions : creer un contact, deplacer un deal, planifier une relance. Plus de 9 outils integres.",
     color: "text-primary",
     bgColor: "bg-primary/8",
     accent: "#0D4F4F",
     span: "lg:col-span-2 lg:row-span-2",
   },
-  {
+  contacts: {
     icon: Users,
     illustration: "contacts" as const,
-    title: "Contacts & Segments",
-    description:
-      "Base de contacts enrichie automatiquement. Segments dynamiques, detection de doublons intelligente, lead scoring et timeline complete.",
     color: "text-teal",
     bgColor: "bg-teal/8",
     accent: "#3D7A7A",
     span: "",
   },
-  {
+  pipeline: {
     icon: KanbanSquare,
     illustration: "pipeline" as const,
-    title: "Pipeline & Deals",
-    description:
-      "Multi-pipeline personnalisable avec Kanban drag-and-drop. Entonnoir de conversion et suivi complet.",
     color: "text-warm",
     bgColor: "bg-warm/8",
     accent: "#C9946E",
     span: "",
   },
-  {
+  tasks: {
     icon: CheckSquare,
     illustration: "tasks" as const,
-    title: "Taches & Rappels",
-    description:
-      "Assignation a l'equipe, vue liste et calendrier, rappels automatiques. Ne ratez plus jamais une relance.",
     color: "text-primary",
     bgColor: "bg-primary/8",
     accent: "#0D4F4F",
     span: "",
   },
-  {
+  workflows: {
     icon: Workflow,
     illustration: "ai" as const,
-    title: "Workflows & Automations",
-    description:
-      "Automatisez vos processus : triggers sur deals, contacts ou taches, conditions personnalisees, actions automatiques.",
     color: "text-teal",
     bgColor: "bg-teal/8",
     accent: "#3D7A7A",
     span: "",
   },
-  {
+  dashboard: {
     icon: BarChart3,
     illustration: "dashboard" as const,
-    title: "Dashboard & Rapports",
-    description:
-      "Dashboard personnalisable avec widgets KPI. Rapports custom, analyse du pipeline, suivi de performance en temps reel.",
     color: "text-warm",
     bgColor: "bg-warm/8",
     accent: "#C9946E",
     span: "lg:col-span-2",
   },
-]
+}
 
 export function Features() {
+  const t = useTranslations("marketing.features")
+
   return (
     <section className="relative py-28 lg:py-36 grain" id="features">
       {/* Decorative top accent */}
@@ -95,29 +82,28 @@ export function Features() {
           className="max-w-2xl"
         >
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
-            Fonctionnalites
+            {t("label")}
           </span>
           <h2 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl leading-[1.1]">
-            Tout ce qu&apos;il faut.
+            {t("titleLine1")}
             <br />
-            <span className="text-muted-foreground">Rien de superflu.</span>
+            <span className="text-muted-foreground">{t("titleLine2")}</span>
           </h2>
           <p className="mt-5 text-lg text-muted-foreground max-w-lg">
-            Un CRM pense pour ceux qui veulent passer moins de temps
-            sur l&apos;administratif et plus sur ce qui compte.
+            {t("description")}
           </p>
         </motion.div>
 
         {/* Bento grid layout */}
         <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature, index) => {
-            const Icon = feature.icon
+          {featureKeys.map((key, index) => {
+            const feature = featureConfigs[key]
             const isLarge = feature.span.includes("row-span-2")
             const isWide = feature.span.includes("col-span-2")
 
             return (
               <motion.div
-                key={feature.title}
+                key={key}
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
@@ -150,10 +136,10 @@ export function Features() {
                   </div>
 
                   <h3 className={`font-semibold ${isLarge ? "text-xl" : "text-lg"}`}>
-                    {feature.title}
+                    {t(`items.${key}.title`)}
                   </h3>
                   <p className={`mt-2 leading-relaxed text-muted-foreground ${isLarge ? "text-base" : "text-sm"}`}>
-                    {feature.description}
+                    {t(`items.${key}.description`)}
                   </p>
 
                   {/* Large card gets extra visual element */}
@@ -161,7 +147,7 @@ export function Features() {
                     <div className="mt-6 flex items-center gap-3">
                       <div className="h-px flex-1 bg-gradient-to-r from-primary/20 to-transparent" />
                       <span className="text-xs font-medium text-primary/60 uppercase tracking-wider">
-                        Intelligence artificielle
+                        {t("aiLabel")}
                       </span>
                     </div>
                   )}

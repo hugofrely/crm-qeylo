@@ -1,6 +1,7 @@
 "use client"
 
-import Link from "next/link"
+import { useTranslations } from "next-intl"
+import { Link } from "@/i18n/navigation"
 import { motion } from "motion/react"
 import {
   ArrowRight,
@@ -23,129 +24,20 @@ import { Footer } from "@/components/landing/footer"
 import { CTA } from "@/components/landing/cta"
 import { FeaturePageIllustration } from "@/components/landing/illustrations"
 
-const mainFeatures = [
-  {
-    icon: MessageSquare,
-    color: "#0D4F4F",
-    illustration: "chat" as const,
-    title: "Chat IA — Votre assistant CRM",
-    description:
-      "Parlez naturellement et l'IA execute. Creer un contact, deplacer un deal, planifier un rappel — tout se fait en une phrase.",
-    details: [
-      "Comprehension du langage naturel en francais",
-      "Plus de 9 outils integres : contacts, deals, taches, notes, dashboard",
-      "Conversations multiples avec historique persistant",
-      "Streaming en temps reel avec rendu Markdown",
-    ],
-  },
-  {
-    icon: Users,
-    color: "#3D7A7A",
-    illustration: "contacts" as const,
-    title: "Contacts & Segments intelligents",
-    description:
-      "Vos contacts se creent et s'enrichissent automatiquement. Segmentez dynamiquement, detectez les doublons, et suivez chaque interaction.",
-    details: [
-      "Creation automatique depuis le chat",
-      "Segments dynamiques avec regles personnalisees",
-      "Detection de doublons intelligente avec fusion assistee",
-      "Lead scoring (chaud, tiede, froid) et categories",
-      "Timeline complete d'interactions par contact",
-    ],
-  },
-  {
-    icon: KanbanSquare,
-    color: "#C9946E",
-    illustration: "pipeline" as const,
-    title: "Pipeline & Deals multi-pipeline",
-    description:
-      "Suivez vos deals sur un Kanban intuitif. Creez plusieurs pipelines, visualisez votre entonnoir de conversion, et filtrez avec precision.",
-    details: [
-      "Multi-pipeline : Prospection, Upsell, Partenariats...",
-      "Glisser-deposer intuitif entre les etapes",
-      "Entonnoir de conversion avec taux par etape",
-      "Filtres avances : contact, montant, probabilite, dates",
-    ],
-  },
-  {
-    icon: CheckSquare,
-    color: "#0D4F4F",
-    illustration: "tasks" as const,
-    title: "Taches, rappels & calendrier",
-    description:
-      "Gerez vos taches en liste ou en calendrier. Assignez a l'equipe, configurez des rappels automatiques, ne ratez plus rien.",
-    details: [
-      "Vue liste et vue calendrier",
-      "Assignation aux membres de l'equipe",
-      "Rappels automatiques configurables",
-      "3 niveaux de priorite avec filtres avances",
-      "Taches recurrentes",
-    ],
-  },
-  {
-    icon: Workflow,
-    color: "#3D7A7A",
-    illustration: "ai" as const,
-    title: "Workflows & Automations",
-    description:
-      "Automatisez vos processus metier. Definissez des triggers, des conditions et des actions pour gagner du temps chaque jour.",
-    details: [
-      "Triggers : deal cree, etape changee, contact mis a jour...",
-      "Conditions personnalisees et delais",
-      "Actions automatiques sur contacts, deals, taches",
-      "Templates de workflows prets a l'emploi",
-    ],
-  },
-  {
-    icon: BarChart3,
-    color: "#C9946E",
-    illustration: "dashboard" as const,
-    title: "Dashboard & Rapports sur mesure",
-    description:
-      "Construisez votre dashboard avec des widgets personnalisables. Creez des rapports sur mesure pour suivre votre performance.",
-    details: [
-      "Dashboard personnalisable avec widgets drag-and-drop",
-      "Rapports custom : performance, pipeline, activite, sources",
-      "KPI en temps reel : CA, pipeline, taux de conversion",
-      "Templates de rapports prets a l'emploi",
-    ],
-  },
+const mainFeatureConfigs = [
+  { icon: MessageSquare, color: "#0D4F4F", illustration: "chat" as const, detailCount: 4 },
+  { icon: Users, color: "#3D7A7A", illustration: "contacts" as const, detailCount: 5 },
+  { icon: KanbanSquare, color: "#C9946E", illustration: "pipeline" as const, detailCount: 4 },
+  { icon: CheckSquare, color: "#0D4F4F", illustration: "tasks" as const, detailCount: 5 },
+  { icon: Workflow, color: "#3D7A7A", illustration: "ai" as const, detailCount: 4 },
+  { icon: BarChart3, color: "#C9946E", illustration: "dashboard" as const, detailCount: 4 },
 ]
 
-const extraFeatures = [
-  {
-    icon: FileSpreadsheet,
-    title: "Import / Export CSV",
-    description: "Importez et exportez vos contacts facilement",
-  },
-  {
-    icon: Inbox,
-    title: "Integration email",
-    description: "Connectez Gmail et Outlook en un clic",
-  },
-  {
-    icon: Building2,
-    title: "Multi-organisation",
-    description: "Gerez plusieurs structures depuis un compte",
-  },
-  {
-    icon: Package,
-    title: "Produits & Catalogue",
-    description: "Gerez vos produits, tarifs et categories",
-  },
-  {
-    icon: Search,
-    title: "Recherche globale",
-    description: "Trouvez contacts, deals et taches instantanement",
-  },
-  {
-    icon: Copy,
-    title: "Detection de doublons",
-    description: "Detection intelligente et fusion assistee",
-  },
-]
+const extraFeatureIcons = [FileSpreadsheet, Inbox, Building2, Package, Search, Copy]
 
 export default function FeaturesPage() {
+  const t = useTranslations("marketing.featuresPage")
+
   return (
     <>
       <Navbar />
@@ -167,18 +59,17 @@ export default function FeaturesPage() {
               className="max-w-3xl"
             >
               <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
-                Fonctionnalites
+                {t("label")}
               </span>
               <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl leading-[1.1]">
-                Tout pour gerer vos clients.
+                {t("titleLine1")}
                 <br />
                 <span className="bg-gradient-to-r from-primary via-teal to-warm bg-clip-text text-transparent">
-                  En parlant.
+                  {t("titleLine2")}
                 </span>
               </h1>
               <p className="mt-6 text-lg text-muted-foreground max-w-2xl">
-                Qeylo combine la puissance d&apos;un CRM complet avec la
-                simplicite d&apos;une conversation.
+                {t("description")}
               </p>
             </motion.div>
           </div>
@@ -188,12 +79,17 @@ export default function FeaturesPage() {
         <section className="pb-24">
           <div className="mx-auto max-w-7xl px-6">
             <div className="space-y-32">
-              {mainFeatures.map((feature, index) => {
+              {mainFeatureConfigs.map((feature, index) => {
                 const Icon = feature.icon
                 const isReversed = index % 2 === 1
+                const title = t(`mainFeatures.${index}.title`)
+                const description = t(`mainFeatures.${index}.description`)
+                const details = Array.from({ length: feature.detailCount }, (_, i) =>
+                  t(`mainFeatures.${index}.details.${i}`)
+                )
                 return (
                   <motion.div
-                    key={feature.title}
+                    key={index}
                     initial={{ opacity: 0, y: 40 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-80px" }}
@@ -215,17 +111,17 @@ export default function FeaturesPage() {
                         />
                       </div>
                       <h2 className="mt-6 text-2xl font-bold tracking-tight sm:text-3xl">
-                        {feature.title}
+                        {title}
                       </h2>
                       <p className="mt-4 leading-relaxed text-muted-foreground">
-                        {feature.description}
+                        {description}
                       </p>
 
                       {/* Separator */}
                       <div className="mt-6 h-px w-16 rounded-full" style={{ backgroundColor: `${feature.color}30` }} />
 
                       <ul className="mt-6 space-y-3">
-                        {feature.details.map((detail) => (
+                        {details.map((detail) => (
                           <li
                             key={detail}
                             className="flex items-center gap-3 text-sm"
@@ -268,11 +164,10 @@ export default function FeaturesPage() {
 
           <div className="relative mx-auto max-w-7xl px-6">
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {extraFeatures.map((feature, index) => {
-                const Icon = feature.icon
+              {extraFeatureIcons.map((Icon, index) => {
                 return (
                   <motion.div
-                    key={feature.title}
+                    key={index}
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -282,9 +177,9 @@ export default function FeaturesPage() {
                     <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/[0.06] transition-all duration-300 group-hover:bg-primary/10 group-hover:shadow-lg group-hover:shadow-primary/[0.05]">
                       <Icon className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110" />
                     </div>
-                    <h3 className="mt-5 font-semibold">{feature.title}</h3>
+                    <h3 className="mt-5 font-semibold">{t(`extraFeatures.${index}.title`)}</h3>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      {feature.description}
+                      {t(`extraFeatures.${index}.description`)}
                     </p>
                   </motion.div>
                 )

@@ -1,11 +1,14 @@
 "use client"
 
-import Link from "next/link"
+import { useTranslations } from "next-intl"
+import { Link } from "@/i18n/navigation"
 import { motion } from "motion/react"
 import { ArrowRight, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function CTA() {
+  const t = useTranslations("marketing.cta")
+
   return (
     <section className="relative overflow-hidden py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-6">
@@ -55,15 +58,14 @@ export function CTA() {
             </motion.div>
 
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl leading-[1.1]">
-              Pret a simplifier
+              {t("title")}
               <br />
               <span className="bg-gradient-to-r from-[#3DD9D9] to-[#C9946E] bg-clip-text text-transparent">
-                votre relation client ?
+                {t("titleGradient")}
               </span>
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-lg text-white/80 leading-relaxed">
-              Rejoignez les independants et entreprises qui gagnent du temps
-              chaque jour avec un CRM qui les comprend vraiment.
+              {t("description")}
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
               <Button
@@ -72,7 +74,7 @@ export function CTA() {
                 className="group h-13 rounded-full bg-[#3DD9D9] px-8 text-base font-medium text-[#0D1F1F] hover:bg-[#2BC0C0] shadow-xl shadow-[#3DD9D9]/20 transition-all hover:shadow-2xl hover:shadow-[#3DD9D9]/30 hover:scale-[1.02]"
               >
                 <Link href="/register">
-                  Commencer gratuitement
+                  {t("startFree")}
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </Button>
@@ -82,7 +84,7 @@ export function CTA() {
                 asChild
                 className="h-13 rounded-full px-8 text-base text-white/85 hover:text-white hover:bg-white/10 border border-white/10"
               >
-                <Link href="/features">En savoir plus</Link>
+                <Link href="/features">{t("learnMore")}</Link>
               </Button>
             </div>
           </div>

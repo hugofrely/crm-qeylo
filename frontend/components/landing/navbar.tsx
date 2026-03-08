@@ -1,18 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
+import { useTranslations } from "next-intl"
+import { Link } from "@/i18n/navigation"
 import { motion, AnimatePresence } from "motion/react"
 import { MessageSquare, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-const navLinks = [
-  { href: "/features", label: "Fonctionnalites" },
-  { href: "/pricing", label: "Tarifs" },
-]
-
 export function Navbar() {
+  const t = useTranslations("marketing.navbar")
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const navLinks = [
+    { href: "/features" as const, label: t("features") },
+    { href: "/pricing" as const, label: t("pricing") },
+  ]
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50">
@@ -45,14 +47,14 @@ export function Navbar() {
           {/* Desktop CTA */}
           <div className="hidden items-center gap-3 md:flex">
             <Button variant="ghost" size="sm" asChild className="rounded-full px-5">
-              <Link href="/login">Connexion</Link>
+              <Link href="/login">{t("login")}</Link>
             </Button>
             <Button
               size="sm"
               asChild
               className="rounded-full px-5 shadow-md shadow-primary/10 transition-all hover:shadow-lg hover:shadow-primary/15"
             >
-              <Link href="/register">Commencer gratuitement</Link>
+              <Link href="/register">{t("startFree")}</Link>
             </Button>
           </div>
 
@@ -90,14 +92,14 @@ export function Navbar() {
               ))}
               <div className="mt-4 flex flex-col gap-2.5 border-t border-border/30 pt-5">
                 <Button variant="outline" size="sm" asChild className="w-full rounded-full">
-                  <Link href="/login">Connexion</Link>
+                  <Link href="/login">{t("login")}</Link>
                 </Button>
                 <Button
                   size="sm"
                   asChild
                   className="w-full rounded-full shadow-md shadow-primary/10"
                 >
-                  <Link href="/register">Commencer gratuitement</Link>
+                  <Link href="/register">{t("startFree")}</Link>
                 </Button>
               </div>
             </div>

@@ -1,12 +1,15 @@
 "use client"
 
-import Link from "next/link"
+import { useTranslations } from "next-intl"
+import { Link } from "@/i18n/navigation"
 import { motion } from "motion/react"
 import { ArrowRight, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ChatIllustration } from "./illustrations"
 
 export function Hero() {
+  const t = useTranslations("marketing.hero")
+
   return (
     <section className="relative overflow-hidden pt-28 pb-24 lg:pt-36 lg:pb-32">
       {/* Layered background with depth */}
@@ -35,7 +38,7 @@ export function Hero() {
               <div className="mb-8 inline-flex items-center gap-2.5 rounded-full border border-primary/10 bg-white/60 backdrop-blur-sm px-5 py-2 shadow-sm">
                 <Sparkles className="h-3.5 w-3.5 text-primary" />
                 <span className="text-xs font-semibold tracking-wide text-primary uppercase">
-                  CRM conversationnel IA
+                  {t("badge")}
                 </span>
               </div>
             </motion.div>
@@ -46,10 +49,10 @@ export function Hero() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl"
             >
-              <span className="block">Dis-le.</span>
+              <span className="block">{t("titleLine1")}</span>
               <span className="relative mt-1 block">
                 <span className="bg-gradient-to-r from-primary via-teal to-warm bg-clip-text text-transparent">
-                  C&apos;est fait.
+                  {t("titleLine2")}
                 </span>
                 {/* Accent underline with shimmer */}
                 <span className="absolute -bottom-2 left-0 w-full accent-line rounded-full" />
@@ -62,11 +65,9 @@ export function Hero() {
               transition={{ duration: 0.5, delay: 0.25 }}
               className="mt-8 text-lg leading-relaxed text-muted-foreground max-w-lg"
             >
-              Le CRM qui comprend ce que vous dites. Contacts, deals, taches,
-              automations, rapports — Qeylo gere tout depuis une simple
-              conversation.{" "}
+              {t("description")}{" "}
               <span className="font-semibold text-foreground">
-                Simple, rapide, sans friction.
+                {t("descriptionBold")}
               </span>
             </motion.p>
 
@@ -82,7 +83,7 @@ export function Hero() {
                 className="group h-13 rounded-full px-8 text-base font-medium shadow-xl shadow-primary/20 transition-all hover:shadow-2xl hover:shadow-primary/25 hover:scale-[1.02]"
               >
                 <Link href="/register">
-                  Essayer gratuitement
+                  {t("ctaTry")}
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </Button>
@@ -92,7 +93,7 @@ export function Hero() {
                 asChild
                 className="h-13 rounded-full px-7 text-base border border-border/60 hover:border-primary/20 hover:bg-teal-light/30"
               >
-                <Link href="/features">Voir les fonctionnalites</Link>
+                <Link href="/features">{t("ctaFeatures")}</Link>
               </Button>
             </motion.div>
 
@@ -106,13 +107,13 @@ export function Hero() {
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/10">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                 </span>
-                Gratuit pour commencer
+                {t("freeToStart")}
               </span>
               <span className="flex items-center gap-2">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/10">
                   <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                 </span>
-                Aucune carte requise
+                {t("noCard")}
               </span>
             </motion.div>
           </div>

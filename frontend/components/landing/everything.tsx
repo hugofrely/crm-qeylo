@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { motion } from "motion/react"
 import {
   FileSpreadsheet,
@@ -16,22 +17,29 @@ import {
   Bell,
 } from "lucide-react"
 
-const capabilities = [
-  { icon: FileSpreadsheet, title: "Import / Export CSV", description: "Importez et exportez vos contacts en un clic" },
-  { icon: Mail, title: "Email templates", description: "Modeles d'emails reutilisables et personnalisables" },
-  { icon: Package, title: "Produits & Catalogue", description: "Gerez vos produits, tarifs et categories" },
-  { icon: Search, title: "Recherche globale", description: "Trouvez contacts, deals et taches instantanement" },
-  { icon: StickyNote, title: "Notes riches", description: "Editeur de notes complet sur chaque contact" },
-  { icon: Copy, title: "Detection de doublons", description: "Detection intelligente et fusion assistee" },
-  { icon: Building2, title: "Multi-organisation", description: "Gerez plusieurs structures depuis un compte" },
-  { icon: Shield, title: "Roles & Permissions", description: "Controlez les acces de chaque membre" },
-  { icon: Filter, title: "Entonnoir de conversion", description: "Visualisez vos taux de conversion par etape" },
-  { icon: ListFilter, title: "Segments dynamiques", description: "Groupes de contacts avec regles automatiques" },
-  { icon: Inbox, title: "Integration email", description: "Connectez Gmail et Outlook en un clic" },
-  { icon: Bell, title: "Rappels & Notifications", description: "Alertes automatiques pour ne rien oublier" },
-]
+const capabilityKeys = [
+  "csv", "email_templates", "products", "search", "notes", "duplicates",
+  "multi_org", "roles", "funnel", "segments", "email_integration", "reminders",
+] as const
+
+const capabilityIcons = {
+  csv: FileSpreadsheet,
+  email_templates: Mail,
+  products: Package,
+  search: Search,
+  notes: StickyNote,
+  duplicates: Copy,
+  multi_org: Building2,
+  roles: Shield,
+  funnel: Filter,
+  segments: ListFilter,
+  email_integration: Inbox,
+  reminders: Bell,
+}
 
 export function Everything() {
+  const t = useTranslations("marketing.everything")
+
   return (
     <section className="relative py-28 lg:py-36 overflow-hidden">
       {/* Background with diagonal split */}
@@ -54,35 +62,35 @@ export function Everything() {
             className="lg:sticky lg:top-28"
           >
             <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
-              Et bien plus encore
+              {t("label")}
             </span>
             <h2 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl leading-[1.1]">
-              Tout ce que
+              {t("titleLine1")}
               <br />
-              Qeylo peut
+              {t("titleLine2")}
               <br />
-              <span className="text-muted-foreground">faire.</span>
+              <span className="text-muted-foreground">{t("titleLine3")}</span>
             </h2>
             <p className="mt-5 text-muted-foreground max-w-sm">
-              Un CRM complet avec tout ce dont vous avez besoin pour gerer et developper votre activite.
+              {t("description")}
             </p>
             {/* Decorative element */}
             <div className="mt-8 flex items-center gap-3">
               <div className="h-12 w-1 rounded-full bg-gradient-to-b from-primary to-warm" />
               <div className="text-sm text-muted-foreground">
                 <span className="block text-2xl font-bold text-foreground">12+</span>
-                fonctionnalites integrees
+                {t("countLabel")}
               </div>
             </div>
           </motion.div>
 
           {/* Right — capability grid */}
           <div className="grid gap-3 sm:grid-cols-2">
-            {capabilities.map((item, index) => {
-              const Icon = item.icon
+            {capabilityKeys.map((key, index) => {
+              const Icon = capabilityIcons[key]
               return (
                 <motion.div
-                  key={item.title}
+                  key={key}
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-40px" }}
@@ -103,9 +111,9 @@ export function Everything() {
                     <Icon className="h-4.5 w-4.5 text-primary transition-transform duration-300 group-hover:scale-110" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold">{item.title}</h3>
+                    <h3 className="text-sm font-semibold">{t(`items.${key}.title`)}</h3>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      {item.description}
+                      {t(`items.${key}.description`)}
                     </p>
                   </div>
                 </motion.div>

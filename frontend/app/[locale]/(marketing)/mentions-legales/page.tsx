@@ -1,10 +1,13 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { motion } from "motion/react"
 import { Navbar } from "@/components/landing/navbar"
 import { Footer } from "@/components/landing/footer"
 
 export default function MentionsLegales() {
+  const t = useTranslations("marketing.mentionsLegales")
+
   return (
     <>
       <Navbar />
@@ -18,13 +21,13 @@ export default function MentionsLegales() {
             className="mb-14"
           >
             <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
-              Legal
+              {t("label")}
             </span>
             <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-              Mentions legales
+              {t("title")}
             </h1>
             <p className="mt-3 text-muted-foreground">
-              Informations legales relatives au site Qeylo.
+              {t("subtitle")}
             </p>
             <div className="mt-6 h-px bg-gradient-to-r from-primary/20 via-border to-transparent" />
           </motion.div>
@@ -33,35 +36,32 @@ export default function MentionsLegales() {
           <div className="space-y-10">
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                1. Editeur du site
+                {t("section1.title")}
               </h2>
               <div className="space-y-1 text-sm text-foreground/80 leading-relaxed">
-                <p>Raison sociale : Qeylo</p>
-                <p>
-                  Forme juridique : SASU (Societe par Actions Simplifiee
-                  Unipersonnelle)
-                </p>
-                <p>Siege social : Avignon, France</p>
-                <p>SIRET : 922 082 698</p>
-                <p>Capital social : 100 &euro;</p>
-                <p>Representant legal : Hugo Frely, President</p>
+                <p>{t("section1.companyName")}</p>
+                <p>{t("section1.legalForm")}</p>
+                <p>{t("section1.address")}</p>
+                <p>{t("section1.siret")}</p>
+                <p>{t("section1.capital")}</p>
+                <p>{t("section1.representative")}</p>
               </div>
             </section>
 
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                2. Directeur de la publication
+                {t("section2.title")}
               </h2>
-              <p className="text-sm text-foreground/80 leading-relaxed">Hugo Frely</p>
+              <p className="text-sm text-foreground/80 leading-relaxed">{t("section2.name")}</p>
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold mb-3">3. Hebergement</h2>
+              <h2 className="text-lg font-semibold mb-3">{t("section3.title")}</h2>
               <div className="space-y-1 text-sm text-foreground/80 leading-relaxed">
-                <p>DigitalOcean, LLC</p>
-                <p>101 6th Avenue, New York, NY 10013, Etats-Unis</p>
+                <p>{t("section3.host")}</p>
+                <p>{t("section3.address")}</p>
                 <p>
-                  Site :{" "}
+                  {t("section3.siteLabel")}{" "}
                   <a
                     href="https://www.digitalocean.com"
                     target="_blank"
@@ -75,9 +75,9 @@ export default function MentionsLegales() {
             </section>
 
             <section>
-              <h2 className="text-lg font-semibold mb-3">4. Contact</h2>
+              <h2 className="text-lg font-semibold mb-3">{t("section4.title")}</h2>
               <p className="text-sm text-foreground/80 leading-relaxed">
-                Email :{" "}
+                {t("section4.emailLabel")}{" "}
                 <a
                   href="mailto:hello@qeylo.com"
                   className="text-primary font-medium underline-offset-4 hover:underline transition-colors"
@@ -89,71 +89,38 @@ export default function MentionsLegales() {
 
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                5. Propriete intellectuelle
+                {t("section5.title")}
               </h2>
               <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
-                <p>
-                  L&apos;ensemble du contenu du site Qeylo (textes, graphismes,
-                  logos, icones, images, logiciels) est la propriete exclusive de
-                  Qeylo SASU ou de ses partenaires et est protege par les lois
-                  francaises et internationales relatives a la propriete
-                  intellectuelle.
-                </p>
-                <p>
-                  Toute reproduction, representation, modification, publication,
-                  transmission ou denaturation, totale ou partielle, du site ou
-                  de son contenu, par quelque procede que ce soit, et sur quelque
-                  support que ce soit, est interdite sans l&apos;autorisation
-                  ecrite prealable de Qeylo SASU.
-                </p>
+                <p>{t("section5.p1")}</p>
+                <p>{t("section5.p2")}</p>
               </div>
             </section>
 
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                6. Limitation de responsabilite
+                {t("section6.title")}
               </h2>
               <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
-                <p>
-                  Qeylo SASU s&apos;efforce d&apos;assurer au mieux
-                  l&apos;exactitude et la mise a jour des informations diffusees
-                  sur ce site. Toutefois, Qeylo SASU ne peut garantir
-                  l&apos;exactitude, la precision ou l&apos;exhaustivite des
-                  informations mises a disposition.
-                </p>
-                <p>
-                  Qeylo SASU decline toute responsabilite pour toute
-                  imprecision, inexactitude ou omission portant sur des
-                  informations disponibles sur le site.
-                </p>
-                <p>
-                  Qeylo SASU ne saurait etre tenue responsable des dommages
-                  directs ou indirects resultant de l&apos;acces ou de
-                  l&apos;utilisation du site.
-                </p>
+                <p>{t("section6.p1")}</p>
+                <p>{t("section6.p2")}</p>
+                <p>{t("section6.p3")}</p>
               </div>
             </section>
 
             <section>
               <h2 className="text-lg font-semibold mb-3">
-                7. Droit applicable
+                {t("section7.title")}
               </h2>
               <div className="space-y-3 text-sm text-foreground/80 leading-relaxed">
-                <p>
-                  Les presentes mentions legales sont regies par le droit
-                  francais.
-                </p>
-                <p>
-                  En cas de litige, et apres tentative de resolution amiable,
-                  competence est attribuee au Tribunal de commerce
-                  d&apos;Avignon.
-                </p>
+                <p>{t("section7.p1")}</p>
+                <p>{t("section7.p2")}</p>
               </div>
             </section>
           </div>
 
           <p className="mt-16 text-xs text-muted-foreground">
-            Derniere mise a jour : 6 mars 2026
+            {t("lastUpdated")}
           </p>
         </div>
       </main>

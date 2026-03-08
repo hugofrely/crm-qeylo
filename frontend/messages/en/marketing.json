@@ -1,1 +1,775 @@
-{}
+{
+  "navbar": {
+    "features": "Features",
+    "pricing": "Pricing",
+    "login": "Log in",
+    "startFree": "Start for free"
+  },
+  "hero": {
+    "badge": "AI conversational CRM",
+    "titleLine1": "Say it.",
+    "titleLine2": "It's done.",
+    "description": "The CRM that understands what you say. Contacts, deals, tasks, automations, reports — Qeylo handles everything from a simple conversation.",
+    "descriptionBold": "Simple, fast, frictionless.",
+    "ctaTry": "Try for free",
+    "ctaFeatures": "See features",
+    "freeToStart": "Free to start",
+    "noCard": "No credit card required"
+  },
+  "aiDemo": {
+    "windowTitle": "Qeylo AI Chat",
+    "executingActions": "Executing actions...",
+    "scenarios": {
+      "0": {
+        "prompt": "I called Marcel Deschamps this morning, he'd like to make a deal with us. We're meeting tomorrow at 3:30 PM at their office.",
+        "aiResponse": "Got it. I'll take care of everything:",
+        "successText": "4 actions executed successfully",
+        "actions": {
+          "0": {
+            "label": "Activity recorded",
+            "title": "Phone call",
+            "detail": "Marcel Deschamps — this morning",
+            "tag": "Activity"
+          },
+          "1": {
+            "label": "Contact updated",
+            "title": "Marcel Deschamps",
+            "detail": "Last contact: today",
+            "tag": "Contact"
+          },
+          "2": {
+            "label": "Deal created",
+            "title": "New deal — Marcel Deschamps",
+            "detail": "Pipeline: Prospecting → Qualification",
+            "tag": "Deal"
+          },
+          "3": {
+            "label": "Task scheduled",
+            "title": "Meeting with Marcel Deschamps",
+            "detail": "Tomorrow at 3:30 PM — Marcel Deschamps' office",
+            "tag": "Task"
+          }
+        }
+      },
+      "1": {
+        "prompt": "Add the number 06 12 34 56 78 to the contact Sophie Martin.",
+        "aiResponse": "Done!",
+        "successText": "Contact updated",
+        "actions": {
+          "0": {
+            "label": "Phone added",
+            "title": "Sophie Martin",
+            "detail": "06 12 34 56 78 — Mobile",
+            "tag": "Contact"
+          }
+        }
+      },
+      "2": {
+        "prompt": "What are my tasks for today?",
+        "aiResponse": "Here are your 3 tasks for today:",
+        "successText": "3 tasks found for today",
+        "actions": {
+          "0": {
+            "label": "09:30",
+            "title": "Call Fabien Moreau",
+            "detail": "Quote follow-up — Deal \u20ac8,500",
+            "tag": "Task"
+          },
+          "1": {
+            "label": "14:00",
+            "title": "Product demo — Agence Pixel",
+            "detail": "Google Meet video call",
+            "tag": "Task"
+          },
+          "2": {
+            "label": "17:00",
+            "title": "Send business proposal",
+            "detail": "Claire Dubois — Studio Crea",
+            "tag": "Task"
+          }
+        }
+      },
+      "3": {
+        "prompt": "Add a note on the contact Pierre Leroy: he prefers to be contacted in the morning before 10 AM.",
+        "aiResponse": "Note added successfully:",
+        "successText": "Note saved on the contact",
+        "actions": {
+          "0": {
+            "label": "Note created",
+            "title": "Pierre Leroy",
+            "detail": "Prefers to be contacted in the morning before 10 AM",
+            "tag": "Note"
+          }
+        }
+      },
+      "4": {
+        "prompt": "Move the deal 'Website Redesign' from Qualification to Proposal Sent.",
+        "aiResponse": "Deal updated:",
+        "successText": "Deal moved forward in the pipeline",
+        "actions": {
+          "0": {
+            "label": "Stage changed",
+            "title": "Website Redesign",
+            "detail": "Qualification → Proposal Sent",
+            "tag": "Deal"
+          },
+          "1": {
+            "label": "Activity recorded",
+            "title": "Stage change",
+            "detail": "Pipeline updated automatically",
+            "tag": "Activity"
+          }
+        }
+      }
+    }
+  },
+  "features": {
+    "label": "Features",
+    "titleLine1": "Everything you need.",
+    "titleLine2": "Nothing superfluous.",
+    "description": "A CRM designed for those who want to spend less time on admin and more on what matters.",
+    "aiLabel": "Artificial intelligence",
+    "items": {
+      "chat": {
+        "title": "Intelligent AI Chat",
+        "description": "Speak naturally. The AI understands your intentions and executes actions: create a contact, move a deal, schedule a follow-up. Over 9 integrated tools."
+      },
+      "contacts": {
+        "title": "Contacts & Segments",
+        "description": "Automatically enriched contact database. Dynamic segments, intelligent duplicate detection, lead scoring, and complete timeline."
+      },
+      "pipeline": {
+        "title": "Pipeline & Deals",
+        "description": "Customizable multi-pipeline with drag-and-drop Kanban. Conversion funnel and comprehensive tracking."
+      },
+      "tasks": {
+        "title": "Tasks & Reminders",
+        "description": "Team assignment, list and calendar view, automatic reminders. Never miss a follow-up again."
+      },
+      "workflows": {
+        "title": "Workflows & Automations",
+        "description": "Automate your processes: triggers on deals, contacts, or tasks, custom conditions, automatic actions."
+      },
+      "dashboard": {
+        "title": "Dashboard & Reports",
+        "description": "Customizable dashboard with KPI widgets. Custom reports, pipeline analysis, real-time performance tracking."
+      }
+    }
+  },
+  "everything": {
+    "label": "And much more",
+    "titleLine1": "Everything",
+    "titleLine2": "Qeylo can",
+    "titleLine3": "do.",
+    "description": "A complete CRM with everything you need to manage and grow your business.",
+    "countLabel": "integrated features",
+    "items": {
+      "csv": { "title": "CSV Import / Export", "description": "Import and export your contacts in one click" },
+      "email_templates": { "title": "Email templates", "description": "Reusable and customizable email templates" },
+      "products": { "title": "Products & Catalog", "description": "Manage your products, prices, and categories" },
+      "search": { "title": "Global search", "description": "Find contacts, deals, and tasks instantly" },
+      "notes": { "title": "Rich notes", "description": "Full note editor on every contact" },
+      "duplicates": { "title": "Duplicate detection", "description": "Intelligent detection and assisted merging" },
+      "multi_org": { "title": "Multi-organization", "description": "Manage multiple entities from one account" },
+      "roles": { "title": "Roles & Permissions", "description": "Control access for each team member" },
+      "funnel": { "title": "Conversion funnel", "description": "Visualize your conversion rates by stage" },
+      "segments": { "title": "Dynamic segments", "description": "Contact groups with automatic rules" },
+      "email_integration": { "title": "Email integration", "description": "Connect Gmail and Outlook in one click" },
+      "reminders": { "title": "Reminders & Notifications", "description": "Automatic alerts so you never forget" }
+    }
+  },
+  "howItWorks": {
+    "label": "How it works",
+    "titleLine1": "As simple as",
+    "titleLine2": "talking.",
+    "steps": {
+      "0": {
+        "title": "Say what you want",
+        "description": "Type in natural language: \"Add Marie from Acme, she wants a quote for 15k\". Fast, intuitive, frictionless."
+      },
+      "1": {
+        "title": "The AI understands and acts",
+        "description": "Qeylo analyzes your message, identifies entities (contact, deal, amount) and executes actions in one second."
+      },
+      "2": {
+        "title": "Everything is organized",
+        "description": "Contact created, deal added to the pipeline, follow-up task scheduled. Check the dedicated views or keep chatting."
+      }
+    }
+  },
+  "pricing": {
+    "label": "Pricing",
+    "titleLine1": "Simple and",
+    "titleLine2": "transparent.",
+    "description": "Start for free. Upgrade when you're ready.",
+    "popular": "Popular",
+    "plans": {
+      "solo": {
+        "name": "Solo",
+        "period": "Free forever",
+        "description": "Perfect to get started solo",
+        "cta": "Start for free",
+        "features": {
+          "0": "1 user",
+          "1": "100 contacts",
+          "2": "1 pipeline (6 stages)",
+          "3": "AI Chat — 50 messages/month",
+          "4": "Basic dashboard",
+          "5": "Tasks & reminders",
+          "6": "Global search"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "period": "/ month",
+        "description": "For growing freelancers",
+        "cta": "14-day free trial",
+        "features": {
+          "0": "1 user",
+          "1": "Unlimited contacts",
+          "2": "Customizable multi-pipeline",
+          "3": "Unlimited AI Chat",
+          "4": "Advanced dashboard & reports",
+          "5": "Workflows & automations",
+          "6": "Dynamic segments",
+          "7": "CSV Import/Export",
+          "8": "Email integration",
+          "9": "Priority support"
+        }
+      },
+      "equipe": {
+        "name": "Team",
+        "period": "/ month",
+        "description": "For ambitious teams",
+        "cta": "Contact the team",
+        "features": {
+          "0": "Unlimited users",
+          "1": "Everything in the Pro plan",
+          "2": "Shared organization",
+          "3": "Roles & permissions",
+          "4": "Task assignment",
+          "5": "Team reports",
+          "6": "API access",
+          "7": "Dedicated onboarding"
+        }
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready to simplify",
+    "titleGradient": "your customer relationships?",
+    "description": "Join the freelancers and businesses saving time every day with a CRM that truly understands them.",
+    "startFree": "Start for free",
+    "learnMore": "Learn more"
+  },
+  "footer": {
+    "description": "The AI-powered conversational CRM, designed for freelancers and businesses.",
+    "product": "Product",
+    "resources": "Resources",
+    "legal": "Legal",
+    "productLinks": {
+      "features": "Features",
+      "pricing": "Pricing",
+      "login": "Log in",
+      "register": "Sign up"
+    },
+    "resourceLinks": {
+      "documentation": "Documentation",
+      "api": "API",
+      "changelog": "Changelog"
+    },
+    "legalLinks": {
+      "legalNotice": "Legal notice",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    },
+    "copyright": "Qeylo. All rights reserved.",
+    "madeWith": "Made with care for those who build"
+  },
+  "cookie": {
+    "message": "This site uses analytics cookies to improve your experience.",
+    "refuse": "Decline",
+    "accept": "Accept"
+  },
+  "landing": {
+    "loading": "Loading..."
+  },
+  "featuresPage": {
+    "label": "Features",
+    "titleLine1": "Everything to manage your clients.",
+    "titleLine2": "By talking.",
+    "description": "Qeylo combines the power of a complete CRM with the simplicity of a conversation.",
+    "mainFeatures": {
+      "0": {
+        "title": "AI Chat — Your CRM assistant",
+        "description": "Speak naturally and the AI executes. Create a contact, move a deal, schedule a reminder — everything happens in one sentence.",
+        "details": {
+          "0": "Natural language understanding in French and English",
+          "1": "Over 9 integrated tools: contacts, deals, tasks, notes, dashboard",
+          "2": "Multiple conversations with persistent history",
+          "3": "Real-time streaming with Markdown rendering"
+        }
+      },
+      "1": {
+        "title": "Contacts & Intelligent Segments",
+        "description": "Your contacts are created and enriched automatically. Segment dynamically, detect duplicates, and track every interaction.",
+        "details": {
+          "0": "Automatic creation from chat",
+          "1": "Dynamic segments with custom rules",
+          "2": "Intelligent duplicate detection with assisted merging",
+          "3": "Lead scoring (hot, warm, cold) and categories",
+          "4": "Complete interaction timeline per contact"
+        }
+      },
+      "2": {
+        "title": "Pipeline & Multi-pipeline Deals",
+        "description": "Track your deals on an intuitive Kanban. Create multiple pipelines, visualize your conversion funnel, and filter with precision.",
+        "details": {
+          "0": "Multi-pipeline: Prospecting, Upsell, Partnerships...",
+          "1": "Intuitive drag-and-drop between stages",
+          "2": "Conversion funnel with rate per stage",
+          "3": "Advanced filters: contact, amount, probability, dates"
+        }
+      },
+      "3": {
+        "title": "Tasks, reminders & calendar",
+        "description": "Manage your tasks in list or calendar view. Assign to the team, configure automatic reminders, never miss anything.",
+        "details": {
+          "0": "List view and calendar view",
+          "1": "Assignment to team members",
+          "2": "Configurable automatic reminders",
+          "3": "3 priority levels with advanced filters",
+          "4": "Recurring tasks"
+        }
+      },
+      "4": {
+        "title": "Workflows & Automations",
+        "description": "Automate your business processes. Define triggers, conditions, and actions to save time every day.",
+        "details": {
+          "0": "Triggers: deal created, stage changed, contact updated...",
+          "1": "Custom conditions and delays",
+          "2": "Automatic actions on contacts, deals, tasks",
+          "3": "Ready-to-use workflow templates"
+        }
+      },
+      "5": {
+        "title": "Dashboard & Custom Reports",
+        "description": "Build your dashboard with customizable widgets. Create custom reports to track your performance.",
+        "details": {
+          "0": "Customizable dashboard with drag-and-drop widgets",
+          "1": "Custom reports: performance, pipeline, activity, sources",
+          "2": "Real-time KPIs: revenue, pipeline, conversion rate",
+          "3": "Ready-to-use report templates"
+        }
+      }
+    },
+    "extraFeatures": {
+      "0": { "title": "CSV Import / Export", "description": "Import and export your contacts easily" },
+      "1": { "title": "Email integration", "description": "Connect Gmail and Outlook in one click" },
+      "2": { "title": "Multi-organization", "description": "Manage multiple entities from one account" },
+      "3": { "title": "Products & Catalog", "description": "Manage your products, prices, and categories" },
+      "4": { "title": "Global search", "description": "Find contacts, deals, and tasks instantly" },
+      "5": { "title": "Duplicate detection", "description": "Intelligent detection and assisted merging" }
+    }
+  },
+  "pricingPage": {
+    "label": "Pricing",
+    "title": "Simple and transparent",
+    "descriptionLine1": "Start for free. Upgrade when you're ready.",
+    "descriptionLine2": "No credit card required.",
+    "popular": "Popular",
+    "plans": {
+      "solo": {
+        "name": "Solo",
+        "period": "Free forever",
+        "description": "Perfect to get started solo",
+        "cta": "Start for free",
+        "features": {
+          "0": "1 user",
+          "1": "100 contacts",
+          "2": "1 pipeline (6 stages)",
+          "3": "AI Chat — 50 messages/month",
+          "4": "Basic dashboard",
+          "5": "Tasks & reminders",
+          "6": "Global search"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "period": "/ month",
+        "description": "For growing freelancers",
+        "cta": "14-day free trial",
+        "features": {
+          "0": "1 user",
+          "1": "Unlimited contacts",
+          "2": "Customizable multi-pipeline",
+          "3": "Unlimited AI Chat",
+          "4": "Advanced dashboard & reports",
+          "5": "Workflows & automations",
+          "6": "Dynamic segments",
+          "7": "Products & catalog",
+          "8": "Email templates",
+          "9": "CSV Import/Export",
+          "10": "Email integration",
+          "11": "Priority support"
+        }
+      },
+      "equipe": {
+        "name": "Team",
+        "period": "/ month",
+        "description": "For ambitious teams",
+        "cta": "Contact the team",
+        "features": {
+          "0": "Unlimited users",
+          "1": "Everything in the Pro plan",
+          "2": "Shared organization",
+          "3": "Roles & permissions",
+          "4": "Task assignment",
+          "5": "Team reports",
+          "6": "API access",
+          "7": "Dedicated onboarding"
+        }
+      }
+    },
+    "comparison": {
+      "title": "Detailed comparison",
+      "description": "All features, plan by plan.",
+      "featureCol": "Feature",
+      "categories": {
+        "general": {
+          "label": "General",
+          "features": {
+            "users": { "name": "Users", "solo": "1", "pro": "1", "equipe": "Unlimited" },
+            "contacts": { "name": "Contacts", "solo": "100", "pro": "Unlimited", "equipe": "Unlimited" }
+          }
+        },
+        "crm": {
+          "label": "CRM",
+          "features": {
+            "pipelines": { "name": "Pipelines", "solo": "1", "pro": "Unlimited", "equipe": "Unlimited" },
+            "customStages": { "name": "Custom stages" },
+            "deals": { "name": "Deals", "solo": "Unlimited", "pro": "Unlimited", "equipe": "Unlimited" },
+            "segments": { "name": "Dynamic segments" },
+            "products": { "name": "Products & catalog" },
+            "duplicates": { "name": "Duplicate detection" }
+          }
+        },
+        "productivity": {
+          "label": "Productivity",
+          "features": {
+            "tasks": { "name": "Tasks & reminders" },
+            "calendar": { "name": "Calendar view" },
+            "teamAssignment": { "name": "Team assignment" },
+            "workflows": { "name": "Workflows & automations" },
+            "emailTemplates": { "name": "Email templates" }
+          }
+        },
+        "ai": {
+          "label": "AI",
+          "features": {
+            "chatAi": { "name": "AI Chat", "solo": "50 msg/month", "pro": "Unlimited", "equipe": "Unlimited" }
+          }
+        },
+        "analytics": {
+          "label": "Analytics",
+          "features": {
+            "dashboard": { "name": "Dashboard", "solo": "Basic", "pro": "Advanced", "equipe": "Advanced" },
+            "customReports": { "name": "Custom reports" },
+            "conversionFunnel": { "name": "Conversion funnel" }
+          }
+        },
+        "integrations": {
+          "label": "Integrations",
+          "features": {
+            "emailIntegration": { "name": "Email integration" },
+            "csvImportExport": { "name": "CSV Import/Export" },
+            "apiAccess": { "name": "API access" }
+          }
+        },
+        "support": {
+          "label": "Support",
+          "features": {
+            "email": { "name": "Email" },
+            "prioritySupport": { "name": "Priority support" },
+            "dedicatedOnboarding": { "name": "Dedicated onboarding" }
+          }
+        }
+      }
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "contactQuestion": "Have another question?",
+      "contactUs": "Contact us",
+      "items": {
+        "0": {
+          "question": "Can I change my plan at any time?",
+          "answer": "Yes, you can upgrade or downgrade your plan at any time. The change takes effect immediately."
+        },
+        "1": {
+          "question": "Is there a commitment?",
+          "answer": "No commitment. You can cancel at any time. The free plan remains available with no time limit."
+        },
+        "2": {
+          "question": "Is my data secure?",
+          "answer": "Absolutely. Your data is encrypted, isolated by organization, and hosted in Europe. JWT authentication with refresh token."
+        },
+        "3": {
+          "question": "Which AI model is used?",
+          "answer": "Claude (Anthropic) by default, with GPT as fallback. You can configure the model of your choice via settings."
+        },
+        "4": {
+          "question": "Can I import my existing contacts?",
+          "answer": "Yes, you can import and export your contacts in CSV format from the Contacts page. The import includes intelligent column mapping."
+        },
+        "5": {
+          "question": "What automations can I create?",
+          "answer": "You can create automated workflows based on triggers: deal created, stage changed, contact updated, overdue task, etc. Add conditions and automatic actions like sending an email, creating a task, or updating a field."
+        },
+        "6": {
+          "question": "Can I connect my email?",
+          "answer": "Yes! Qeylo integrates with Gmail and Outlook via OAuth. Connect your mailbox in one click from settings to centralize your communications."
+        }
+      }
+    }
+  },
+  "cgu": {
+    "label": "Legal",
+    "title": "Terms of Service",
+    "subtitle": "Terms governing access to and use of the Qeylo service.",
+    "lastUpdated": "Last updated: March 6, 2026",
+    "article1": {
+      "title": "Article 1 – Purpose",
+      "p1": "These Terms of Service (ToS) govern access to and use of the Qeylo service, an AI-powered conversational CRM, published by Qeylo SASU.",
+      "p2": "By creating an account on Qeylo, the user unconditionally accepts these ToS."
+    },
+    "article2": {
+      "title": "Article 2 – Definitions",
+      "items": {
+        "0": "\"Service\": the Qeylo platform accessible at qeylo.com and its applications",
+        "1": "\"User\": any natural or legal person registered to the Service",
+        "2": "\"User Content\": all data entered by the User (contacts, deals, tasks, notes, etc.)"
+      }
+    },
+    "article3": {
+      "title": "Article 3 – Registration and account",
+      "items": {
+        "0": "Registration requires a valid email address and a secure password (minimum 8 characters)",
+        "1": "The User is responsible for the confidentiality of their credentials",
+        "2": "Each account is personal and may not be shared",
+        "3": "The User agrees to provide accurate information and keep it up to date"
+      }
+    },
+    "article4": {
+      "title": "Article 4 – Description of the service",
+      "intro": "Qeylo offers three plans:",
+      "plans": {
+        "0": "Solo Plan (free): 1 user, 100 contacts, 1 pipeline, 50 AI messages/month",
+        "1": "Pro Plan (\u20ac19/month): 1 user, unlimited contacts, multi-pipeline, unlimited AI, workflows, segments, advanced reports",
+        "2": "Team Plan (\u20ac49/month): unlimited users, everything in the Pro plan, shared organization, roles & permissions, API access"
+      },
+      "outro": "The detailed features of each plan are described on the Pricing page of the website."
+    },
+    "article5": {
+      "title": "Article 5 – User obligations",
+      "items": {
+        "0": "Use the Service in accordance with its intended purpose and applicable laws",
+        "1": "Not use the Service for illegal, fraudulent purposes or infringing the rights of third parties",
+        "2": "Not attempt unauthorized access to Qeylo's systems",
+        "3": "Not perform scraping, automated extraction, or reverse engineering of the Service",
+        "4": "Not store illegal content via the Service"
+      }
+    },
+    "article6": {
+      "title": "Article 6 – Intellectual property",
+      "p1": "The Service, its source code, design, trademarks, and logos are the exclusive property of Qeylo SASU.",
+      "p2": "The User retains full rights over their User Content.",
+      "p3": "The User grants Qeylo a limited license to use their User Content solely for the purpose of providing the Service."
+    },
+    "article7": {
+      "title": "Article 7 – Personal data",
+      "p1": "The processing of personal data is described in our Privacy Policy accessible at",
+      "linkText": "/confidentialite",
+      "p2": "By using the Service, the User acknowledges having read this policy."
+    },
+    "article8": {
+      "title": "Article 8 – Availability and maintenance",
+      "p1": "Qeylo commits to using its best efforts to ensure the availability of the Service 24/7.",
+      "p2": "Temporary interruptions may occur for maintenance, updates, or in case of force majeure.",
+      "p3": "Qeylo will endeavor to notify users in advance of planned maintenance."
+    },
+    "article9": {
+      "title": "Article 9 – Liability",
+      "items": {
+        "0": "Qeylo is bound by an obligation of means in providing the Service",
+        "1": "Qeylo shall not be held liable for indirect damages (data loss, loss of revenue, lost profits)",
+        "2": "Qeylo's total liability is limited to the amounts paid by the User over the last 12 months",
+        "3": "Qeylo shall not be held liable in case of force majeure"
+      }
+    },
+    "article10": {
+      "title": "Article 10 – Termination",
+      "items": {
+        "0": "The User may terminate their account at any time from their account settings",
+        "1": "Qeylo reserves the right to suspend or terminate an account in case of violation of these ToS, after notification",
+        "2": "Upon termination, User data is retained for 30 days, then deleted in accordance with our privacy policy"
+      }
+    },
+    "article11": {
+      "title": "Article 11 – Modification of ToS",
+      "p1": "Qeylo reserves the right to modify these ToS at any time.",
+      "p2": "Users will be notified by email of any substantial change at least 30 days before it takes effect.",
+      "p3": "Continued use of the Service after the effective date constitutes acceptance of the new ToS."
+    },
+    "article12": {
+      "title": "Article 12 – Applicable law and disputes",
+      "p1": "These ToS are governed by French law.",
+      "p2": "In case of dispute, the parties agree to seek an amicable solution.",
+      "p3": "Failing an amicable agreement, jurisdiction is attributed to the Commercial Court of Avignon."
+    },
+    "article13": {
+      "title": "Article 13 – Contact",
+      "text": "For any question regarding these ToS:"
+    }
+  },
+  "mentionsLegales": {
+    "label": "Legal",
+    "title": "Legal Notice",
+    "subtitle": "Legal information relating to the Qeylo website.",
+    "lastUpdated": "Last updated: March 6, 2026",
+    "section1": {
+      "title": "1. Website publisher",
+      "companyName": "Company name: Qeylo",
+      "legalForm": "Legal form: SASU (Simplified Joint-Stock Company with a Sole Shareholder)",
+      "address": "Registered office: Avignon, France",
+      "siret": "SIRET: 922 082 698",
+      "capital": "Share capital: \u20ac100",
+      "representative": "Legal representative: Hugo Frely, President"
+    },
+    "section2": {
+      "title": "2. Publication director",
+      "name": "Hugo Frely"
+    },
+    "section3": {
+      "title": "3. Hosting",
+      "host": "DigitalOcean, LLC",
+      "address": "101 6th Avenue, New York, NY 10013, United States",
+      "siteLabel": "Website:"
+    },
+    "section4": {
+      "title": "4. Contact",
+      "emailLabel": "Email:"
+    },
+    "section5": {
+      "title": "5. Intellectual property",
+      "p1": "All content on the Qeylo website (text, graphics, logos, icons, images, software) is the exclusive property of Qeylo SASU or its partners and is protected by French and international intellectual property laws.",
+      "p2": "Any reproduction, representation, modification, publication, transmission, or distortion, in whole or in part, of the website or its content, by any means whatsoever and on any medium whatsoever, is prohibited without the prior written authorization of Qeylo SASU."
+    },
+    "section6": {
+      "title": "6. Limitation of liability",
+      "p1": "Qeylo SASU endeavors to ensure the accuracy and update of information published on this website. However, Qeylo SASU cannot guarantee the accuracy, precision, or completeness of the information provided.",
+      "p2": "Qeylo SASU disclaims all liability for any inaccuracy, error, or omission relating to information available on the website.",
+      "p3": "Qeylo SASU shall not be held liable for any direct or indirect damages resulting from access to or use of the website."
+    },
+    "section7": {
+      "title": "7. Applicable law",
+      "p1": "These legal notices are governed by French law.",
+      "p2": "In case of dispute, and after an attempt at amicable resolution, jurisdiction is attributed to the Commercial Court of Avignon."
+    }
+  },
+  "confidentialite": {
+    "label": "Legal",
+    "title": "Privacy Policy",
+    "subtitle": "Protection and processing of your personal data.",
+    "lastUpdated": "Last updated: March 6, 2026",
+    "section1": {
+      "title": "1. Data controller",
+      "company": "Qeylo SASU",
+      "address": "Registered office: Avignon, France",
+      "emailLabel": "Email:"
+    },
+    "section2": {
+      "title": "2. Data collected",
+      "items": {
+        "0": { "label": "Account data:", "text": "name, first name, email address, password (encrypted)" },
+        "1": { "label": "Usage data:", "text": "connection logs, IP address, browser type, pages viewed" },
+        "2": { "label": "CRM data:", "text": "contacts, deals, tasks, notes, workflows created by the user" },
+        "3": { "label": "Communication data:", "text": "emails sent and received via integrations" }
+      }
+    },
+    "section3": {
+      "title": "3. Processing purposes",
+      "items": {
+        "0": "Provision and operation of the Qeylo service",
+        "1": "Improvement and personalization of the user experience",
+        "2": "Service-related communications (notifications, alerts, reminders)",
+        "3": "Security and fraud prevention"
+      }
+    },
+    "section4": {
+      "title": "4. Legal basis (GDPR)",
+      "items": {
+        "0": { "label": "Performance of contract (Article 6.1.b):", "text": "for the provision of the service" },
+        "1": { "label": "Legitimate interest (Article 6.1.f):", "text": "for service improvement and security" },
+        "2": { "label": "Consent (Article 6.1.a):", "text": "for optional marketing communications" }
+      }
+    },
+    "section5": {
+      "title": "5. Data retention period",
+      "items": {
+        "0": { "label": "Account data:", "text": "retained for the duration of use of the service" },
+        "1": { "label": "After account deletion:", "text": "data is retained for 3 years for legal purposes, then permanently deleted" },
+        "2": { "label": "Connection logs:", "text": "12 months" }
+      }
+    },
+    "section6": {
+      "title": "6. Data recipients",
+      "items": {
+        "0": "DigitalOcean (data hosting)",
+        "1": "No sale or rental of data to third parties",
+        "2": "No sharing of data for advertising purposes"
+      }
+    },
+    "section7": {
+      "title": "7. Transfers outside the European Union",
+      "p1": "Data may be hosted on DigitalOcean servers located outside the EU.",
+      "p2": "These transfers are governed by the European Commission's Standard Contractual Clauses."
+    },
+    "section8": {
+      "title": "8. User rights",
+      "items": {
+        "0": { "label": "Right of access:", "text": "obtain a copy of your personal data" },
+        "1": { "label": "Right of rectification:", "text": "correct inaccurate data" },
+        "2": { "label": "Right to erasure:", "text": "request the deletion of your data" },
+        "3": { "label": "Right to portability:", "text": "receive your data in a structured format" },
+        "4": { "label": "Right to object:", "text": "object to the processing of your data" },
+        "5": { "label": "Right to restriction:", "text": "restrict the processing of your data" }
+      },
+      "exerciseRights": "To exercise these rights:",
+      "cnilText": "You also have the right to file a complaint with the"
+    },
+    "section9": {
+      "title": "9. Cookies",
+      "p1": "Qeylo only uses functional cookies necessary for the proper functioning of the service (authentication, preferences).",
+      "p2": "No third-party advertising or tracking cookies are used."
+    },
+    "section10": {
+      "title": "10. Security",
+      "items": {
+        "0": "Data encryption in transit (HTTPS/TLS)",
+        "1": "Secure authentication via JWT with refresh token",
+        "2": "Data isolation by organization",
+        "3": "Encrypted passwords (bcrypt hashing)"
+      }
+    },
+    "section11": {
+      "title": "11. Policy modifications",
+      "p1": "Qeylo reserves the right to modify this privacy policy.",
+      "p2": "Users will be notified by email of any substantial change.",
+      "p3": "Continued use of the service constitutes acceptance of the modifications."
+    },
+    "section12": {
+      "title": "12. DPO Contact",
+      "text": "For any question regarding your personal data:"
+    }
+  }
+}

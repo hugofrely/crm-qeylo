@@ -1,36 +1,18 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { motion } from "motion/react"
 import { HowItWorksIllustration } from "./illustrations"
 
 const steps = [
-  {
-    step: 1 as const,
-    number: "01",
-    title: "Dites ce que vous voulez",
-    description:
-      "Tapez en langage naturel : \"Ajoute Marie de chez Acme, elle veut un devis pour 15k\". Rapide, intuitif, sans friction.",
-    accent: "#0D4F4F",
-  },
-  {
-    step: 2 as const,
-    number: "02",
-    title: "L'IA comprend et agit",
-    description:
-      "Qeylo analyse votre message, identifie les entites (contact, deal, montant) et execute les actions en une seconde.",
-    accent: "#C9946E",
-  },
-  {
-    step: 3 as const,
-    number: "03",
-    title: "Tout est organise",
-    description:
-      "Contact cree, deal ajoute au pipeline, tache de suivi planifiee. Verifiez dans les vues dediees ou continuez a discuter.",
-    accent: "#3D7A7A",
-  },
+  { step: 1 as const, number: "01", accent: "#0D4F4F" },
+  { step: 2 as const, number: "02", accent: "#C9946E" },
+  { step: 3 as const, number: "03", accent: "#3D7A7A" },
 ]
 
 export function HowItWorks() {
+  const t = useTranslations("marketing.howItWorks")
+
   return (
     <section className="relative py-28 lg:py-36 overflow-hidden grain">
       {/* Background */}
@@ -53,12 +35,12 @@ export function HowItWorks() {
           className="text-center max-w-2xl mx-auto"
         >
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
-            Comment ca marche
+            {t("label")}
           </span>
           <h2 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl leading-[1.1]">
-            Aussi simple que
+            {t("titleLine1")}
             <br />
-            <span className="text-muted-foreground">de parler.</span>
+            <span className="text-muted-foreground">{t("titleLine2")}</span>
           </h2>
         </motion.div>
 
@@ -100,9 +82,9 @@ export function HowItWorks() {
               </div>
 
               <div>
-                <h3 className="text-xl font-semibold">{step.title}</h3>
+                <h3 className="text-xl font-semibold">{t(`steps.${index}.title`)}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground max-w-xs mx-auto">
-                  {step.description}
+                  {t(`steps.${index}.description`)}
                 </p>
               </div>
 

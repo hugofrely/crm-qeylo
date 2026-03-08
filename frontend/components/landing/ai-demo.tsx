@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { motion, AnimatePresence, useInView } from "motion/react"
 import {
   Phone,
@@ -20,161 +21,53 @@ import type { LucideIcon } from "lucide-react"
 interface Action {
   id: string
   icon: LucideIcon
-  label: string
-  title: string
-  detail: string
   color: string
-  tag: string
 }
 
 interface Scenario {
-  prompt: string
-  aiResponse: string
-  actions: Action[]
-  successText: string
+  actionCount: number
+  icons: LucideIcon[]
+  colors: string[]
+  ids: string[]
 }
 
-const SCENARIOS: Scenario[] = [
+const SCENARIO_CONFIGS: Scenario[] = [
   {
-    prompt:
-      "J'ai contacte Marcel Deschamps par telephone ce matin, il aimerait faire un deal avec nous. On se voit demain a 15h30 en reunion dans leurs locaux.",
-    aiResponse: "J'ai bien compris. Je m'occupe de tout :",
-    actions: [
-      {
-        id: "activity",
-        icon: Phone,
-        label: "Activite enregistree",
-        title: "Appel telephonique",
-        detail: "Marcel Deschamps — ce matin",
-        color: "#3D7A7A",
-        tag: "Activite",
-      },
-      {
-        id: "contact",
-        icon: Users,
-        label: "Contact mis a jour",
-        title: "Marcel Deschamps",
-        detail: "Dernier contact : aujourd'hui",
-        color: "#0D4F4F",
-        tag: "Contact",
-      },
-      {
-        id: "deal",
-        icon: Handshake,
-        label: "Deal cree",
-        title: "Nouveau deal — Marcel Deschamps",
-        detail: "Pipeline : Prospection → Qualification",
-        color: "#C9946E",
-        tag: "Deal",
-      },
-      {
-        id: "task",
-        icon: CalendarClock,
-        label: "Tache planifiee",
-        title: "Reunion avec Marcel Deschamps",
-        detail: "Demain a 15h30 — Locaux Marcel Deschamps",
-        color: "#0D4F4F",
-        tag: "Tache",
-      },
-    ],
-    successText: "4 actions executees avec succes",
+    actionCount: 4,
+    icons: [Phone, Users, Handshake, CalendarClock],
+    colors: ["#3D7A7A", "#0D4F4F", "#C9946E", "#0D4F4F"],
+    ids: ["activity", "contact", "deal", "task"],
   },
   {
-    prompt: "Ajoute le numero 06 12 34 56 78 au contact Sophie Martin.",
-    aiResponse: "C'est fait !",
-    actions: [
-      {
-        id: "phone",
-        icon: PhoneCall,
-        label: "Telephone ajoute",
-        title: "Sophie Martin",
-        detail: "06 12 34 56 78 — Mobile",
-        color: "#0D4F4F",
-        tag: "Contact",
-      },
-    ],
-    successText: "Contact mis a jour",
+    actionCount: 1,
+    icons: [PhoneCall],
+    colors: ["#0D4F4F"],
+    ids: ["phone"],
   },
   {
-    prompt: "Quelles sont mes taches pour aujourd'hui ?",
-    aiResponse: "Voici vos 3 taches du jour :",
-    actions: [
-      {
-        id: "task1",
-        icon: CalendarClock,
-        label: "09:30",
-        title: "Appeler Fabien Moreau",
-        detail: "Relance devis — Deal 8 500€",
-        color: "#C9946E",
-        tag: "Tache",
-      },
-      {
-        id: "task2",
-        icon: CalendarClock,
-        label: "14:00",
-        title: "Demo produit — Agence Pixel",
-        detail: "Visio Google Meet",
-        color: "#3D7A7A",
-        tag: "Tache",
-      },
-      {
-        id: "task3",
-        icon: CalendarClock,
-        label: "17:00",
-        title: "Envoyer proposition commerciale",
-        detail: "Claire Dubois — Studio Crea",
-        color: "#0D4F4F",
-        tag: "Tache",
-      },
-    ],
-    successText: "3 taches trouvees pour aujourd'hui",
+    actionCount: 3,
+    icons: [CalendarClock, CalendarClock, CalendarClock],
+    colors: ["#C9946E", "#3D7A7A", "#0D4F4F"],
+    ids: ["task1", "task2", "task3"],
   },
   {
-    prompt:
-      "Ajoute une note sur le contact Pierre Leroy : il prefere etre contacte le matin avant 10h.",
-    aiResponse: "Note ajoutee avec succes :",
-    actions: [
-      {
-        id: "note",
-        icon: StickyNote,
-        label: "Note creee",
-        title: "Pierre Leroy",
-        detail: "Prefere etre contacte le matin avant 10h",
-        color: "#3D7A7A",
-        tag: "Note",
-      },
-    ],
-    successText: "Note enregistree sur le contact",
+    actionCount: 1,
+    icons: [StickyNote],
+    colors: ["#3D7A7A"],
+    ids: ["note"],
   },
   {
-    prompt:
-      "Passe le deal 'Refonte site web' de Qualification a Proposition envoyee.",
-    aiResponse: "Deal mis a jour :",
-    actions: [
-      {
-        id: "deal-move",
-        icon: ArrowRightCircle,
-        label: "Etape modifiee",
-        title: "Refonte site web",
-        detail: "Qualification → Proposition envoyee",
-        color: "#C9946E",
-        tag: "Deal",
-      },
-      {
-        id: "activity-deal",
-        icon: ListChecks,
-        label: "Activite enregistree",
-        title: "Changement d'etape",
-        detail: "Pipeline mis a jour automatiquement",
-        color: "#0D4F4F",
-        tag: "Activite",
-      },
-    ],
-    successText: "Deal avance dans le pipeline",
+    actionCount: 2,
+    icons: [ArrowRightCircle, ListChecks],
+    colors: ["#C9946E", "#0D4F4F"],
+    ids: ["deal-move", "activity-deal"],
   },
 ]
 
+const SCENARIO_COUNT = SCENARIO_CONFIGS.length
+
 export function AIDemo() {
+  const t = useTranslations("marketing.aiDemo")
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: "-120px" })
   const [scenarioIndex, setScenarioIndex] = useState(0)
@@ -184,14 +77,17 @@ export function AIDemo() {
   const [visibleActions, setVisibleActions] = useState(0)
   const [cycleKey, setCycleKey] = useState(0)
 
-  const scenario = SCENARIOS[scenarioIndex]
+  const config = SCENARIO_CONFIGS[scenarioIndex]
+  const prompt = t(`scenarios.${scenarioIndex}.prompt`)
+  const aiResponse = t(`scenarios.${scenarioIndex}.aiResponse`)
+  const successText = t(`scenarios.${scenarioIndex}.successText`)
 
   const resetForNextScenario = useCallback(() => {
     setDisplayedText("")
     setTypingDone(false)
     setProcessingVisible(false)
     setVisibleActions(0)
-    setScenarioIndex((prev) => (prev + 1) % SCENARIOS.length)
+    setScenarioIndex((prev) => (prev + 1) % SCENARIO_COUNT)
     setCycleKey((prev) => prev + 1)
   }, [])
 
@@ -199,44 +95,41 @@ export function AIDemo() {
   useEffect(() => {
     if (!isInView) return
     let i = 0
-    const promptText = scenario.prompt
     const timer = setInterval(() => {
       i++
-      setDisplayedText(promptText.slice(0, i))
-      if (i >= promptText.length) {
+      setDisplayedText(prompt.slice(0, i))
+      if (i >= prompt.length) {
         clearInterval(timer)
         setTimeout(() => setTypingDone(true), 400)
       }
     }, 22)
     return () => clearInterval(timer)
-  }, [isInView, cycleKey, scenario.prompt])
+  }, [isInView, cycleKey, prompt])
 
   // Processing indicator then reveal actions, then cycle
   useEffect(() => {
     if (!typingDone) return
     setProcessingVisible(true)
     const timers: ReturnType<typeof setTimeout>[] = []
-    const actions = scenario.actions
-    actions.forEach((_, idx) => {
+    for (let idx = 0; idx < config.actionCount; idx++) {
       timers.push(
         setTimeout(() => {
           setVisibleActions((prev) => prev + 1)
         }, 800 + idx * 600)
       )
-    })
+    }
     timers.push(
       setTimeout(() => {
         setProcessingVisible(false)
-      }, 800 + actions.length * 600)
+      }, 800 + config.actionCount * 600)
     )
-    // After all actions revealed + pause, cycle to next scenario
     timers.push(
       setTimeout(() => {
         resetForNextScenario()
-      }, 800 + actions.length * 600 + 3000)
+      }, 800 + config.actionCount * 600 + 3000)
     )
     return () => timers.forEach(clearTimeout)
-  }, [typingDone, scenario.actions, resetForNextScenario])
+  }, [typingDone, config.actionCount, resetForNextScenario])
 
   return (
     <section ref={ref} className="relative py-24 lg:py-32 overflow-hidden">
@@ -279,13 +172,13 @@ export function AIDemo() {
                 <div className="flex items-center gap-2 rounded-lg bg-white/[0.04] px-4 py-1.5">
                   <Sparkles className="h-3.5 w-3.5 text-[#3DD9D9]/70" />
                   <span className="text-xs font-medium text-white/50 tracking-wide">
-                    Qeylo Chat IA
+                    {t("windowTitle")}
                   </span>
                 </div>
               </div>
               {/* Scenario indicator dots */}
               <div className="flex gap-1.5 w-[52px] justify-end">
-                {SCENARIOS.map((_, idx) => (
+                {Array.from({ length: SCENARIO_COUNT }).map((_, idx) => (
                   <div
                     key={idx}
                     className="h-1.5 w-1.5 rounded-full transition-all duration-300"
@@ -377,14 +270,14 @@ export function AIDemo() {
                           }}
                         >
                           <p className="text-sm text-white/70 leading-relaxed">
-                            {scenario.aiResponse}
+                            {aiResponse}
                           </p>
                         </div>
 
                         {/* Processing indicator */}
                         <AnimatePresence>
                           {processingVisible &&
-                            visibleActions < scenario.actions.length && (
+                            visibleActions < config.actionCount && (
                               <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -397,7 +290,7 @@ export function AIDemo() {
                                   <div className="typing-dot h-1.5 w-1.5 rounded-full bg-[#3DD9D9]/60" />
                                 </div>
                                 <span className="text-xs text-white/30">
-                                  Execution des actions...
+                                  {t("executingActions")}
                                 </span>
                               </motion.div>
                             )}
@@ -406,16 +299,22 @@ export function AIDemo() {
                         {/* Action cards — staggered reveal */}
                         <div
                           className={`grid gap-3 ${
-                            scenario.actions.length > 1
+                            config.actionCount > 1
                               ? "sm:grid-cols-2"
                               : "sm:grid-cols-1 max-w-sm"
                           }`}
                         >
-                          {scenario.actions.map((action, idx) => {
-                            const Icon = action.icon
+                          {Array.from({ length: config.actionCount }).map((_, idx) => {
+                            const Icon = config.icons[idx]
+                            const color = config.colors[idx]
+                            const id = config.ids[idx]
                             const isVisible = idx < visibleActions
+                            const label = t(`scenarios.${scenarioIndex}.actions.${idx}.label`)
+                            const title = t(`scenarios.${scenarioIndex}.actions.${idx}.title`)
+                            const detail = t(`scenarios.${scenarioIndex}.actions.${idx}.detail`)
+                            const tag = t(`scenarios.${scenarioIndex}.actions.${idx}.tag`)
                             return (
-                              <AnimatePresence key={action.id}>
+                              <AnimatePresence key={id}>
                                 {isVisible && (
                                   <motion.div
                                     initial={{
@@ -435,14 +334,14 @@ export function AIDemo() {
                                     className="group relative overflow-hidden rounded-xl"
                                     style={{
                                       background: "rgba(255,255,255,0.03)",
-                                      boxShadow: `inset 0 0 0 1px ${action.color}20, 0 8px 25px -8px rgba(0,0,0,0.3)`,
+                                      boxShadow: `inset 0 0 0 1px ${color}20, 0 8px 25px -8px rgba(0,0,0,0.3)`,
                                     }}
                                   >
                                     {/* Top accent bar */}
                                     <div
                                       className="h-0.5 w-full"
                                       style={{
-                                        background: `linear-gradient(90deg, ${action.color}, ${action.color}40)`,
+                                        background: `linear-gradient(90deg, ${color}, ${color}40)`,
                                       }}
                                     />
 
@@ -452,14 +351,14 @@ export function AIDemo() {
                                         <div
                                           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
                                           style={{
-                                            background: `${action.color}15`,
-                                            boxShadow: `0 0 0 1px ${action.color}20`,
+                                            background: `${color}15`,
+                                            boxShadow: `0 0 0 1px ${color}20`,
                                           }}
                                         >
                                           <Icon
                                             className="h-4 w-4"
                                             style={{
-                                              color: action.color,
+                                              color: color,
                                             }}
                                           />
                                         </div>
@@ -470,26 +369,26 @@ export function AIDemo() {
                                             <span
                                               className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded"
                                               style={{
-                                                color: action.color,
-                                                background: `${action.color}12`,
+                                                color: color,
+                                                background: `${color}12`,
                                               }}
                                             >
-                                              {action.tag}
+                                              {tag}
                                             </span>
                                             <CheckCircle2
                                               className="h-3 w-3"
                                               style={{
-                                                color: action.color,
+                                                color: color,
                                               }}
                                             />
                                           </div>
 
                                           <p className="text-sm font-medium text-white/85 leading-snug">
-                                            {action.title}
+                                            {title}
                                           </p>
                                           <p className="text-xs text-white/40 mt-1 flex items-center gap-1">
                                             <ChevronRight className="h-3 w-3" />
-                                            {action.detail}
+                                            {detail}
                                           </p>
                                         </div>
                                       </div>
@@ -503,7 +402,7 @@ export function AIDemo() {
 
                         {/* Success summary — appears after all actions */}
                         <AnimatePresence>
-                          {visibleActions >= scenario.actions.length && (
+                          {visibleActions >= config.actionCount && (
                             <motion.div
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -517,7 +416,7 @@ export function AIDemo() {
                             >
                               <CheckCircle2 className="h-4 w-4 text-[#3DD9D9]" />
                               <span className="text-sm text-[#3DD9D9]/80 font-medium">
-                                {scenario.successText}
+                                {successText}
                               </span>
                             </motion.div>
                           )}
