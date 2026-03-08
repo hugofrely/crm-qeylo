@@ -3,7 +3,36 @@
     "features": "Fonctionnalites",
     "pricing": "Tarifs",
     "login": "Connexion",
-    "startFree": "Commencer gratuitement"
+    "startFree": "Commencer gratuitement",
+    "goToApp": "Accéder à l'app",
+    "megaMenu": {
+      "ai": {
+        "title": "Intelligence Artificielle",
+        "description": "Votre assistant IA qui comprend et execute vos demandes en langage naturel.",
+        "explore": "Explorer l'IA"
+      },
+      "sales": {
+        "title": "Ventes & Pipeline",
+        "description": "Pipeline visuel, gestion des deals, entonnoir de conversion et catalogue produits.",
+        "explore": "Explorer les ventes"
+      },
+      "contacts": {
+        "title": "Contacts & Relations",
+        "description": "Gestion des contacts, segments dynamiques, detection de doublons et import CSV.",
+        "explore": "Explorer les contacts"
+      },
+      "productivity": {
+        "title": "Productivite",
+        "description": "Taches, workflows automatises, rappels intelligents, dashboard et recherche globale.",
+        "explore": "Explorer la productivite"
+      },
+      "communication": {
+        "title": "Communication",
+        "description": "Templates email, integration email et sequences automatisees.",
+        "explore": "Explorer la communication"
+      },
+      "allFeatures": "Voir toutes les fonctionnalites"
+    }
   },
   "hero": {
     "badge": "CRM conversationnel IA",
@@ -154,6 +183,54 @@
         "title": "Dashboard & Rapports",
         "description": "Dashboard personnalisable avec widgets KPI. Rapports custom, analyse du pipeline, suivi de performance en temps reel."
       }
+    },
+    "showcase": {
+      "label": "Fonctionnalites",
+      "title": "Tout ce dont vous avez besoin",
+      "description": "Un CRM complet organise en modules puissants. Explorez chaque fonctionnalite.",
+      "explore": "Decouvrir",
+      "categories": {
+        "ai": {
+          "title": "Intelligence Artificielle",
+          "points": {
+            "0": "Chat conversationnel en langage naturel",
+            "1": "Actions automatiques sur vos donnees",
+            "2": "Insights et analyse par l'IA"
+          }
+        },
+        "sales": {
+          "title": "Ventes & Pipeline",
+          "points": {
+            "0": "Pipeline Kanban drag-and-drop",
+            "1": "Gestion des deals et produits",
+            "2": "Entonnoir de conversion"
+          }
+        },
+        "contacts": {
+          "title": "Contacts & Relations",
+          "points": {
+            "0": "Segments dynamiques",
+            "1": "Detection de doublons",
+            "2": "Import / Export CSV"
+          }
+        },
+        "productivity": {
+          "title": "Productivite",
+          "points": {
+            "0": "Taches & calendrier",
+            "1": "Workflows automatises",
+            "2": "Dashboard personnalisable"
+          }
+        },
+        "communication": {
+          "title": "Communication",
+          "points": {
+            "0": "Templates email",
+            "1": "Integration Gmail & Outlook",
+            "2": "Sequences automatisees"
+          }
+        }
+      }
     }
   },
   "everything": {
@@ -271,7 +348,12 @@
       "features": "Fonctionnalites",
       "pricing": "Tarifs",
       "login": "Connexion",
-      "register": "Inscription"
+      "register": "Inscription",
+      "ai": "Intelligence Artificielle",
+      "sales": "Ventes & Pipeline",
+      "contacts": "Contacts",
+      "productivity": "Productivite",
+      "communication": "Communication"
     },
     "resourceLinks": {
       "documentation": "Documentation",
@@ -770,6 +852,231 @@
     "section12": {
       "title": "12. Contact DPO",
       "text": "Pour toute question relative a vos donnees personnelles :"
+    }
+  },
+  "featuresAI": {
+    "badge": "Intelligence Artificielle",
+    "title": "Votre CRM pilote par",
+    "titleGradient": "l'intelligence artificielle",
+    "description": "Parlez naturellement a Qeylo. L'IA comprend vos intentions et execute les actions pour vous. Plus besoin de naviguer dans des menus — dites simplement ce que vous voulez.",
+    "cta": "Essayer gratuitement",
+    "ctaSecondary": "Voir une demo",
+    "features": {
+      "0": {
+        "title": "Chat conversationnel",
+        "description": "Tapez en langage naturel et l'IA execute. Creer un contact, deplacer un deal, planifier un rappel — tout se fait en une phrase.",
+        "details": {
+          "0": "Comprehension du langage naturel en francais et anglais",
+          "1": "Plus de 9 outils integres",
+          "2": "Streaming en temps reel avec rendu Markdown",
+          "3": "Conversations multiples avec historique persistant"
+        }
+      },
+      "1": {
+        "title": "Actions automatiques",
+        "description": "L'IA identifie les entites dans vos messages — contacts, montants, dates — et cree automatiquement les enregistrements correspondants.",
+        "details": {
+          "0": "Detection automatique des entites",
+          "1": "Creation de contacts, deals et taches en une phrase",
+          "2": "Mise a jour intelligente des champs existants",
+          "3": "Suggestions contextuelles basees sur vos donnees"
+        }
+      },
+      "2": {
+        "title": "Analyse et insights",
+        "description": "Interrogez vos donnees en langage naturel. Demandez un resume de votre pipeline, vos taches du jour, ou l'historique d'un contact.",
+        "details": {
+          "0": "Requetes en langage naturel sur vos donnees",
+          "1": "Resume instantane du pipeline et des KPIs",
+          "2": "Historique des interactions par contact",
+          "3": "Recommandations d'actions basees sur l'activite"
+        }
+      }
+    },
+    "stats": {
+      "0": { "value": "9+", "label": "outils IA integres" },
+      "1": { "value": "< 1s", "label": "temps de reponse" },
+      "2": { "value": "100%", "label": "en langage naturel" }
+    }
+  },
+  "featuresSales": {
+    "badge": "Ventes & Pipeline",
+    "title": "Gerez vos ventes avec",
+    "titleGradient": "clarte et precision",
+    "description": "Un pipeline visuel et intuitif pour suivre chaque deal du premier contact a la signature. Drag-and-drop, multi-pipeline, et entonnoir de conversion.",
+    "cta": "Essayer gratuitement",
+    "ctaSecondary": "Voir une demo",
+    "features": {
+      "0": {
+        "title": "Pipeline visuel",
+        "description": "Suivez vos deals sur un Kanban intuitif avec glisser-deposer. Creez autant de pipelines que necessaire pour chaque processus commercial.",
+        "details": {
+          "0": "Multi-pipeline personnalisable",
+          "1": "Glisser-deposer intuitif entre les etapes",
+          "2": "Etapes personnalisables par pipeline",
+          "3": "Vue d'ensemble de tous vos pipelines"
+        }
+      },
+      "1": {
+        "title": "Gestion des deals",
+        "description": "Chaque deal a sa fiche complete : montant, probabilite, contact associe, historique d'activite et notes.",
+        "details": {
+          "0": "Fiches deals detaillees",
+          "1": "Suivi du montant et de la probabilite",
+          "2": "Historique complet des activites",
+          "3": "Filtres avances : contact, montant, dates"
+        }
+      },
+      "2": {
+        "title": "Entonnoir & Produits",
+        "description": "Visualisez vos taux de conversion par etape et gerez votre catalogue de produits avec tarifs et categories.",
+        "details": {
+          "0": "Entonnoir de conversion avec taux par etape",
+          "1": "Catalogue produits avec tarifs",
+          "2": "Categories de produits personnalisables",
+          "3": "Analyse des performances commerciales"
+        }
+      }
+    },
+    "stats": {
+      "0": { "value": "\u221e", "label": "pipelines" },
+      "1": { "value": "D&D", "label": "drag and drop" },
+      "2": { "value": "360\u00b0", "label": "vue sur vos deals" }
+    }
+  },
+  "featuresContacts": {
+    "badge": "Contacts & Relations",
+    "title": "Une base de contacts",
+    "titleGradient": "intelligente et vivante",
+    "description": "Vos contacts se creent et s'enrichissent automatiquement. Segmentez, detectez les doublons, et suivez chaque interaction dans une timeline complete.",
+    "cta": "Essayer gratuitement",
+    "ctaSecondary": "Voir une demo",
+    "features": {
+      "0": {
+        "title": "Gestion des contacts",
+        "description": "Une fiche contact complete avec toutes les informations, l'historique des interactions, les deals associes et les notes.",
+        "details": {
+          "0": "Fiches contacts detaillees",
+          "1": "Timeline complete d'interactions",
+          "2": "Association contacts-entreprises",
+          "3": "Lead scoring : chaud, tiede, froid"
+        }
+      },
+      "1": {
+        "title": "Segments dynamiques",
+        "description": "Creez des groupes de contacts avec des regles automatiques. Les segments se mettent a jour en temps reel.",
+        "details": {
+          "0": "Regles de segmentation personnalisees",
+          "1": "Mise a jour automatique en temps reel",
+          "2": "Filtres multi-criteres",
+          "3": "Export des segments en CSV"
+        }
+      },
+      "2": {
+        "title": "Doublons & Import",
+        "description": "Detection intelligente des doublons avec fusion assistee. Importez vos contacts existants en CSV avec mapping de colonnes.",
+        "details": {
+          "0": "Detection automatique des doublons",
+          "1": "Fusion assistee des fiches",
+          "2": "Import CSV avec mapping intelligent",
+          "3": "Export complet de vos donnees"
+        }
+      }
+    },
+    "stats": {
+      "0": { "value": "0", "label": "doublon non detecte" },
+      "1": { "value": "\u221e", "label": "segments dynamiques" },
+      "2": { "value": "CSV", "label": "import & export" }
+    }
+  },
+  "featuresProductivity": {
+    "badge": "Productivite",
+    "title": "Travaillez plus vite,",
+    "titleGradient": "pas plus dur",
+    "description": "Taches, workflows, rappels, dashboard — tous les outils pour automatiser le repetitif et vous concentrer sur l'essentiel.",
+    "cta": "Essayer gratuitement",
+    "ctaSecondary": "Voir une demo",
+    "features": {
+      "0": {
+        "title": "Taches & Calendrier",
+        "description": "Gerez vos taches en liste ou en calendrier. Assignez a l'equipe, configurez des rappels automatiques.",
+        "details": {
+          "0": "Vue liste et vue calendrier",
+          "1": "Assignation aux membres de l'equipe",
+          "2": "3 niveaux de priorite",
+          "3": "Taches recurrentes"
+        }
+      },
+      "1": {
+        "title": "Workflows automatises",
+        "description": "Definissez des triggers, des conditions et des actions pour automatiser vos processus metier.",
+        "details": {
+          "0": "Triggers : deal cree, etape changee, contact mis a jour",
+          "1": "Conditions personnalisees et delais",
+          "2": "Actions automatiques sur contacts, deals, taches",
+          "3": "Templates de workflows prets a l'emploi"
+        }
+      },
+      "2": {
+        "title": "Dashboard & Rapports",
+        "description": "Dashboard personnalisable avec widgets KPI. Creez des rapports sur mesure pour suivre votre performance.",
+        "details": {
+          "0": "Dashboard drag-and-drop personnalisable",
+          "1": "Rapports custom : performance, pipeline, activite",
+          "2": "KPI en temps reel",
+          "3": "Recherche globale instantanee"
+        }
+      }
+    },
+    "stats": {
+      "0": { "value": "Auto", "label": "workflows automatises" },
+      "1": { "value": "24/7", "label": "rappels intelligents" },
+      "2": { "value": "KPI", "label": "en temps reel" }
+    }
+  },
+  "featuresCommunication": {
+    "badge": "Communication",
+    "title": "Centralisez vos",
+    "titleGradient": "communications",
+    "description": "Connectez votre email, creez des templates reutilisables et automatisez vos sequences de suivi.",
+    "cta": "Essayer gratuitement",
+    "ctaSecondary": "Voir une demo",
+    "features": {
+      "0": {
+        "title": "Templates email",
+        "description": "Creez des modeles d'emails reutilisables et personnalisables. Gagnez du temps sur chaque envoi.",
+        "details": {
+          "0": "Editeur de templates riche",
+          "1": "Variables dynamiques (nom, entreprise...)",
+          "2": "Templates partages avec l'equipe",
+          "3": "Apercu avant envoi"
+        }
+      },
+      "1": {
+        "title": "Integration email",
+        "description": "Connectez Gmail et Outlook en un clic. Centralisez toutes vos communications dans Qeylo.",
+        "details": {
+          "0": "Connexion OAuth Gmail & Outlook",
+          "1": "Synchronisation bidirectionnelle",
+          "2": "Historique email sur chaque contact",
+          "3": "Envoi d'emails depuis Qeylo"
+        }
+      },
+      "2": {
+        "title": "Sequences automatisees",
+        "description": "Creez des sequences d'emails automatisees pour vos relances et nurturing. Definissez les delais et les conditions.",
+        "details": {
+          "0": "Sequences multi-etapes",
+          "1": "Delais personnalisables entre les emails",
+          "2": "Conditions d'arret automatiques",
+          "3": "Suivi des ouvertures et clics"
+        }
+      }
+    },
+    "stats": {
+      "0": { "value": "Gmail", "label": "& Outlook integres" },
+      "1": { "value": "Auto", "label": "sequences email" },
+      "2": { "value": "1 clic", "label": "pour connecter" }
     }
   }
 }

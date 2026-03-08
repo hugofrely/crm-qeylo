@@ -3,7 +3,36 @@
     "features": "Features",
     "pricing": "Pricing",
     "login": "Log in",
-    "startFree": "Start for free"
+    "startFree": "Start for free",
+    "goToApp": "Go to app",
+    "megaMenu": {
+      "ai": {
+        "title": "Artificial Intelligence",
+        "description": "Your AI assistant that understands and executes your requests in natural language.",
+        "explore": "Explore AI"
+      },
+      "sales": {
+        "title": "Sales & Pipeline",
+        "description": "Visual pipeline, deal management, conversion funnel and product catalog.",
+        "explore": "Explore sales"
+      },
+      "contacts": {
+        "title": "Contacts & Relations",
+        "description": "Contact management, dynamic segments, duplicate detection and CSV import.",
+        "explore": "Explore contacts"
+      },
+      "productivity": {
+        "title": "Productivity",
+        "description": "Tasks, automated workflows, smart reminders, dashboard and global search.",
+        "explore": "Explore productivity"
+      },
+      "communication": {
+        "title": "Communication",
+        "description": "Email templates, email integration and automated sequences.",
+        "explore": "Explore communication"
+      },
+      "allFeatures": "View all features"
+    }
   },
   "hero": {
     "badge": "AI conversational CRM",
@@ -154,6 +183,54 @@
         "title": "Dashboard & Reports",
         "description": "Customizable dashboard with KPI widgets. Custom reports, pipeline analysis, real-time performance tracking."
       }
+    },
+    "showcase": {
+      "label": "Features",
+      "title": "Everything you need",
+      "description": "A complete CRM organized in powerful modules. Explore each feature.",
+      "explore": "Discover",
+      "categories": {
+        "ai": {
+          "title": "Artificial Intelligence",
+          "points": {
+            "0": "Natural language conversational chat",
+            "1": "Automatic actions on your data",
+            "2": "AI-powered insights and analysis"
+          }
+        },
+        "sales": {
+          "title": "Sales & Pipeline",
+          "points": {
+            "0": "Drag-and-drop Kanban pipeline",
+            "1": "Deal and product management",
+            "2": "Conversion funnel"
+          }
+        },
+        "contacts": {
+          "title": "Contacts & Relations",
+          "points": {
+            "0": "Dynamic segments",
+            "1": "Duplicate detection",
+            "2": "CSV Import / Export"
+          }
+        },
+        "productivity": {
+          "title": "Productivity",
+          "points": {
+            "0": "Tasks & calendar",
+            "1": "Automated workflows",
+            "2": "Customizable dashboard"
+          }
+        },
+        "communication": {
+          "title": "Communication",
+          "points": {
+            "0": "Email templates",
+            "1": "Gmail & Outlook integration",
+            "2": "Automated sequences"
+          }
+        }
+      }
     }
   },
   "everything": {
@@ -271,7 +348,12 @@
       "features": "Features",
       "pricing": "Pricing",
       "login": "Log in",
-      "register": "Sign up"
+      "register": "Sign up",
+      "ai": "Artificial Intelligence",
+      "sales": "Sales & Pipeline",
+      "contacts": "Contacts",
+      "productivity": "Productivity",
+      "communication": "Communication"
     },
     "resourceLinks": {
       "documentation": "Documentation",
@@ -770,6 +852,231 @@
     "section12": {
       "title": "12. DPO Contact",
       "text": "For any question regarding your personal data:"
+    }
+  },
+  "featuresAI": {
+    "badge": "Artificial Intelligence",
+    "title": "Your CRM powered by",
+    "titleGradient": "artificial intelligence",
+    "description": "Talk naturally to Qeylo. The AI understands your intentions and executes actions for you. No more navigating through menus — just say what you want.",
+    "cta": "Try for free",
+    "ctaSecondary": "See a demo",
+    "features": {
+      "0": {
+        "title": "Conversational chat",
+        "description": "Type in natural language and the AI executes. Create a contact, move a deal, schedule a reminder — everything happens in one sentence.",
+        "details": {
+          "0": "Natural language understanding in French and English",
+          "1": "Over 9 integrated tools",
+          "2": "Real-time streaming with Markdown rendering",
+          "3": "Multiple conversations with persistent history"
+        }
+      },
+      "1": {
+        "title": "Automatic actions",
+        "description": "The AI identifies entities in your messages — contacts, amounts, dates — and automatically creates the corresponding records.",
+        "details": {
+          "0": "Automatic entity detection",
+          "1": "Create contacts, deals and tasks in one sentence",
+          "2": "Intelligent update of existing fields",
+          "3": "Contextual suggestions based on your data"
+        }
+      },
+      "2": {
+        "title": "Analysis and insights",
+        "description": "Query your data in natural language. Ask for a pipeline summary, your tasks for the day, or a contact's history.",
+        "details": {
+          "0": "Natural language queries on your data",
+          "1": "Instant pipeline and KPI summary",
+          "2": "Interaction history per contact",
+          "3": "Action recommendations based on activity"
+        }
+      }
+    },
+    "stats": {
+      "0": { "value": "9+", "label": "integrated AI tools" },
+      "1": { "value": "< 1s", "label": "response time" },
+      "2": { "value": "100%", "label": "natural language" }
+    }
+  },
+  "featuresSales": {
+    "badge": "Sales & Pipeline",
+    "title": "Manage your sales with",
+    "titleGradient": "clarity and precision",
+    "description": "A visual and intuitive pipeline to track every deal from first contact to closing. Drag-and-drop, multi-pipeline, and conversion funnel.",
+    "cta": "Try for free",
+    "ctaSecondary": "See a demo",
+    "features": {
+      "0": {
+        "title": "Visual pipeline",
+        "description": "Track your deals on an intuitive Kanban with drag-and-drop. Create as many pipelines as needed for each sales process.",
+        "details": {
+          "0": "Customizable multi-pipeline",
+          "1": "Intuitive drag-and-drop between stages",
+          "2": "Customizable stages per pipeline",
+          "3": "Overview of all your pipelines"
+        }
+      },
+      "1": {
+        "title": "Deal management",
+        "description": "Each deal has its complete profile: amount, probability, associated contact, activity history and notes.",
+        "details": {
+          "0": "Detailed deal profiles",
+          "1": "Amount and probability tracking",
+          "2": "Complete activity history",
+          "3": "Advanced filters: contact, amount, dates"
+        }
+      },
+      "2": {
+        "title": "Funnel & Products",
+        "description": "Visualize your conversion rates per stage and manage your product catalog with prices and categories.",
+        "details": {
+          "0": "Conversion funnel with rate per stage",
+          "1": "Product catalog with prices",
+          "2": "Customizable product categories",
+          "3": "Sales performance analysis"
+        }
+      }
+    },
+    "stats": {
+      "0": { "value": "\u221e", "label": "pipelines" },
+      "1": { "value": "D&D", "label": "drag and drop" },
+      "2": { "value": "360\u00b0", "label": "view on your deals" }
+    }
+  },
+  "featuresContacts": {
+    "badge": "Contacts & Relations",
+    "title": "A contact base that's",
+    "titleGradient": "intelligent and alive",
+    "description": "Your contacts are created and enriched automatically. Segment, detect duplicates, and track every interaction in a complete timeline.",
+    "cta": "Try for free",
+    "ctaSecondary": "See a demo",
+    "features": {
+      "0": {
+        "title": "Contact management",
+        "description": "A complete contact profile with all information, interaction history, associated deals and notes.",
+        "details": {
+          "0": "Detailed contact profiles",
+          "1": "Complete interaction timeline",
+          "2": "Contact-company association",
+          "3": "Lead scoring: hot, warm, cold"
+        }
+      },
+      "1": {
+        "title": "Dynamic segments",
+        "description": "Create contact groups with automatic rules. Segments update in real time.",
+        "details": {
+          "0": "Custom segmentation rules",
+          "1": "Automatic real-time updates",
+          "2": "Multi-criteria filters",
+          "3": "Export segments as CSV"
+        }
+      },
+      "2": {
+        "title": "Duplicates & Import",
+        "description": "Intelligent duplicate detection with assisted merging. Import your existing contacts via CSV with column mapping.",
+        "details": {
+          "0": "Automatic duplicate detection",
+          "1": "Assisted profile merging",
+          "2": "CSV import with intelligent mapping",
+          "3": "Complete data export"
+        }
+      }
+    },
+    "stats": {
+      "0": { "value": "0", "label": "undetected duplicates" },
+      "1": { "value": "\u221e", "label": "dynamic segments" },
+      "2": { "value": "CSV", "label": "import & export" }
+    }
+  },
+  "featuresProductivity": {
+    "badge": "Productivity",
+    "title": "Work faster,",
+    "titleGradient": "not harder",
+    "description": "Tasks, workflows, reminders, dashboard — all the tools to automate the repetitive and focus on what matters.",
+    "cta": "Try for free",
+    "ctaSecondary": "See a demo",
+    "features": {
+      "0": {
+        "title": "Tasks & Calendar",
+        "description": "Manage your tasks in list or calendar view. Assign to the team, configure automatic reminders.",
+        "details": {
+          "0": "List view and calendar view",
+          "1": "Assignment to team members",
+          "2": "3 priority levels",
+          "3": "Recurring tasks"
+        }
+      },
+      "1": {
+        "title": "Automated workflows",
+        "description": "Define triggers, conditions and actions to automate your business processes.",
+        "details": {
+          "0": "Triggers: deal created, stage changed, contact updated",
+          "1": "Custom conditions and delays",
+          "2": "Automatic actions on contacts, deals, tasks",
+          "3": "Ready-to-use workflow templates"
+        }
+      },
+      "2": {
+        "title": "Dashboard & Reports",
+        "description": "Customizable dashboard with KPI widgets. Create custom reports to track your performance.",
+        "details": {
+          "0": "Customizable drag-and-drop dashboard",
+          "1": "Custom reports: performance, pipeline, activity",
+          "2": "Real-time KPIs",
+          "3": "Instant global search"
+        }
+      }
+    },
+    "stats": {
+      "0": { "value": "Auto", "label": "automated workflows" },
+      "1": { "value": "24/7", "label": "smart reminders" },
+      "2": { "value": "KPI", "label": "in real time" }
+    }
+  },
+  "featuresCommunication": {
+    "badge": "Communication",
+    "title": "Centralize your",
+    "titleGradient": "communications",
+    "description": "Connect your email, create reusable templates and automate your follow-up sequences.",
+    "cta": "Try for free",
+    "ctaSecondary": "See a demo",
+    "features": {
+      "0": {
+        "title": "Email templates",
+        "description": "Create reusable and customizable email templates. Save time on every send.",
+        "details": {
+          "0": "Rich template editor",
+          "1": "Dynamic variables (name, company...)",
+          "2": "Templates shared with the team",
+          "3": "Preview before sending"
+        }
+      },
+      "1": {
+        "title": "Email integration",
+        "description": "Connect Gmail and Outlook in one click. Centralize all your communications in Qeylo.",
+        "details": {
+          "0": "Gmail & Outlook OAuth connection",
+          "1": "Bidirectional synchronization",
+          "2": "Email history on every contact",
+          "3": "Send emails from Qeylo"
+        }
+      },
+      "2": {
+        "title": "Automated sequences",
+        "description": "Create automated email sequences for your follow-ups and nurturing. Set delays and conditions.",
+        "details": {
+          "0": "Multi-step sequences",
+          "1": "Customizable delays between emails",
+          "2": "Automatic stop conditions",
+          "3": "Open and click tracking"
+        }
+      }
+    },
+    "stats": {
+      "0": { "value": "Gmail", "label": "& Outlook integrated" },
+      "1": { "value": "Auto", "label": "email sequences" },
+      "2": { "value": "1 click", "label": "to connect" }
     }
   }
 }
