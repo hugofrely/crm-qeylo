@@ -20,7 +20,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     apiFetch<User>("/auth/me/")
-      .then(setUser)
+      .then((userData) => {
+        setUser(userData)
+        // Sync locale cookie with user preference
+        if (userData.preferred_language) {
+          document.cookie = `NEXT_LOCALE=${userData.preferred_language};path=/;max-age=31536000`
+        }
+      })
       .catch(() => setUser(null))
       .finally(() => setLoading(false))
   }, [])
@@ -35,6 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user)
     posthog.identify(data.user.id, { email: data.user.email, name: `${data.user.first_name} ${data.user.last_name}` })
     posthog.capture("user_logged_in")
+
+    // After successful login, sync locale with user preference
+    if (data.user.preferred_language) {
+      document.cookie = `NEXT_LOCALE=${data.user.preferred_language};path=/;max-age=31536000`
+      const currentLocale = window.location.pathname.split('/')[1]
+      if (['fr', 'en'].includes(currentLocale) && currentLocale !== data.user.preferred_language) {
+        const pathWithoutLocale = window.location.pathname.replace(/^\/(fr|en)/, '')
+        window.location.href = `/${data.user.preferred_language}${pathWithoutLocale || '/chat'}`
+        return
+      }
+    }
   }, [])
 
   const register = useCallback(

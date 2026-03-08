@@ -5,6 +5,7 @@ export interface User {
   last_name: string
   email_notifications: boolean
   is_superuser: boolean
+  preferred_language?: string
 }
 
 export interface AuthContextType {
