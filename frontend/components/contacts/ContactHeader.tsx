@@ -133,6 +133,11 @@ export function ContactHeader({
               {contact.numeric_score}/100
             </span>
           )}
+          {contact.owner_name && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs font-medium text-muted-foreground">
+              Propriétaire: {contact.owner_name}
+            </span>
+          )}
         </div>
 
         {/* Action buttons */}
