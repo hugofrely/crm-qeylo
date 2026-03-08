@@ -24,6 +24,9 @@ const CHART_TYPES = [
   { value: "bar_chart", label: "Barres" },
   { value: "line_chart", label: "Lignes" },
   { value: "pie_chart", label: "Camembert" },
+  { value: "donut_chart", label: "Donut" },
+  { value: "stacked_bar_chart", label: "Barres empilées" },
+  { value: "area_chart", label: "Aire" },
   { value: "kpi_card", label: "KPI" },
   { value: "table", label: "Tableau" },
   { value: "funnel_chart", label: "Entonnoir" },
@@ -54,21 +57,27 @@ const METRICS_BY_SOURCE: Record<string, { value: string; label: string }[]> = {
   contacts: [{ value: "count", label: "Nombre" }],
   tasks: [{ value: "count", label: "Nombre" }],
   activities: [{ value: "count", label: "Nombre" }],
-  quotes: [{ value: "count", label: "Nombre" }],
+  quotes: [
+    { value: "count", label: "Nombre" },
+    { value: "sum:amount", label: "Somme des montants" },
+    { value: "avg:amount", label: "Montant moyen" },
+  ],
 }
 
 const GROUP_BY_OPTIONS: Record<string, { value: string; label: string }[]> = {
   deals: [
     { value: "month", label: "Par mois" },
     { value: "week", label: "Par semaine" },
-    { value: "stage", label: "Par stage" },
+    { value: "stage", label: "Par étape" },
     { value: "pipeline", label: "Par pipeline" },
+    { value: "outcome", label: "Par résultat (gagné/perdu)" },
   ],
   contacts: [
     { value: "month", label: "Par mois" },
     { value: "week", label: "Par semaine" },
     { value: "source", label: "Par source" },
     { value: "lead_score", label: "Par score" },
+    { value: "category", label: "Par catégorie" },
   ],
   tasks: [
     { value: "month", label: "Par mois" },
@@ -80,6 +89,7 @@ const GROUP_BY_OPTIONS: Record<string, { value: string; label: string }[]> = {
     { value: "month", label: "Par mois" },
     { value: "week", label: "Par semaine" },
     { value: "entry_type", label: "Par type" },
+    { value: "user", label: "Par membre" },
   ],
   quotes: [
     { value: "month", label: "Par mois" },
