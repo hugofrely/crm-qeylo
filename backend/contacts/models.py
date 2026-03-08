@@ -31,6 +31,13 @@ class Contact(SoftDeleteModel):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
     )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="owned_contacts",
+    )
 
     # Basic info (existing)
     first_name = models.CharField(max_length=150)
@@ -282,3 +289,46 @@ class ScoringRule(models.Model):
 
     def __str__(self):
         return f"{self.event_type}: {self.points:+d} pts"
+
+
+class LeadRoutingRule(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="routing_rules",
+    )
+    name = models.CharField(max_length=150)
+    priority = models.IntegerField(default=0)
+    conditions = models.JSONField(default=dict)
+    assign_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="routing_rules",
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["priority"]
+
+    def __str__(self):
+        return self.name
+
+
+class RoundRobinState(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.OneToOneField(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="round_robin_state",
+    )
+    last_assigned_index = models.IntegerField(default=0)
+    eligible_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name="round_robin_eligible",
+    )
+
+    def __str__(self):
+        return f"RoundRobin({self.organization})"
