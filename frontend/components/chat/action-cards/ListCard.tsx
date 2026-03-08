@@ -1,9 +1,11 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { CardShell } from "./CardShell"
 import type { EnrichedAction } from "@/types/chat"
 
 export function ListCard({ action }: { action: EnrichedAction }) {
+  const t = useTranslations("chat")
   const results = action.results || []
   const VISIBLE_COUNT = 3
 
@@ -14,7 +16,7 @@ export function ListCard({ action }: { action: EnrichedAction }) {
           <span className="font-medium truncate">{String(r.name || r.description || r.content || "")}</span>
           {r.is_active !== undefined && (
             <span className={r.is_active ? "text-green-600" : "text-muted-foreground"}>
-              {r.is_active ? "Actif" : "Inactif"}
+              {r.is_active ? t("cards.active") : t("cards.inactive")}
             </span>
           )}
         </div>
@@ -31,17 +33,17 @@ export function ListCard({ action }: { action: EnrichedAction }) {
               <span className="font-medium truncate">{String(r.name || r.description || r.content || "")}</span>
               {r.is_active !== undefined && (
                 <span className={r.is_active ? "text-green-600" : "text-muted-foreground"}>
-                  {r.is_active ? "Actif" : "Inactif"}
+                  {r.is_active ? t("cards.active") : t("cards.inactive")}
                 </span>
               )}
             </div>
           ))}
           {results.length > VISIBLE_COUNT && (
-            <p className="text-[11px] text-muted-foreground">+ {results.length - VISIBLE_COUNT} autres</p>
+            <p className="text-[11px] text-muted-foreground">{t("cards.othersCount", { count: results.length - VISIBLE_COUNT })}</p>
           )}
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground">Aucun résultat</p>
+        <p className="text-xs text-muted-foreground">{t("cards.noResults")}</p>
       )}
     </CardShell>
   )

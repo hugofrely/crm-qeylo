@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Plus, Trash2, Pencil, MessageSquare, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -17,18 +18,22 @@ interface ConversationSidebarProps {
   isMobileDrawer?: boolean
 }
 
-function formatRelativeDate(dateStr: string) {
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  if (diffMins < 1) return "À l'instant"
-  if (diffMins < 60) return `il y a ${diffMins}m`
-  const diffHours = Math.floor(diffMins / 60)
-  if (diffHours < 24) return `il y a ${diffHours}h`
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays < 7) return `il y a ${diffDays}j`
-  return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
+function useFormatRelativeDate() {
+  const t = useTranslations("chat")
+
+  return (dateStr: string) => {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    if (diffMins < 1) return t("relativeTime.justNow")
+    if (diffMins < 60) return t("relativeTime.minutesAgo", { count: diffMins })
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return t("relativeTime.hoursAgo", { count: diffHours })
+    const diffDays = Math.floor(diffHours / 24)
+    if (diffDays < 7) return t("relativeTime.daysAgo", { count: diffDays })
+    return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
+  }
 }
 
 export function ConversationSidebar({
@@ -40,6 +45,8 @@ export function ConversationSidebar({
   onRenamed,
   isMobileDrawer = false,
 }: ConversationSidebarProps) {
+  const t = useTranslations("chat")
+  const formatRelativeDate = useFormatRelativeDate()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -75,7 +82,7 @@ export function ConversationSidebar({
     }>
       {!isMobileDrawer && (
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <h3 className="text-sm font-medium font-[family-name:var(--font-body)]">Conversations</h3>
+          <h3 className="text-sm font-medium font-[family-name:var(--font-body)]">{t("conversations")}</h3>
           <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={onNew}>
             <Plus className="h-4 w-4" />
           </Button>
@@ -123,7 +130,7 @@ export function ConversationSidebar({
                   </div>
                 ) : deletingId === conv.id ? (
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-destructive">Supprimer ?</span>
+                    <span className="text-[11px] text-destructive">{t("deleteConfirm")}</span>
                     <button onClick={(e) => { e.stopPropagation(); handleDelete(conv.id) }}>
                       <Check className="h-3 w-3 text-destructive" />
                     </button>
@@ -158,7 +165,7 @@ export function ConversationSidebar({
                       </div>
                     </div>
                     <p className="truncate text-[11px] text-muted-foreground mt-0.5">
-                      {conv.last_message_preview || "Nouvelle conversation"}
+                      {conv.last_message_preview || t("newConversationPreview")}
                     </p>
                     <p className="text-[10px] text-muted-foreground/50 mt-0.5">
                       {formatRelativeDate(conv.updated_at)}
@@ -171,7 +178,7 @@ export function ConversationSidebar({
 
           {conversations.length === 0 && (
             <p className="px-3 py-10 text-center text-[11px] text-muted-foreground font-[family-name:var(--font-body)]">
-              Aucune conversation
+              {t("noConversations")}
             </p>
           )}
         </div>

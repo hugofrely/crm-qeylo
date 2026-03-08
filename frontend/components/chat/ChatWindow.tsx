@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { useAuth } from "@/lib/auth"
 import {
   streamChat,
@@ -26,6 +27,7 @@ import { handleQuotaError } from "@/lib/quota-error"
 
 export function ChatWindow() {
   const { user } = useAuth()
+  const t = useTranslations("chat")
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false)
@@ -312,7 +314,7 @@ export function ChatWindow() {
                 parts: [
                   {
                     type: "text",
-                    content: "Désolé, une erreur est survenue. Veuillez réessayer.",
+                    content: t("errorMessage"),
                   },
                 ],
                 isStreaming: false,
@@ -325,7 +327,7 @@ export function ChatWindow() {
         setIsLoading(false)
       }
     },
-    [activeConversationId]
+    [activeConversationId, t]
   )
 
   const handleMobileSelect = useCallback((id: string) => {
@@ -341,9 +343,9 @@ export function ChatWindow() {
           <div className="fixed inset-0 z-40 bg-black/20 lg:hidden" onClick={() => setShowConversations(false)} />
           <div className="fixed inset-y-0 left-0 z-50 w-[300px] max-w-[85vw] bg-background border-r border-border overflow-y-auto shadow-xl animate-in slide-in-from-left duration-300 lg:hidden">
             <div className="p-4 border-b border-border flex items-center justify-between">
-              <h3 className="font-medium text-sm">Conversations</h3>
+              <h3 className="font-medium text-sm">{t("conversations")}</h3>
               <div className="flex items-center gap-1">
-                <button onClick={() => { handleNewConversation(); setShowConversations(false) }} className="p-1 rounded-sm hover:bg-muted" title="Nouvelle conversation">
+                <button onClick={() => { handleNewConversation(); setShowConversations(false) }} className="p-1 rounded-sm hover:bg-muted" title={t("newConversation")}>
                   <Plus className="h-4 w-4" />
                 </button>
                 <button onClick={() => setShowConversations(false)} className="p-1 rounded-sm hover:bg-muted">
@@ -385,11 +387,10 @@ export function ChatWindow() {
                   <span className="text-2xl text-primary" style={{ fontFamily: 'var(--font-display), Georgia, serif', fontStyle: 'italic' }}>Q</span>
                 </div>
                 <h2 className="mb-2 text-2xl tracking-tight">
-                  Bonjour {firstName}
+                  {t("greeting", { firstName })}
                 </h2>
                 <p className="max-w-sm text-sm text-muted-foreground leading-relaxed font-[family-name:var(--font-body)]">
-                  Dis-moi ce que tu veux faire. Je peux créer des contacts,
-                  gérer tes deals, organiser tes tâches, et bien plus encore.
+                  {t("greetingDescription")}
                 </p>
                 <ChatSuggestions onSelect={handleSend} />
               </div>

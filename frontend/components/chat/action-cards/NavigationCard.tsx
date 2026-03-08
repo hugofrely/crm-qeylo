@@ -3,7 +3,7 @@
 import { ExternalLink } from "lucide-react"
 import { CardShell } from "./CardShell"
 import type { EnrichedAction } from "@/types/chat"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 
 export function NavigationCard({ action }: { action: EnrichedAction }) {
   return (

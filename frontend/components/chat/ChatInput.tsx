@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useEffect, useCallback, KeyboardEvent } from "react"
+import { useTranslations } from "next-intl"
 import { SendHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -10,6 +11,7 @@ interface ChatInputProps {
 }
 
 export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
+  const t = useTranslations("chat")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const value = useRef("")
 
@@ -62,7 +64,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
         >
           <textarea
             ref={textareaRef}
-            placeholder="Décris ce que tu veux faire..."
+            placeholder={t("inputPlaceholder")}
             disabled={disabled}
             rows={1}
             className={cn(
@@ -84,13 +86,13 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
             )}
             disabled={disabled}
             onClick={handleSubmit}
-            aria-label="Envoyer le message"
+            aria-label={t("sendLabel")}
           >
             <SendHorizontal className="h-4 w-4" />
           </button>
         </div>
         <p className="mt-2 text-center text-[10px] text-muted-foreground/50 font-[family-name:var(--font-body)]">
-          Entrée pour envoyer · Maj+Entrée pour un retour à la ligne
+          {t("inputHint")}
         </p>
       </div>
     </div>

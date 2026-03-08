@@ -1,12 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CardShell } from "./CardShell"
 import { apiFetch } from "@/lib/api"
 import type { EnrichedAction } from "@/types/chat"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 
 function ContactRow({ r }: { r: Record<string, unknown> }) {
   return (
@@ -25,6 +26,7 @@ function ContactRow({ r }: { r: Record<string, unknown> }) {
 }
 
 export function ContactListCard({ action }: { action: EnrichedAction }) {
+  const t = useTranslations("chat")
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(false)
   const results = action.results || []
@@ -37,7 +39,7 @@ export function ContactListCard({ action }: { action: EnrichedAction }) {
       await apiFetch("/segments/", {
         method: "POST",
         json: {
-          name: action.summary || "Segment depuis le chat",
+          name: action.summary || t("cards.segmentFromChat"),
           rules: action.rules,
         },
       })
@@ -61,7 +63,7 @@ export function ContactListCard({ action }: { action: EnrichedAction }) {
     <CardShell action={action} expandableContent={expandable}>
       {results.length > 0 && (
         <div className="space-y-1 mb-2">
-          <p className="text-xs text-muted-foreground mb-1">{action.count ?? results.length} contact{(action.count ?? results.length) > 1 ? "s" : ""} trouve{(action.count ?? results.length) > 1 ? "s" : ""}</p>
+          <p className="text-xs text-muted-foreground mb-1">{t("cards.contactsFound", { count: action.count ?? results.length })}</p>
           {results.slice(0, VISIBLE_COUNT).map((r, i) => (
             <ContactRow key={i} r={r} />
           ))}
@@ -70,10 +72,10 @@ export function ContactListCard({ action }: { action: EnrichedAction }) {
       {action.save_as_segment_available && !saved && (
         <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs" onClick={handleSaveSegment} disabled={loading}>
           <Save className="h-3 w-3" />
-          Sauvegarder comme segment
+          {t("cards.saveAsSegment")}
         </Button>
       )}
-      {saved && <span className="text-xs font-medium text-green-600">Segment sauvegarde</span>}
+      {saved && <span className="text-xs font-medium text-green-600">{t("cards.segmentSaved")}</span>}
     </CardShell>
   )
 }

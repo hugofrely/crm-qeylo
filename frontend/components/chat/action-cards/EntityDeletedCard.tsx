@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Undo2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CardShell } from "./CardShell"
@@ -8,6 +9,7 @@ import { apiFetch } from "@/lib/api"
 import type { EnrichedAction } from "@/types/chat"
 
 export function EntityDeletedCard({ action }: { action: EnrichedAction }) {
+  const t = useTranslations("chat")
   const [restored, setRestored] = useState(false)
   const [loading, setLoading] = useState(false)
   const preview = action.entity_preview
@@ -35,11 +37,11 @@ export function EntityDeletedCard({ action }: { action: EnrichedAction }) {
         {action.undo_available && !restored && (
           <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-xs" onClick={handleRestore} disabled={loading}>
             <Undo2 className="h-3 w-3" />
-            Annuler
+            {t("cards.undo")}
           </Button>
         )}
         {restored && (
-          <span className="text-xs font-medium text-green-600">Restaure</span>
+          <span className="text-xs font-medium text-green-600">{t("cards.restored")}</span>
         )}
       </div>
     </CardShell>

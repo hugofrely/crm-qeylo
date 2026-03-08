@@ -1,10 +1,12 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { ArrowRight } from "lucide-react"
 import { CardShell } from "./CardShell"
 import type { EnrichedAction } from "@/types/chat"
 
 export function EntityUpdatedCard({ action }: { action: EnrichedAction }) {
+  const t = useTranslations("chat")
   const preview = action.entity_preview
   const changes = action.changes
 
@@ -24,11 +26,11 @@ export function EntityUpdatedCard({ action }: { action: EnrichedAction }) {
   return (
     <CardShell action={action} expandableContent={expandable}>
       <p className="truncate text-sm font-medium">
-        {preview?.name || "Entite mise a jour"}
+        {preview?.name || t("cards.entityUpdated")}
       </p>
       {changes && changes.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          {changes.length} champ{changes.length > 1 ? "s" : ""} modifie{changes.length > 1 ? "s" : ""}
+          {t("cards.fieldsModified", { count: changes.length })}
         </p>
       )}
     </CardShell>

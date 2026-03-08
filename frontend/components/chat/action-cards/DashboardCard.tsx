@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { CardShell } from "./CardShell"
 import type { EnrichedAction } from "@/types/chat"
 
@@ -10,19 +11,21 @@ function formatCurrency(amount: unknown): string {
 }
 
 export function DashboardCard({ action }: { action: EnrichedAction }) {
+  const t = useTranslations("chat")
+
   const expandable = (
     <div className="grid grid-cols-3 gap-3 text-center">
       <div>
         <p className="text-lg font-semibold">{formatCurrency(action.pipeline_total)}</p>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pipeline</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("cards.pipeline")}</p>
       </div>
       <div>
         <p className="text-lg font-semibold">{String(action.active_deals ?? 0)}</p>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Deals actifs</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("cards.activeDeals")}</p>
       </div>
       <div>
         <p className="text-lg font-semibold">{String(action.overdue_tasks ?? 0)}</p>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">En retard</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{t("cards.overdue")}</p>
       </div>
     </div>
   )
@@ -30,7 +33,7 @@ export function DashboardCard({ action }: { action: EnrichedAction }) {
   return (
     <CardShell action={action} expandableContent={expandable}>
       <p className="text-sm font-medium">
-        {formatCurrency(action.pipeline_total)} en pipeline — {String(action.active_deals ?? 0)} deals actifs
+        {t("cards.pipelineSummary", { amount: formatCurrency(action.pipeline_total), deals: String(action.active_deals ?? 0) })}
       </p>
     </CardShell>
   )

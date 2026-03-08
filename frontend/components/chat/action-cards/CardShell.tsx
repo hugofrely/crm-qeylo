@@ -1,11 +1,12 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Eye, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getConfig, getEntityLink } from "./config"
 import type { EnrichedAction } from "@/types/chat"
-import Link from "next/link"
+import { Link } from "@/i18n/navigation"
 
 interface CardShellProps {
   action: EnrichedAction
@@ -23,7 +24,8 @@ export function CardShell({
   className,
 }: CardShellProps) {
   const [expanded, setExpanded] = useState(false)
-  const config = getConfig(action.entity_type)
+  const t = useTranslations("chat")
+  const config = getConfig(action.entity_type, t)
   const Icon = config.icon
   const entityLink = hideEyeButton ? null : getEntityLink(action)
 
@@ -51,7 +53,7 @@ export function CardShell({
               <Link
                 href={entityLink}
                 className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground/50 transition-colors hover:text-primary hover:bg-primary/5"
-                title="Voir les details"
+                title={t("cards.viewDetails")}
               >
                 <Eye className="h-4 w-4" />
               </Link>
@@ -88,7 +90,7 @@ export function CardShell({
                   expanded && "rotate-180"
                 )}
               />
-              {expanded ? "Moins" : "Plus de details"}
+              {expanded ? t("cards.less") : t("cards.moreDetails")}
             </button>
           </>
         )}
