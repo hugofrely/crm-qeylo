@@ -19,6 +19,7 @@ services:
     routes:
       - path: /api
       - path: /admin
+      - path: /ws
     envs:
       - key: SECRET_KEY
         scope: RUN_AND_BUILD_TIME
@@ -106,6 +107,9 @@ services:
       - key: NEXT_PUBLIC_API_URL
         scope: BUILD_TIME
         value: "https://proto.qeylo.com/api"
+      - key: NEXT_PUBLIC_WS_URL
+        scope: BUILD_TIME
+        value: "wss://proto.qeylo.com"
 
 workers:
   - name: celery-worker
