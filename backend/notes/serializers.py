@@ -25,7 +25,7 @@ class NoteCreateSerializer(serializers.Serializer):
 
 
 class ActivityCreateSerializer(serializers.Serializer):
-    ACTIVITY_TYPES = ["call", "email_sent", "email_received", "meeting", "custom"]
+    ACTIVITY_TYPES = ["call", "email_sent", "email_received", "meeting", "note_added", "custom"]
 
     entry_type = serializers.ChoiceField(choices=[(t, t) for t in ACTIVITY_TYPES])
     contact = serializers.UUIDField()
