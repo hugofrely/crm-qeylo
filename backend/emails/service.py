@@ -89,6 +89,23 @@ def send_email(
         template=template,
     )
 
+    # Also create Email record for unified inbox
+    from .models import Email
+    Email.objects.create(
+        organization=organization,
+        email_account=account,
+        provider_message_id=message_id or "",
+        direction=Email.Direction.OUTBOUND,
+        from_address=account.email_address,
+        from_name=f"{user.first_name} {user.last_name}".strip(),
+        to_addresses=[{"name": "", "address": to_email}],
+        subject=subject,
+        body_html=body_html,
+        contact=contact,
+        sent_at=timezone.now(),
+        is_read=True,
+    )
+
     # Create timeline entry
     if contact:
         TimelineEntry.objects.create(
