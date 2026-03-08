@@ -1,15 +1,20 @@
 "use client"
 
-import { useState, FormEvent } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, FormEvent, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth"
+import { apiFetch } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 
-export default function RegisterPage() {
+function RegisterForm() {
+  const searchParams = useSearchParams()
+  const inviteToken = searchParams.get("invite") || ""
+  const inviteEmail = searchParams.get("email") || ""
+
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [organizationName, setOrganizationName] = useState("")
@@ -17,8 +22,26 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [inviteOrgName, setInviteOrgName] = useState("")
   const { register } = useAuth()
   const router = useRouter()
+
+  // Pre-fill email from invite
+  useEffect(() => {
+    if (inviteEmail) setEmail(inviteEmail)
+  }, [inviteEmail])
+
+  // Fetch org name from invite token
+  useEffect(() => {
+    if (inviteToken) {
+      apiFetch<{ email: string; organization_name: string }>(
+        `/invite/accept/${inviteToken}/`,
+        { method: "GET" }
+      )
+        .then((data) => setInviteOrgName(data.organization_name))
+        .catch(() => {})
+    }
+  }, [inviteToken])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -31,7 +54,8 @@ export default function RegisterPage() {
         password,
         first_name: firstName,
         last_name: lastName,
-        organization_name: organizationName,
+        organization_name: inviteToken ? "" : organizationName,
+        invite_token: inviteToken || undefined,
       })
       router.push("/chat")
     } catch (err) {
@@ -84,6 +108,12 @@ export default function RegisterPage() {
           </div>
         )}
 
+        {inviteOrgName && (
+          <div className="rounded-lg bg-primary/5 border border-primary/20 px-4 py-3 text-sm font-[family-name:var(--font-body)]">
+            Vous rejoignez l&apos;organisation <span className="font-semibold">{inviteOrgName}</span>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="firstName" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
@@ -117,21 +147,23 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="organizationName" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
-            Nom de votre organisation
-          </Label>
-          <Input
-            id="organizationName"
-            type="text"
-            placeholder="Mon entreprise"
-            value={organizationName}
-            onChange={(e) => setOrganizationName(e.target.value)}
-            required
-            disabled={isLoading}
-            className="h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors"
-          />
-        </div>
+        {!inviteToken && (
+          <div className="space-y-2">
+            <Label htmlFor="organizationName" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
+              Nom de votre organisation
+            </Label>
+            <Input
+              id="organizationName"
+              type="text"
+              placeholder="Mon entreprise"
+              value={organizationName}
+              onChange={(e) => setOrganizationName(e.target.value)}
+              required
+              disabled={isLoading}
+              className="h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors"
+            />
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">
@@ -144,8 +176,9 @@ export default function RegisterPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            readOnly={!!inviteToken}
             disabled={isLoading}
-            className="h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors"
+            className={`h-12 bg-secondary/50 border-border/60 focus:bg-background transition-colors ${inviteToken ? "opacity-60 cursor-not-allowed" : ""}`}
           />
         </div>
 
@@ -194,5 +227,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   )
 }

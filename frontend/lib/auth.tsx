@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       first_name: string
       last_name: string
       organization_name: string
+      invite_token?: string
     }) => {
       const data = await apiFetch<{
         user: User
