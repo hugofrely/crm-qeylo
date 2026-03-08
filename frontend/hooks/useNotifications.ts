@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from "react"
 import type { Notification } from "@/types"
 import { fetchNotifications, fetchUnreadCount, markAsRead, markAllAsRead } from "@/services/notifications"
 import { useOrganization } from "@/lib/organization"
-
-const POLL_INTERVAL = 30_000
+import { useWebSocket } from "@/hooks/useWebSocket"
+import { toast } from "sonner"
 
 export function useNotifications() {
   const { orgVersion } = useOrganization()
@@ -46,10 +46,18 @@ export function useNotifications() {
     setUnreadCount(0)
   }, [])
 
+  // WebSocket for real-time notification updates
+  useWebSocket({
+    path: "/ws/notifications/",
+    onMessage: (data: unknown) => {
+      const event = data as { type: string; title: string; message: string; link?: string }
+      setUnreadCount((prev) => prev + 1)
+      toast(event.title, { description: event.message })
+    },
+  })
+
   useEffect(() => {
     refreshUnreadCount()
-    const interval = setInterval(refreshUnreadCount, POLL_INTERVAL)
-    return () => clearInterval(interval)
   }, [refreshUnreadCount])
 
   return { notifications, unreadCount, loading, loadNotifications, markRead, markAllRead }
