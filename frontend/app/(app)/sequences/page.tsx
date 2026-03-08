@@ -228,7 +228,7 @@ export default function SequencesPage() {
                 <option value="">Aucun (sélectionner plus tard)</option>
                 {emailAccounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
-                    {acc.email}
+                    {acc.email_address}
                   </option>
                 ))}
               </select>

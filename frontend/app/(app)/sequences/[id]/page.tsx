@@ -669,7 +669,7 @@ function StepForm({
   saving,
 }: {
   form: { subject: string; body_html: string; delay_days: number; delay_hours: number; step_type: "email" | "manual_task" }
-  onChange: (form: typeof form) => void
+  onChange: (form: { subject: string; body_html: string; delay_days: number; delay_hours: number; step_type: "email" | "manual_task" }) => void
   onSave: () => void
   onCancel: () => void
   saving: boolean
