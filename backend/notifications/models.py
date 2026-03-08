@@ -12,6 +12,9 @@ class Notification(models.Model):
         IMPORT_COMPLETE = "import_complete"
         TASK_ASSIGNED = "task_assigned"
         TASK_REMINDER = "task_reminder"
+        MENTION = "mention"
+        REACTION = "reaction"
+        NEW_COMMENT = "new_comment"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     organization = models.ForeignKey(
