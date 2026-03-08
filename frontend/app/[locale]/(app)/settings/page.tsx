@@ -262,9 +262,10 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Email notifications toggle */}
-          <div className="rounded-xl border border-border bg-card">
-            <div className="flex items-center justify-between px-6 py-4">
+          {/* Email notifications */}
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            {/* Master switch */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary/8 text-primary">
                   <Bell className="h-5 w-5" />
@@ -285,6 +286,137 @@ export default function SettingsPage() {
                   })
                 }}
               />
+            </div>
+
+            {/* Per-type toggles */}
+            <div className={cn(
+              "px-6 py-4 space-y-5 font-[family-name:var(--font-body)] transition-opacity",
+              !(user?.email_notifications ?? true) && "opacity-40 pointer-events-none"
+            )}>
+              {/* Tasks */}
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">
+                  {t('notifications.categories.tasks')}
+                </p>
+                <div className="space-y-3">
+                  {([
+                    { field: "email_notify_task_reminder" as const, label: t('notifications.taskReminder'), desc: t('notifications.taskReminderDesc') },
+                    { field: "email_notify_task_assigned" as const, label: t('notifications.taskAssigned'), desc: t('notifications.taskAssignedDesc') },
+                    { field: "email_notify_task_due" as const, label: t('notifications.taskDue'), desc: t('notifications.taskDueDesc') },
+                  ]).map(({ field, label, desc }) => (
+                    <div key={field} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm">{label}</p>
+                        <p className="text-xs text-muted-foreground">{desc}</p>
+                      </div>
+                      <Checkbox
+                        checked={user?.[field] ?? true}
+                        onCheckedChange={async (checked) => {
+                          await apiFetch("/auth/me/", {
+                            method: "PATCH",
+                            json: { [field]: !!checked },
+                          })
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              {/* Activity */}
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">
+                  {t('notifications.categories.activity')}
+                </p>
+                <div className="space-y-3">
+                  {([
+                    { field: "email_notify_mention" as const, label: t('notifications.mention'), desc: t('notifications.mentionDesc') },
+                    { field: "email_notify_new_comment" as const, label: t('notifications.newComment'), desc: t('notifications.newCommentDesc') },
+                    { field: "email_notify_reaction" as const, label: t('notifications.reaction'), desc: t('notifications.reactionDesc') },
+                  ]).map(({ field, label, desc }) => (
+                    <div key={field} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm">{label}</p>
+                        <p className="text-xs text-muted-foreground">{desc}</p>
+                      </div>
+                      <Checkbox
+                        checked={user?.[field] ?? true}
+                        onCheckedChange={async (checked) => {
+                          await apiFetch("/auth/me/", {
+                            method: "PATCH",
+                            json: { [field]: !!checked },
+                          })
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              {/* CRM */}
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">
+                  {t('notifications.categories.crm')}
+                </p>
+                <div className="space-y-3">
+                  {([
+                    { field: "email_notify_deal_update" as const, label: t('notifications.dealUpdate'), desc: t('notifications.dealUpdateDesc') },
+                    { field: "email_notify_workflow" as const, label: t('notifications.workflow'), desc: t('notifications.workflowDesc') },
+                  ]).map(({ field, label, desc }) => (
+                    <div key={field} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm">{label}</p>
+                        <p className="text-xs text-muted-foreground">{desc}</p>
+                      </div>
+                      <Checkbox
+                        checked={user?.[field] ?? true}
+                        onCheckedChange={async (checked) => {
+                          await apiFetch("/auth/me/", {
+                            method: "PATCH",
+                            json: { [field]: !!checked },
+                          })
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              {/* General */}
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">
+                  {t('notifications.categories.general')}
+                </p>
+                <div className="space-y-3">
+                  {([
+                    { field: "email_notify_daily_digest" as const, label: t('notifications.dailyDigest'), desc: t('notifications.dailyDigestDesc') },
+                    { field: "email_notify_import_complete" as const, label: t('notifications.importComplete'), desc: t('notifications.importCompleteDesc') },
+                    { field: "email_notify_invitation" as const, label: t('notifications.invitation'), desc: t('notifications.invitationDesc') },
+                  ]).map(({ field, label, desc }) => (
+                    <div key={field} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm">{label}</p>
+                        <p className="text-xs text-muted-foreground">{desc}</p>
+                      </div>
+                      <Checkbox
+                        checked={user?.[field] ?? true}
+                        onCheckedChange={async (checked) => {
+                          await apiFetch("/auth/me/", {
+                            method: "PATCH",
+                            json: { [field]: !!checked },
+                          })
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
