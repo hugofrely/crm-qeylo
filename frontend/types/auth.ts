@@ -17,6 +17,7 @@ export interface AuthContextType {
     first_name: string
     last_name: string
     organization_name: string
+    invite_token?: string
   }) => Promise<void>
   logout: () => void
 }
