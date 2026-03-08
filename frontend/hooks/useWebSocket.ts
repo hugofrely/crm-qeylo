@@ -14,7 +14,7 @@ interface UseWebSocketOptions {
 export function useWebSocket({ path, onMessage, enabled = true }: UseWebSocketOptions) {
   const wsRef = useRef<WebSocket | null>(null)
   const onMessageRef = useRef(onMessage)
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>(undefined)
   const [connected, setConnected] = useState(false)
 
   onMessageRef.current = onMessage

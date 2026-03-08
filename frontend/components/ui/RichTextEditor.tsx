@@ -88,20 +88,21 @@ export function RichTextEditor({
                   if (!onMentionQuery) return []
                   return await onMentionQuery(query)
                 },
-                render: () => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                render: (): any => {
                   let component: ReactDOM.Root | null = null
                   let popup: HTMLDivElement | null = null
                   let mentionRef: MentionListRef | null = null
 
                   return {
-                    onStart: (props: Record<string, unknown>) => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    onStart: (props: any) => {
                       popup = document.createElement("div")
                       popup.style.position = "absolute"
                       popup.style.zIndex = "50"
                       document.body.appendChild(popup)
 
-                      const clientRect = props.clientRect as (() => DOMRect) | undefined
-                      const rect = clientRect?.()
+                      const rect = props.clientRect?.()
                       if (rect && popup) {
                         popup.style.left = `${rect.left}px`
                         popup.style.top = `${rect.bottom + 4}px`
@@ -111,14 +112,14 @@ export function RichTextEditor({
                       component.render(
                         <MentionList
                           ref={(r) => { mentionRef = r }}
-                          items={props.items as { id: string; name: string; email: string }[]}
-                          command={props.command as (item: { id: string; label: string }) => void}
+                          items={props.items}
+                          command={props.command}
                         />
                       )
                     },
-                    onUpdate: (props: Record<string, unknown>) => {
-                      const clientRect = props.clientRect as (() => DOMRect) | undefined
-                      const rect = clientRect?.()
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    onUpdate: (props: any) => {
+                      const rect = props.clientRect?.()
                       if (rect && popup) {
                         popup.style.left = `${rect.left}px`
                         popup.style.top = `${rect.bottom + 4}px`
@@ -126,8 +127,8 @@ export function RichTextEditor({
                       component?.render(
                         <MentionList
                           ref={(r) => { mentionRef = r }}
-                          items={props.items as { id: string; name: string; email: string }[]}
-                          command={props.command as (item: { id: string; label: string }) => void}
+                          items={props.items}
+                          command={props.command}
                         />
                       )
                     },
