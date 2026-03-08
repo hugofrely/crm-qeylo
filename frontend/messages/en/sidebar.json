@@ -1,0 +1,29 @@
+{
+  "groups": {
+    "crm": "CRM",
+    "management": "Management",
+    "analytics": "Analytics"
+  },
+  "items": {
+    "chat": "Chat",
+    "inbox": "Inbox",
+    "contacts": "Contacts",
+    "companies": "Companies",
+    "segments": "Segments",
+    "pipeline": "Pipeline",
+    "funnel": "Funnel",
+    "products": "Products",
+    "tasks": "Tasks",
+    "workflows": "Workflows",
+    "sequences": "Sequences",
+    "calendar": "Calendar",
+    "dashboard": "Dashboard",
+    "reports": "Reports"
+  },
+  "trash": "Trash",
+  "settings": "Settings",
+  "logout": "Log out",
+  "user": "User",
+  "organization": "Organization",
+  "createOrganization": "Create organization"
+}

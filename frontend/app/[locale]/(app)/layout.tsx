@@ -12,7 +12,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
-  const isChatPage = pathname === "/chat"
+  const isChatPage = pathname.endsWith("/chat")
 
   useEffect(() => {
     if (!loading && !user) {
