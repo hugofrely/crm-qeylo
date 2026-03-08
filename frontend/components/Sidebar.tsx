@@ -36,6 +36,7 @@ import {
   FileBarChart,
   Trash2,
   Zap,
+  Calendar,
 } from "lucide-react"
 import { CreateOrgDialog } from "@/components/organizations/CreateOrgDialog"
 import { useOverdueCount } from "@/hooks/useOverdueCount"
@@ -60,6 +61,7 @@ const navigationGroups = [
       { name: "Tâches", href: "/tasks", icon: CheckSquare },
       { name: "Workflows", href: "/workflows", icon: Workflow },
       { name: "Séquences", href: "/sequences", icon: Zap },
+      { name: "Calendrier", href: "/calendar", icon: Calendar },
     ],
   },
   {
