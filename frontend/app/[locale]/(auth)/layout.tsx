@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl"
+import { Navbar } from "@/components/landing/navbar"
 
 export default function AuthLayout({
   children,
@@ -8,7 +9,9 @@ export default function AuthLayout({
   const t = useTranslations("auth")
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <div className="flex-1 flex pt-16">
       {/* Left side – decorative */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ background: 'linear-gradient(145deg, #0D4F4F 0%, #0D1F1F 100%)' }}>
         {/* Geometric pattern */}
@@ -52,6 +55,7 @@ export default function AuthLayout({
       {/* Right side – form */}
       <div className="flex-1 flex items-center justify-center bg-background px-6">
         <div className="w-full max-w-[420px]">{children}</div>
+      </div>
       </div>
     </div>
   )
