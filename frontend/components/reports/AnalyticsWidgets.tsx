@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -27,9 +28,10 @@ function WidgetLoading() {
 }
 
 function WidgetEmpty() {
+  const t = useTranslations("dashboard.chart")
   return (
     <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
-      Aucune donnée
+      {t("noData")}
     </div>
   )
 }
@@ -37,6 +39,7 @@ function WidgetEmpty() {
 // ---- ForecastWidget ----
 // Stacked bar chart: commit (green), best_case (blue), pipeline (gray) + line for quota
 export function ForecastWidget({ filters }: { filters: Record<string, unknown> }) {
+  const t = useTranslations("dashboard.analytics")
   const [data, setData] = useState<ForecastResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -54,13 +57,19 @@ export function ForecastWidget({ filters }: { filters: Record<string, unknown> }
   if (loading) return <WidgetLoading />
   if (!data || data.months.length === 0) return <WidgetEmpty />
 
+  const commitLabel = t("forecastCommit")
+  const bestCaseLabel = t("forecastBestCase")
+  const pipelineLabel = t("forecastPipeline")
+  const quotaLabel = t("forecastQuota")
+  const wonLabel = t("forecastWon")
+
   const chartData = data.months.map((m) => ({
     month: m.month,
-    Commit: m.commit.weighted,
-    "Best Case": m.best_case.weighted,
-    Pipeline: m.pipeline.weighted,
-    Quota: m.quota,
-    "Gagné": m.closed_won,
+    [commitLabel]: m.commit.weighted,
+    [bestCaseLabel]: m.best_case.weighted,
+    [pipelineLabel]: m.pipeline.weighted,
+    [quotaLabel]: m.quota,
+    [wonLabel]: m.closed_won,
   }))
 
   return (
@@ -86,11 +95,11 @@ export function ForecastWidget({ filters }: { filters: Record<string, unknown> }
           }}
           isAnimationActive={false}
         />
-        <Bar dataKey="Commit" stackId="forecast" fill="#10B981" radius={[0, 0, 0, 0]} isAnimationActive={false} />
-        <Bar dataKey="Best Case" stackId="forecast" fill="#3B82F6" radius={[0, 0, 0, 0]} isAnimationActive={false} />
-        <Bar dataKey="Pipeline" stackId="forecast" fill="#94A3B8" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-        <Line type="monotone" dataKey="Quota" stroke="#EF4444" strokeWidth={2} strokeDasharray="5 5" dot={false} isAnimationActive={false} />
-        <Line type="monotone" dataKey="Gagné" stroke="#10B981" strokeWidth={2} dot={{ r: 3, fill: "#10B981" }} isAnimationActive={false} />
+        <Bar dataKey={commitLabel} stackId="forecast" fill="#10B981" radius={[0, 0, 0, 0]} isAnimationActive={false} />
+        <Bar dataKey={bestCaseLabel} stackId="forecast" fill="#3B82F6" radius={[0, 0, 0, 0]} isAnimationActive={false} />
+        <Bar dataKey={pipelineLabel} stackId="forecast" fill="#94A3B8" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+        <Line type="monotone" dataKey={quotaLabel} stroke="#EF4444" strokeWidth={2} strokeDasharray="5 5" dot={false} isAnimationActive={false} />
+        <Line type="monotone" dataKey={wonLabel} stroke="#10B981" strokeWidth={2} dot={{ r: 3, fill: "#10B981" }} isAnimationActive={false} />
       </ComposedChart>
     </ResponsiveContainer>
   )
@@ -99,6 +108,7 @@ export function ForecastWidget({ filters }: { filters: Record<string, unknown> }
 // ---- WinLossWidget ----
 // Grouped bar chart (won vs lost) + line for win rate
 export function WinLossWidget({ filters }: { filters: Record<string, unknown> }) {
+  const t = useTranslations("dashboard.analytics")
   const [data, setData] = useState<WinLossResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -116,11 +126,15 @@ export function WinLossWidget({ filters }: { filters: Record<string, unknown> })
   if (loading) return <WidgetLoading />
   if (!data || data.trend.length === 0) return <WidgetEmpty />
 
+  const wonLabel = t("won")
+  const lostLabel = t("lost")
+  const rateLabel = t("ratePercent")
+
   const chartData = data.trend.map((t) => ({
     month: t.month,
-    Gagnés: t.won,
-    Perdus: t.lost,
-    "Taux (%)": t.win_rate,
+    [wonLabel]: t.won,
+    [lostLabel]: t.lost,
+    [rateLabel]: t.win_rate,
   }))
 
   return (
@@ -128,15 +142,15 @@ export function WinLossWidget({ filters }: { filters: Record<string, unknown> })
       <div className="flex justify-center gap-6 mb-3 text-sm">
         <div className="text-center">
           <p className="text-2xl font-light text-green-600">{data.summary.won.count}</p>
-          <p className="text-xs text-muted-foreground">Gagnés</p>
+          <p className="text-xs text-muted-foreground">{t("won")}</p>
         </div>
         <div className="text-center">
           <p className="text-2xl font-light text-red-600">{data.summary.lost.count}</p>
-          <p className="text-xs text-muted-foreground">Perdus</p>
+          <p className="text-xs text-muted-foreground">{t("lost")}</p>
         </div>
         <div className="text-center">
           <p className="text-2xl font-light">{data.summary.win_rate}%</p>
-          <p className="text-xs text-muted-foreground">Win Rate</p>
+          <p className="text-xs text-muted-foreground">{t("winRate")}</p>
         </div>
       </div>
       <ResponsiveContainer width="100%" height={220}>
@@ -146,9 +160,9 @@ export function WinLossWidget({ filters }: { filters: Record<string, unknown> })
           <YAxis yAxisId="left" tick={{ fontSize: 11 }} className="text-muted-foreground" />
           <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} className="text-muted-foreground" domain={[0, 100]} />
           <Tooltip isAnimationActive={false} />
-          <Bar yAxisId="left" dataKey="Gagnés" fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-          <Bar yAxisId="left" dataKey="Perdus" fill="#EF4444" radius={[4, 4, 0, 0]} isAnimationActive={false} />
-          <Line yAxisId="right" type="monotone" dataKey="Taux (%)" stroke="#6366F1" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+          <Bar yAxisId="left" dataKey={wonLabel} fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+          <Bar yAxisId="left" dataKey={lostLabel} fill="#EF4444" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+          <Line yAxisId="right" type="monotone" dataKey={rateLabel} stroke="#6366F1" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -230,6 +244,7 @@ export function LossReasonsWidget({ filters }: { filters: Record<string, unknown
 // ---- VelocityWidget ----
 // Horizontal bar chart: avg days per stage
 export function VelocityWidget({ filters }: { filters: Record<string, unknown> }) {
+  const t = useTranslations("dashboard.analytics")
   const [data, setData] = useState<VelocityResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -252,9 +267,11 @@ export function VelocityWidget({ filters }: { filters: Record<string, unknown> }
   if (loading) return <WidgetLoading />
   if (!data || data.stages.length === 0) return <WidgetEmpty />
 
+  const avgDaysLabel = t("avgDays")
+
   const chartData = data.stages.map((s) => ({
     stage: s.stage,
-    "Jours moy.": Math.round(s.avg_days * 10) / 10,
+    [avgDaysLabel]: Math.round(s.avg_days * 10) / 10,
     deals: s.deal_count,
   }))
 
@@ -263,12 +280,12 @@ export function VelocityWidget({ filters }: { filters: Record<string, unknown> }
       <div className="flex justify-center gap-6 mb-3">
         <div className="text-center">
           <p className="text-2xl font-light">{Math.round(data.avg_cycle_days)}</p>
-          <p className="text-xs text-muted-foreground">Jours moy. cycle</p>
+          <p className="text-xs text-muted-foreground">{t("avgCycleDays")}</p>
         </div>
         {data.stagnant_deals.length > 0 && (
           <div className="text-center">
             <p className="text-2xl font-light text-amber-600">{data.stagnant_deals.length}</p>
-            <p className="text-xs text-muted-foreground">Deals stagnants</p>
+            <p className="text-xs text-muted-foreground">{t("stagnantDeals")}</p>
           </div>
         )}
       </div>
@@ -278,7 +295,7 @@ export function VelocityWidget({ filters }: { filters: Record<string, unknown> }
           <XAxis type="number" tick={{ fontSize: 11 }} className="text-muted-foreground" />
           <YAxis type="category" dataKey="stage" tick={{ fontSize: 11 }} className="text-muted-foreground" width={75} />
           <Tooltip isAnimationActive={false} />
-          <Bar dataKey="Jours moy." fill="#6366F1" radius={[0, 4, 4, 0]} isAnimationActive={false} />
+          <Bar dataKey={avgDaysLabel} fill="#6366F1" radius={[0, 4, 4, 0]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -288,6 +305,7 @@ export function VelocityWidget({ filters }: { filters: Record<string, unknown> }
 // ---- LeaderboardWidget ----
 // Table with progress bars
 export function LeaderboardWidget({ filters }: { filters: Record<string, unknown> }) {
+  const t = useTranslations("dashboard.analytics")
   const [data, setData] = useState<LeaderboardResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -310,11 +328,11 @@ export function LeaderboardWidget({ filters }: { filters: Record<string, unknown
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b">
-            <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">#</th>
-            <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">Commercial</th>
-            <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground">Deals</th>
-            <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground">CA</th>
-            <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground">Quota</th>
+            <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">{t("leaderboardRank")}</th>
+            <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">{t("leaderboardSalesRep")}</th>
+            <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground">{t("leaderboardDeals")}</th>
+            <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground">{t("leaderboardRevenue")}</th>
+            <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground">{t("leaderboardQuota")}</th>
           </tr>
         </thead>
         <tbody>
@@ -348,6 +366,7 @@ export function LeaderboardWidget({ filters }: { filters: Record<string, unknown
 // ---- QuotaProgressWidget ----
 // KPI-style: big number showing overall quota attainment
 export function QuotaProgressWidget({ filters }: { filters: Record<string, unknown> }) {
+  const t = useTranslations("dashboard.analytics")
   const [data, setData] = useState<LeaderboardResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -374,7 +393,7 @@ export function QuotaProgressWidget({ filters }: { filters: Record<string, unkno
       <span className="text-4xl font-light tracking-tight">
         {attainment}%
       </span>
-      <p className="text-xs text-muted-foreground">Atteinte du quota</p>
+      <p className="text-xs text-muted-foreground">{t("quotaAttainment")}</p>
       <p className="text-sm">
         {formatValue(totalRevenue)} / {formatValue(totalQuota)}
       </p>

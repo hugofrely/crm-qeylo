@@ -1,1 +1,154 @@
-{}
+{
+  "title": "Tableau de bord",
+  "loadError": "Impossible de charger le tableau de bord.",
+  "widget": "Widget",
+  "finish": "Terminer",
+  "customize": "Personnaliser",
+  "noWidgets": "Aucun widget",
+  "noWidgetsHint": "Personnalisez votre tableau de bord en ajoutant des widgets",
+  "addWidget": "Ajouter un widget",
+  "copySuffix": "(copie)",
+
+  "reports": {
+    "title": "Rapports",
+    "subtitle": "Analysez vos donnees avec des rapports personnalisables",
+    "newReport": "Nouveau rapport",
+    "defaultReportName": "Nouveau rapport",
+    "templates": "Templates",
+    "myReports": "Mes rapports",
+    "noCustomReports": "Aucun rapport personnalise",
+    "noCustomReportsHint": "Creez votre premier rapport ou utilisez un template",
+    "widgetCount": "{count, plural, =1 {1 widget} other {# widgets}}",
+    "modifiedOn": "Modifie le {date}",
+    "reportNotFound": "Rapport introuvable.",
+    "addFirstWidgetHint": "Ajoutez votre premier widget pour visualiser vos donnees",
+    "deleteReport": "Supprimer le rapport"
+  },
+
+  "dateRanges": {
+    "all": "Toutes les periodes",
+    "thisMonth": "Ce mois",
+    "lastMonth": "Mois dernier",
+    "last3Months": "3 derniers mois",
+    "last6Months": "6 derniers mois",
+    "last12Months": "12 derniers mois",
+    "thisYear": "Cette annee",
+    "noFilter": "Pas de filtre",
+    "today": "Aujourd'hui",
+    "thisWeek": "Cette semaine"
+  },
+
+  "widgetMenu": {
+    "edit": "Modifier",
+    "duplicate": "Dupliquer",
+    "delete": "Supprimer"
+  },
+
+  "editor": {
+    "addTitle": "Ajouter un widget",
+    "editTitle": "Modifier un widget",
+    "titleLabel": "Titre",
+    "titlePlaceholder": "Titre du widget",
+    "chartType": "Type de graphique",
+    "pipeline": "Pipeline",
+    "selectPipeline": "Selectionner...",
+    "filterMode": "Mode de filtre",
+    "filterModeAll": "Tous",
+    "filterModeCohort": "Cohorte",
+    "filterModeActivity": "Activite",
+    "period": "Periode",
+    "dataSource": "Source de donnees",
+    "metric": "Metrique",
+    "groupBy": "Grouper par",
+    "size": "Taille",
+    "cancel": "Annuler",
+    "save": "Enregistrer"
+  },
+
+  "chartTypes": {
+    "bar_chart": "Barres",
+    "line_chart": "Lignes",
+    "pie_chart": "Camembert",
+    "donut_chart": "Donut",
+    "stacked_bar_chart": "Barres empilees",
+    "area_chart": "Aire",
+    "kpi_card": "KPI",
+    "table": "Tableau",
+    "funnel_chart": "Entonnoir",
+    "forecast_chart": "Forecast",
+    "win_loss_chart": "Win/Loss",
+    "loss_reasons_chart": "Raisons de perte",
+    "velocity_chart": "Velocite",
+    "leaderboard_table": "Leaderboard",
+    "quota_progress": "Progression quota"
+  },
+
+  "sources": {
+    "deals": "Deals",
+    "contacts": "Contacts",
+    "tasks": "Taches",
+    "activities": "Activites",
+    "quotes": "Devis"
+  },
+
+  "metrics": {
+    "count": "Nombre",
+    "sumAmount": "Somme des montants",
+    "avgAmount": "Montant moyen"
+  },
+
+  "metricLabels": {
+    "amount": "Montant",
+    "average": "Moyenne",
+    "count": "Nombre"
+  },
+
+  "groupByOptions": {
+    "month": "Par mois",
+    "week": "Par semaine",
+    "stage": "Par etape",
+    "pipeline": "Par pipeline",
+    "outcome": "Par resultat (gagne/perdu)",
+    "source": "Par source",
+    "leadScore": "Par score",
+    "category": "Par categorie",
+    "priority": "Par priorite",
+    "status": "Par statut",
+    "entryType": "Par type",
+    "user": "Par membre"
+  },
+
+  "sizes": {
+    "small": "Petit",
+    "medium": "Moyen",
+    "large": "Grand"
+  },
+
+  "chart": {
+    "noData": "Aucune donnee",
+    "overallConversion": "Conversion globale:",
+    "tableHeaderLabel": "Label",
+    "tableHeaderValue": "Valeur"
+  },
+
+  "analytics": {
+    "won": "Gagnes",
+    "lost": "Perdus",
+    "winRate": "Win Rate",
+    "avgCycleDays": "Jours moy. cycle",
+    "stagnantDeals": "Deals stagnants",
+    "avgDays": "Jours moy.",
+    "quotaAttainment": "Atteinte du quota",
+    "leaderboardRank": "#",
+    "leaderboardSalesRep": "Commercial",
+    "leaderboardDeals": "Deals",
+    "leaderboardRevenue": "CA",
+    "leaderboardQuota": "Quota",
+    "forecastCommit": "Commit",
+    "forecastBestCase": "Best Case",
+    "forecastPipeline": "Pipeline",
+    "forecastQuota": "Quota",
+    "forecastWon": "Gagne",
+    "ratePercent": "Taux (%)"
+  }
+}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback, useRef } from "react"
+import { useTranslations } from "next-intl"
 import {
   BarChart,
   Bar,
@@ -38,12 +39,6 @@ function formatValue(value: number): string {
   return value.toLocaleString("fr-FR")
 }
 
-function metricLabel(metric: string): string {
-  if (metric === "sum:amount") return "Montant"
-  if (metric === "avg:amount") return "Moyenne"
-  return "Nombre"
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CustomTooltip({ active, payload, label, metric }: { active?: boolean; payload?: readonly any[]; label?: string | number; metric?: string }) {
   if (!active || !payload?.length) return null
@@ -68,6 +63,7 @@ interface WidgetChartProps {
 }
 
 export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartProps) {
+  const t = useTranslations("dashboard")
   const [data, setData] = useState<AggregateResponse | null>(null)
   const [funnelData, setFunnelData] = useState<FunnelResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -75,6 +71,12 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
 
   const onLegendEnter = useCallback((i: number) => setActiveIndex(i), [])
   const onLegendLeave = useCallback(() => setActiveIndex(null), [])
+
+  function metricLabel(metric: string): string {
+    if (metric === "sum:amount") return t("metricLabels.amount")
+    if (metric === "avg:amount") return t("metricLabels.average")
+    return t("metricLabels.count")
+  }
 
   useEffect(() => {
     if (widget.type !== "funnel_chart") return
@@ -148,7 +150,7 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
   if (!data || data.data.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
-        Aucune donnee
+        {t("chart.noData")}
       </div>
     )
   }
@@ -164,7 +166,7 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
     if (!funnelData || funnelData.stages.length === 0) {
       return (
         <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
-          Aucune donnee
+          {t("chart.noData")}
         </div>
       )
     }
@@ -173,7 +175,7 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
         <FunnelChart stages={funnelData.stages} compact />
         <div className="mt-2 text-center">
           <span className="text-xs text-muted-foreground">
-            Conversion globale: <span className="font-medium text-foreground">{funnelData.overall_conversion}%</span>
+            {t("chart.overallConversion")} <span className="font-medium text-foreground">{funnelData.overall_conversion}%</span>
           </span>
         </div>
       </div>
@@ -451,8 +453,8 @@ export function WidgetChart({ widget, globalDateRange, compare }: WidgetChartPro
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b">
-              <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">Label</th>
-              <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground">Valeur</th>
+              <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground">{t("chart.tableHeaderLabel")}</th>
+              <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground">{t("chart.tableHeaderValue")}</th>
             </tr>
           </thead>
           <tbody>

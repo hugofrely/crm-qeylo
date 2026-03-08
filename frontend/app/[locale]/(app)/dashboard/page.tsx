@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { useOrganization } from "@/lib/organization"
 import { fetchDashboard } from "@/services/dashboard"
 import { updateReport } from "@/services/reports"
@@ -19,6 +20,7 @@ const SIZE_CLASSES: Record<string, string> = {
 }
 
 export default function DashboardPage() {
+  const t = useTranslations("dashboard")
   const { orgVersion } = useOrganization()
   const [dashboard, setDashboard] = useState<Report | null>(null)
   const [loading, setLoading] = useState(true)
@@ -75,7 +77,7 @@ export default function DashboardPage() {
 
   const handleDuplicateWidget = (widget: WidgetConfig) => {
     if (!dashboard) return
-    const copy = { ...widget, id: crypto.randomUUID(), title: `${widget.title} (copie)` }
+    const copy = { ...widget, id: crypto.randomUUID(), title: `${widget.title} ${t("copySuffix")}` }
     saveWidgets([...dashboard.widgets, copy])
   }
 
@@ -97,7 +99,7 @@ export default function DashboardPage() {
       <div className="p-8 lg:p-12 max-w-6xl mx-auto">
         <div className="flex flex-col items-center justify-center py-16">
           <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-            Impossible de charger le tableau de bord.
+            {t("loadError")}
           </p>
         </div>
       </div>
@@ -106,11 +108,11 @@ export default function DashboardPage() {
 
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
-      <PageHeader title="Tableau de bord">
+      <PageHeader title={t("title")}>
         {editing && (
           <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs" onClick={handleAddWidget}>
             <Plus className="h-3.5 w-3.5" />
-            Widget
+            {t("widget")}
           </Button>
         )}
         <Button
@@ -120,20 +122,20 @@ export default function DashboardPage() {
           onClick={() => setEditing(!editing)}
         >
           <Settings2 className="h-3.5 w-3.5" />
-          {editing ? "Terminer" : "Personnaliser"}
+          {editing ? t("finish") : t("customize")}
         </Button>
       </PageHeader>
 
       {/* Widget grid */}
       {dashboard.widgets.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-16 text-center">
-          <p className="text-sm text-muted-foreground">Aucun widget</p>
+          <p className="text-sm text-muted-foreground">{t("noWidgets")}</p>
           <p className="text-xs text-muted-foreground/60 mt-1 font-[family-name:var(--font-body)]">
-            Personnalisez votre tableau de bord en ajoutant des widgets
+            {t("noWidgetsHint")}
           </p>
           <Button variant="outline" size="sm" className="mt-4 gap-1.5" onClick={() => { setEditing(true); handleAddWidget() }}>
             <Plus className="h-3.5 w-3.5" />
-            Ajouter un widget
+            {t("addWidget")}
           </Button>
         </div>
       ) : (

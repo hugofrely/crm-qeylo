@@ -1,1 +1,154 @@
-{}
+{
+  "title": "Dashboard",
+  "loadError": "Unable to load the dashboard.",
+  "widget": "Widget",
+  "finish": "Finish",
+  "customize": "Customize",
+  "noWidgets": "No widgets",
+  "noWidgetsHint": "Customize your dashboard by adding widgets",
+  "addWidget": "Add a widget",
+  "copySuffix": "(copy)",
+
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Analyze your data with customizable reports",
+    "newReport": "New report",
+    "defaultReportName": "New report",
+    "templates": "Templates",
+    "myReports": "My reports",
+    "noCustomReports": "No custom reports",
+    "noCustomReportsHint": "Create your first report or use a template",
+    "widgetCount": "{count, plural, =1 {1 widget} other {# widgets}}",
+    "modifiedOn": "Modified on {date}",
+    "reportNotFound": "Report not found.",
+    "addFirstWidgetHint": "Add your first widget to visualize your data",
+    "deleteReport": "Delete report"
+  },
+
+  "dateRanges": {
+    "all": "All periods",
+    "thisMonth": "This month",
+    "lastMonth": "Last month",
+    "last3Months": "Last 3 months",
+    "last6Months": "Last 6 months",
+    "last12Months": "Last 12 months",
+    "thisYear": "This year",
+    "noFilter": "No filter",
+    "today": "Today",
+    "thisWeek": "This week"
+  },
+
+  "widgetMenu": {
+    "edit": "Edit",
+    "duplicate": "Duplicate",
+    "delete": "Delete"
+  },
+
+  "editor": {
+    "addTitle": "Add a widget",
+    "editTitle": "Edit widget",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Widget title",
+    "chartType": "Chart type",
+    "pipeline": "Pipeline",
+    "selectPipeline": "Select...",
+    "filterMode": "Filter mode",
+    "filterModeAll": "All",
+    "filterModeCohort": "Cohort",
+    "filterModeActivity": "Activity",
+    "period": "Period",
+    "dataSource": "Data source",
+    "metric": "Metric",
+    "groupBy": "Group by",
+    "size": "Size",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+
+  "chartTypes": {
+    "bar_chart": "Bar",
+    "line_chart": "Line",
+    "pie_chart": "Pie",
+    "donut_chart": "Donut",
+    "stacked_bar_chart": "Stacked bar",
+    "area_chart": "Area",
+    "kpi_card": "KPI",
+    "table": "Table",
+    "funnel_chart": "Funnel",
+    "forecast_chart": "Forecast",
+    "win_loss_chart": "Win/Loss",
+    "loss_reasons_chart": "Loss reasons",
+    "velocity_chart": "Velocity",
+    "leaderboard_table": "Leaderboard",
+    "quota_progress": "Quota progress"
+  },
+
+  "sources": {
+    "deals": "Deals",
+    "contacts": "Contacts",
+    "tasks": "Tasks",
+    "activities": "Activities",
+    "quotes": "Quotes"
+  },
+
+  "metrics": {
+    "count": "Count",
+    "sumAmount": "Sum of amounts",
+    "avgAmount": "Average amount"
+  },
+
+  "metricLabels": {
+    "amount": "Amount",
+    "average": "Average",
+    "count": "Count"
+  },
+
+  "groupByOptions": {
+    "month": "By month",
+    "week": "By week",
+    "stage": "By stage",
+    "pipeline": "By pipeline",
+    "outcome": "By outcome (won/lost)",
+    "source": "By source",
+    "leadScore": "By score",
+    "category": "By category",
+    "priority": "By priority",
+    "status": "By status",
+    "entryType": "By type",
+    "user": "By member"
+  },
+
+  "sizes": {
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large"
+  },
+
+  "chart": {
+    "noData": "No data",
+    "overallConversion": "Overall conversion:",
+    "tableHeaderLabel": "Label",
+    "tableHeaderValue": "Value"
+  },
+
+  "analytics": {
+    "won": "Won",
+    "lost": "Lost",
+    "winRate": "Win Rate",
+    "avgCycleDays": "Avg. cycle days",
+    "stagnantDeals": "Stagnant deals",
+    "avgDays": "Avg. days",
+    "quotaAttainment": "Quota attainment",
+    "leaderboardRank": "#",
+    "leaderboardSalesRep": "Sales rep",
+    "leaderboardDeals": "Deals",
+    "leaderboardRevenue": "Revenue",
+    "leaderboardQuota": "Quota",
+    "forecastCommit": "Commit",
+    "forecastBestCase": "Best Case",
+    "forecastPipeline": "Pipeline",
+    "forecastQuota": "Quota",
+    "forecastWon": "Won",
+    "ratePercent": "Rate (%)"
+  }
+}

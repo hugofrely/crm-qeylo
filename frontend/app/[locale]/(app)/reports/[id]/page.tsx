@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { useOrganization } from "@/lib/organization"
 import { fetchReport, updateReport, deleteReport } from "@/services/reports"
 import { Button } from "@/components/ui/button"
@@ -10,16 +12,6 @@ import { Plus, Loader2, ArrowLeft, Trash2, Check, Pencil } from "lucide-react"
 import type { Report, WidgetConfig } from "@/types"
 import { ReportWidget } from "@/components/reports/ReportWidget"
 import { WidgetEditor } from "@/components/reports/WidgetEditor"
-
-const DATE_RANGES = [
-  { value: "", label: "Toutes les périodes" },
-  { value: "this_month", label: "Ce mois" },
-  { value: "last_month", label: "Mois dernier" },
-  { value: "last_3_months", label: "3 derniers mois" },
-  { value: "last_6_months", label: "6 derniers mois" },
-  { value: "last_12_months", label: "12 derniers mois" },
-  { value: "this_year", label: "Cette année" },
-]
 
 const SIZE_CLASSES: Record<string, string> = {
   small: "col-span-1",
@@ -30,6 +22,9 @@ const SIZE_CLASSES: Record<string, string> = {
 export default function ReportDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const t = useTranslations("dashboard")
+  const tReports = useTranslations("dashboard.reports")
+  const tDateRanges = useTranslations("dashboard.dateRanges")
   const { orgVersion } = useOrganization()
   const [report, setReport] = useState<Report | null>(null)
   const [loading, setLoading] = useState(true)
@@ -38,6 +33,16 @@ export default function ReportDetailPage() {
   const [globalDateRange, setGlobalDateRange] = useState("")
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingWidget, setEditingWidget] = useState<WidgetConfig | null>(null)
+
+  const DATE_RANGES = [
+    { value: "", label: tDateRanges("all") },
+    { value: "this_month", label: tDateRanges("thisMonth") },
+    { value: "last_month", label: tDateRanges("lastMonth") },
+    { value: "last_3_months", label: tDateRanges("last3Months") },
+    { value: "last_6_months", label: tDateRanges("last6Months") },
+    { value: "last_12_months", label: tDateRanges("last12Months") },
+    { value: "this_year", label: tDateRanges("thisYear") },
+  ]
 
   const load = useCallback(async () => {
     try {
@@ -96,7 +101,7 @@ export default function ReportDetailPage() {
 
   const handleDuplicateWidget = (widget: WidgetConfig) => {
     if (!report) return
-    const copy = { ...widget, id: crypto.randomUUID(), title: `${widget.title} (copie)` }
+    const copy = { ...widget, id: crypto.randomUUID(), title: `${widget.title} ${t("copySuffix")}` }
     saveWidgets([...report.widgets, copy])
   }
 
@@ -126,7 +131,7 @@ export default function ReportDetailPage() {
   if (!report) {
     return (
       <div className="p-8 lg:p-12">
-        <p className="text-muted-foreground">Rapport introuvable.</p>
+        <p className="text-muted-foreground">{tReports("reportNotFound")}</p>
       </div>
     )
   }
@@ -179,7 +184,7 @@ export default function ReportDetailPage() {
           </select>
           <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs" onClick={handleAddWidget}>
             <Plus className="h-3.5 w-3.5" />
-            Widget
+            {t("widget")}
           </Button>
           {!report.is_template && (
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={handleDeleteReport}>
@@ -191,13 +196,13 @@ export default function ReportDetailPage() {
 
       {report.widgets.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-16 text-center">
-          <p className="text-sm text-muted-foreground">Aucun widget</p>
+          <p className="text-sm text-muted-foreground">{t("noWidgets")}</p>
           <p className="text-xs text-muted-foreground/60 mt-1 font-[family-name:var(--font-body)]">
-            Ajoutez votre premier widget pour visualiser vos donnees
+            {tReports("addFirstWidgetHint")}
           </p>
           <Button variant="outline" size="sm" className="mt-4 gap-1.5" onClick={handleAddWidget}>
             <Plus className="h-3.5 w-3.5" />
-            Ajouter un widget
+            {t("addWidget")}
           </Button>
         </div>
       ) : (

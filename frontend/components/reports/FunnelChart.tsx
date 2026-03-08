@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import type { FunnelStage } from "@/types"
 
 interface FunnelChartProps {
@@ -24,10 +25,12 @@ function formatDuration(iso: string | null): string | null {
 }
 
 export function FunnelChart({ stages, compact = false }: FunnelChartProps) {
+  const t = useTranslations("dashboard.chart")
+
   if (stages.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
-        Aucune donnee
+        {t("noData")}
       </div>
     )
   }

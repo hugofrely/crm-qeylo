@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { useOrganization } from "@/lib/organization"
 import { fetchReports, createReport } from "@/services/reports"
 import { Button } from "@/components/ui/button"
@@ -22,6 +23,7 @@ const TEMPLATE_ICONS: Record<string, typeof FileText> = {
 
 export default function ReportsPage() {
   const router = useRouter()
+  const t = useTranslations("dashboard.reports")
   const { orgVersion } = useOrganization()
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
@@ -46,7 +48,7 @@ export default function ReportsPage() {
   const handleCreate = async () => {
     try {
       const report = await createReport({
-        name: "Nouveau rapport",
+        name: t("defaultReportName"),
         widgets: [],
       })
       router.push(`/reports/${report.id}`)
@@ -65,16 +67,16 @@ export default function ReportsPage() {
 
   return (
     <div className="p-8 lg:p-12 max-w-7xl mx-auto space-y-10 animate-fade-in-up">
-      <PageHeader title="Rapports" subtitle="Analysez vos donnees avec des rapports personnalisables">
+      <PageHeader title={t("title")} subtitle={t("subtitle")}>
         <Button onClick={handleCreate} className="gap-2">
           <Plus className="h-4 w-4" />
-          Nouveau rapport
+          {t("newReport")}
         </Button>
       </PageHeader>
 
       {templates.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-lg font-medium tracking-tight">Templates</h2>
+          <h2 className="text-lg font-medium tracking-tight">{t("templates")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {templates.map((report) => {
               const Icon = TEMPLATE_ICONS[report.name] || FileText
@@ -95,7 +97,7 @@ export default function ReportsPage() {
                         {report.description}
                       </p>
                       <p className="text-[10px] text-muted-foreground/60 mt-2">
-                        {report.widgets.length} widget{report.widgets.length !== 1 ? "s" : ""}
+                        {t("widgetCount", { count: report.widgets.length })}
                       </p>
                     </div>
                   </div>
@@ -107,13 +109,13 @@ export default function ReportsPage() {
       )}
 
       <div className="space-y-4">
-        <h2 className="text-lg font-medium tracking-tight">Mes rapports</h2>
+        <h2 className="text-lg font-medium tracking-tight">{t("myReports")}</h2>
         {custom.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border p-12 text-center">
             <FileText className="h-8 w-8 mx-auto text-muted-foreground/40 mb-3" />
-            <p className="text-sm text-muted-foreground">Aucun rapport personnalise</p>
+            <p className="text-sm text-muted-foreground">{t("noCustomReports")}</p>
             <p className="text-xs text-muted-foreground/60 mt-1 font-[family-name:var(--font-body)]">
-              Creez votre premier rapport ou utilisez un template
+              {t("noCustomReportsHint")}
             </p>
           </div>
         ) : (
@@ -137,8 +139,7 @@ export default function ReportsPage() {
                   </p>
                 )}
                 <p className="text-[10px] text-muted-foreground/60 mt-2">
-                  {report.widgets.length} widget{report.widgets.length !== 1 ? "s" : ""} · Modifie le{" "}
-                  {new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" }).format(new Date(report.updated_at))}
+                  {t("widgetCount", { count: report.widgets.length })} · {t("modifiedOn", { date: new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" }).format(new Date(report.updated_at)) })}
                 </p>
                   </div>
                 </div>

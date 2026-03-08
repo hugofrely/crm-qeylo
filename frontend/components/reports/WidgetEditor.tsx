@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -20,103 +21,83 @@ interface WidgetEditorProps {
   onSave: (widget: WidgetConfig) => void
 }
 
-const CHART_TYPES = [
-  { value: "bar_chart", label: "Barres" },
-  { value: "line_chart", label: "Lignes" },
-  { value: "pie_chart", label: "Camembert" },
-  { value: "donut_chart", label: "Donut" },
-  { value: "stacked_bar_chart", label: "Barres empilées" },
-  { value: "area_chart", label: "Aire" },
-  { value: "kpi_card", label: "KPI" },
-  { value: "table", label: "Tableau" },
-  { value: "funnel_chart", label: "Entonnoir" },
-  { value: "forecast_chart", label: "Forecast" },
-  { value: "win_loss_chart", label: "Win/Loss" },
-  { value: "loss_reasons_chart", label: "Raisons de perte" },
-  { value: "velocity_chart", label: "Vélocité" },
-  { value: "leaderboard_table", label: "Leaderboard" },
-  { value: "quota_progress", label: "Progression quota" },
+const CHART_TYPE_KEYS = [
+  "bar_chart", "line_chart", "pie_chart", "donut_chart", "stacked_bar_chart",
+  "area_chart", "kpi_card", "table", "funnel_chart", "forecast_chart",
+  "win_loss_chart", "loss_reasons_chart", "velocity_chart", "leaderboard_table",
+  "quota_progress",
 ] as const
 
 const ANALYTICS_TYPES = ["forecast_chart", "win_loss_chart", "loss_reasons_chart", "velocity_chart", "leaderboard_table", "quota_progress"]
 
-const SOURCES = [
-  { value: "deals", label: "Deals" },
-  { value: "contacts", label: "Contacts" },
-  { value: "tasks", label: "Tâches" },
-  { value: "activities", label: "Activités" },
-  { value: "quotes", label: "Devis" },
-] as const
+const SOURCE_KEYS = ["deals", "contacts", "tasks", "activities", "quotes"] as const
 
-const METRICS_BY_SOURCE: Record<string, { value: string; label: string }[]> = {
-  deals: [
-    { value: "count", label: "Nombre" },
-    { value: "sum:amount", label: "Somme des montants" },
-    { value: "avg:amount", label: "Montant moyen" },
-  ],
-  contacts: [{ value: "count", label: "Nombre" }],
-  tasks: [{ value: "count", label: "Nombre" }],
-  activities: [{ value: "count", label: "Nombre" }],
-  quotes: [
-    { value: "count", label: "Nombre" },
-    { value: "sum:amount", label: "Somme des montants" },
-    { value: "avg:amount", label: "Montant moyen" },
-  ],
+const METRICS_BY_SOURCE: Record<string, string[]> = {
+  deals: ["count", "sumAmount", "avgAmount"],
+  contacts: ["count"],
+  tasks: ["count"],
+  activities: ["count"],
+  quotes: ["count", "sumAmount", "avgAmount"],
 }
 
-const GROUP_BY_OPTIONS: Record<string, { value: string; label: string }[]> = {
-  deals: [
-    { value: "month", label: "Par mois" },
-    { value: "week", label: "Par semaine" },
-    { value: "stage", label: "Par étape" },
-    { value: "pipeline", label: "Par pipeline" },
-    { value: "outcome", label: "Par résultat (gagné/perdu)" },
-  ],
-  contacts: [
-    { value: "month", label: "Par mois" },
-    { value: "week", label: "Par semaine" },
-    { value: "source", label: "Par source" },
-    { value: "lead_score", label: "Par score" },
-    { value: "category", label: "Par catégorie" },
-  ],
-  tasks: [
-    { value: "month", label: "Par mois" },
-    { value: "week", label: "Par semaine" },
-    { value: "priority", label: "Par priorité" },
-    { value: "is_done", label: "Par statut" },
-  ],
-  activities: [
-    { value: "month", label: "Par mois" },
-    { value: "week", label: "Par semaine" },
-    { value: "entry_type", label: "Par type" },
-    { value: "user", label: "Par membre" },
-  ],
-  quotes: [
-    { value: "month", label: "Par mois" },
-    { value: "week", label: "Par semaine" },
-    { value: "status", label: "Par statut" },
-  ],
+const METRIC_VALUES: Record<string, string> = {
+  count: "count",
+  sumAmount: "sum:amount",
+  avgAmount: "avg:amount",
 }
 
-const DATE_RANGES = [
-  { value: "", label: "Pas de filtre" },
-  { value: "today", label: "Aujourd'hui" },
-  { value: "this_week", label: "Cette semaine" },
-  { value: "this_month", label: "Ce mois" },
-  { value: "last_month", label: "Mois dernier" },
-  { value: "last_3_months", label: "3 derniers mois" },
-  { value: "last_6_months", label: "6 derniers mois" },
-  { value: "last_12_months", label: "12 derniers mois" },
-  { value: "this_year", label: "Cette année" },
-]
+const GROUP_BY_KEYS_BY_SOURCE: Record<string, string[]> = {
+  deals: ["month", "week", "stage", "pipeline", "outcome"],
+  contacts: ["month", "week", "source", "leadScore", "category"],
+  tasks: ["month", "week", "priority", "status"],
+  activities: ["month", "week", "entryType", "user"],
+  quotes: ["month", "week", "status"],
+}
 
-const SIZES = [
-  { value: "small", label: "Petit" },
-  { value: "medium", label: "Moyen" },
-  { value: "large", label: "Grand" },
+const GROUP_BY_VALUES: Record<string, string> = {
+  month: "month",
+  week: "week",
+  stage: "stage",
+  pipeline: "pipeline",
+  outcome: "outcome",
+  source: "source",
+  leadScore: "lead_score",
+  category: "category",
+  priority: "priority",
+  status: "status",
+  entryType: "entry_type",
+  user: "user",
+}
+
+const DATE_RANGE_KEYS = [
+  "noFilter", "today", "thisWeek", "thisMonth", "lastMonth",
+  "last3Months", "last6Months", "last12Months", "thisYear",
 ] as const
+
+const DATE_RANGE_VALUES: Record<string, string> = {
+  noFilter: "",
+  today: "today",
+  thisWeek: "this_week",
+  thisMonth: "this_month",
+  lastMonth: "last_month",
+  last3Months: "last_3_months",
+  last6Months: "last_6_months",
+  last12Months: "last_12_months",
+  thisYear: "this_year",
+}
+
+const SIZE_KEYS = ["small", "medium", "large"] as const
 
 export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEditorProps) {
+  const t = useTranslations("dashboard")
+  const tEditor = useTranslations("dashboard.editor")
+  const tChartTypes = useTranslations("dashboard.chartTypes")
+  const tSources = useTranslations("dashboard.sources")
+  const tMetrics = useTranslations("dashboard.metrics")
+  const tGroupBy = useTranslations("dashboard.groupByOptions")
+  const tDateRanges = useTranslations("dashboard.dateRanges")
+  const tSizes = useTranslations("dashboard.sizes")
+
   const [title, setTitle] = useState("")
   const [chartType, setChartType] = useState<WidgetConfig["type"]>("bar_chart")
   const [source, setSource] = useState<WidgetConfig["source"]>("deals")
@@ -166,9 +147,10 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
   const handleSourceChange = (newSource: WidgetConfig["source"]) => {
     setSource(newSource)
     setMetric("count")
-    const groupOptions = GROUP_BY_OPTIONS[newSource]
-    if (groupOptions && !groupOptions.find((o) => o.value === groupBy)) {
-      setGroupBy(groupOptions[0]?.value || "month")
+    const groupOptions = GROUP_BY_KEYS_BY_SOURCE[newSource]
+    const currentGroupByKey = Object.entries(GROUP_BY_VALUES).find(([, v]) => v === groupBy)?.[0]
+    if (groupOptions && currentGroupByKey && !groupOptions.includes(currentGroupByKey)) {
+      setGroupBy(GROUP_BY_VALUES[groupOptions[0]] || "month")
     }
   }
 
@@ -231,20 +213,20 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{widget ? "Modifier" : "Ajouter"} un widget</DialogTitle>
+          <DialogTitle>{widget ? tEditor("editTitle") : tEditor("addTitle")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
-            <Label>Titre</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titre du widget" />
+            <Label>{tEditor("titleLabel")}</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={tEditor("titlePlaceholder")} />
           </div>
 
           <div className="space-y-1.5">
-            <Label>Type de graphique</Label>
+            <Label>{tEditor("chartType")}</Label>
             <select value={chartType} onChange={(e) => setChartType(e.target.value as WidgetConfig["type"])} className={selectClass}>
-              {CHART_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
+              {CHART_TYPE_KEYS.map((key) => (
+                <option key={key} value={key}>{tChartTypes(key)}</option>
               ))}
             </select>
           </div>
@@ -252,9 +234,9 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
           {chartType === "funnel_chart" || ANALYTICS_TYPES.includes(chartType) ? (
             <>
               <div className="space-y-1.5">
-                <Label>Pipeline</Label>
+                <Label>{tEditor("pipeline")}</Label>
                 <select value={pipelineId} onChange={(e) => setPipelineId(e.target.value)} className={selectClass}>
-                  <option value="">Selectionner...</option>
+                  <option value="">{tEditor("selectPipeline")}</option>
                   {pipelines.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
@@ -262,18 +244,18 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Mode de filtre</Label>
+                  <Label>{tEditor("filterMode")}</Label>
                   <select value={filterMode} onChange={(e) => setFilterMode(e.target.value)} className={selectClass}>
-                    <option value="">Tous</option>
-                    <option value="cohort">Cohorte</option>
-                    <option value="activity">Activite</option>
+                    <option value="">{tEditor("filterModeAll")}</option>
+                    <option value="cohort">{tEditor("filterModeCohort")}</option>
+                    <option value="activity">{tEditor("filterModeActivity")}</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Periode</Label>
+                  <Label>{tEditor("period")}</Label>
                   <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className={selectClass}>
-                    {DATE_RANGES.map((d) => (
-                      <option key={d.value} value={d.value}>{d.label}</option>
+                    {DATE_RANGE_KEYS.map((key) => (
+                      <option key={key} value={DATE_RANGE_VALUES[key]}>{tDateRanges(key)}</option>
                     ))}
                   </select>
                 </div>
@@ -283,19 +265,19 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
             <>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Source de donnees</Label>
+                  <Label>{tEditor("dataSource")}</Label>
                   <select value={source} onChange={(e) => handleSourceChange(e.target.value as WidgetConfig["source"])} className={selectClass}>
-                    {SOURCES.map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
+                    {SOURCE_KEYS.map((key) => (
+                      <option key={key} value={key}>{tSources(key)}</option>
                     ))}
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label>Metrique</Label>
+                  <Label>{tEditor("metric")}</Label>
                   <select value={metric} onChange={(e) => setMetric(e.target.value)} className={selectClass}>
-                    {(METRICS_BY_SOURCE[source] || []).map((m) => (
-                      <option key={m.value} value={m.value}>{m.label}</option>
+                    {(METRICS_BY_SOURCE[source] || []).map((key) => (
+                      <option key={key} value={METRIC_VALUES[key]}>{tMetrics(key)}</option>
                     ))}
                   </select>
                 </div>
@@ -303,10 +285,10 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
 
               {chartType !== "kpi_card" && (
                 <div className="space-y-1.5">
-                  <Label>Grouper par</Label>
+                  <Label>{tEditor("groupBy")}</Label>
                   <select value={groupBy} onChange={(e) => setGroupBy(e.target.value)} className={selectClass}>
-                    {(GROUP_BY_OPTIONS[source] || []).map((g) => (
-                      <option key={g.value} value={g.value}>{g.label}</option>
+                    {(GROUP_BY_KEYS_BY_SOURCE[source] || []).map((key) => (
+                      <option key={key} value={GROUP_BY_VALUES[key]}>{tGroupBy(key)}</option>
                     ))}
                   </select>
                 </div>
@@ -314,19 +296,19 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Periode</Label>
+                  <Label>{tEditor("period")}</Label>
                   <select value={dateRange} onChange={(e) => setDateRange(e.target.value)} className={selectClass}>
-                    {DATE_RANGES.map((d) => (
-                      <option key={d.value} value={d.value}>{d.label}</option>
+                    {DATE_RANGE_KEYS.map((key) => (
+                      <option key={key} value={DATE_RANGE_VALUES[key]}>{tDateRanges(key)}</option>
                     ))}
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label>Taille</Label>
+                  <Label>{tEditor("size")}</Label>
                   <select value={size} onChange={(e) => setSize(e.target.value as WidgetConfig["size"])} className={selectClass}>
-                    {SIZES.map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
+                    {SIZE_KEYS.map((key) => (
+                      <option key={key} value={key}>{tSizes(key)}</option>
                     ))}
                   </select>
                 </div>
@@ -336,8 +318,8 @@ export function WidgetEditor({ open, onOpenChange, widget, onSave }: WidgetEdito
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button onClick={handleSave} disabled={!title.trim()}>Enregistrer</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{tEditor("cancel")}</Button>
+          <Button onClick={handleSave} disabled={!title.trim()}>{tEditor("save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { MoreHorizontal, Pencil, Copy, Trash2 } from "lucide-react"
 import {
   DropdownMenu,
@@ -27,6 +28,8 @@ export function ReportWidget({
   onDuplicate,
   onDelete,
 }: ReportWidgetProps) {
+  const t = useTranslations("dashboard.widgetMenu")
+
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       <div className="flex items-center justify-between px-5 py-4 border-b border-border">
@@ -40,18 +43,18 @@ export function ReportWidget({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onEdit(widget)}>
               <Pencil className="h-3.5 w-3.5 mr-2" />
-              Modifier
+              {t("edit")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDuplicate(widget)}>
               <Copy className="h-3.5 w-3.5 mr-2" />
-              Dupliquer
+              {t("duplicate")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onDelete(widget.id)}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="h-3.5 w-3.5 mr-2" />
-              Supprimer
+              {t("delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
