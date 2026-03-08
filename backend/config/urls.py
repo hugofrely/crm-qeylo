@@ -26,6 +26,7 @@ urlpatterns = [
     path("api/email/", include("emails.urls")),
     path("api/search/", include("search.urls")),
     path("api/upload/", include("uploads.urls")),
+    path("api/sequences/", include("sequences.urls")),
     path("api/workflows/", include("workflows.urls")),
     path("api/trash/", include("trash.urls")),
     path("api/ai-usage/", include("ai_usage.urls")),
