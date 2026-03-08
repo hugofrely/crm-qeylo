@@ -81,7 +81,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     posthog.reset()
     clearTokens()
     setUser(null)
-    window.location.href = "/login"
+    const locale = window.location.pathname.split('/')[1]
+    const prefix = ['fr', 'en'].includes(locale) ? `/${locale}` : '/fr'
+    window.location.href = `${prefix}/login`
   }, [])
 
   return (
