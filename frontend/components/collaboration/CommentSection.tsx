@@ -158,6 +158,7 @@ export function CommentSection({ entityType, entityId }: CommentSectionProps) {
           minHeight="80px"
           onImageUpload={apiUploadImage}
           onMentionQuery={handleMentionQuery}
+          mentionNoResultsLabel={t("noMemberFound")}
         />
         <div className="flex justify-end">
           <Button

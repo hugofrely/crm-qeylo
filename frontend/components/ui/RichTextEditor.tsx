@@ -38,6 +38,7 @@ interface RichTextEditorProps {
   editable?: boolean
   className?: string
   onMentionQuery?: (query: string) => Promise<{ id: string; name: string; email: string }[]>
+  mentionNoResultsLabel?: string
 }
 
 export function RichTextEditor({
@@ -49,6 +50,7 @@ export function RichTextEditor({
   editable = true,
   className,
   onMentionQuery,
+  mentionNoResultsLabel,
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -114,6 +116,7 @@ export function RichTextEditor({
                           ref={(r) => { mentionRef = r }}
                           items={props.items}
                           command={props.command}
+                          noResultsLabel={mentionNoResultsLabel}
                         />
                       )
                     },
@@ -129,6 +132,7 @@ export function RichTextEditor({
                           ref={(r) => { mentionRef = r }}
                           items={props.items}
                           command={props.command}
+                          noResultsLabel={mentionNoResultsLabel}
                         />
                       )
                     },

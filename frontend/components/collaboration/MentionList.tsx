@@ -1,7 +1,6 @@
 "use client"
 
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react"
-import { useTranslations } from "next-intl"
 
 export interface MentionSuggestion {
   id: string
@@ -12,6 +11,7 @@ export interface MentionSuggestion {
 interface MentionListProps {
   items: MentionSuggestion[]
   command: (item: { id: string; label: string }) => void
+  noResultsLabel?: string
 }
 
 export interface MentionListRef {
@@ -19,8 +19,7 @@ export interface MentionListRef {
 }
 
 export const MentionList = forwardRef<MentionListRef, MentionListProps>(
-  ({ items, command }, ref) => {
-    const t = useTranslations("notifications.comments")
+  ({ items, command, noResultsLabel }, ref) => {
     const [selectedIndex, setSelectedIndex] = useState(0)
 
     useEffect(() => {
@@ -49,7 +48,7 @@ export const MentionList = forwardRef<MentionListRef, MentionListProps>(
     if (items.length === 0) {
       return (
         <div className="bg-card border border-border rounded-lg shadow-lg p-2 text-xs text-muted-foreground">
-          {t("noMemberFound")}
+          {noResultsLabel || "Aucun membre trouvé"}
         </div>
       )
     }
