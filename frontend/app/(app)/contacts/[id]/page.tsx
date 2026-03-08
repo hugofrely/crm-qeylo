@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { fetchContact as fetchContactApi, updateContact, deleteContact as deleteContactApi, fetchContactCategories, fetchCustomFieldDefinitions, checkEmailAccount, fetchContactTimeline, fetchContactTasks, fetchContactDeals } from "@/services/contacts"
+import { fetchContactEmails } from "@/services/emails"
+import type { Email } from "@/types/emails"
 import { restoreItems } from "@/services/trash"
 import { toast } from "sonner"
 import posthog from "posthog-js"
@@ -12,6 +14,8 @@ import type { Contact, ContactCategory, CustomFieldDefinition, TimelineEntry, Ta
 import { Button } from "@/components/ui/button"
 import {
   ArrowLeft,
+  ArrowUpRight,
+  ArrowDownLeft,
   Mail,
   Loader2,
   FileText,
@@ -55,7 +59,8 @@ export default function ContactDetailPage() {
   // Tab data
   const [activities, setActivities] = useState<TimelineEntry[]>([])
   const [notes, setNotes] = useState<TimelineEntry[]>([])
-  const [emails, setEmails] = useState<TimelineEntry[]>([])
+  const [emails, setEmails] = useState<Email[]>([])
+  const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [deals, setDeals] = useState<Deal[]>([])
   const [stages, setStages] = useState<Stage[]>([])
@@ -114,10 +119,8 @@ export default function ContactDetailPage() {
           .catch(() => {})
         break
       case "emails":
-        fetchContactTimeline(id, "interactions")
-          .then(data => {
-            setEmails(data.filter(e => e.entry_type === "email_sent" || e.entry_type === "email_received"))
-          })
+        fetchContactEmails(contact.id)
+          .then(data => setEmails(data))
           .catch(() => {})
         break
       case "tasks":
@@ -427,7 +430,57 @@ export default function ContactDetailPage() {
                     </Button>
                   )}
                 </div>
-                <ContactTimeline entries={emails} />
+                {emails.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                    <Mail className="h-8 w-8 mb-3" />
+                    <p className="text-sm font-[family-name:var(--font-body)]">Aucun email</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border rounded-lg border border-border overflow-hidden">
+                    {emails.map((email) => (
+                      <div
+                        key={email.id}
+                        className="border-b border-border p-4 hover:bg-muted/50 cursor-pointer"
+                        onClick={() => setExpandedEmailId(expandedEmailId === email.id ? null : email.id)}
+                      >
+                        <div className="flex items-start gap-3">
+                          {email.direction === "outbound" ? (
+                            <ArrowUpRight className="h-4 w-4 mt-0.5 shrink-0 text-blue-500" />
+                          ) : (
+                            <ArrowDownLeft className="h-4 w-4 mt-0.5 shrink-0 text-green-500" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className={`font-medium text-sm truncate ${!email.is_read ? "font-bold" : ""}`}>
+                                {email.subject || "(sans objet)"}
+                              </span>
+                              <span className="text-xs text-muted-foreground shrink-0">
+                                {new Intl.DateTimeFormat("fr-FR", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }).format(new Date(email.sent_at))}
+                              </span>
+                            </div>
+                            {expandedEmailId !== email.id && (
+                              <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                                {email.snippet}
+                              </p>
+                            )}
+                            {expandedEmailId === email.id && (
+                              <div
+                                className="mt-3 prose prose-sm max-w-none"
+                                dangerouslySetInnerHTML={{ __html: email.body_html }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </TabsContent>
 
