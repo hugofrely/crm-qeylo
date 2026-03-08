@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from organizations.models import Organization, Membership
 from deals.models import Deal
@@ -48,8 +49,8 @@ class Command(BaseCommand):
                             organization=org,
                             recipient=user,
                             type="reminder",
-                            title=f"Deal inactif : {deal.name}",
-                            message=f"Le deal « {deal.name} » n'a pas eu d'activité depuis 7 jours.",
+                            title=_("Deal inactif : {name}").format(name=deal.name),
+                            message=_("Le deal « {name} » n'a pas eu d'activité depuis 7 jours.").format(name=deal.name),
                             link=f"/deals/{deal.id}",
                         )
                         reminders.append({"title": n.title, "message": n.message})
@@ -67,8 +68,8 @@ class Command(BaseCommand):
                             organization=org,
                             recipient=user,
                             type="task_due",
-                            title="Tâche en retard",
-                            message=f"La tâche « {task.description} » est en retard.",
+                            title=_("Tâche en retard"),
+                            message=_("La tâche « {description} » est en retard.").format(description=task.description),
                             link=f"/tasks/{task.id}",
                         )
                         reminders.append({"title": n.title, "message": n.message})
@@ -88,8 +89,8 @@ class Command(BaseCommand):
                             organization=org,
                             recipient=user,
                             type="task_due",
-                            title="Rappel",
-                            message=f"La tâche « {task.description} » est prévue pour aujourd'hui.",
+                            title=_("Rappel"),
+                            message=_("La tâche « {description} » est prévue pour aujourd'hui.").format(description=task.description),
                             link=f"/tasks/{task.id}",
                         )
                         reminders.append({"title": n.title, "message": n.message})
@@ -111,8 +112,8 @@ class Command(BaseCommand):
                                 organization=org,
                                 recipient=user,
                                 type="reminder",
-                                title=f"Contact sans suivi : {name}",
-                                message=f"Vous n'avez pas eu de contact avec {name} depuis 30 jours.",
+                                title=_("Contact sans suivi : {name}").format(name=name),
+                                message=_("Vous n'avez pas eu de contact avec {name} depuis 30 jours.").format(name=name),
                                 link=f"/contacts/{contact.id}",
                             )
                             reminders.append({"title": n.title, "message": n.message})
@@ -120,7 +121,7 @@ class Command(BaseCommand):
 
                 # Send email digest if any reminders and user wants emails
                 if reminders and getattr(user, "email_notifications", True):
-                    send_reminder_email(user.email, reminders)
+                    send_reminder_email(user.email, reminders, user=user)
 
         self.stdout.write(
             self.style.SUCCESS(f"Created {total_created} reminder notifications.")

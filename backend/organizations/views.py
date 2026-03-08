@@ -5,6 +5,7 @@ from django.conf import settings as django_settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.utils.text import slugify
+from django.utils.translation import gettext as _
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -25,19 +26,20 @@ from .serializers import (
 
 User = get_user_model()
 
-DEFAULT_CATEGORIES = [
-    {"name": "Non contacté", "color": "#3b82f6", "order": 0},
-    {"name": "Prospect", "color": "#eab308", "order": 1},
-    {"name": "Qualifié", "color": "#f97316", "order": 2},
-    {"name": "Client", "color": "#22c55e", "order": 3},
-    {"name": "Ancien client", "color": "#ef4444", "order": 4},
-    {"name": "Partenaire", "color": "#a855f7", "order": 5},
-    {"name": "VIP", "color": "#f59e0b", "order": 6},
-]
+def _get_default_categories():
+    return [
+        {"name": _("Non contacté"), "color": "#3b82f6", "order": 0},
+        {"name": _("Prospect"), "color": "#eab308", "order": 1},
+        {"name": _("Qualifié"), "color": "#f97316", "order": 2},
+        {"name": _("Client"), "color": "#22c55e", "order": 3},
+        {"name": _("Ancien client"), "color": "#ef4444", "order": 4},
+        {"name": _("Partenaire"), "color": "#a855f7", "order": 5},
+        {"name": _("VIP"), "color": "#f59e0b", "order": 6},
+    ]
 
 
 def create_default_categories(organization):
-    for cat in DEFAULT_CATEGORIES:
+    for cat in _get_default_categories():
         ContactCategory.objects.create(
             organization=organization,
             name=cat["name"],
@@ -117,7 +119,7 @@ def invite_member(request, org_id):
         expires_at=timezone.now() + timedelta(days=7),
     )
     invite_link = f"{django_settings.FRONTEND_URL}/invite/accept/{invitation.token}"
-    send_invitation_email(email, org.name, invite_link)
+    send_invitation_email(email, org.name, invite_link, user=existing_user)
     return Response(InvitationSerializer(invitation).data, status=status.HTTP_201_CREATED)
 
 
@@ -197,8 +199,8 @@ def accept_invitation(request, token):
         organization=invitation.organization,
         recipient=request.user,
         type="invitation",
-        title=f"Bienvenue dans {invitation.organization.name}",
-        message=f"Vous avez rejoint l'organisation {invitation.organization.name}.",
+        title=_("Bienvenue dans {org_name}").format(org_name=invitation.organization.name),
+        message=_("Vous avez rejoint l'organisation {org_name}.").format(org_name=invitation.organization.name),
         link="/settings/organization",
     )
     return Response({"status": "accepted", "organization": OrganizationSerializer(invitation.organization).data})

@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.utils.translation import gettext_lazy as _
+
 from .models import Contact, ContactCategory, CustomFieldDefinition
 
 
@@ -78,7 +80,7 @@ class ContactSerializer(serializers.ModelSerializer):
         for field_id, field_value in value.items():
             if field_id not in definitions:
                 raise serializers.ValidationError(
-                    f"Champ personnalisé inconnu: {field_id}"
+                    _("Champ personnalisé inconnu: {field_id}").format(field_id=field_id)
                 )
             defn = definitions[field_id]
             if defn.field_type == "number" and field_value is not None:
@@ -86,12 +88,12 @@ class ContactSerializer(serializers.ModelSerializer):
                     float(field_value)
                 except (ValueError, TypeError):
                     raise serializers.ValidationError(
-                        f"Le champ '{defn.label}' doit être un nombre."
+                        _("Le champ '{label}' doit être un nombre.").format(label=defn.label)
                     )
             if defn.field_type == "select" and field_value:
                 if field_value not in defn.options:
                     raise serializers.ValidationError(
-                        f"Valeur invalide pour '{defn.label}'. Options: {defn.options}"
+                        _("Valeur invalide pour '{label}'. Options: {options}").format(label=defn.label, options=defn.options)
                     )
         return value
 

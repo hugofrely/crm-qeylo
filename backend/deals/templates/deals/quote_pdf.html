@@ -1,3 +1,4 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,32 +31,32 @@
 <body>
   <div class="header">
     <div class="header-left">
-      <h1>Devis {{ quote.number }}</h1>
+      <h1>{% trans "Devis" %} {{ quote.number }}</h1>
       <span class="status-badge status-{{ quote.status }}">{{ quote.get_status_display }}</span>
     </div>
     <div class="header-right">
       <p class="meta">
-        Date : {{ quote.created_at|date:"d/m/Y" }}<br>
-        {% if quote.valid_until %}Valable jusqu'au : {{ quote.valid_until|date:"d/m/Y" }}{% endif %}
+        {% trans "Date" %} : {{ quote.created_at|date:"d/m/Y" }}<br>
+        {% if quote.valid_until %}{% trans "Valable jusqu'au" %} : {{ quote.valid_until|date:"d/m/Y" }}{% endif %}
       </p>
     </div>
   </div>
 
   <div class="addresses">
     <div class="address-block">
-      <h3>Emetteur</h3>
+      <h3>{% trans "Émetteur" %}</h3>
       <strong>{{ org.name }}</strong><br>
-      {% if org.siret %}SIRET : {{ org.siret }}{% endif %}
+      {% if org.siret %}{% trans "SIRET" %} : {{ org.siret }}{% endif %}
     </div>
     <div class="address-block">
-      <h3>Client</h3>
+      <h3>{% trans "Client" %}</h3>
       {% if contact %}
         <strong>{{ contact.first_name }} {{ contact.last_name }}</strong><br>
         {% if contact.company %}{{ contact.company }}<br>{% endif %}
         {% if contact.email %}{{ contact.email }}<br>{% endif %}
         {% if contact.phone %}{{ contact.phone }}{% endif %}
       {% else %}
-        <em>Aucun contact associé</em>
+        <em>{% trans "Aucun contact associé" %}</em>
       {% endif %}
     </div>
   </div>
@@ -63,13 +64,13 @@
   <table>
     <thead>
       <tr>
-        <th>Description</th>
-        <th class="text-right">Qté</th>
-        <th>Unité</th>
-        <th class="text-right">Prix unit. HT</th>
-        <th class="text-right">TVA</th>
-        <th class="text-right">Remise</th>
-        <th class="text-right">Total HT</th>
+        <th>{% trans "Description" %}</th>
+        <th class="text-right">{% trans "Qté" %}</th>
+        <th>{% trans "Unité" %}</th>
+        <th class="text-right">{% trans "Prix unit. HT" %}</th>
+        <th class="text-right">{% trans "TVA" %}</th>
+        <th class="text-right">{% trans "Remise" %}</th>
+        <th class="text-right">{% trans "Total HT" %}</th>
       </tr>
     </thead>
     <tbody>
@@ -91,32 +92,32 @@
 
   <table class="totals">
     <tr>
-      <td>Sous-total HT</td>
+      <td>{% trans "Sous-total HT" %}</td>
       <td class="text-right">{{ subtotal_ht|floatformat:2 }} €</td>
     </tr>
     {% if total_discount %}
     <tr>
-      <td>Remise</td>
+      <td>{% trans "Remise" %}</td>
       <td class="text-right">-{{ total_discount|floatformat:2 }} €</td>
     </tr>
     {% endif %}
     <tr>
-      <td>Total HT</td>
+      <td>{% trans "Total HT" %}</td>
       <td class="text-right">{{ total_ht|floatformat:2 }} €</td>
     </tr>
     <tr>
-      <td>TVA</td>
+      <td>{% trans "TVA" %}</td>
       <td class="text-right">{{ total_tax|floatformat:2 }} €</td>
     </tr>
     <tr class="total-row">
-      <td>Total TTC</td>
+      <td>{% trans "Total TTC" %}</td>
       <td class="text-right">{{ total_ttc|floatformat:2 }} €</td>
     </tr>
   </table>
 
   {% if quote.notes %}
   <div class="notes">
-    <strong>Conditions :</strong><br>
+    <strong>{% trans "Conditions" %} :</strong><br>
     {{ quote.notes|linebreaksbr }}
   </div>
   {% endif %}

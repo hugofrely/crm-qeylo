@@ -8,6 +8,7 @@ from email.mime.multipart import MIMEMultipart
 
 import httpx
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from contacts.models import Contact
 from notes.models import TimelineEntry
@@ -40,11 +41,11 @@ def send_email(
         try:
             contact = Contact.objects.get(id=contact_id, organization=organization)
         except Contact.DoesNotExist:
-            raise ValueError(f"Contact {contact_id} introuvable.")
+            raise ValueError(_("Contact {contact_id} introuvable.").format(contact_id=contact_id))
         if not to_email:
             to_email = contact.email
     if not to_email:
-        raise ValueError("Ce contact n'a pas d'adresse email.")
+        raise ValueError(_("Ce contact n'a pas d'adresse email."))
 
     # Resolve template if provided
     template = None
@@ -52,7 +53,7 @@ def send_email(
         try:
             template = EmailTemplate.objects.get(id=template_id, organization=organization)
         except EmailTemplate.DoesNotExist:
-            raise ValueError(f"Template {template_id} introuvable.")
+            raise ValueError(_("Template {template_id} introuvable.").format(template_id=template_id))
         context = build_template_context(contact=contact)
         subject, body_html = render_email_template(template.subject, template.body_html, context)
 
@@ -65,7 +66,7 @@ def send_email(
 
     account = accounts.first()
     if not account:
-        raise PermissionError("Connectez un compte email dans les parametres.")
+        raise PermissionError(_("Connectez un compte email dans les paramètres."))
 
     # Get valid token
     access_token = get_valid_access_token(account)
@@ -114,7 +115,7 @@ def send_email(
             contact=contact,
             entry_type=TimelineEntry.EntryType.EMAIL_SENT,
             subject=subject,
-            content=f"Email envoye a {to_email}",
+            content=_("Email envoyé à {to_email}").format(to_email=to_email),
             metadata={
                 "recipients": to_email,
                 "provider": account.provider,

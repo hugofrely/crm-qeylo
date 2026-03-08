@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, get_user_model
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from .serializers import RegisterSerializer, UserSerializer
 from organizations.models import Organization, Membership, Invitation
@@ -49,7 +50,7 @@ def register(request):
 
     if not org:
         # Default behavior — create personal org
-        org_name = data.get("organization_name") or f"Organisation de {user.first_name}"
+        org_name = data.get("organization_name") or _("Organisation de {name}").format(name=user.first_name)
         org = Organization.objects.create(
             name=org_name,
             slug=f"user-{user.id.hex[:8]}",

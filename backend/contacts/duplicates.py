@@ -2,6 +2,7 @@ from django.contrib.postgres.search import TrigramSimilarity
 from django.db import transaction
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
+from django.utils.translation import gettext as _
 
 from rest_framework import status as http_status
 from rest_framework.decorators import api_view, permission_classes
@@ -155,13 +156,13 @@ def merge_contacts(request, pk):
     try:
         primary = Contact.objects.get(id=pk, organization=org)
     except Contact.DoesNotExist:
-        return Response({"detail": "Contact principal introuvable."}, status=http_status.HTTP_404_NOT_FOUND)
+        return Response({"detail": _("Contact principal introuvable.")}, status=http_status.HTTP_404_NOT_FOUND)
 
     duplicate_id = request.data.get("duplicate_id")
     try:
         duplicate = Contact.objects.get(id=duplicate_id, organization=org)
     except Contact.DoesNotExist:
-        return Response({"detail": "Contact doublon introuvable."}, status=http_status.HTTP_404_NOT_FOUND)
+        return Response({"detail": _("Contact doublon introuvable.")}, status=http_status.HTTP_404_NOT_FOUND)
 
     field_overrides = request.data.get("field_overrides", {})
 

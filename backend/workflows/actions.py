@@ -9,6 +9,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from contacts.models import Contact
 from deals.models import Deal, PipelineStage
@@ -33,7 +34,7 @@ def execute_action(action_type: str, config: dict, context: dict, organization_i
 
 
 def _action_create_task(config, context, organization_id, user_id):
-    description = config.get("description", "Tâche automatique")
+    description = config.get("description", _("Tâche automatique"))
     priority = config.get("priority", "normal").lower()
     offset = config.get("due_date_offset", "+1d")
 
@@ -89,7 +90,7 @@ def _action_send_notification(config, context, organization_id, user_id):
 
 
 def _action_create_note(config, context, organization_id, user_id):
-    content = config.get("content", "Note automatique")
+    content = config.get("content", _("Note automatique"))
     contact_id = config.get("contact_id") or context.get("contact", {}).get("id")
     deal_id = config.get("deal_id") or context.get("deal", {}).get("id")
 

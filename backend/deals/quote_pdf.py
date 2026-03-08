@@ -1,9 +1,11 @@
 from django.http import HttpResponse
+from django.template.loader import render_to_string
+from django.utils.translation import override as translation_override
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
 from rest_framework.response import Response
-from django.template.loader import render_to_string
+
 from .models import Quote
 
 
@@ -54,8 +56,10 @@ def quote_pdf(request, pk):
         "total_ttc": quote.total_ttc,
     }
 
-    html_string = render_to_string("deals/quote_pdf.html", context)
-    pdf = HTML(string=html_string).write_pdf()
+    lang = getattr(request.user, "preferred_language", "fr") or "fr"
+    with translation_override(lang):
+        html_string = render_to_string("deals/quote_pdf.html", context)
+        pdf = HTML(string=html_string).write_pdf()
 
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="devis-{quote.number}.pdf"'

@@ -2,8 +2,17 @@ import logging
 
 import resend
 from django.conf import settings
+from django.utils.translation import gettext as _
+from django.utils.translation import override as translation_override
 
 logger = logging.getLogger(__name__)
+
+
+def _get_user_language(user):
+    """Return the preferred language for *user*, defaulting to 'fr'."""
+    if user and hasattr(user, "preferred_language") and user.preferred_language:
+        return user.preferred_language
+    return "fr"
 
 
 # ---------------------------------------------------------------------------
@@ -31,11 +40,12 @@ def _send(to: str, subject: str, html: str) -> None:
         logger.exception("Failed to send email to %s", to)
 
 
-def _base_template(content: str) -> str:
+def _base_template(content: str, lang: str = "fr") -> str:
     """Wrap *content* in the branded Qeylo HTML email layout."""
+    footer_text = _("Vous recevez cet e-mail car vous avez un compte Qeylo.")
     return f"""\
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{lang}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -69,7 +79,7 @@ def _base_template(content: str) -> str:
           <!-- Footer -->
           <tr>
             <td style="padding:20px 32px;border-top:1px solid #E5E2DC;">
-              <span style="font-size:11px;color:#8A8680;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">\u00a9 Qeylo CRM &mdash; Vous recevez cet e-mail car vous avez un compte Qeylo.</span>
+              <span style="font-size:11px;color:#8A8680;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">\u00a9 Qeylo CRM &mdash; {footer_text}</span>
             </td>
           </tr>
         </table>
@@ -84,32 +94,43 @@ def _base_template(content: str) -> str:
 # Public email senders
 # ---------------------------------------------------------------------------
 
-def send_invitation_email(to: str, org_name: str, invite_link: str) -> None:
+def send_invitation_email(to: str, org_name: str, invite_link: str, user=None) -> None:
     """Send an organisation invitation email."""
-    content = f"""\
-<h2 style="margin:0 0 6px;font-size:22px;color:#1A1A17;font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-0.01em;">Vous avez \u00e9t\u00e9 invit\u00e9(e)</h2>
+    lang = _get_user_language(user)
+    with translation_override(lang):
+        heading = _("Vous avez été invité(e)")
+        body_text = _("{org_name} vous invite à rejoindre leur espace de travail sur Qeylo.").format(org_name=f'<strong style="color:#0D4F4F;">{org_name}</strong>')
+        btn_text = _("Accepter l'invitation")
+        ignore_text = _("Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail.")
+        subject = _("Invitation à rejoindre {org_name} sur Qeylo").format(org_name=org_name)
+
+        content = f"""\
+<h2 style="margin:0 0 6px;font-size:22px;color:#1A1A17;font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-0.01em;">{heading}</h2>
 <p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#1A1A17;">
-  <strong style="color:#0D4F4F;">{org_name}</strong> vous invite \u00e0 rejoindre leur espace de travail sur Qeylo.
+  {body_text}
 </p>
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
   <tr>
     <td style="background-color:#0D4F4F;border-radius:100px;">
       <a href="{invite_link}"
          style="display:inline-block;padding:11px 28px;font-size:14px;font-weight:500;color:#F5F5F0;text-decoration:none;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-        Accepter l\u2019invitation
+        {btn_text}
       </a>
     </td>
   </tr>
 </table>
 <p style="margin:0;font-size:12px;color:#8A8680;">
-  Si vous n\u2019attendiez pas cette invitation, vous pouvez ignorer cet e-mail.
+  {ignore_text}
 </p>"""
-    _send(to, f"Invitation a rejoindre {org_name} sur Qeylo", _base_template(content))
+        _send(to, subject, _base_template(content, lang))
 
 
-def send_notification_email(to: str, title: str, message: str) -> None:
+def send_notification_email(to: str, title: str, message: str, user=None) -> None:
     """Send a generic notification email."""
-    content = f"""\
+    lang = _get_user_language(user)
+    with translation_override(lang):
+        btn_text = _("Ouvrir Qeylo")
+        content = f"""\
 <h2 style="margin:0 0 6px;font-size:22px;color:#1A1A17;font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-0.01em;">{title}</h2>
 <p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#1A1A17;">
   {message}
@@ -119,38 +140,47 @@ def send_notification_email(to: str, title: str, message: str) -> None:
     <td style="background-color:#0D4F4F;border-radius:100px;">
       <a href="{settings.FRONTEND_URL}"
          style="display:inline-block;padding:11px 28px;font-size:14px;font-weight:500;color:#F5F5F0;text-decoration:none;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-        Ouvrir Qeylo
+        {btn_text}
       </a>
     </td>
   </tr>
 </table>"""
-    _send(to, title, _base_template(content))
+        _send(to, title, _base_template(content, lang))
 
 
-def send_reminder_email(to: str, reminders: list[dict]) -> None:
+def send_reminder_email(to: str, reminders: list[dict], user=None) -> None:
     """Send a digest of upcoming reminders.
 
     Each dict in *reminders* should have at least ``title`` and ``due`` keys.
     """
-    rows = ""
-    for r in reminders:
-        rows += (
-            f'<tr>'
-            f'<td style="padding:10px 12px;border-bottom:1px solid #E5E2DC;font-size:13px;color:#1A1A17;">{r.get("title", "")}</td>'
-            f'<td style="padding:10px 12px;border-bottom:1px solid #E5E2DC;font-size:13px;color:#8A8680;white-space:nowrap;">{r.get("due", "")}</td>'
-            f'</tr>'
-        )
+    lang = _get_user_language(user)
+    with translation_override(lang):
+        rows = ""
+        for r in reminders:
+            rows += (
+                f'<tr>'
+                f'<td style="padding:10px 12px;border-bottom:1px solid #E5E2DC;font-size:13px;color:#1A1A17;">{r.get("title", "")}</td>'
+                f'<td style="padding:10px 12px;border-bottom:1px solid #E5E2DC;font-size:13px;color:#8A8680;white-space:nowrap;">{r.get("due", "")}</td>'
+                f'</tr>'
+            )
 
-    content = f"""\
-<h2 style="margin:0 0 6px;font-size:22px;color:#1A1A17;font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-0.01em;">Vos rappels du jour</h2>
+        heading = _("Vos rappels du jour")
+        count_text = _("Vous avez {count} rappel(s) à venir.").format(count=f'<strong style="color:#0D4F4F;">{len(reminders)}</strong>')
+        th_reminder = _("Rappel")
+        th_deadline = _("Échéance")
+        btn_text = _("Voir dans Qeylo")
+        subject = _("Vous avez {count} rappel(s) à venir").format(count=len(reminders))
+
+        content = f"""\
+<h2 style="margin:0 0 6px;font-size:22px;color:#1A1A17;font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-0.01em;">{heading}</h2>
 <p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#1A1A17;">
-  Vous avez <strong style="color:#0D4F4F;">{len(reminders)}</strong> rappel(s) \u00e0 venir.
+  {count_text}
 </p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
        style="border:1px solid #E5E2DC;border-radius:12px;overflow:hidden;margin-bottom:24px;">
   <tr style="background-color:#F0EDE8;">
-    <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#0D4F4F;text-transform:uppercase;letter-spacing:0.05em;">Rappel</th>
-    <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#0D4F4F;text-transform:uppercase;letter-spacing:0.05em;">\u00c9ch\u00e9ance</th>
+    <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#0D4F4F;text-transform:uppercase;letter-spacing:0.05em;">{th_reminder}</th>
+    <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#0D4F4F;text-transform:uppercase;letter-spacing:0.05em;">{th_deadline}</th>
   </tr>
   {rows}
 </table>
@@ -159,9 +189,9 @@ def send_reminder_email(to: str, reminders: list[dict]) -> None:
     <td style="background-color:#0D4F4F;border-radius:100px;">
       <a href="{settings.FRONTEND_URL}"
          style="display:inline-block;padding:11px 28px;font-size:14px;font-weight:500;color:#F5F5F0;text-decoration:none;font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-        Voir dans Qeylo
+        {btn_text}
       </a>
     </td>
   </tr>
 </table>"""
-    _send(to, f"Vous avez {len(reminders)} rappel(s) a venir", _base_template(content))
+        _send(to, subject, _base_template(content, lang))

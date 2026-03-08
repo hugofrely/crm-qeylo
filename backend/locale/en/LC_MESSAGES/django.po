@@ -1,0 +1,281 @@
+# Qeylo CRM – English translations.
+# Copyright (C) 2026 Qeylo
+# This file is distributed under the same license as the Qeylo package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Qeylo CRM\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-08 00:00+0000\n"
+"PO-Revision-Date: 2026-03-08 00:00+0000\n"
+"Last-Translator: Qeylo Team\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: accounts/views.py
+msgid "Organisation de {name}"
+msgstr "Organization of {name}"
+
+#: contacts/serializers.py
+msgid "Champ personnalisé inconnu: {field_id}"
+msgstr "Unknown custom field: {field_id}"
+
+#: contacts/serializers.py
+msgid "Le champ '{label}' doit être un nombre."
+msgstr "The field '{label}' must be a number."
+
+#: contacts/serializers.py
+msgid "Valeur invalide pour '{label}'. Options: {options}"
+msgstr "Invalid value for '{label}'. Options: {options}"
+
+#: contacts/duplicates.py
+msgid "Contact principal introuvable."
+msgstr "Primary contact not found."
+
+#: contacts/duplicates.py
+msgid "Contact doublon introuvable."
+msgstr "Duplicate contact not found."
+
+#: contacts/ai_summary.py
+msgid "Aucune interaction"
+msgstr "No interactions"
+
+#: contacts/ai_summary.py
+msgid "Aucun deal"
+msgstr "No deals"
+
+#: emails/service.py
+msgid "Contact {contact_id} introuvable."
+msgstr "Contact {contact_id} not found."
+
+#: emails/service.py
+msgid "Ce contact n'a pas d'adresse email."
+msgstr "This contact does not have an email address."
+
+#: emails/service.py
+msgid "Template {template_id} introuvable."
+msgstr "Template {template_id} not found."
+
+#: emails/service.py
+msgid "Connectez un compte email dans les paramètres."
+msgstr "Connect an email account in the settings."
+
+#: emails/service.py
+msgid "Email envoyé à {to_email}"
+msgstr "Email sent to {to_email}"
+
+#: organizations/views.py
+msgid "Non contacté"
+msgstr "Not contacted"
+
+#: organizations/views.py
+msgid "Prospect"
+msgstr "Prospect"
+
+#: organizations/views.py
+msgid "Qualifié"
+msgstr "Qualified"
+
+#: organizations/views.py deals/templates/deals/quote_pdf.html
+msgid "Client"
+msgstr "Client"
+
+#: organizations/views.py
+msgid "Ancien client"
+msgstr "Former client"
+
+#: organizations/views.py
+msgid "Partenaire"
+msgstr "Partner"
+
+#: organizations/views.py
+msgid "VIP"
+msgstr "VIP"
+
+#: organizations/views.py
+msgid "Bienvenue dans {org_name}"
+msgstr "Welcome to {org_name}"
+
+#: organizations/views.py
+msgid "Vous avez rejoint l'organisation {org_name}."
+msgstr "You have joined the organization {org_name}."
+
+#: tasks/celery_tasks.py
+msgid "Tâche due demain"
+msgstr "Task due tomorrow"
+
+#: tasks/celery_tasks.py
+msgid "Tâche due dans {days} jours"
+msgstr "Task due in {days} days"
+
+#: tasks/celery_tasks.py
+msgid "Tâche due dans 1 heure"
+msgstr "Task due in 1 hour"
+
+#: tasks/celery_tasks.py
+msgid "Tâche due dans {hours} heures"
+msgstr "Task due in {hours} hours"
+
+#: tasks/celery_tasks.py
+msgid "Tâche due dans {minutes} minutes"
+msgstr "Task due in {minutes} minutes"
+
+#: tasks/celery_tasks.py
+msgid "Rappel : {description}"
+msgstr "Reminder: {description}"
+
+#: workflows/actions.py
+msgid "Tâche automatique"
+msgstr "Automatic task"
+
+#: workflows/actions.py
+msgid "Note automatique"
+msgstr "Automatic note"
+
+#: notifications/management/commands/check_reminders.py
+msgid "Deal inactif : {name}"
+msgstr "Inactive deal: {name}"
+
+#: notifications/management/commands/check_reminders.py
+msgid "Le deal « {name} » n'a pas eu d'activité depuis 7 jours."
+msgstr "The deal \"{name}\" has had no activity for 7 days."
+
+#: notifications/management/commands/check_reminders.py
+msgid "Tâche en retard"
+msgstr "Overdue task"
+
+#: notifications/management/commands/check_reminders.py
+msgid "La tâche « {description} » est en retard."
+msgstr "The task \"{description}\" is overdue."
+
+#: notifications/management/commands/check_reminders.py
+msgid "Rappel"
+msgstr "Reminder"
+
+#: notifications/management/commands/check_reminders.py
+msgid "La tâche « {description} » est prévue pour aujourd'hui."
+msgstr "The task \"{description}\" is scheduled for today."
+
+#: notifications/management/commands/check_reminders.py
+msgid "Contact sans suivi : {name}"
+msgstr "Contact without follow-up: {name}"
+
+#: notifications/management/commands/check_reminders.py
+msgid "Vous n'avez pas eu de contact avec {name} depuis 30 jours."
+msgstr "You have not been in contact with {name} for 30 days."
+
+#: notifications/email.py
+msgid "Vous recevez cet e-mail car vous avez un compte Qeylo."
+msgstr "You are receiving this email because you have a Qeylo account."
+
+#: notifications/email.py
+msgid "Vous avez été invité(e)"
+msgstr "You have been invited"
+
+#: notifications/email.py
+msgid "{org_name} vous invite à rejoindre leur espace de travail sur Qeylo."
+msgstr "{org_name} invites you to join their workspace on Qeylo."
+
+#: notifications/email.py
+msgid "Accepter l'invitation"
+msgstr "Accept the invitation"
+
+#: notifications/email.py
+msgid "Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail."
+msgstr "If you were not expecting this invitation, you can ignore this email."
+
+#: notifications/email.py
+msgid "Invitation à rejoindre {org_name} sur Qeylo"
+msgstr "Invitation to join {org_name} on Qeylo"
+
+#: notifications/email.py
+msgid "Ouvrir Qeylo"
+msgstr "Open Qeylo"
+
+#: notifications/email.py
+msgid "Vos rappels du jour"
+msgstr "Your reminders for today"
+
+#: notifications/email.py
+msgid "Vous avez {count} rappel(s) à venir."
+msgstr "You have {count} upcoming reminder(s)."
+
+#: notifications/email.py
+msgid "Échéance"
+msgstr "Deadline"
+
+#: notifications/email.py
+msgid "Voir dans Qeylo"
+msgstr "View in Qeylo"
+
+#: notifications/email.py
+msgid "Vous avez {count} rappel(s) à venir"
+msgstr "You have {count} upcoming reminder(s)"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Devis"
+msgstr "Quote"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Date"
+msgstr "Date"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Valable jusqu'au"
+msgstr "Valid until"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Émetteur"
+msgstr "Issuer"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "SIRET"
+msgstr "SIRET"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Aucun contact associé"
+msgstr "No associated contact"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Description"
+msgstr "Description"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Qté"
+msgstr "Qty"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Unité"
+msgstr "Unit"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Prix unit. HT"
+msgstr "Unit price excl. tax"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "TVA"
+msgstr "VAT"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Remise"
+msgstr "Discount"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Total HT"
+msgstr "Total excl. tax"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Sous-total HT"
+msgstr "Subtotal excl. tax"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Total TTC"
+msgstr "Total incl. tax"
+
+#: deals/templates/deals/quote_pdf.html
+msgid "Conditions"
+msgstr "Terms"

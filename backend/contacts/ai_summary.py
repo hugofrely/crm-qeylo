@@ -3,6 +3,7 @@ import threading
 
 from django.conf import settings
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from pydantic_ai import Agent
 
 from ai_usage.models import AIUsageLog
@@ -46,7 +47,7 @@ def _build_contact_info(contact) -> str:
 def _build_timeline_info(contact) -> str:
     entries = contact.timeline_entries.order_by("-created_at")[:20]
     if not entries:
-        return "Aucune interaction"
+        return _("Aucune interaction")
     lines = []
     for e in entries:
         lines.append(f"- [{e.created_at.strftime('%d/%m/%Y')}] {e.entry_type}: {e.content[:150]}")
@@ -56,7 +57,7 @@ def _build_timeline_info(contact) -> str:
 def _build_deals_info(contact) -> str:
     deals = contact.deals.select_related("stage").all()
     if not deals:
-        return "Aucun deal"
+        return _("Aucun deal")
     lines = []
     for d in deals:
         lines.append(f"- {d.name}: {d.amount} EUR ({d.stage.name})")

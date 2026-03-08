@@ -12,5 +12,5 @@ def create_notification(organization, recipient, type, title, message, link=""):
         link=link,
     )
     if getattr(recipient, "email_notifications", True):
-        send_notification_email(recipient.email, title, message)
+        send_notification_email(recipient.email, title, message, user=recipient)
     return notification

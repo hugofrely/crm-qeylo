@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from celery import shared_task
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from notifications.email import send_notification_email
 from notifications.models import Notification
@@ -16,14 +17,14 @@ def format_reminder_title(offset_minutes):
     if offset_minutes >= 1440:
         days = offset_minutes // 1440
         if days == 1:
-            return "Tâche due demain"
-        return f"Tâche due dans {days} jours"
+            return _("Tâche due demain")
+        return _("Tâche due dans {days} jours").format(days=days)
     if offset_minutes >= 60:
         hours = offset_minutes // 60
         if hours == 1:
-            return "Tâche due dans 1 heure"
-        return f"Tâche due dans {hours} heures"
-    return f"Tâche due dans {offset_minutes} minutes"
+            return _("Tâche due dans 1 heure")
+        return _("Tâche due dans {hours} heures").format(hours=hours)
+    return _("Tâche due dans {minutes} minutes").format(minutes=offset_minutes)
 
 
 def get_task_recipients(task):
@@ -70,12 +71,13 @@ def check_task_reminders():
                         recipient=user,
                         type="task_reminder",
                         title=title,
-                        message=f"Rappel : {task.description}",
+                        message=_("Rappel : {description}").format(description=task.description),
                         link="/tasks",
                     )
                     if getattr(user, "email_notifications", True):
                         send_notification_email(
-                            user.email, title, f"Rappel : {task.description}"
+                            user.email, title, _("Rappel : {description}").format(description=task.description),
+                            user=user,
                         )
 
                 TaskReminder.objects.create(task=task, offset_minutes=offset)
