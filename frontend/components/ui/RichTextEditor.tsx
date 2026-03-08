@@ -6,7 +6,10 @@ import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table
 import Image from "@tiptap/extension-image"
 import Link from "@tiptap/extension-link"
 import Placeholder from "@tiptap/extension-placeholder"
+import Mention from "@tiptap/extension-mention"
 import { Markdown } from "tiptap-markdown"
+import ReactDOM from "react-dom/client"
+import { MentionList, type MentionListRef } from "@/components/collaboration/MentionList"
 import { useCallback, useRef } from "react"
 import {
   Bold,
@@ -34,6 +37,7 @@ interface RichTextEditorProps {
   onImageUpload?: (file: File) => Promise<string>
   editable?: boolean
   className?: string
+  onMentionQuery?: (query: string) => Promise<{ id: string; name: string; email: string }[]>
 }
 
 export function RichTextEditor({
@@ -44,6 +48,7 @@ export function RichTextEditor({
   onImageUpload,
   editable = true,
   className,
+  onMentionQuery,
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -61,6 +66,89 @@ export function RichTextEditor({
       Link.configure({ openOnClick: false, autolink: true }),
       Placeholder.configure({ placeholder }),
       Markdown,
+      ...(onMentionQuery
+        ? [
+            Mention.configure({
+              HTMLAttributes: {
+                class: "mention",
+              },
+              renderHTML({ node }) {
+                return [
+                  "span",
+                  {
+                    class: "mention bg-primary/15 text-primary rounded px-1 py-0.5 text-sm font-medium",
+                    "data-mention-id": node.attrs.id,
+                    "data-type": "mention",
+                  },
+                  `@${node.attrs.label ?? node.attrs.id}`,
+                ]
+              },
+              suggestion: {
+                items: async ({ query }: { query: string }) => {
+                  if (!onMentionQuery) return []
+                  return await onMentionQuery(query)
+                },
+                render: () => {
+                  let component: ReactDOM.Root | null = null
+                  let popup: HTMLDivElement | null = null
+                  let mentionRef: MentionListRef | null = null
+
+                  return {
+                    onStart: (props: Record<string, unknown>) => {
+                      popup = document.createElement("div")
+                      popup.style.position = "absolute"
+                      popup.style.zIndex = "50"
+                      document.body.appendChild(popup)
+
+                      const clientRect = props.clientRect as (() => DOMRect) | undefined
+                      const rect = clientRect?.()
+                      if (rect && popup) {
+                        popup.style.left = `${rect.left}px`
+                        popup.style.top = `${rect.bottom + 4}px`
+                      }
+
+                      component = ReactDOM.createRoot(popup)
+                      component.render(
+                        <MentionList
+                          ref={(r) => { mentionRef = r }}
+                          items={props.items as { id: string; name: string; email: string }[]}
+                          command={props.command as (item: { id: string; label: string }) => void}
+                        />
+                      )
+                    },
+                    onUpdate: (props: Record<string, unknown>) => {
+                      const clientRect = props.clientRect as (() => DOMRect) | undefined
+                      const rect = clientRect?.()
+                      if (rect && popup) {
+                        popup.style.left = `${rect.left}px`
+                        popup.style.top = `${rect.bottom + 4}px`
+                      }
+                      component?.render(
+                        <MentionList
+                          ref={(r) => { mentionRef = r }}
+                          items={props.items as { id: string; name: string; email: string }[]}
+                          command={props.command as (item: { id: string; label: string }) => void}
+                        />
+                      )
+                    },
+                    onKeyDown: (props: { event: KeyboardEvent }) => {
+                      if (props.event.key === "Escape") {
+                        popup?.remove()
+                        component?.unmount()
+                        return true
+                      }
+                      return mentionRef?.onKeyDown(props) ?? false
+                    },
+                    onExit: () => {
+                      popup?.remove()
+                      component?.unmount()
+                    },
+                  }
+                },
+              },
+            }),
+          ]
+        : []),
     ],
     content,
     editable,
