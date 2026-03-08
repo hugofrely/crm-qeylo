@@ -28,9 +28,10 @@ SOURCE_CONFIG = {
         "group_by": {
             "stage": "stage__name",
             "pipeline": "stage__pipeline__name",
+            "outcome": "stage__is_won",
         },
         "date_fields": ["created_at", "closed_at", "updated_at"],
-        "allowed_filters": ["stage__name__in", "stage__pipeline__id"],
+        "allowed_filters": ["stage__name__in", "stage__pipeline__id", "stage__is_won", "stage__is_lost"],
     },
     "contacts": {
         "model": Contact,
@@ -40,9 +41,10 @@ SOURCE_CONFIG = {
         "group_by": {
             "source": "source",
             "lead_score": "lead_score",
+            "category": "categories__name",
         },
         "date_fields": ["created_at"],
-        "allowed_filters": ["source", "lead_score"],
+        "allowed_filters": ["source", "lead_score", "categories__name"],
     },
     "tasks": {
         "model": Task,
@@ -63,14 +65,17 @@ SOURCE_CONFIG = {
         },
         "group_by": {
             "entry_type": "entry_type",
+            "user": "created_by__email",
         },
         "date_fields": ["created_at"],
-        "allowed_filters": ["entry_type"],
+        "allowed_filters": ["entry_type", "created_by"],
     },
     "quotes": {
         "model": Quote,
         "metrics": {
             "count": Count("id"),
+            "sum:amount": Sum("deal__amount"),
+            "avg:amount": Avg("deal__amount"),
         },
         "group_by": {
             "status": "status",
@@ -136,6 +141,8 @@ def _resolve_date_range(date_range, date_from=None, date_to=None):
 def _format_label(value, group_by):
     if value is None:
         return "N/A"
+    if group_by == "outcome":
+        return "Gagné" if value else "En cours / Perdu"
     if group_by in ("month", "week"):
         from datetime import date, datetime
         if isinstance(value, (date, datetime)):
