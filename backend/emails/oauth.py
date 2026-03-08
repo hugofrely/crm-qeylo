@@ -41,7 +41,7 @@ def _verify_state(state: str) -> dict:
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
-GOOGLE_SCOPES = "https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/userinfo.email"
+GOOGLE_SCOPES = "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/userinfo.email"
 
 
 def get_gmail_auth_url(user_id: str, org_id: str) -> str:
@@ -103,7 +103,7 @@ def exchange_gmail_code(code: str, state: str) -> EmailAccount:
 MICROSOFT_AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 MICROSOFT_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 MICROSOFT_ME_URL = "https://graph.microsoft.com/v1.0/me"
-MICROSOFT_SCOPES = "https://graph.microsoft.com/Mail.Send User.Read offline_access"
+MICROSOFT_SCOPES = "https://graph.microsoft.com/Mail.Read https://graph.microsoft.com/Mail.Send User.Read offline_access"
 
 
 def get_outlook_auth_url(user_id: str, org_id: str) -> str:

@@ -242,6 +242,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "trash.tasks.purge_trash",
         "schedule": 86400,
     },
+    "sync-email-accounts": {
+        "task": "emails.tasks.sync_all_email_accounts",
+        "schedule": 180,  # every 3 minutes
+    },
 }
 
 # ---------------------------------------------------------------------------
