@@ -196,6 +196,36 @@ def accept_invitation(request, token):
     return Response({"status": "accepted", "organization": OrganizationSerializer(invitation.organization).data})
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def member_search(request, org_id):
+    q = request.query_params.get("q", "").strip()
+    members = Membership.objects.filter(
+        organization_id=org_id,
+    ).select_related("user")
+
+    if q:
+        from django.db.models import Q
+        members = members.filter(
+            Q(user__first_name__icontains=q)
+            | Q(user__last_name__icontains=q)
+            | Q(user__email__icontains=q)
+        )
+
+    results = []
+    for m in members[:20]:
+        u = m.user
+        results.append({
+            "id": str(u.id),
+            "first_name": u.first_name,
+            "last_name": u.last_name,
+            "email": u.email,
+            "name": f"{u.first_name} {u.last_name}".strip() or u.email,
+        })
+
+    return Response(results)
+
+
 @api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def organization_settings(request, org_id):

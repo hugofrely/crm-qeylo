@@ -8,4 +8,5 @@ urlpatterns = [
     path("<uuid:org_id>/members/<uuid:user_id>/", views.update_member_role),
     path("<uuid:org_id>/members/<uuid:user_id>/remove/", views.remove_member),
     path("<uuid:org_id>/settings/", views.organization_settings),
+    path("<uuid:org_id>/members/search/", views.member_search, name="member-search"),
 ]
