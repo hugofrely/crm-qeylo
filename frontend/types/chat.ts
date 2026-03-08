@@ -101,7 +101,7 @@ export interface ChartSeries {
 }
 
 export interface ChartConfig {
-  type: "bar" | "line" | "pie" | "area" | "funnel" | "radar" | "composed"
+  type: "bar" | "line" | "pie" | "donut" | "stacked_bar" | "area" | "funnel" | "radar" | "composed"
   title: string
   data: Array<Record<string, unknown>>
   xKey: string

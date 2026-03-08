@@ -189,6 +189,72 @@ export function DynamicChart({ config }: { config: ChartConfig }) {
           </PieChart>
         )
 
+      case "donut":
+        return (
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey={series[0]?.key || "value"}
+              nameKey={xKey}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={80}
+              paddingAngle={2}
+              isAnimationActive={false}
+            >
+              {data.map((entry, i) => (
+                <Cell
+                  key={i}
+                  fill={FALLBACK_COLORS[i % FALLBACK_COLORS.length]}
+                  name={String(entry[xKey] ?? "")}
+                  style={{
+                    opacity: activeIndex !== null && activeIndex !== i ? 0.3 : 1,
+                    transition: "opacity 150ms ease",
+                  }}
+                />
+              ))}
+            </Pie>
+            <Tooltip
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null
+                const entry = payload[0]
+                return (
+                  <div className="rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-sm" style={{ backgroundColor: entry.payload?.fill }} />
+                      <span className="font-medium">{entry.name}</span>
+                      <span>{entry.value ?? 0}</span>
+                    </div>
+                  </div>
+                )
+              }}
+              isAnimationActive={false}
+            />
+          </PieChart>
+        )
+
+      case "stacked_bar":
+        return (
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+            <XAxis dataKey={xKey} tick={{ fontSize: 11 }} />
+            <YAxis tick={{ fontSize: 11 }} />
+            <Tooltip content={({ active, payload, label }) => <ChartTooltip active={active} payload={payload} label={label} />} isAnimationActive={false} />
+            {series.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} iconSize={8} />}
+            {series.map((s) => (
+              <Bar
+                key={s.key}
+                dataKey={s.key}
+                fill={s.color}
+                name={s.label}
+                stackId="a"
+                radius={[0, 0, 0, 0]}
+              />
+            ))}
+          </BarChart>
+        )
+
       case "funnel":
         return (
           <FunnelChart>
@@ -255,7 +321,7 @@ export function DynamicChart({ config }: { config: ChartConfig }) {
     }
   }
 
-  const isPie = type === "pie"
+  const isPie = type === "pie" || type === "donut"
   const activeItem = isPie && activeIndex !== null ? data[activeIndex] : null
 
   return (
