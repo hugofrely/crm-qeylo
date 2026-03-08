@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  Mail,
   MessageSquare,
   Users,
   Building2,
@@ -43,6 +44,7 @@ const navigationGroups = [
     label: "CRM",
     items: [
       { name: "Chat", href: "/chat", icon: MessageSquare },
+      { name: "Inbox", href: "/inbox", icon: Mail },
       { name: "Contacts", href: "/contacts", icon: Users },
       { name: "Entreprises", href: "/companies", icon: Building2 },
       { name: "Segments", href: "/segments", icon: ListFilter },
