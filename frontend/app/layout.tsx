@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { DM_Sans, Instrument_Serif, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "@/lib/auth"
-import { CookieConsentBanner } from "@/components/CookieConsentBanner"
+
 
 const dmSans = DM_Sans({
   variable: "--font-body",
@@ -46,7 +46,6 @@ export default function RootLayout({
         className={`${dmSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <AuthProvider>{children}</AuthProvider>
-        <CookieConsentBanner />
       </body>
     </html>
   )
