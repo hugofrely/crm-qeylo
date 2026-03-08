@@ -3,8 +3,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Q, Count
-from .models import Contact, ContactCategory, CustomFieldDefinition, ScoringRule
-from .serializers import ContactSerializer, ContactCategorySerializer, CustomFieldDefinitionSerializer, BulkActionSerializer, ScoringRuleSerializer
+from .models import Contact, ContactCategory, CustomFieldDefinition, ScoringRule, LeadRoutingRule, RoundRobinState
+from .serializers import ContactSerializer, ContactCategorySerializer, CustomFieldDefinitionSerializer, BulkActionSerializer, ScoringRuleSerializer, LeadRoutingRuleSerializer, RoundRobinStateSerializer
 from notes.models import TimelineEntry
 
 ALLOWED_ORDERING = {
@@ -281,3 +281,35 @@ class ScoringRuleViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(organization=self.request.organization)
+
+
+class LeadRoutingRuleViewSet(viewsets.ModelViewSet):
+    serializer_class = LeadRoutingRuleSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        return LeadRoutingRule.objects.filter(
+            organization=self.request.organization
+        ).select_related("assign_to")
+
+    def perform_create(self, serializer):
+        serializer.save(organization=self.request.organization)
+
+
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated])
+def round_robin_settings(request):
+    state, _ = RoundRobinState.objects.get_or_create(
+        organization=request.organization
+    )
+    if request.method == "GET":
+        eligible_ids = list(state.eligible_users.values_list("id", flat=True))
+        return Response({
+            "eligible_user_ids": [str(uid) for uid in eligible_ids],
+            "last_assigned_index": state.last_assigned_index,
+        })
+    serializer = RoundRobinStateSerializer(state, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response({"status": "ok"})

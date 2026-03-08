@@ -26,3 +26,13 @@ def recalculate_score_on_deal(sender, instance, created, **kwargs):
         return
     from .scoring import recalculate_score
     recalculate_score(instance.contact)
+
+
+@receiver(post_save, sender="contacts.Contact")
+def route_lead_on_create(sender, instance, created, **kwargs):
+    if not created:
+        return
+    if instance.owner_id is not None:
+        return
+    from .routing import route_lead
+    route_lead(instance)

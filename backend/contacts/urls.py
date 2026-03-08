@@ -17,6 +17,9 @@ custom_field_router.register("", views.CustomFieldDefinitionViewSet, basename="c
 scoring_router = DefaultRouter()
 scoring_router.register("", views.ScoringRuleViewSet, basename="scoring-rule")
 
+routing_router = DefaultRouter()
+routing_router.register("", views.LeadRoutingRuleViewSet, basename="routing-rule")
+
 urlpatterns = [
     path("duplicate-settings/", duplicate_settings),
     path("check-duplicates/", check_duplicates),
@@ -32,5 +35,7 @@ urlpatterns = [
     path("tags/", views.list_tags),
     path("sources/", views.list_sources),
     path("scoring-rules/", include(scoring_router.urls)),
+    path("routing-rules/", include(routing_router.urls)),
+    path("round-robin/", views.round_robin_settings),
     path("", include(router.urls)),
 ]
