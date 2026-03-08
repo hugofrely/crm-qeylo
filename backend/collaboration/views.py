@@ -1,8 +1,11 @@
+import json
+
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
@@ -15,6 +18,11 @@ from .serializers import (
     ReactionCreateSerializer,
 )
 from .utils import extract_mention_ids
+
+
+def _json_safe(data):
+    """Convert DRF serializer data (with UUIDs, datetimes) to JSON-safe Python dicts."""
+    return json.loads(JSONRenderer().render(data))
 
 
 def broadcast_to_entity(entity_type, entity_id, event_type, data):
@@ -97,13 +105,14 @@ def comment_list_create(request):
                 )
 
     result = CommentSerializer(comment).data
+    result_safe = _json_safe(result)
 
     # Broadcast new comment to entity viewers
     broadcast_to_entity(
         comment.entity_type,
         str(comment.entity_id),
         "comment_created",
-        {"comment": result},
+        {"comment": result_safe},
     )
 
     # Broadcast notification to mentioned users via WebSocket
@@ -165,7 +174,7 @@ def comment_detail(request, pk):
         comment.entity_type,
         str(comment.entity_id),
         "comment_updated",
-        {"comment": result},
+        {"comment": _json_safe(result)},
     )
     return Response(result)
 
@@ -193,7 +202,7 @@ def reaction_toggle(request, comment_id):
             comment.entity_type,
             str(comment.entity_id),
             "reaction_updated",
-            {"comment_id": str(comment_id), "reactions": CommentSerializer(comment).data["reactions"]},
+            {"comment_id": str(comment_id), "reactions": _json_safe(CommentSerializer(comment).data["reactions"])},
         )
         return Response({"action": "removed"})
 
