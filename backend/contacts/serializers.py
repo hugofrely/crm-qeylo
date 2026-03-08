@@ -56,7 +56,7 @@ class ContactSerializer(serializers.ModelSerializer):
             "secondary_email", "secondary_phone", "mobile_phone",
             "twitter_url", "siret",
         ]
-        read_only_fields = ["id", "ai_summary_updated_at", "owner_name", "created_at", "updated_at"]
+        read_only_fields = ["id", "numeric_score", "ai_summary_updated_at", "owner_name", "created_at", "updated_at"]
 
     def get_owner_name(self, obj):
         if obj.owner:
