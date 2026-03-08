@@ -15,6 +15,8 @@ export interface Contact {
   industry: string
   lead_score: string
   numeric_score: number
+  owner: string | null
+  owner_name: string | null
   estimated_budget: string | null
   identified_needs: string
   decision_role: string
@@ -97,6 +99,17 @@ export interface ScoringRule {
   id: string
   event_type: string
   points: number
+  is_active: boolean
+  created_at: string
+}
+
+export interface LeadRoutingRule {
+  id: string
+  name: string
+  priority: number
+  conditions: Record<string, unknown>
+  assign_to: string
+  assign_to_name: string | null
   is_active: boolean
   created_at: string
 }

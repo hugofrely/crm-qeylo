@@ -31,6 +31,7 @@ import CategoriesManager from "@/components/settings/CategoriesManager"
 import CustomFieldsManager from "@/components/settings/CustomFieldsManager"
 import ReminderSettings from "@/components/settings/ReminderSettings"
 import ScoringSettings from "@/components/settings/ScoringSettings"
+import RoutingSettings from "@/components/settings/RoutingSettings"
 import BillingSection from "@/components/settings/BillingSection"
 
 interface EmailAccount {
@@ -350,6 +351,8 @@ export default function SettingsPage() {
                   {orgId && <ReminderSettings orgId={orgId} />}
 
                   {orgId && <ScoringSettings orgId={orgId} />}
+
+                  {orgId && <RoutingSettings orgId={orgId} />}
 
                   <CategoriesManager />
 
