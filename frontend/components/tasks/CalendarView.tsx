@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
+import { useLocale } from "next-intl"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Task, TaskFilters } from "@/types"
@@ -45,11 +47,11 @@ function getWeekRange(date: Date): { start: string; end: string } {
   return { start: monday.toISOString(), end: sunday.toISOString() }
 }
 
-function formatMonthYear(date: Date): string {
-  return new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(date)
+function formatMonthYear(date: Date, locale: string): string {
+  return new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-US", { month: "long", year: "numeric" }).format(date)
 }
 
-function formatWeekRange(date: Date): string {
+function formatWeekRange(date: Date, locale: string): string {
   const day = date.getDay()
   let mondayOffset = day - 1
   if (mondayOffset < 0) mondayOffset = 6
@@ -57,12 +59,14 @@ function formatWeekRange(date: Date): string {
   monday.setDate(date.getDate() - mondayOffset)
   const sunday = new Date(monday)
   sunday.setDate(monday.getDate() + 6)
-  const fmt = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" })
+  const fmt = new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-US", { day: "numeric", month: "short" })
   return `${fmt.format(monday)} - ${fmt.format(sunday)}`
 }
 
 export function CalendarView({ filters, onTaskClick, onCreateTask }: CalendarViewProps) {
   const { orgVersion } = useOrganization()
+  const t = useTranslations('tasks')
+  const locale = useLocale()
   const [mode, setMode] = useState<CalendarMode>("month")
   const [currentDate, setCurrentDate] = useState(new Date())
   const [tasks, setTasks] = useState<Task[]>([])
@@ -124,13 +128,13 @@ export function CalendarView({ filters, onTaskClick, onCreateTask }: CalendarVie
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="sm" className="h-8 text-xs" onClick={goToday}>
-            Aujourd&apos;hui
+            {t('calendar.today')}
           </Button>
           <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navigate(1)}>
             <ChevronRight className="h-4 w-4" />
           </Button>
           <h2 className="text-lg font-semibold tracking-tight capitalize ml-2">
-            {mode === "month" ? formatMonthYear(currentDate) : formatWeekRange(currentDate)}
+            {mode === "month" ? formatMonthYear(currentDate, locale) : formatWeekRange(currentDate, locale)}
           </h2>
         </div>
 
@@ -141,7 +145,7 @@ export function CalendarView({ filters, onTaskClick, onCreateTask }: CalendarVie
               mode === "week" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            Semaine
+            {t('calendar.week')}
           </button>
           <button
             onClick={() => setMode("month")}
@@ -149,7 +153,7 @@ export function CalendarView({ filters, onTaskClick, onCreateTask }: CalendarVie
               mode === "month" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            Mois
+            {t('calendar.month')}
           </button>
         </div>
       </div>

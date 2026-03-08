@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import type { Task } from "@/types"
 import { CalendarTaskItem } from "./CalendarTaskItem"
 
@@ -10,7 +11,7 @@ interface MonthGridProps {
   onDateClick: (date: Date) => void
 }
 
-const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const
 const MAX_VISIBLE = 3
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -46,8 +47,11 @@ function getMonthDays(date: Date): Date[] {
 }
 
 export function MonthGrid({ currentDate, tasks, onTaskClick, onDateClick }: MonthGridProps) {
+  const t = useTranslations('tasks')
   const days = getMonthDays(currentDate)
   const today = new Date()
+
+  const dayNames = DAY_KEYS.map((key) => t(`weekDays.${key}`))
 
   const tasksByDate = new Map<string, Task[]>()
   for (const task of tasks) {
@@ -61,7 +65,7 @@ export function MonthGrid({ currentDate, tasks, onTaskClick, onDateClick }: Mont
   return (
     <div className="border rounded-lg overflow-hidden">
       <div className="grid grid-cols-7 border-b bg-muted/30">
-        {DAY_NAMES.map((name) => (
+        {dayNames.map((name) => (
           <div key={name} className="px-2 py-2 text-xs font-medium text-muted-foreground text-center">
             {name}
           </div>
@@ -98,7 +102,7 @@ export function MonthGrid({ currentDate, tasks, onTaskClick, onDateClick }: Mont
                 ))}
                 {dayTasks.length > MAX_VISIBLE && (
                   <div className="text-[10px] text-muted-foreground pl-1.5">
-                    +{dayTasks.length - MAX_VISIBLE} autre{dayTasks.length - MAX_VISIBLE > 1 ? "s" : ""}
+                    {t('calendar.more', { count: dayTasks.length - MAX_VISIBLE })}
                   </div>
                 )}
               </div>

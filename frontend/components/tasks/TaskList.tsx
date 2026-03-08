@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, User, Briefcase } from "lucide-react"
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/table"
 import type { Task } from "@/types"
 import { EntityLink } from "@/components/shared/EntityLink"
+import { useLocale } from "next-intl"
 
 interface TaskListProps {
   tasks: Task[]
@@ -21,42 +23,13 @@ interface TaskListProps {
   onViewDetails: (task: Task) => void
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: string): string {
   const date = new Date(dateStr)
-  return new Intl.DateTimeFormat("fr-FR", {
+  return new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(date)
-}
-
-function getPriorityBadge(priority: string) {
-  switch (priority) {
-    case "high":
-      return (
-        <Badge className="bg-red-50 text-red-800 hover:bg-red-50">
-          Haute
-        </Badge>
-      )
-    case "normal":
-      return (
-        <Badge className="bg-blue-50 text-blue-800 hover:bg-blue-50">
-          Normale
-        </Badge>
-      )
-    case "low":
-      return (
-        <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100">
-          Basse
-        </Badge>
-      )
-    default:
-      return (
-        <Badge variant="secondary">
-          {priority}
-        </Badge>
-      )
-  }
 }
 
 function isOverdue(dueDateStr: string | null): boolean {
@@ -70,11 +43,43 @@ function isOverdue(dueDateStr: string | null): boolean {
 const thClass = "text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]"
 
 export function TaskList({ tasks, onToggle, onEdit, onViewDetails }: TaskListProps) {
+  const t = useTranslations('tasks')
+  const locale = useLocale()
+
+  function getPriorityBadge(priority: string) {
+    switch (priority) {
+      case "high":
+        return (
+          <Badge className="bg-red-50 text-red-800 hover:bg-red-50">
+            {t('priority.high')}
+          </Badge>
+        )
+      case "normal":
+        return (
+          <Badge className="bg-blue-50 text-blue-800 hover:bg-blue-50">
+            {t('priority.normal')}
+          </Badge>
+        )
+      case "low":
+        return (
+          <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100">
+            {t('priority.low')}
+          </Badge>
+        )
+      default:
+        return (
+          <Badge variant="secondary">
+            {priority}
+          </Badge>
+        )
+    }
+  }
+
   if (tasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <p className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">
-          Aucune tâche trouvée.
+          {t('empty')}
         </p>
       </div>
     )
@@ -86,11 +91,11 @@ export function TaskList({ tasks, onToggle, onEdit, onViewDetails }: TaskListPro
         <TableHeader>
           <TableRow className="bg-table-header-bg hover:bg-table-header-bg">
             <TableHead className={`w-10 ${thClass}`} />
-            <TableHead className={thClass}>Tâche</TableHead>
-            <TableHead className={`hidden md:table-cell ${thClass}`}>Échéance</TableHead>
-            <TableHead className={`hidden md:table-cell ${thClass}`}>Contact / Deal</TableHead>
-            <TableHead className={`hidden lg:table-cell ${thClass}`}>Assigné</TableHead>
-            <TableHead className={thClass}>Priorité</TableHead>
+            <TableHead className={thClass}>{t('table.task')}</TableHead>
+            <TableHead className={`hidden md:table-cell ${thClass}`}>{t('table.dueDate')}</TableHead>
+            <TableHead className={`hidden md:table-cell ${thClass}`}>{t('table.contactDeal')}</TableHead>
+            <TableHead className={`hidden lg:table-cell ${thClass}`}>{t('table.assigned')}</TableHead>
+            <TableHead className={thClass}>{t('table.priority')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -118,7 +123,7 @@ export function TaskList({ tasks, onToggle, onEdit, onViewDetails }: TaskListPro
                 >
                   {task.description}
                   {task.is_recurring && (
-                    <span className="text-muted-foreground ml-1" title="Tâche récurrente">↻</span>
+                    <span className="text-muted-foreground ml-1" title={t('recurringTitle')}>↻</span>
                   )}
                 </p>
                 {task.due_date && (
@@ -126,7 +131,7 @@ export function TaskList({ tasks, onToggle, onEdit, onViewDetails }: TaskListPro
                     !task.is_done && isOverdue(task.due_date) ? "text-red-600 font-medium" : "text-muted-foreground"
                   }`}>
                     {!task.is_done && isOverdue(task.due_date) && "\u26A0 "}
-                    {formatDate(task.due_date)}
+                    {formatDate(task.due_date, locale)}
                   </span>
                 )}
               </TableCell>
@@ -139,7 +144,7 @@ export function TaskList({ tasks, onToggle, onEdit, onViewDetails }: TaskListPro
                         : "text-muted-foreground"
                     }`}
                   >
-                    {formatDate(task.due_date)}
+                    {formatDate(task.due_date, locale)}
                   </span>
                 ) : (
                   <span className="text-muted-foreground text-sm font-[family-name:var(--font-body)]">&mdash;</span>

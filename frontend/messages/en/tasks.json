@@ -1,1 +1,137 @@
-{}
+{
+  "title": "Tasks",
+  "subtitle": "{todoCount} to do, {doneCount, plural, one {# completed} other {# completed}}",
+  "newTask": "New task",
+  "viewList": "List view",
+  "viewCalendar": "Calendar view",
+  "searchPlaceholder": "Search tasks...",
+  "tabs": {
+    "all": "All ({count})",
+    "todo": "To do ({count})",
+    "done": "Completed ({count})"
+  },
+  "filters": {
+    "priority": "Priority",
+    "dueDate": "Due date",
+    "contact": "Contact",
+    "assigned": "Assigned",
+    "search": "Search",
+    "filterByContact": "Filter by contact...",
+    "filterByAssigned": "Filter by assignee...",
+    "myTasks": "My tasks"
+  },
+  "priority": {
+    "high": "High",
+    "normal": "Normal",
+    "low": "Low"
+  },
+  "dueDateFilter": {
+    "overdue": "Overdue",
+    "today": "Today",
+    "this_week": "This week"
+  },
+  "status": {
+    "done": "Completed",
+    "todo": "To do"
+  },
+  "table": {
+    "task": "Task",
+    "dueDate": "Due date",
+    "contactDeal": "Contact / Deal",
+    "assigned": "Assigned",
+    "priority": "Priority"
+  },
+  "empty": "No tasks found.",
+  "recurringTitle": "Recurring task",
+  "notFound": "Task not found.",
+  "backToTasks": "Back to tasks",
+  "detail": {
+    "description": "Description",
+    "descriptionPlaceholder": "E.g.: Call the client about the quote",
+    "dueDateLabel": "Due date",
+    "timeLabel": "Time",
+    "priorityLabel": "Priority",
+    "linkedContact": "Linked contact",
+    "searchContact": "Search for a contact…",
+    "noContactFound": "No contact found",
+    "assignees": "Assignees",
+    "searchMember": "Search for a member…",
+    "noMemberFound": "No member found",
+    "allMembersAssigned": "All members are already assigned",
+    "cancel": "Cancel",
+    "save": "Save",
+    "contact": "Contact",
+    "viewContact": "View contact",
+    "deal": "Deal",
+    "viewDeal": "View deal",
+    "probability": "{value}% probability",
+    "expectedClose": "Expected close: {date}",
+    "noLinkedEntities": "No contact or deal linked to this task.",
+    "contactNotes": "Contact notes",
+    "recentActivities": "Recent activities",
+    "noContactHint": "No linked contact — notes and history will appear here when a contact is linked.",
+    "comments": "Comments"
+  },
+  "dialog": {
+    "editTitle": "Edit task",
+    "createTitle": "New task",
+    "description": "Description",
+    "descriptionPlaceholder": "E.g.: Call the client about the quote",
+    "dueDateLabel": "Due date",
+    "timeLabel": "Time",
+    "timePlaceholder": "Optional",
+    "priorityLabel": "Priority",
+    "recurring": "Recurring task",
+    "recurrenceDaily": "Daily",
+    "recurrenceWeekly": "Weekly",
+    "recurrenceMonthly": "Monthly",
+    "recurrenceCustom": "Custom days",
+    "dayMo": "Mo",
+    "dayTu": "Tu",
+    "dayWe": "We",
+    "dayTh": "Th",
+    "dayFr": "Fr",
+    "daySa": "Sa",
+    "daySu": "Su",
+    "linkedContact": "Linked contact",
+    "searchContact": "Search for a contact…",
+    "noContactFound": "No contact found",
+    "assignees": "Assignees",
+    "searchMember": "Search for a member…",
+    "noMemberFound": "No member found",
+    "allMembersAssigned": "All members are already assigned",
+    "delete": "Delete",
+    "viewDetails": "View details",
+    "save": "Save",
+    "create": "Create",
+    "titleMinLength": "Title must contain at least 2 characters",
+    "confirmDelete": "Delete this task? This action is irreversible."
+  },
+  "toast": {
+    "deleted": "Task deleted",
+    "restored": "Task restored",
+    "restoreError": "Error during restoration",
+    "undo": "Undo",
+    "elementDeleted": "Item deleted",
+    "elementRestored": "Item restored"
+  },
+  "confirm": {
+    "delete": "Delete this task?"
+  },
+  "calendar": {
+    "today": "Today",
+    "week": "Week",
+    "month": "Month",
+    "allDay": "All day",
+    "more": "+{count, plural, one {# more} other {# more}}"
+  },
+  "weekDays": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  }
+}

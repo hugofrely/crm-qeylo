@@ -1,1 +1,137 @@
-{}
+{
+  "title": "Tâches",
+  "subtitle": "{todoCount} à faire, {doneCount, plural, one {# terminée} other {# terminées}}",
+  "newTask": "Nouvelle tâche",
+  "viewList": "Vue liste",
+  "viewCalendar": "Vue calendrier",
+  "searchPlaceholder": "Rechercher une tâche...",
+  "tabs": {
+    "all": "Toutes ({count})",
+    "todo": "À faire ({count})",
+    "done": "Terminées ({count})"
+  },
+  "filters": {
+    "priority": "Priorité",
+    "dueDate": "Échéance",
+    "contact": "Contact",
+    "assigned": "Assigné",
+    "search": "Recherche",
+    "filterByContact": "Filtrer par contact...",
+    "filterByAssigned": "Filtrer par assigné...",
+    "myTasks": "Mes tâches"
+  },
+  "priority": {
+    "high": "Haute",
+    "normal": "Normale",
+    "low": "Basse"
+  },
+  "dueDateFilter": {
+    "overdue": "En retard",
+    "today": "Aujourd'hui",
+    "this_week": "Cette semaine"
+  },
+  "status": {
+    "done": "Terminée",
+    "todo": "À faire"
+  },
+  "table": {
+    "task": "Tâche",
+    "dueDate": "Échéance",
+    "contactDeal": "Contact / Deal",
+    "assigned": "Assigné",
+    "priority": "Priorité"
+  },
+  "empty": "Aucune tâche trouvée.",
+  "recurringTitle": "Tâche récurrente",
+  "notFound": "Tâche introuvable.",
+  "backToTasks": "Retour aux tâches",
+  "detail": {
+    "description": "Description",
+    "descriptionPlaceholder": "Ex: Appeler le client pour le devis",
+    "dueDateLabel": "Date d'échéance",
+    "timeLabel": "Heure",
+    "priorityLabel": "Priorité",
+    "linkedContact": "Contact associé",
+    "searchContact": "Rechercher un contact…",
+    "noContactFound": "Aucun contact trouvé",
+    "assignees": "Assignés",
+    "searchMember": "Rechercher un membre…",
+    "noMemberFound": "Aucun membre trouvé",
+    "allMembersAssigned": "Tous les membres sont déjà assignés",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "contact": "Contact",
+    "viewContact": "Voir le contact",
+    "deal": "Deal",
+    "viewDeal": "Voir le deal",
+    "probability": "{value}% de probabilité",
+    "expectedClose": "Clôture prévue: {date}",
+    "noLinkedEntities": "Aucun contact ou deal associé à cette tâche.",
+    "contactNotes": "Notes du contact",
+    "recentActivities": "Activités récentes",
+    "noContactHint": "Aucun contact associé — les notes et l'historique s'afficheront ici quand un contact sera lié.",
+    "comments": "Commentaires"
+  },
+  "dialog": {
+    "editTitle": "Modifier la tâche",
+    "createTitle": "Nouvelle tâche",
+    "description": "Description",
+    "descriptionPlaceholder": "Ex: Appeler le client pour le devis",
+    "dueDateLabel": "Date d'échéance",
+    "timeLabel": "Heure",
+    "timePlaceholder": "Optionnel",
+    "priorityLabel": "Priorité",
+    "recurring": "Tâche récurrente",
+    "recurrenceDaily": "Quotidien",
+    "recurrenceWeekly": "Hebdomadaire",
+    "recurrenceMonthly": "Mensuel",
+    "recurrenceCustom": "Jours personnalisés",
+    "dayMo": "Lu",
+    "dayTu": "Ma",
+    "dayWe": "Me",
+    "dayTh": "Je",
+    "dayFr": "Ve",
+    "daySa": "Sa",
+    "daySu": "Di",
+    "linkedContact": "Contact associé",
+    "searchContact": "Rechercher un contact…",
+    "noContactFound": "Aucun contact trouvé",
+    "assignees": "Assignés",
+    "searchMember": "Rechercher un membre…",
+    "noMemberFound": "Aucun membre trouvé",
+    "allMembersAssigned": "Tous les membres sont déjà assignés",
+    "delete": "Supprimer",
+    "viewDetails": "Voir détails",
+    "save": "Enregistrer",
+    "create": "Créer",
+    "titleMinLength": "Le titre doit contenir au moins 2 caractères",
+    "confirmDelete": "Supprimer cette tâche ? Cette action est irréversible."
+  },
+  "toast": {
+    "deleted": "Tâche supprimée",
+    "restored": "Tâche restaurée",
+    "restoreError": "Erreur lors de la restauration",
+    "undo": "Annuler",
+    "elementDeleted": "Élément supprimé",
+    "elementRestored": "Élément restauré"
+  },
+  "confirm": {
+    "delete": "Supprimer cette tâche ?"
+  },
+  "calendar": {
+    "today": "Aujourd'hui",
+    "week": "Semaine",
+    "month": "Mois",
+    "allDay": "Journée",
+    "more": "+{count, plural, one {# autre} other {# autres}}"
+  },
+  "weekDays": {
+    "mon": "Lun",
+    "tue": "Mar",
+    "wed": "Mer",
+    "thu": "Jeu",
+    "fri": "Ven",
+    "sat": "Sam",
+    "sun": "Dim"
+  }
+}

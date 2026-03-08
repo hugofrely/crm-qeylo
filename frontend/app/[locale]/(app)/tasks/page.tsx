@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { updateTask } from "@/services/tasks"
 import { useTasks } from "@/hooks/useTasks"
 import { TaskList } from "@/components/tasks/TaskList"
@@ -25,6 +26,7 @@ const PAGE_SIZE = 20
 
 export default function TasksPage() {
   const router = useRouter()
+  const t = useTranslations('tasks')
   const [page, setPage] = useState(1)
   const [tab, setTab] = useState<TaskFilterTab>("todo")
   const [priority, setPriority] = useState<string | null>(null)
@@ -119,15 +121,15 @@ export default function TasksPage() {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
 
   const priorityOptions = [
-    { value: "high", label: "Haute" },
-    { value: "normal", label: "Normale" },
-    { value: "low", label: "Basse" },
+    { value: "high", label: t('priority.high') },
+    { value: "normal", label: t('priority.normal') },
+    { value: "low", label: t('priority.low') },
   ]
 
   const dueDateOptions = [
-    { value: "overdue", label: "En retard" },
-    { value: "today", label: "Aujourd'hui" },
-    { value: "this_week", label: "Cette semaine" },
+    { value: "overdue", label: t('dueDateFilter.overdue') },
+    { value: "today", label: t('dueDateFilter.today') },
+    { value: "this_week", label: t('dueDateFilter.this_week') },
   ]
 
   const calendarFilters: TaskFilters = {}
@@ -140,21 +142,21 @@ export default function TasksPage() {
   return (
     <div className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
       <PageHeader
-        title="Tâches"
-        subtitle={`${todoCount} à faire, ${doneCount} terminée${doneCount !== 1 ? "s" : ""}`}
+        title={t('title')}
+        subtitle={t('subtitle', { todoCount, doneCount })}
       >
         <div className="flex items-center gap-0.5 bg-muted rounded-lg p-0.5">
-          <button onClick={() => setViewMode("list")} className={`p-1.5 rounded-md transition-colors ${viewMode === "list" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`} title="Vue liste">
+          <button onClick={() => setViewMode("list")} className={`p-1.5 rounded-md transition-colors ${viewMode === "list" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`} title={t('viewList')}>
             <List className="h-4 w-4" />
           </button>
-          <button onClick={() => setViewMode("calendar")} className={`p-1.5 rounded-md transition-colors ${viewMode === "calendar" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`} title="Vue calendrier">
+          <button onClick={() => setViewMode("calendar")} className={`p-1.5 rounded-md transition-colors ${viewMode === "calendar" ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`} title={t('viewCalendar')}>
             <CalendarIcon className="h-4 w-4" />
           </button>
         </div>
         <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
         <Button onClick={() => handleCreate()} className="gap-2">
           <Plus className="h-4 w-4" />
-          Nouvelle tâche
+          {t('newTask')}
         </Button>
       </PageHeader>
 
@@ -167,21 +169,21 @@ export default function TasksPage() {
         <FilterSearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Rechercher une tâche..."
+          placeholder={t('searchPlaceholder')}
           className="w-64"
         />
         <FilterPills
           options={priorityOptions}
           value={priority}
           onChange={(v) => { setPriority(v); resetPage() }}
-          label="Priorité"
+          label={t('filters.priority')}
         />
         {viewMode === "list" && (
           <FilterPills
             options={dueDateOptions}
             value={dueDate}
             onChange={(v) => { setDueDate(v); resetPage() }}
-            label="Échéance"
+            label={t('filters.dueDate')}
           />
         )}
         <FilterContactSearch
@@ -189,7 +191,7 @@ export default function TasksPage() {
           contactLabel={contactLabel}
           onSelect={(id, label) => { setContactId(id); setContactLabel(label); resetPage() }}
           onClear={() => { setContactId(null); setContactLabel(null); contactAutocomplete.reset(); resetPage() }}
-          label="Contact"
+          label={t('filters.contact')}
         />
         <FilterMemberSearch
           memberId={assignedTo}
@@ -197,16 +199,16 @@ export default function TasksPage() {
           onSelect={(id, label) => { setAssignedTo(id); setAssignedLabel(label); resetPage() }}
           onClear={() => { setAssignedTo(null); setAssignedLabel(null); memberAutocomplete.reset(); resetPage() }}
           showMyTasks
-          label="Assigné"
+          label={t('filters.assigned')}
         />
       </FilterBar>
 
       {/* Status tabs */}
       <Tabs value={tab} onValueChange={handleTabChange}>
         <TabsList>
-          <TabsTrigger value="all">Toutes ({todoCount + doneCount})</TabsTrigger>
-          <TabsTrigger value="todo">À faire ({todoCount})</TabsTrigger>
-          <TabsTrigger value="done">Terminées ({doneCount})</TabsTrigger>
+          <TabsTrigger value="all">{t('tabs.all', { count: todoCount + doneCount })}</TabsTrigger>
+          <TabsTrigger value="todo">{t('tabs.todo', { count: todoCount })}</TabsTrigger>
+          <TabsTrigger value="done">{t('tabs.done', { count: doneCount })}</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -232,10 +234,10 @@ export default function TasksPage() {
         onReset={() => { setSearch(""); setPriority(null); setDueDate(null); setContactId(null); setContactLabel(null); contactAutocomplete.reset(); setAssignedTo(null); setAssignedLabel(null); memberAutocomplete.reset() }}
         activeFilterCount={activeFilterCount}
       >
-        <FilterSection label="Recherche">
-          <FilterSearchInput value={search} onChange={setSearch} placeholder="Rechercher une tâche..." />
+        <FilterSection label={t('filters.search')}>
+          <FilterSearchInput value={search} onChange={setSearch} placeholder={t('searchPlaceholder')} />
         </FilterSection>
-        <FilterSection label="Priorité">
+        <FilterSection label={t('filters.priority')}>
           <div className="flex flex-col gap-1">
             {priorityOptions.map((opt) => (
               <button key={opt.value} onClick={() => togglePriority(opt.value)}
@@ -249,7 +251,7 @@ export default function TasksPage() {
           </div>
         </FilterSection>
         {viewMode === "list" && (
-          <FilterSection label="Échéance">
+          <FilterSection label={t('filters.dueDate')}>
             <div className="flex flex-col gap-1">
               {dueDateOptions.map((opt) => (
                 <button key={opt.value} onClick={() => toggleDueDate(opt.value)}
@@ -263,7 +265,7 @@ export default function TasksPage() {
             </div>
           </FilterSection>
         )}
-        <FilterSection label="Contact">
+        <FilterSection label={t('filters.contact')}>
           <div className="relative" ref={contactAutocomplete.wrapperRef}>
             {contactId ? (
               <button onClick={clearContact} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-primary text-primary-foreground transition-colors">
@@ -273,7 +275,7 @@ export default function TasksPage() {
             ) : (
               <>
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input placeholder="Filtrer par contact..." value={contactAutocomplete.query} onChange={(e) => contactAutocomplete.search(e.target.value)} className="pl-8 h-8 text-xs bg-secondary/30 border-border/60" />
+                <Input placeholder={t('filters.filterByContact')} value={contactAutocomplete.query} onChange={(e) => contactAutocomplete.search(e.target.value)} className="pl-8 h-8 text-xs bg-secondary/30 border-border/60" />
                 {contactAutocomplete.open && contactAutocomplete.results.length > 0 && (
                   <div className="absolute top-full left-0 mt-1 w-full bg-popover border rounded-md shadow-md z-50 max-h-48 overflow-y-auto">
                     {contactAutocomplete.results.map((c) => (
@@ -288,15 +290,15 @@ export default function TasksPage() {
             )}
           </div>
         </FilterSection>
-        <FilterSection label="Assigné">
+        <FilterSection label={t('filters.assigned')}>
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => { if (assignedTo === "me") { setAssignedTo(null); setAssignedLabel(null) } else { setAssignedTo("me"); setAssignedLabel("Mes tâches") }; resetPage() }}
+              onClick={() => { if (assignedTo === "me") { setAssignedTo(null); setAssignedLabel(null) } else { setAssignedTo("me"); setAssignedLabel(t('filters.myTasks')) }; resetPage() }}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors text-left font-[family-name:var(--font-body)] ${
                 assignedTo === "me" ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
               }`}
             >
-              Mes tâches
+              {t('filters.myTasks')}
             </button>
             <div className="relative" ref={memberAutocomplete.wrapperRef}>
               {assignedTo && assignedTo !== "me" ? (
@@ -307,7 +309,7 @@ export default function TasksPage() {
               ) : assignedTo !== "me" ? (
                 <>
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                  <Input placeholder="Filtrer par assigné..." value={memberAutocomplete.query} onChange={(e) => memberAutocomplete.search(e.target.value)} className="pl-8 h-8 text-xs bg-secondary/30 border-border/60" />
+                  <Input placeholder={t('filters.filterByAssigned')} value={memberAutocomplete.query} onChange={(e) => memberAutocomplete.search(e.target.value)} className="pl-8 h-8 text-xs bg-secondary/30 border-border/60" />
                   {memberAutocomplete.open && memberAutocomplete.results.length > 0 && (
                     <div className="absolute top-full left-0 mt-1 w-full bg-popover border rounded-md shadow-md z-50 max-h-48 overflow-y-auto">
                       {memberAutocomplete.results.map((m) => (

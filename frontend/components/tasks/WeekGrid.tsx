@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+import { useLocale } from "next-intl"
 import type { Task } from "@/types"
 import { CalendarTaskItem } from "./CalendarTaskItem"
 
@@ -10,7 +12,7 @@ interface WeekGridProps {
   onSlotClick: (date: Date, hour?: number) => void
 }
 
-const DAY_NAMES = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"]
+const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const
 const START_HOUR = 8
 const END_HOUR = 20
 
@@ -42,9 +44,13 @@ function isAllDay(task: Task): boolean {
 }
 
 export function WeekGrid({ currentDate, tasks, onTaskClick, onSlotClick }: WeekGridProps) {
+  const t = useTranslations('tasks')
+  const locale = useLocale()
   const weekDays = getWeekDays(currentDate)
   const today = new Date()
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i)
+
+  const dayNames = DAY_KEYS.map((key) => t(`weekDays.${key}`))
 
   const tasksByDay = new Map<number, { allDay: Task[]; timed: Map<number, Task[]> }>()
   for (let i = 0; i < 7; i++) {
@@ -75,7 +81,7 @@ export function WeekGrid({ currentDate, tasks, onTaskClick, onSlotClick }: WeekG
           const isToday = isSameDay(day, today)
           return (
             <div key={i} className="px-2 py-2 text-center border-l">
-              <div className="text-xs text-muted-foreground">{DAY_NAMES[i]}</div>
+              <div className="text-xs text-muted-foreground">{dayNames[i]}</div>
               <div className="flex items-center justify-center gap-1">
                 <span className={`text-sm font-medium ${
                   isToday
@@ -85,7 +91,7 @@ export function WeekGrid({ currentDate, tasks, onTaskClick, onSlotClick }: WeekG
                   {day.getDate()}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {new Intl.DateTimeFormat("fr-FR", { month: "short" }).format(day)}
+                  {new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-US", { month: "short" }).format(day)}
                 </span>
               </div>
             </div>
@@ -95,7 +101,7 @@ export function WeekGrid({ currentDate, tasks, onTaskClick, onSlotClick }: WeekG
 
       <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b bg-muted/10">
         <div className="px-2 py-1 text-[10px] text-muted-foreground flex items-start justify-end pr-3 pt-2">
-          Journée
+          {t('calendar.allDay')}
         </div>
         {weekDays.map((day, i) => {
           const dayData = tasksByDay.get(i)!

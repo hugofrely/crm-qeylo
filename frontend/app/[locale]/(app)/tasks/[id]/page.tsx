@@ -1,7 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
+import { useLocale } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -37,48 +40,22 @@ import {
 import type { Task, Contact, Deal, Stage, TimelineEntry } from "@/types"
 import { CommentSection } from "@/components/collaboration/CommentSection"
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("fr-FR", {
+function formatDate(dateStr: string, locale: string): string {
+  return new Date(dateStr).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
   })
 }
 
-function formatAmount(amount: string | number): string {
+function formatAmount(amount: string | number, locale: string): string {
   const num = typeof amount === "string" ? parseFloat(amount) : amount
-  return new Intl.NumberFormat("fr-FR", {
+  return new Intl.NumberFormat(locale === "fr" ? "fr-FR" : "en-US", {
     style: "currency",
     currency: "EUR",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(num)
-}
-
-function getPriorityConfig(priority: string) {
-  switch (priority) {
-    case "high":
-      return { label: "Haute", className: "bg-red-100 text-red-700" }
-    case "normal":
-      return { label: "Normale", className: "bg-blue-100 text-blue-700" }
-    case "low":
-      return { label: "Basse", className: "bg-gray-100 text-gray-600" }
-    default:
-      return { label: priority, className: "bg-gray-100 text-gray-600" }
-  }
-}
-
-function getSegmentConfig(segment: string) {
-  switch (segment) {
-    case "hot":
-      return { label: "Hot", className: "bg-red-100 text-red-700" }
-    case "warm":
-      return { label: "Warm", className: "bg-amber-100 text-amber-700" }
-    case "cold":
-      return { label: "Cold", className: "bg-blue-100 text-blue-700" }
-    default:
-      return { label: segment, className: "bg-gray-100 text-gray-600" }
-  }
 }
 
 function isOverdue(dueDateStr: string | null): boolean {
@@ -92,6 +69,8 @@ function isOverdue(dueDateStr: string | null): boolean {
 export default function TaskDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const t = useTranslations('tasks')
+  const locale = useLocale()
   const id = params.id as string
 
   const [task, setTask] = useState<Task | null>(null)
@@ -114,6 +93,32 @@ export default function TaskDetailPage() {
 
   const contactAutocomplete = useContactAutocomplete()
   const memberAutocomplete = useMemberAutocomplete()
+
+  function getPriorityConfig(priority: string) {
+    switch (priority) {
+      case "high":
+        return { label: t('priority.high'), className: "bg-red-100 text-red-700" }
+      case "normal":
+        return { label: t('priority.normal'), className: "bg-blue-100 text-blue-700" }
+      case "low":
+        return { label: t('priority.low'), className: "bg-gray-100 text-gray-600" }
+      default:
+        return { label: priority, className: "bg-gray-100 text-gray-600" }
+    }
+  }
+
+  function getSegmentConfig(segment: string) {
+    switch (segment) {
+      case "hot":
+        return { label: "Hot", className: "bg-red-100 text-red-700" }
+      case "warm":
+        return { label: "Warm", className: "bg-amber-100 text-amber-700" }
+      case "cold":
+        return { label: "Cold", className: "bg-blue-100 text-blue-700" }
+      default:
+        return { label: segment, className: "bg-gray-100 text-gray-600" }
+    }
+  }
 
   const loadTask = useCallback(async () => {
     try {
@@ -169,19 +174,19 @@ export default function TaskDetailPage() {
   }
 
   const handleDelete = async () => {
-    if (!window.confirm("Supprimer cette tache ?")) return
+    if (!window.confirm(t('confirm.delete'))) return
     setDeleting(true)
     try {
       await deleteTask(id)
-      toast("Tache supprimee", {
+      toast(t('toast.deleted'), {
         action: {
-          label: "Annuler",
+          label: t('toast.undo'),
           onClick: async () => {
             try {
               await restoreItems("task", [id])
-              toast.success("Tache restauree")
+              toast.success(t('toast.restored'))
             } catch {
-              toast.error("Erreur lors de la restauration")
+              toast.error(t('toast.restoreError'))
             }
           },
         },
@@ -256,10 +261,10 @@ export default function TaskDetailPage() {
   if (!task) {
     return (
       <div className="py-24 text-center">
-        <p className="text-muted-foreground">Tache introuvable.</p>
+        <p className="text-muted-foreground">{t('notFound')}</p>
         <Button variant="ghost" className="mt-4" onClick={() => router.push("/tasks")}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Retour aux taches
+          {t('backToTasks')}
         </Button>
       </div>
     )
@@ -273,7 +278,7 @@ export default function TaskDetailPage() {
       {/* Back button */}
       <Button variant="ghost" onClick={() => router.push("/tasks")} className="gap-2 text-muted-foreground -ml-2 mb-6">
         <ArrowLeft className="h-4 w-4" />
-        <span className="text-sm">Retour aux taches</span>
+        <span className="text-sm">{t('backToTasks')}</span>
       </Button>
 
       {/* Task Header */}
@@ -282,19 +287,19 @@ export default function TaskDetailPage() {
           <div className="space-y-4">
             {/* Description */}
             <div className="space-y-1.5">
-              <Label htmlFor="edit-description">Description</Label>
+              <Label htmlFor="edit-description">{t('detail.description')}</Label>
               <Input
                 id="edit-description"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
-                placeholder="Ex: Appeler le client pour le devis"
+                placeholder={t('detail.descriptionPlaceholder')}
               />
             </div>
 
             {/* Date + Heure + Priorité */}
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="edit-due-date">Date d&apos;échéance</Label>
+                <Label htmlFor="edit-due-date">{t('detail.dueDateLabel')}</Label>
                 <Input
                   id="edit-due-date"
                   type="date"
@@ -303,7 +308,7 @@ export default function TaskDetailPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-due-time">Heure</Label>
+                <Label htmlFor="edit-due-time">{t('detail.timeLabel')}</Label>
                 <Input
                   id="edit-due-time"
                   type="time"
@@ -312,23 +317,23 @@ export default function TaskDetailPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-priority">Priorité</Label>
+                <Label htmlFor="edit-priority">{t('detail.priorityLabel')}</Label>
                 <select
                   id="edit-priority"
                   value={editPriority}
                   onChange={(e) => setEditPriority(e.target.value)}
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
-                  <option value="high">Haute</option>
-                  <option value="normal">Normale</option>
-                  <option value="low">Basse</option>
+                  <option value="high">{t('priority.high')}</option>
+                  <option value="normal">{t('priority.normal')}</option>
+                  <option value="low">{t('priority.low')}</option>
                 </select>
               </div>
             </div>
 
             {/* Contact autocomplete */}
             <div className="space-y-1.5">
-              <Label>Contact associé</Label>
+              <Label>{t('detail.linkedContact')}</Label>
               <div ref={contactAutocomplete.wrapperRef} className="relative">
                 {editContactId ? (
                   <div className="flex h-9 items-center justify-between rounded-md border border-input bg-transparent px-3 text-sm">
@@ -354,7 +359,7 @@ export default function TaskDetailPage() {
                       onFocus={() => {
                         if (contactAutocomplete.results.length > 0) contactAutocomplete.setOpen(true)
                       }}
-                      placeholder="Rechercher un contact…"
+                      placeholder={t('detail.searchContact')}
                       className="pl-8"
                     />
                     {contactAutocomplete.searching && (
@@ -382,7 +387,7 @@ export default function TaskDetailPage() {
                 )}
                 {contactAutocomplete.open && contactAutocomplete.query && !contactAutocomplete.searching && contactAutocomplete.results.length === 0 && (
                   <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg px-3 py-3 text-sm text-muted-foreground text-center">
-                    Aucun contact trouvé
+                    {t('detail.noContactFound')}
                   </div>
                 )}
               </div>
@@ -390,7 +395,7 @@ export default function TaskDetailPage() {
 
             {/* Assignés */}
             <div className="space-y-1.5">
-              <Label>Assignés</Label>
+              <Label>{t('detail.assignees')}</Label>
               {editAssigneeIds.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {editAssigneeIds.map((uid) => {
@@ -421,7 +426,7 @@ export default function TaskDetailPage() {
                     value={memberAutocomplete.query}
                     onChange={(e) => memberAutocomplete.search(e.target.value)}
                     onFocus={() => memberAutocomplete.search(memberAutocomplete.query)}
-                    placeholder="Rechercher un membre…"
+                    placeholder={t('detail.searchMember')}
                     className="pl-8"
                   />
                 </div>
@@ -445,7 +450,7 @@ export default function TaskDetailPage() {
                       ))}
                     {memberAutocomplete.results.filter((m) => !editAssigneeIds.includes(m.user_id)).length === 0 && (
                       <div className="px-3 py-3 text-sm text-muted-foreground text-center">
-                        {memberAutocomplete.query ? "Aucun membre trouvé" : "Tous les membres sont déjà assignés"}
+                        {memberAutocomplete.query ? t('detail.noMemberFound') : t('detail.allMembersAssigned')}
                       </div>
                     )}
                   </div>
@@ -456,11 +461,11 @@ export default function TaskDetailPage() {
             {/* Boutons Annuler / Enregistrer */}
             <div className="flex items-center justify-end gap-2 pt-2">
               <Button variant="outline" onClick={cancelEditing} disabled={saving}>
-                Annuler
+                {t('detail.cancel')}
               </Button>
               <Button onClick={handleSave} disabled={!editDescription.trim() || saving}>
                 {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Enregistrer
+                {t('detail.save')}
               </Button>
             </div>
           </div>
@@ -478,12 +483,12 @@ export default function TaskDetailPage() {
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 <Badge className={priorityConfig.className}>{priorityConfig.label}</Badge>
                 <Badge className={task.is_done ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}>
-                  {task.is_done ? "Terminee" : "A faire"}
+                  {task.is_done ? t('status.done') : t('status.todo')}
                 </Badge>
                 {task.due_date && (
                   <div className={`flex items-center gap-1 text-sm ${!task.is_done && isOverdue(task.due_date) ? "text-red-600 font-medium" : "text-muted-foreground"}`}>
                     <Calendar className="h-3.5 w-3.5" />
-                    {formatDate(task.due_date)}
+                    {formatDate(task.due_date, locale)}
                   </div>
                 )}
               </div>
@@ -533,9 +538,9 @@ export default function TaskDetailPage() {
               <div className="p-4 border-b border-border flex items-center justify-between">
                 <h2 className="text-sm font-semibold flex items-center gap-1.5">
                   <User className="h-4 w-4" />
-                  Contact
+                  {t('detail.contact')}
                 </h2>
-                <EntityLink type="contact" id={contact.id} name="Voir le contact" className="text-[11px]" />
+                <EntityLink type="contact" id={contact.id} name={t('detail.viewContact')} className="text-[11px]" />
               </div>
               <div className="p-4 space-y-2">
                 <p className="font-medium text-sm">{contact.first_name} {contact.last_name}</p>
@@ -575,15 +580,15 @@ export default function TaskDetailPage() {
               <div className="p-4 border-b border-border flex items-center justify-between">
                 <h2 className="text-sm font-semibold flex items-center gap-1.5">
                   <Briefcase className="h-4 w-4" />
-                  Deal
+                  {t('detail.deal')}
                 </h2>
-                <EntityLink type="deal" id={deal.id} name="Voir le deal" className="text-[11px]" />
+                <EntityLink type="deal" id={deal.id} name={t('detail.viewDeal')} className="text-[11px]" />
               </div>
               <div className="p-4 space-y-2">
                 <p className="font-medium text-sm">{deal.name}</p>
                 <div className="flex items-center gap-1.5 text-sm font-semibold text-green-700">
                   <DollarSign className="h-3.5 w-3.5" />
-                  {formatAmount(deal.amount)}
+                  {formatAmount(deal.amount, locale)}
                 </div>
                 {stageName && (
                   <Badge variant="secondary" className="text-xs">{stageName}</Badge>
@@ -591,13 +596,13 @@ export default function TaskDetailPage() {
                 {deal.probability != null && (
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <TrendingUp className="h-3 w-3" />
-                    {deal.probability}% de probabilite
+                    {t('detail.probability', { value: deal.probability })}
                   </div>
                 )}
                 {deal.expected_close && (
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
-                    Cloture prevue: {formatDate(deal.expected_close)}
+                    {t('detail.expectedClose', { date: formatDate(deal.expected_close, locale) })}
                   </div>
                 )}
               </div>
@@ -607,7 +612,7 @@ export default function TaskDetailPage() {
           {/* No linked entities */}
           {!contact && !deal && (
             <div className="rounded-xl border border-border bg-card p-6 text-center">
-              <p className="text-sm text-muted-foreground">Aucun contact ou deal associe a cette tache.</p>
+              <p className="text-sm text-muted-foreground">{t('detail.noLinkedEntities')}</p>
             </div>
           )}
         </div>
@@ -619,7 +624,7 @@ export default function TaskDetailPage() {
               {/* Notes */}
               <div className="rounded-xl border border-border bg-card overflow-hidden">
                 <div className="p-4 border-b border-border">
-                  <h2 className="text-sm font-semibold">Notes du contact</h2>
+                  <h2 className="text-sm font-semibold">{t('detail.contactNotes')}</h2>
                 </div>
                 <div className="p-4">
                   <ContactNotes
@@ -637,7 +642,7 @@ export default function TaskDetailPage() {
               {timeline.length > 0 && (
                 <div className="rounded-xl border border-border bg-card overflow-hidden">
                   <div className="p-4 border-b border-border">
-                    <h2 className="text-sm font-semibold">Activites recentes</h2>
+                    <h2 className="text-sm font-semibold">{t('detail.recentActivities')}</h2>
                   </div>
                   <div className="p-4">
                     <ContactTimeline entries={timeline} />
@@ -649,7 +654,7 @@ export default function TaskDetailPage() {
 
           {!contact && (
             <div className="rounded-xl border border-border bg-card p-6 text-center">
-              <p className="text-sm text-muted-foreground">Aucun contact associe — les notes et l&apos;historique s&apos;afficheront ici quand un contact sera lie.</p>
+              <p className="text-sm text-muted-foreground">{t('detail.noContactHint')}</p>
             </div>
           )}
 
@@ -658,7 +663,7 @@ export default function TaskDetailPage() {
             <div className="p-4 border-b border-border">
               <h2 className="text-sm font-semibold flex items-center gap-1.5">
                 <Users className="h-4 w-4" />
-                Commentaires
+                {t('detail.comments')}
               </h2>
             </div>
             <div className="p-4">

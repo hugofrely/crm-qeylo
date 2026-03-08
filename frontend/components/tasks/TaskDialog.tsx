@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useTranslations } from "next-intl"
 import { Loader2, Trash2, Search, X, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,6 +41,7 @@ export function TaskDialog({
   prefilledTime,
   onViewDetails,
 }: TaskDialogProps) {
+  const t = useTranslations('tasks')
   const isEditing = !!task
 
   const [description, setDescription] = useState("")
@@ -96,7 +98,7 @@ export function TaskDialog({
 
   const handleSave = async () => {
     if (description.trim().length < 2) {
-      toast.error("Le titre doit contenir au moins 2 caractères")
+      toast.error(t('dialog.titleMinLength'))
       return
     }
     setSaving(true)
@@ -132,22 +134,22 @@ export function TaskDialog({
 
   const handleDelete = async () => {
     if (!task) return
-    if (!window.confirm("Supprimer cette tâche ? Cette action est irréversible.")) return
+    if (!window.confirm(t('dialog.confirmDelete'))) return
     setDeleting(true)
     try {
       const taskId = task.id
       await deleteTask(taskId)
       posthog.capture("task_deleted")
-      toast("Element supprime", {
+      toast(t('toast.elementDeleted'), {
         action: {
-          label: "Annuler",
+          label: t('toast.undo'),
           onClick: async () => {
             try {
               await restoreItems("task", [taskId])
-              toast.success("Element restaure")
+              toast.success(t('toast.elementRestored'))
               onSuccess()
             } catch {
-              toast.error("Erreur lors de la restauration")
+              toast.error(t('toast.restoreError'))
             }
           },
         },
@@ -162,24 +164,34 @@ export function TaskDialog({
     }
   }
 
+  const dayButtons = [
+    { key: "MO", label: t('dialog.dayMo') },
+    { key: "TU", label: t('dialog.dayTu') },
+    { key: "WE", label: t('dialog.dayWe') },
+    { key: "TH", label: t('dialog.dayTh') },
+    { key: "FR", label: t('dialog.dayFr') },
+    { key: "SA", label: t('dialog.daySa') },
+    { key: "SU", label: t('dialog.daySu') },
+  ]
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Modifier la tâche" : "Nouvelle tâche"}
+            {isEditing ? t('dialog.editTitle') : t('dialog.createTitle')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 font-[family-name:var(--font-body)]">
           {/* Description */}
           <div className="space-y-1.5">
-            <Label htmlFor="task-description">Description</Label>
+            <Label htmlFor="task-description">{t('dialog.description')}</Label>
             <Input
               id="task-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Ex: Appeler le client pour le devis"
+              placeholder={t('dialog.descriptionPlaceholder')}
               required
               minLength={2}
             />
@@ -188,7 +200,7 @@ export function TaskDialog({
           {/* Date + Priorité */}
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="task-due-date">Date d&apos;échéance</Label>
+              <Label htmlFor="task-due-date">{t('dialog.dueDateLabel')}</Label>
               <Input
                 id="task-due-date"
                 type="date"
@@ -197,26 +209,26 @@ export function TaskDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="task-due-time">Heure</Label>
+              <Label htmlFor="task-due-time">{t('dialog.timeLabel')}</Label>
               <Input
                 id="task-due-time"
                 type="time"
                 value={dueTime}
                 onChange={(e) => setDueTime(e.target.value)}
-                placeholder="Optionnel"
+                placeholder={t('dialog.timePlaceholder')}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="task-priority">Priorité</Label>
+              <Label htmlFor="task-priority">{t('dialog.priorityLabel')}</Label>
               <select
                 id="task-priority"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
-                <option value="high">Haute</option>
-                <option value="normal">Normale</option>
-                <option value="low">Basse</option>
+                <option value="high">{t('priority.high')}</option>
+                <option value="normal">{t('priority.normal')}</option>
+                <option value="low">{t('priority.low')}</option>
               </select>
             </div>
           </div>
@@ -238,7 +250,7 @@ export function TaskDialog({
                 }}
               />
               <Label htmlFor="task-recurring" className="text-sm cursor-pointer">
-                Tâche récurrente
+                {t('dialog.recurring')}
               </Label>
             </div>
             {isRecurring && (
@@ -257,22 +269,14 @@ export function TaskDialog({
                   }}
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
-                  <option value="DAILY">Quotidien</option>
-                  <option value="WEEKLY">Hebdomadaire</option>
-                  <option value="MONTHLY">Mensuel</option>
-                  <option value="CUSTOM">Jours personnalisés</option>
+                  <option value="DAILY">{t('dialog.recurrenceDaily')}</option>
+                  <option value="WEEKLY">{t('dialog.recurrenceWeekly')}</option>
+                  <option value="MONTHLY">{t('dialog.recurrenceMonthly')}</option>
+                  <option value="CUSTOM">{t('dialog.recurrenceCustom')}</option>
                 </select>
                 {(recurrenceRule.startsWith("WEEKLY;BYDAY=")) && (
                   <div className="flex gap-1.5">
-                    {[
-                      { key: "MO", label: "Lu" },
-                      { key: "TU", label: "Ma" },
-                      { key: "WE", label: "Me" },
-                      { key: "TH", label: "Je" },
-                      { key: "FR", label: "Ve" },
-                      { key: "SA", label: "Sa" },
-                      { key: "SU", label: "Di" },
-                    ].map(({ key, label }) => (
+                    {dayButtons.map(({ key, label }) => (
                       <button
                         key={key}
                         type="button"
@@ -302,7 +306,7 @@ export function TaskDialog({
 
           {/* Contact autocomplete */}
           <div className="space-y-1.5">
-            <Label>Contact associé</Label>
+            <Label>{t('dialog.linkedContact')}</Label>
             <div ref={contactAutocomplete.wrapperRef} className="relative">
               {contactId ? (
                 <div className="flex h-9 items-center justify-between rounded-md border border-input bg-transparent px-3 text-sm">
@@ -328,7 +332,7 @@ export function TaskDialog({
                     onFocus={() => {
                       if (contactAutocomplete.results.length > 0) contactAutocomplete.setOpen(true)
                     }}
-                    placeholder="Rechercher un contact…"
+                    placeholder={t('dialog.searchContact')}
                     className="pl-8"
                   />
                   {contactAutocomplete.searching && (
@@ -356,7 +360,7 @@ export function TaskDialog({
               )}
               {contactAutocomplete.open && contactAutocomplete.query && !contactAutocomplete.searching && contactAutocomplete.results.length === 0 && (
                 <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-background shadow-lg px-3 py-3 text-sm text-muted-foreground text-center">
-                  Aucun contact trouvé
+                  {t('dialog.noContactFound')}
                 </div>
               )}
             </div>
@@ -364,7 +368,7 @@ export function TaskDialog({
 
           {/* Assignés */}
           <div className="space-y-1.5">
-            <Label>Assignés</Label>
+            <Label>{t('dialog.assignees')}</Label>
             {assigneeIds.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {assigneeIds.map((uid) => {
@@ -395,7 +399,7 @@ export function TaskDialog({
                   value={memberAutocomplete.query}
                   onChange={(e) => memberAutocomplete.search(e.target.value)}
                   onFocus={() => memberAutocomplete.search(memberAutocomplete.query)}
-                  placeholder="Rechercher un membre…"
+                  placeholder={t('dialog.searchMember')}
                   className="pl-8"
                 />
               </div>
@@ -419,7 +423,7 @@ export function TaskDialog({
                     ))}
                   {memberAutocomplete.results.filter((m) => !assigneeIds.includes(m.user_id)).length === 0 && (
                     <div className="px-3 py-3 text-sm text-muted-foreground text-center">
-                      {memberAutocomplete.query ? "Aucun membre trouvé" : "Tous les membres sont déjà assignés"}
+                      {memberAutocomplete.query ? t('dialog.noMemberFound') : t('dialog.allMembersAssigned')}
                     </div>
                   )}
                 </div>
@@ -441,7 +445,7 @@ export function TaskDialog({
               ) : (
                 <Trash2 className="h-4 w-4" />
               )}
-              Supprimer
+              {t('dialog.delete')}
             </Button>
           ) : (
             <div />
@@ -453,7 +457,7 @@ export function TaskDialog({
                 onClick={onViewDetails}
               >
                 <Eye className="h-4 w-4 mr-2" />
-                Voir détails
+                {t('dialog.viewDetails')}
               </Button>
             )}
             <Button
@@ -461,7 +465,7 @@ export function TaskDialog({
               disabled={!description.trim() || saving}
             >
               {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {isEditing ? "Enregistrer" : "Créer"}
+              {isEditing ? t('dialog.save') : t('dialog.create')}
             </Button>
           </div>
         </DialogFooter>
