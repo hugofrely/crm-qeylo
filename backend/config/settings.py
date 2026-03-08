@@ -18,6 +18,7 @@ ALLOWED_HOSTS = [h.strip() for h in _hosts.split(",") if h.strip()] if _hosts el
 # Applications
 # ---------------------------------------------------------------------------
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -272,6 +273,19 @@ CACHES = {
 if _cache_url.startswith("rediss://"):
     import ssl
     CACHES["default"]["OPTIONS"] = {"ssl_cert_reqs": ssl.CERT_NONE}
+
+# ---------------------------------------------------------------------------
+# Channels (WebSocket)
+# ---------------------------------------------------------------------------
+ASGI_APPLICATION = "config.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0")],
+        },
+    },
+}
 
 # ---------------------------------------------------------------------------
 # Stripe
