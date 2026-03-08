@@ -158,7 +158,7 @@ export default function WorkflowsPage() {
             )}
           </div>
           {w.trigger_type && (
-            <span className="text-xs text-muted-foreground">{t(`triggerLabels.${w.trigger_type}` as any) || w.trigger_type}</span>
+            <span className="text-xs text-muted-foreground">{t(`triggerLabels.${w.trigger_type.replace(/\./g, '_')}` as any) || w.trigger_type}</span>
           )}
         </div>
       ),
@@ -298,7 +298,7 @@ export default function WorkflowsPage() {
                   {template.description}
                 </p>
                 <span className="text-[10px] text-muted-foreground/60 ml-6 mt-1 block">
-                  {t(`triggerLabels.${template.trigger_type}` as any) || template.trigger_type}
+                  {t(`triggerLabels.${template.trigger_type.replace(/\./g, '_')}` as any) || template.trigger_type}
                 </span>
               </button>
             ))}

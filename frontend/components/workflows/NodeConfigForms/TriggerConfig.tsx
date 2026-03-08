@@ -58,7 +58,7 @@ export default function TriggerConfig({ node, onUpdate }: NodeConfigFormProps) {
         >
           <option value="">{t("triggerConfig.choose")}</option>
           {TRIGGER_KEYS.map((key) => (
-            <option key={key} value={key}>{t(`triggerLabels.${key}`)}</option>
+            <option key={key} value={key}>{t(`triggerLabels.${key.replace(/\./g, '_')}`)}</option>
           ))}
         </select>
       </div>

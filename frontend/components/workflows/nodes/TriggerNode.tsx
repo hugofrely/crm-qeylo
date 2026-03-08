@@ -6,7 +6,7 @@ import { Zap } from "lucide-react"
 function TriggerNode({ data, selected }: NodeProps) {
   const t = useTranslations("workflows")
   const subtype = (data as Record<string, unknown>).node_subtype as string || ""
-  const label = subtype ? (t(`triggerLabels.${subtype}` as any) || subtype) : t("nodes.trigger")
+  const label = subtype ? (t(`triggerLabels.${subtype.replace(/\./g, '_')}` as any) || subtype) : t("nodes.trigger")
 
   return (
     <div
