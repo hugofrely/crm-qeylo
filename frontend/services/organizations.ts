@@ -27,6 +27,8 @@ export async function removeMember(orgId: string, userId: string): Promise<void>
 
 export interface OrgSettings {
   task_reminder_offsets: number[]
+  scoring_hot_threshold?: number
+  scoring_warm_threshold?: number
 }
 
 export async function fetchOrgSettings(orgId: string): Promise<OrgSettings> {

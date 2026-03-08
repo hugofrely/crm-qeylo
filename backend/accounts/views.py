@@ -43,6 +43,8 @@ def register(request):
     DealLossReason.create_defaults(org)
     from organizations.models import OrganizationSettings
     OrganizationSettings.objects.create(organization=org)
+    from contacts.scoring import create_default_scoring_rules
+    create_default_scoring_rules(org)
 
     # Auto-accept pending invitations for this email
     pending = Invitation.objects.filter(email=user.email, status="pending")

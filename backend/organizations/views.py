@@ -63,6 +63,8 @@ def organization_list(request):
     Membership.objects.create(organization=org, user=request.user, role="owner")
     create_default_categories(org)
     OrganizationSettings.objects.create(organization=org)
+    from contacts.scoring import create_default_scoring_rules
+    create_default_scoring_rules(org)
     Subscription.objects.create(organization=org)
     return Response(OrganizationSerializer(org).data, status=status.HTTP_201_CREATED)
 
