@@ -194,23 +194,18 @@ jobs:
       - name: Wait for migration to complete
         run: |
           JOB_NAME="django-migrate-${TAG//\./-}-${RUN_NUMBER}"
-          TIMEOUT=120
-          ELAPSED=0
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            STATUS=$(kubectl get job/$JOB_NAME -n $NAMESPACE -o jsonpath='{.status.conditions[0].type}' 2>/dev/null || echo "")
-            if [ "$STATUS" = "Complete" ]; then
-              echo "Migration completed successfully"
-              exit 0
-            elif [ "$STATUS" = "Failed" ]; then
+          kubectl wait --for=condition=complete job/$JOB_NAME -n $NAMESPACE --timeout=120s || {
+            echo "Migration did not complete successfully"
+            FAILED=$(kubectl get job/$JOB_NAME -n $NAMESPACE -o jsonpath='{.status.failed}' 2>/dev/null || echo "0")
+            if [ "$FAILED" != "0" ] && [ -n "$FAILED" ]; then
               echo "Migration failed!"
-              kubectl logs job/$JOB_NAME -n $NAMESPACE
-              exit 1
+            else
+              echo "Migration timed out"
             fi
-            sleep 5
-            ELAPSED=$((ELAPSED + 5))
-          done
-          echo "Migration timed out after ${TIMEOUT}s"
-          exit 1
+            kubectl logs job/$JOB_NAME -n $NAMESPACE || true
+            exit 1
+          }
+          echo "Migration completed successfully"
 
       - name: Check migration logs
         if: always()
