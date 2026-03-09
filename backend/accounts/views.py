@@ -67,6 +67,8 @@ def register(request):
         OrganizationSettings.objects.create(organization=org)
         from contacts.scoring import create_default_scoring_rules
         create_default_scoring_rules(org)
+        from organizations.views import create_default_categories
+        create_default_categories(org)
 
     # Auto-accept other pending invitations for this email
     pending = Invitation.objects.filter(email=user.email, status="pending")

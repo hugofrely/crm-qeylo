@@ -97,7 +97,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 # ---------------------------------------------------------------------------
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgresql://crm_user:crm_pass@db:5432/crm_qeylo"
+        default="postgresql://crm_user:crm_pass@db:5432/crm_qeylo",
+        conn_max_age=600,
     )
 }
 

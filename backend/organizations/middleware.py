@@ -1,3 +1,5 @@
+import uuid
+
 from django.utils.functional import SimpleLazyObject
 from organizations.models import Membership
 
@@ -12,6 +14,12 @@ def _get_organization(request):
         return None
 
     org_id = request.headers.get("X-Organization")
+    if org_id:
+        try:
+            uuid.UUID(org_id)
+        except (ValueError, AttributeError):
+            org_id = None
+
     if org_id:
         membership = Membership.objects.filter(
             user=request.user, organization_id=org_id

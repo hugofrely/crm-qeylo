@@ -60,14 +60,12 @@ spec:
               cpu: "1"
               memory: 1Gi
           readinessProbe:
-            httpGet:
-              path: /api/health/
+            tcpSocket:
               port: 8000
             initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
-            httpGet:
-              path: /api/health/
+            tcpSocket:
               port: 8000
             initialDelaySeconds: 30
             periodSeconds: 15
