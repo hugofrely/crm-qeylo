@@ -75,10 +75,64 @@ jobs:
             ${{ matrix.service == 'frontend' && format('NEXT_PUBLIC_POSTHOG_KEY={0}', vars.NEXT_PUBLIC_POSTHOG_KEY) || '' }}
             ${{ matrix.service == 'frontend' && format('NEXT_PUBLIC_POSTHOG_HOST={0}', vars.NEXT_PUBLIC_POSTHOG_HOST) || '' }}
 
-  # ─── Job 3: Run Django migrations ───
-  migrate:
+  # ─── Job 3: Sync K8s secrets from GitHub environment ───
+  sync-secrets:
     runs-on: ubuntu-latest
     needs: [determine-env, build]
+    environment: ${{ needs.determine-env.outputs.environment }}
+    env:
+      NAMESPACE: ${{ needs.determine-env.outputs.namespace }}
+    steps:
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Sync crm-secrets
+        run: |
+          kubectl create secret generic crm-secrets \
+            --namespace=$NAMESPACE \
+            --from-literal=DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            --from-literal=SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            --from-literal=CELERY_BROKER_URL="${{ secrets.CELERY_BROKER_URL }}" \
+            --from-literal=CELERY_RESULT_BACKEND="${{ secrets.CELERY_RESULT_BACKEND }}" \
+            --from-literal=ALLOWED_HOSTS="${{ secrets.ALLOWED_HOSTS }}" \
+            --from-literal=CORS_ALLOWED_ORIGINS="${{ secrets.CORS_ALLOWED_ORIGINS }}" \
+            --from-literal=ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
+            --from-literal=OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            --from-literal=AI_MODEL="${{ secrets.AI_MODEL }}" \
+            --from-literal=AI_FALLBACK_MODEL="${{ secrets.AI_FALLBACK_MODEL }}" \
+            --from-literal=RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}" \
+            --from-literal=EMAIL_FROM="${{ secrets.EMAIL_FROM }}" \
+            --from-literal=EMAIL_ENCRYPTION_KEY="${{ secrets.EMAIL_ENCRYPTION_KEY }}" \
+            --from-literal=GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+            --from-literal=GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+            --from-literal=MICROSOFT_CLIENT_ID="${{ secrets.MICROSOFT_CLIENT_ID }}" \
+            --from-literal=MICROSOFT_CLIENT_SECRET="${{ secrets.MICROSOFT_CLIENT_SECRET }}" \
+            --from-literal=R2_ACCOUNT_ID="${{ secrets.R2_ACCOUNT_ID }}" \
+            --from-literal=R2_ACCESS_KEY_ID="${{ secrets.R2_ACCESS_KEY_ID }}" \
+            --from-literal=R2_SECRET_ACCESS_KEY="${{ secrets.R2_SECRET_ACCESS_KEY }}" \
+            --from-literal=R2_BUCKET_NAME="${{ secrets.R2_BUCKET_NAME }}" \
+            --from-literal=R2_PUBLIC_URL="${{ secrets.R2_PUBLIC_URL }}" \
+            --from-literal=STRIPE_SECRET_KEY="${{ secrets.STRIPE_SECRET_KEY }}" \
+            --from-literal=STRIPE_PUBLISHABLE_KEY="${{ secrets.STRIPE_PUBLISHABLE_KEY }}" \
+            --from-literal=STRIPE_WEBHOOK_SECRET="${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
+            --from-literal=STRIPE_PRO_PRICE_ID="${{ secrets.STRIPE_PRO_PRICE_ID }}" \
+            --from-literal=STRIPE_TEAM_PRICE_ID="${{ secrets.STRIPE_TEAM_PRICE_ID }}" \
+            --from-literal=BACKEND_URL="${{ secrets.BACKEND_URL }}" \
+            --from-literal=FRONTEND_URL="${{ secrets.FRONTEND_URL }}" \
+            --from-literal=NEXT_PUBLIC_API_URL="${{ vars.NEXT_PUBLIC_API_URL }}" \
+            --from-literal=NEXT_PUBLIC_WS_URL="${{ vars.NEXT_PUBLIC_WS_URL }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+  # ─── Job 4: Run Django migrations ───
+  migrate:
+    runs-on: ubuntu-latest
+    needs: [determine-env, sync-secrets]
     environment: ${{ needs.determine-env.outputs.environment }}
     env:
       NAMESPACE: ${{ needs.determine-env.outputs.namespace }}
@@ -168,7 +222,7 @@ jobs:
         run: |
           kubectl delete job django-migrate-${TAG//\./-}-${RUN_NUMBER} -n $NAMESPACE --ignore-not-found
 
-  # ─── Job 4: Deploy to K3s ───
+  # ─── Job 5: Deploy to K3s ───
   deploy:
     runs-on: ubuntu-latest
     needs: [determine-env, migrate]
