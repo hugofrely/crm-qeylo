@@ -101,3 +101,9 @@ coverage.xml
 .pytest_cache/
 .mypy_cache/
 .worktrees/
+
+# ========================
+# Kubernetes Secrets
+# ========================
+k8s/secrets-production.yaml
+k8s/secrets-staging.yaml

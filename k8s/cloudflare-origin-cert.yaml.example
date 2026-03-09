@@ -1,0 +1,24 @@
+## Cloudflare Origin Certificate Secret
+##
+## How to generate:
+## 1. Go to Cloudflare Dashboard → qeylo.com → SSL/TLS → Origin Server
+## 2. Click "Create Certificate"
+## 3. Select: RSA (2048), hostnames: *.qeylo.com, qeylo.com
+## 4. Validity: 15 years
+## 5. Copy the Origin Certificate → paste as tls.crt below
+## 6. Copy the Private Key → paste as tls.key below
+##
+## Then create the secret on the cluster:
+##   kubectl create secret tls cloudflare-origin-cert \
+##     --cert=origin-cert.pem \
+##     --key=origin-key.pem \
+##     -n production
+##
+##   kubectl create secret tls cloudflare-origin-cert \
+##     --cert=origin-cert.pem \
+##     --key=origin-key.pem \
+##     -n staging
+##
+## The wildcard cert (*.qeylo.com) covers both qeylo.com and staging.qeylo.com.
+##
+## IMPORTANT: Set Cloudflare SSL mode to "Full (Strict)" for this to work.

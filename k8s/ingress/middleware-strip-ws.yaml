@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-ws-prefix
+  namespace: production
+spec:
+  stripPrefix:
+    prefixes:
+      - /ws
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-ws-prefix
+  namespace: staging
+spec:
+  stripPrefix:
+    prefixes:
+      - /ws

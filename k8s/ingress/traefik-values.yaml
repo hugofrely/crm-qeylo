@@ -1,0 +1,39 @@
+deployment:
+  kind: DaemonSet
+
+ports:
+  web:
+    port: 8000
+    hostPort: 80
+    expose:
+      default: true
+  websecure:
+    port: 8443
+    hostPort: 443
+    expose:
+      default: true
+
+service:
+  enabled: false
+
+ingressRoute:
+  dashboard:
+    enabled: false
+
+providers:
+  kubernetesCRD:
+    enabled: true
+  kubernetesIngress:
+    enabled: true
+
+logs:
+  general:
+    level: INFO
+
+resources:
+  requests:
+    cpu: 64m
+    memory: 64Mi
+  limits:
+    cpu: 256m
+    memory: 128Mi
