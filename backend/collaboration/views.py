@@ -25,19 +25,19 @@ def _json_safe(data):
     return json.loads(JSONRenderer().render(data))
 
 
-def broadcast_to_entity(entity_type, entity_id, event_type, data):
+def broadcast_to_entity(organization_id, entity_type, entity_id, event_type, data):
     channel_layer = get_channel_layer()
-    group_name = f"{entity_type}_{entity_id}"
+    group_name = f"{organization_id}_{entity_type}_{entity_id}"
     async_to_sync(channel_layer.group_send)(
         group_name,
         {"type": "comment.event", "data": {"event": event_type, **data}},
     )
 
 
-def broadcast_to_user(user_id, data):
+def broadcast_to_user(organization_id, user_id, data):
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
-        f"user_{user_id}",
+        f"org_{organization_id}_user_{user_id}",
         {"type": "notification.message", "data": data},
     )
 
@@ -110,6 +110,7 @@ def comment_list_create(request):
 
     # Broadcast new comment to entity viewers
     broadcast_to_entity(
+        str(org.id),
         comment.entity_type,
         str(comment.entity_id),
         "comment_created",
@@ -122,7 +123,7 @@ def comment_list_create(request):
     for mid in mention_ids:
         if str(mid) != str(request.user.id):
             author_name = f"{request.user.first_name} {request.user.last_name}".strip() or request.user.email
-            broadcast_to_user(str(mid), {
+            broadcast_to_user(str(org.id), str(mid), {
                 "type": "mention",
                 "title": f"{author_name} vous a mentionne",
                 "message": plain_content_ws,
@@ -147,7 +148,7 @@ def comment_detail(request, pk):
         entity_type = comment.entity_type
         entity_id = str(comment.entity_id)
         comment.delete()
-        broadcast_to_entity(entity_type, entity_id, "comment_deleted", {"comment_id": str(pk)})
+        broadcast_to_entity(str(request.organization.id), entity_type, entity_id, "comment_deleted", {"comment_id": str(pk)})
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     # PATCH
@@ -174,6 +175,7 @@ def comment_detail(request, pk):
     comment.save()
     result = CommentSerializer(comment).data
     broadcast_to_entity(
+        str(request.organization.id),
         comment.entity_type,
         str(comment.entity_id),
         "comment_updated",
@@ -202,6 +204,7 @@ def reaction_toggle(request, comment_id):
         # Refresh comment for updated reactions
         comment.refresh_from_db()
         broadcast_to_entity(
+            str(request.organization.id),
             comment.entity_type,
             str(comment.entity_id),
             "reaction_updated",
@@ -222,7 +225,7 @@ def reaction_toggle(request, comment_id):
             message=plain_content,
             link=f"/{comment.entity_type}s/{comment.entity_id}",
         )
-        broadcast_to_user(str(comment.author.id), {
+        broadcast_to_user(str(request.organization.id), str(comment.author.id), {
             "type": "reaction",
             "title": f"{author_name} a reagi {emoji}",
             "message": plain_content,
@@ -232,6 +235,7 @@ def reaction_toggle(request, comment_id):
     # Refresh comment for updated reactions
     comment.refresh_from_db()
     broadcast_to_entity(
+        str(request.organization.id),
         comment.entity_type,
         str(comment.entity_id),
         "reaction_updated",
