@@ -1,3 +1,4 @@
+import html
 import logging
 
 import resend
@@ -99,7 +100,8 @@ def send_invitation_email(to: str, org_name: str, invite_link: str, user=None) -
     lang = _get_user_language(user)
     with translation_override(lang):
         heading = _("Vous avez été invité(e)")
-        body_text = _("{org_name} vous invite à rejoindre leur espace de travail sur Qeylo.").format(org_name=f'<strong style="color:#0D4F4F;">{org_name}</strong>')
+        safe_org_name = html.escape(org_name)
+        body_text = _("{org_name} vous invite à rejoindre leur espace de travail sur Qeylo.").format(org_name=f'<strong style="color:#0D4F4F;">{safe_org_name}</strong>')
         btn_text = _("Accepter l'invitation")
         ignore_text = _("Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail.")
         subject = _("Invitation à rejoindre {org_name} sur Qeylo").format(org_name=org_name)
@@ -128,12 +130,14 @@ def send_invitation_email(to: str, org_name: str, invite_link: str, user=None) -
 def send_notification_email(to: str, title: str, message: str, user=None) -> None:
     """Send a generic notification email."""
     lang = _get_user_language(user)
+    safe_title = html.escape(title)
+    safe_message = html.escape(message)
     with translation_override(lang):
         btn_text = _("Ouvrir Qeylo")
         content = f"""\
-<h2 style="margin:0 0 6px;font-size:22px;color:#1A1A17;font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-0.01em;">{title}</h2>
+<h2 style="margin:0 0 6px;font-size:22px;color:#1A1A17;font-family:'Instrument Serif',Georgia,serif;font-weight:400;letter-spacing:-0.01em;">{safe_title}</h2>
 <p style="margin:0 0 24px;font-size:14px;line-height:1.7;color:#1A1A17;">
-  {message}
+  {safe_message}
 </p>
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
   <tr>
@@ -157,10 +161,12 @@ def send_reminder_email(to: str, reminders: list[dict], user=None) -> None:
     with translation_override(lang):
         rows = ""
         for r in reminders:
+            safe_r_title = html.escape(r.get("title", ""))
+            safe_r_due = html.escape(r.get("due", ""))
             rows += (
                 f'<tr>'
-                f'<td style="padding:10px 12px;border-bottom:1px solid #E5E2DC;font-size:13px;color:#1A1A17;">{r.get("title", "")}</td>'
-                f'<td style="padding:10px 12px;border-bottom:1px solid #E5E2DC;font-size:13px;color:#8A8680;white-space:nowrap;">{r.get("due", "")}</td>'
+                f'<td style="padding:10px 12px;border-bottom:1px solid #E5E2DC;font-size:13px;color:#1A1A17;">{safe_r_title}</td>'
+                f'<td style="padding:10px 12px;border-bottom:1px solid #E5E2DC;font-size:13px;color:#8A8680;white-space:nowrap;">{safe_r_due}</td>'
                 f'</tr>'
             )
 

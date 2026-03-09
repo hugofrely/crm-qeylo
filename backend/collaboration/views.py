@@ -17,7 +17,7 @@ from .serializers import (
     CommentCreateSerializer,
     ReactionCreateSerializer,
 )
-from .utils import extract_mention_ids
+from .utils import extract_mention_ids, strip_html_tags
 
 
 def _json_safe(data):
@@ -89,6 +89,7 @@ def comment_list_create(request):
             id__in=mention_ids,
             memberships__organization=org,
         )
+        plain_content = strip_html_tags(comment.content)[:200]
         for user in mentioned_users:
             Mention.objects.create(comment=comment, user=user)
             if user != request.user:
@@ -100,7 +101,7 @@ def comment_list_create(request):
                     recipient=user,
                     type="mention",
                     title=f"{author_name} vous a mentionne",
-                    message=comment.content[:200],
+                    message=plain_content,
                     link=f"/{entity_type}s/{entity_id}",
                 )
 
@@ -116,13 +117,15 @@ def comment_list_create(request):
     )
 
     # Broadcast notification to mentioned users via WebSocket
+    if mention_ids:
+        plain_content_ws = strip_html_tags(comment.content)[:200]
     for mid in mention_ids:
         if str(mid) != str(request.user.id):
             author_name = f"{request.user.first_name} {request.user.last_name}".strip() or request.user.email
             broadcast_to_user(str(mid), {
                 "type": "mention",
                 "title": f"{author_name} vous a mentionne",
-                "message": comment.content[:200],
+                "message": plain_content_ws,
                 "link": f"/{comment.entity_type}s/{comment.entity_id}",
             })
 
@@ -210,18 +213,19 @@ def reaction_toggle(request, comment_id):
 
     if comment.author != request.user:
         author_name = f"{request.user.first_name} {request.user.last_name}".strip() or request.user.email
+        plain_content = strip_html_tags(comment.content)[:100]
         create_notification(
             organization=request.organization,
             recipient=comment.author,
             type="reaction",
             title=f"{author_name} a reagi {emoji} a votre commentaire",
-            message=comment.content[:100],
+            message=plain_content,
             link=f"/{comment.entity_type}s/{comment.entity_id}",
         )
         broadcast_to_user(str(comment.author.id), {
             "type": "reaction",
             "title": f"{author_name} a reagi {emoji}",
-            "message": comment.content[:100],
+            "message": plain_content,
             "link": f"/{comment.entity_type}s/{comment.entity_id}",
         })
 

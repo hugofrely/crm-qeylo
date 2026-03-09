@@ -16,6 +16,7 @@ import {
   renderEmailTemplate,
 } from "@/services/emails"
 import { toast } from "sonner"
+import { sanitizeHtml } from "@/lib/sanitize"
 import { ArrowLeft, Eye, Save, X } from "lucide-react"
 import { Link } from "@/i18n/navigation"
 import {
@@ -206,7 +207,7 @@ export default function EmailTemplateEditPage() {
           </DialogHeader>
           <div
             className="prose prose-sm dark:prose-invert max-w-none p-4 border rounded-lg font-[family-name:var(--font-body)]"
-            dangerouslySetInnerHTML={{ __html: previewHtml }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewHtml) }}
           />
         </DialogContent>
       </Dialog>

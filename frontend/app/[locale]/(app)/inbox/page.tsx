@@ -16,6 +16,7 @@ import {
 } from "@/services/emails"
 import { ComposeEmailDialog } from "@/components/emails/ComposeEmailDialog"
 import { cn } from "@/lib/utils"
+import { sanitizeHtml } from "@/lib/sanitize"
 import type { EmailThread, Email, SyncStatus, EmailAccount } from "@/types/emails"
 import { Link } from "@/i18n/navigation"
 import { useTranslations, useLocale } from "next-intl"
@@ -324,7 +325,7 @@ export default function InboxPage() {
                       </div>
                       <div
                         className="text-sm prose prose-sm max-w-none [&_img]:max-w-full [&_a]:text-primary"
-                        dangerouslySetInnerHTML={{ __html: email.body_html }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.body_html) }}
                       />
                     </div>
                   ))}

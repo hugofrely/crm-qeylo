@@ -4,6 +4,7 @@ import { useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import rehypeRaw from "rehype-raw"
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize"
 import type { Comment } from "@/types/collaboration"
 import { Button } from "@/components/ui/button"
 import { Lock, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
@@ -15,10 +16,19 @@ import { useTranslations, useLocale } from "next-intl"
 
 const EMOJI_OPTIONS = ["👍", "❤️", "🎉", "😄", "🤔", "👀"]
 
+const commentSanitizeSchema = {
+  ...defaultSchema,
+  tagNames: [...(defaultSchema.tagNames || []), "span"],
+  attributes: {
+    ...defaultSchema.attributes,
+    span: ["className"],
+  },
+}
+
 function CommentContent({ content }: { content: string }) {
   return (
     <div className="prose prose-sm dark:prose-invert max-w-none [&_.mention]:bg-primary/15 [&_.mention]:text-primary [&_.mention]:rounded [&_.mention]:px-1 [&_.mention]:py-0.5 [&_.mention]:text-sm [&_.mention]:font-medium">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, [rehypeSanitize, commentSanitizeSchema]]}>
         {content}
       </ReactMarkdown>
     </div>

@@ -15,6 +15,7 @@ import { usePipelines } from "@/hooks/useDeals"
 import { updatePipeline, deletePipeline } from "@/services/deals"
 import { fetchMembers } from "@/services/organizations"
 import { useOrganization } from "@/lib/organization"
+import { sanitizeHtml } from "@/lib/sanitize"
 import { useContactAutocomplete } from "@/hooks/useContactAutocomplete"
 import { useCompanyAutocomplete } from "@/hooks/useCompanyAutocomplete"
 import {
@@ -360,7 +361,8 @@ export default function DealsPage() {
           {deletePipelineData && deletePipelineData.deal_count > 0 ? (
             <div className="space-y-3">
               <p className="text-muted-foreground text-sm"
-                dangerouslySetInnerHTML={{ __html: t("deletePipelineHasDeals", { count: deletePipelineData.deal_count }) }}
+
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(t("deletePipelineHasDeals", { count: deletePipelineData.deal_count })) }}
               />
               <select
                 value={deleteMigrateTo}
@@ -375,7 +377,7 @@ export default function DealsPage() {
             </div>
           ) : (
             <p className="text-muted-foreground text-sm"
-              dangerouslySetInnerHTML={{ __html: t("deletePipelineConfirm", { name: deletePipelineData?.name ?? "" }) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(t("deletePipelineConfirm", { name: deletePipelineData?.name ?? "" })) }}
             />
           )}
           <div className="flex justify-end gap-2 mt-4">

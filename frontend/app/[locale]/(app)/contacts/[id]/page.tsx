@@ -13,6 +13,7 @@ import type { Meeting } from "@/types/calendar"
 import type { SequenceEnrollment, Sequence } from "@/types/sequences"
 import { restoreItems } from "@/services/trash"
 import { toast } from "sonner"
+import { sanitizeHtml } from "@/lib/sanitize"
 import posthog from "posthog-js"
 import { fetchPipelineStages } from "@/services/deals"
 import { updateTask as updateTaskApi } from "@/services/tasks"
@@ -541,7 +542,7 @@ export default function ContactDetailPage() {
                             {expandedEmailId === email.id && (
                               <div
                                 className="mt-3 prose prose-sm max-w-none"
-                                dangerouslySetInnerHTML={{ __html: email.body_html }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(email.body_html) }}
                               />
                             )}
                           </div>
