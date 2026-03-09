@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl"
+import Image from "next/image"
 import { Navbar } from "@/components/landing/navbar"
 
 export default function AuthLayout({
@@ -37,9 +38,18 @@ export default function AuthLayout({
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
           <div>
-            <h1 className="text-4xl tracking-tight" style={{ fontFamily: 'var(--font-display), Georgia, serif' }}>
-              Qeylo
-            </h1>
+            <div className="flex items-center gap-3">
+              <Image
+                src="/images/qeylo-logo.webp"
+                alt="Qeylo"
+                width={48}
+                height={48}
+                className="rounded-xl"
+              />
+              <h1 className="text-4xl tracking-tight" style={{ fontFamily: 'var(--font-display), Georgia, serif' }}>
+                Qeylo
+              </h1>
+            </div>
           </div>
           <div className="max-w-md">
             <blockquote className="text-xl leading-relaxed text-white/80" style={{ fontFamily: 'var(--font-display), Georgia, serif', fontStyle: 'italic' }}>

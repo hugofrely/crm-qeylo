@@ -4,8 +4,8 @@ import { useState, useRef, useCallback } from "react"
 import { useTranslations } from "next-intl"
 import { Link } from "@/i18n/navigation"
 import { motion, AnimatePresence } from "motion/react"
+import Image from "next/image"
 import {
-  MessageSquare,
   Menu,
   X,
   ArrowRight,
@@ -56,9 +56,14 @@ export function Navbar() {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary transition-all group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/20">
-              <MessageSquare className="h-4.5 w-4.5 text-primary-foreground" />
-            </div>
+            <Image
+              src="/images/qeylo-logo.webp"
+              alt="Qeylo"
+              width={36}
+              height={36}
+              className="rounded-xl transition-all group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/20"
+              priority
+            />
             <span className="text-xl font-semibold tracking-tight">Qeylo</span>
           </Link>
 

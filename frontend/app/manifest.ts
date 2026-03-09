@@ -11,14 +11,14 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#0D4F4F',
     icons: [
       {
-        src: '/icon',
-        sizes: '32x32',
-        type: 'image/png',
+        src: '/images/qeylo-logo-192.webp',
+        sizes: '192x192',
+        type: 'image/webp',
       },
       {
-        src: '/apple-icon',
-        sizes: '180x180',
-        type: 'image/png',
+        src: '/images/qeylo-logo-512.webp',
+        sizes: '512x512',
+        type: 'image/webp',
       },
     ],
   }

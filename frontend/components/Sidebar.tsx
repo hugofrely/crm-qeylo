@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Link, usePathname } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
 import { useAuth } from "@/lib/auth"
@@ -124,9 +125,13 @@ export function Sidebar() {
       >
         {/* Brand */}
         <div className="px-5 pt-5 pb-2 flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--sidebar-primary)] shrink-0">
-            <MessageSquare className="h-4 w-4 text-[var(--sidebar-primary-foreground)]" />
-          </div>
+          <Image
+            src="/images/qeylo-logo.webp"
+            alt="Qeylo"
+            width={32}
+            height={32}
+            className="rounded-lg shrink-0"
+          />
           <span className="text-lg tracking-tight font-semibold text-[var(--sidebar-foreground)]">Qeylo</span>
         </div>
 

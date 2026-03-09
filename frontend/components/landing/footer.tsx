@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl"
 import { Link } from "@/i18n/navigation"
-import { MessageSquare } from "lucide-react"
+import Image from "next/image"
 
 export function Footer() {
   const t = useTranslations("marketing.footer")
@@ -41,9 +41,13 @@ export function Footer() {
           {/* Brand column — more presence */}
           <div>
             <Link href="/" className="group flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary transition-all group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/20">
-                <MessageSquare className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <Image
+                src="/images/qeylo-logo.webp"
+                alt="Qeylo"
+                width={40}
+                height={40}
+                className="rounded-xl transition-all group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/20"
+              />
               <span className="text-xl font-semibold tracking-tight">
                 Qeylo
               </span>
