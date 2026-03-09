@@ -25,7 +25,10 @@ export function useWebSocket({ path, onMessage, enabled = true }: UseWebSocketOp
     const token = Cookies.get("access_token")
     if (!token) return
 
-    const url = `${WS_URL}${path}?token=${token}`
+    const orgId = Cookies.get("organization_id")
+    if (!orgId) return
+
+    const url = `${WS_URL}${path}?token=${token}&org=${orgId}`
     const ws = new WebSocket(url)
 
     ws.onopen = () => {
