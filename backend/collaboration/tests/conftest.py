@@ -8,7 +8,7 @@ from organizations.models import Organization, Membership
 def user_with_org(db):
     """Create a user with an organization and return (user, org, token_str)."""
     user = User.objects.create_user(email="ws@test.com", password="testpass123")
-    org = Organization.objects.create(name="Test Org")
+    org = Organization.objects.create(name="Test Org", slug="test-org")
     Membership.objects.create(user=user, organization=org, role="member")
     token = AccessToken.for_user(user)
     return user, org, str(token)

@@ -4,7 +4,6 @@ import pytest
 from channels.testing import WebsocketCommunicator
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.routing import URLRouter
-from django.test import override_settings
 from django.urls import re_path
 
 from collaboration.middleware import JWTAuthMiddleware
