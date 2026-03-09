@@ -7,6 +7,7 @@ from django.urls import re_path
 
 from collaboration.consumers import CollaborationConsumer, NotificationConsumer
 from collaboration.middleware import JWTAuthMiddleware
+from channels.db import database_sync_to_async
 from contacts.models import Contact
 from organizations.models import Organization
 
@@ -113,6 +114,23 @@ async def test_collaboration_rejects_nonexistent_entity(user_with_org):
     await communicator.disconnect()
 
 
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_collaboration_rejects_unsupported_entity_type(user_with_org):
+    _user, org, token_str = user_with_org
+    fake_id = uuid.uuid4()
+
+    app = _make_application()
+    communicator = WebsocketCommunicator(
+        app,
+        f"/ws/collaboration/invoice/{fake_id}/?token={token_str}&org={org.id}",
+    )
+    connected, _ = await communicator.connect()
+    assert not connected
+
+    await communicator.disconnect()
+
+
 # ── NotificationConsumer tests ───────────────────────────────────────────
 
 
@@ -149,8 +167,6 @@ async def test_notification_rejects_no_org(user_with_org):
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────
-
-from channels.db import database_sync_to_async  # noqa: E402
 
 
 @database_sync_to_async
