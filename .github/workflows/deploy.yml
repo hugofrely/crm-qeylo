@@ -3,7 +3,11 @@ name: Build & Deploy
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]*'
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -62,7 +66,7 @@ jobs:
           push: true
           tags: |
             ghcr.io/hugofrely/crm-qeylo-${{ matrix.service }}:${{ needs.determine-env.outputs.tag }}
-            ghcr.io/hugofrely/crm-qeylo-${{ matrix.service }}:latest
+            ${{ needs.determine-env.outputs.environment == 'production' && format('ghcr.io/hugofrely/crm-qeylo-{0}:latest', matrix.service) || '' }}
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
           build-args: |
@@ -79,6 +83,7 @@ jobs:
     env:
       NAMESPACE: ${{ needs.determine-env.outputs.namespace }}
       TAG: ${{ needs.determine-env.outputs.tag }}
+      RUN_NUMBER: ${{ github.run_number }}
     steps:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
@@ -95,7 +100,7 @@ jobs:
           apiVersion: batch/v1
           kind: Job
           metadata:
-            name: django-migrate-${TAG//\./-}
+            name: django-migrate-${TAG//\./-}-${RUN_NUMBER}
             namespace: $NAMESPACE
           spec:
             backoffLimit: 1
@@ -134,20 +139,34 @@ jobs:
 
       - name: Wait for migration to complete
         run: |
-          kubectl wait --for=condition=complete \
-            job/django-migrate-${TAG//\./-} \
-            -n $NAMESPACE \
-            --timeout=120s
+          JOB_NAME="django-migrate-${TAG//\./-}-${RUN_NUMBER}"
+          TIMEOUT=120
+          ELAPSED=0
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            STATUS=$(kubectl get job/$JOB_NAME -n $NAMESPACE -o jsonpath='{.status.conditions[0].type}' 2>/dev/null || echo "")
+            if [ "$STATUS" = "Complete" ]; then
+              echo "Migration completed successfully"
+              exit 0
+            elif [ "$STATUS" = "Failed" ]; then
+              echo "Migration failed!"
+              kubectl logs job/$JOB_NAME -n $NAMESPACE
+              exit 1
+            fi
+            sleep 5
+            ELAPSED=$((ELAPSED + 5))
+          done
+          echo "Migration timed out after ${TIMEOUT}s"
+          exit 1
 
       - name: Check migration logs
         if: always()
         run: |
-          kubectl logs job/django-migrate-${TAG//\./-} -n $NAMESPACE
+          kubectl logs job/django-migrate-${TAG//\./-}-${RUN_NUMBER} -n $NAMESPACE
 
       - name: Cleanup migration job
         if: always()
         run: |
-          kubectl delete job django-migrate-${TAG//\./-} -n $NAMESPACE --ignore-not-found
+          kubectl delete job django-migrate-${TAG//\./-}-${RUN_NUMBER} -n $NAMESPACE --ignore-not-found
 
   # ─── Job 4: Deploy to K3s ───
   deploy:
