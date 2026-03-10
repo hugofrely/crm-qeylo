@@ -31,7 +31,9 @@ import {
   Trash2,
   History,
   LayoutTemplate,
+  Lock,
 } from "lucide-react"
+import { usePlanGate } from "@/contexts/PlanContext"
 import { toast } from "sonner"
 import posthog from "posthog-js"
 import type { Workflow, WorkflowTemplate } from "@/types"
@@ -39,6 +41,8 @@ import type { Workflow, WorkflowTemplate } from "@/types"
 export default function WorkflowsPage() {
   const router = useRouter()
   const t = useTranslations("workflows")
+  const { isFeatureLocked, openUpgradeModal } = usePlanGate()
+  const workflowsLocked = isFeatureLocked("workflows")
   const [workflows, setWorkflows] = useState<Workflow[]>([])
   const [templates, setTemplates] = useState<WorkflowTemplate[]>([])
   const [loading, setLoading] = useState(true)
@@ -202,14 +206,27 @@ export default function WorkflowsPage() {
         title={t("title")}
         subtitle={t("subtitle")}
       >
-        <Button variant="outline" onClick={() => setTemplateDialogOpen(true)} className="gap-2">
-          <LayoutTemplate className="h-4 w-4" />
-          {t("templates")}
-        </Button>
-        <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          {t("new")}
-        </Button>
+        {workflowsLocked ? (
+          <Button
+            onClick={() => openUpgradeModal({ type: "feature", feature: "workflows", requiredPlan: "pro" })}
+            variant="outline"
+            className="opacity-60 gap-2"
+          >
+            <Lock className="h-4 w-4" />
+            {t("new")}
+          </Button>
+        ) : (
+          <>
+            <Button variant="outline" onClick={() => setTemplateDialogOpen(true)} className="gap-2">
+              <LayoutTemplate className="h-4 w-4" />
+              {t("templates")}
+            </Button>
+            <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              {t("new")}
+            </Button>
+          </>
+        )}
       </PageHeader>
 
       <DataTable

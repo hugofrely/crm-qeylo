@@ -27,7 +27,9 @@ import {
   Search,
   Loader2,
   Trash2,
+  Lock,
 } from "lucide-react"
+import { usePlanGate } from "@/contexts/PlanContext"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterBar } from "@/components/shared/FilterBar"
 import { FilterSearchInput, FilterSelect, FilterPills } from "@/components/shared/FilterControls"
@@ -58,6 +60,8 @@ const emptyForm = {
 
 export default function ProductsPage() {
   const t = useTranslations("products")
+  const { isFeatureLocked, openUpgradeModal } = usePlanGate()
+  const productsLocked = isFeatureLocked("products_catalog")
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -290,10 +294,21 @@ export default function ProductsPage() {
         subtitle={t("subtitle", { count: totalCount })}
       >
         <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
-        <Button className="gap-2" onClick={openCreateDialog}>
-          <Plus className="h-4 w-4" />
-          {t("newProduct")}
-        </Button>
+        {productsLocked ? (
+          <Button
+            onClick={() => openUpgradeModal({ type: "feature", feature: "products_catalog", requiredPlan: "pro" })}
+            variant="outline"
+            className="opacity-60 gap-2"
+          >
+            <Lock className="h-4 w-4" />
+            {t("newProduct")}
+          </Button>
+        ) : (
+          <Button className="gap-2" onClick={openCreateDialog}>
+            <Plus className="h-4 w-4" />
+            {t("newProduct")}
+          </Button>
+        )}
       </PageHeader>
 
       {/* Desktop filter bar */}

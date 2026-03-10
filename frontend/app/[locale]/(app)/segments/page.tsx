@@ -12,7 +12,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Plus, MoreHorizontal, Pencil, Copy, Trash2, ListFilter } from "lucide-react"
+import { Plus, MoreHorizontal, Pencil, Copy, Trash2, ListFilter, Lock } from "lucide-react"
+import { usePlanGate } from "@/contexts/PlanContext"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable"
 import type { Segment } from "@/types"
@@ -20,6 +21,8 @@ import type { Segment } from "@/types"
 export default function SegmentsPage() {
   const router = useRouter()
   const t = useTranslations("segments")
+  const { isFeatureLocked, openUpgradeModal } = usePlanGate()
+  const segmentsLocked = isFeatureLocked("dynamic_segments")
   const [segments, setSegments] = useState<Segment[]>([])
   const [loading, setLoading] = useState(true)
   const [builderOpen, setBuilderOpen] = useState(false)
@@ -138,10 +141,21 @@ export default function SegmentsPage() {
         title={t("title")}
         subtitle={t("subtitle", { count: segments.length })}
       >
-        <Button className="gap-2" onClick={handleNew}>
-          <Plus className="h-4 w-4" />
-          {t("newSegment")}
-        </Button>
+        {segmentsLocked ? (
+          <Button
+            onClick={() => openUpgradeModal({ type: "feature", feature: "dynamic_segments", requiredPlan: "pro" })}
+            variant="outline"
+            className="opacity-60 gap-2"
+          >
+            <Lock className="h-4 w-4" />
+            {t("newSegment")}
+          </Button>
+        ) : (
+          <Button className="gap-2" onClick={handleNew}>
+            <Plus className="h-4 w-4" />
+            {t("newSegment")}
+          </Button>
+        )}
       </PageHeader>
 
       <DataTable
