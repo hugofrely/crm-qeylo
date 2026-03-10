@@ -21,37 +21,9 @@ spec:
           image: ghcr.io/hugofrely/crm-qeylo-backend:latest
           ports:
             - containerPort: 8000
-          env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: crm-secrets
-                  key: DATABASE_URL
-            - name: CELERY_BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: crm-secrets
-                  key: CELERY_BROKER_URL
-            - name: CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: crm-secrets
-                  key: CELERY_RESULT_BACKEND
-            - name: SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: crm-secrets
-                  key: SECRET_KEY
-            - name: ALLOWED_HOSTS
-              valueFrom:
-                secretKeyRef:
-                  name: crm-secrets
-                  key: ALLOWED_HOSTS
-            - name: CORS_ALLOWED_ORIGINS
-              valueFrom:
-                secretKeyRef:
-                  name: crm-secrets
-                  key: CORS_ALLOWED_ORIGINS
+          envFrom:
+            - secretRef:
+                name: crm-secrets
           resources:
             requests:
               cpu: 256m

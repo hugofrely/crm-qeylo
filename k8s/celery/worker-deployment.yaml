@@ -20,27 +20,9 @@ spec:
         - name: celery-worker
           image: ghcr.io/hugofrely/crm-qeylo-backend:latest
           command: ["celery", "-A", "config", "worker", "-l", "info", "--concurrency=2"]
-          env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: crm-secrets
-                  key: DATABASE_URL
-            - name: CELERY_BROKER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: crm-secrets
-                  key: CELERY_BROKER_URL
-            - name: CELERY_RESULT_BACKEND
-              valueFrom:
-                secretKeyRef:
-                  name: crm-secrets
-                  key: CELERY_RESULT_BACKEND
-            - name: SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: crm-secrets
-                  key: SECRET_KEY
+          envFrom:
+            - secretRef:
+                name: crm-secrets
           resources:
             requests:
               cpu: 256m

@@ -229,11 +229,23 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
 
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Configure kubeconfig
         run: |
           mkdir -p $HOME/.kube
           echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
+
+      - name: Apply K8s manifests
+        run: |
+          kubectl apply -f k8s/backend/deployment.yaml -n $NAMESPACE
+          kubectl apply -f k8s/backend/service.yaml -n $NAMESPACE
+          kubectl apply -f k8s/celery/worker-deployment.yaml -n $NAMESPACE
+          kubectl apply -f k8s/celery/beat-deployment.yaml -n $NAMESPACE
+          kubectl apply -f k8s/frontend/deployment.yaml -n $NAMESPACE
+          kubectl apply -f k8s/frontend/service.yaml -n $NAMESPACE
 
       - name: Update deployment images
         run: |
