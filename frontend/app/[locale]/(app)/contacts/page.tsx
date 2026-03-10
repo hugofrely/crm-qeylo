@@ -19,7 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Plus, Search, Loader2, Download, Building2, X, Tag, FolderOpen } from "lucide-react"
+import { Plus, Search, Loader2, Download, Building2, X, Tag, FolderOpen, Lock } from "lucide-react"
 import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog"
 import { PageHeader } from "@/components/shared/PageHeader"
 import { FilterBar } from "@/components/shared/FilterBar"
@@ -29,6 +29,8 @@ import { Pagination } from "@/components/shared/Pagination"
 import { useCompanyAutocomplete } from "@/hooks/useCompanyAutocomplete"
 import posthog from "posthog-js"
 import { handleQuotaError } from "@/lib/quota-error"
+import { QuotaBanner } from "@/components/plan/QuotaBanner"
+import { usePlanGate } from "@/contexts/PlanContext"
 import type { Contact, ContactCategory } from "@/types"
 
 interface ContactsResponse {
@@ -42,6 +44,8 @@ const PAGE_SIZE = 20
 
 export default function ContactsPage() {
   const t = useTranslations("contacts")
+  const { getQuotaStatus, openUpgradeModal, refreshUsage } = usePlanGate()
+  const contactsAtLimit = getQuotaStatus("contacts") === "limit"
 
   const LEAD_SCORE_OPTIONS = [
     { value: "hot", label: t("leadScore.hot") },
@@ -205,6 +209,7 @@ export default function ContactsPage() {
       setShowDuplicateDialog(false)
       setDuplicates([])
       fetchContacts()
+      await refreshUsage()
     } catch (err) {
       if (handleQuotaError(err)) return
       console.error("Failed to create contact:", err)
@@ -340,6 +345,7 @@ export default function ContactsPage() {
 
   return (
     <div className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
+      <QuotaBanner quota="contacts" label="contacts" />
       {/* Header */}
       <PageHeader
         title={t("title")}
@@ -356,12 +362,23 @@ export default function ContactsPage() {
           {t("export")}
         </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
+          {contactsAtLimit ? (
+            <Button
+              onClick={() => openUpgradeModal({ type: "quota", quota: "contacts", requiredPlan: "pro" })}
+              variant="outline"
+              className="opacity-60 gap-2"
+            >
+              <Lock className="h-4 w-4" />
               {t("add")}
             </Button>
-          </DialogTrigger>
+          ) : (
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                {t("add")}
+              </Button>
+            </DialogTrigger>
+          )}
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t("form.newContact")}</DialogTitle>
