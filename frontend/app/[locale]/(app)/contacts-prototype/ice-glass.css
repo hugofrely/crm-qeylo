@@ -1,0 +1,219 @@
+/* Ice-Glass theme — scoped under .ice-glass wrapper */
+
+.ice-glass {
+  /* Light mode (default) */
+  --ig-bg: linear-gradient(150deg, rgba(235, 245, 255, 0.97), rgba(240, 248, 255, 0.92), rgba(230, 242, 255, 0.97));
+  --ig-surface: rgba(255, 255, 255, 0.45);
+  --ig-surface-hover: rgba(255, 255, 255, 0.65);
+  --ig-border-outer: rgba(255, 255, 255, 0.85);
+  --ig-border-inset: rgba(255, 255, 255, 0.5);
+  --ig-border-subtle: rgba(13, 50, 80, 0.08);
+  --ig-shadow: 0 20px 60px rgba(13, 40, 70, 0.1), 0 8px 24px rgba(13, 40, 70, 0.06);
+  --ig-shadow-ambient: 0 0 80px rgba(13, 79, 79, 0.04);
+  --ig-text-primary: #1A2D3D;
+  --ig-text-secondary: #4A6A80;
+  --ig-text-muted: #6B8DA8;
+  --ig-text-faint: #8AA0B2;
+  --ig-row-border: transparent;
+  --ig-row-hover-bg: rgba(255, 255, 255, 0.6);
+  --ig-row-hover-border: rgba(255, 255, 255, 0.8);
+  --ig-row-hover-shadow: 0 2px 8px rgba(13, 40, 70, 0.05);
+  --ig-input-bg: rgba(255, 255, 255, 0.5);
+  --ig-input-border: rgba(13, 50, 80, 0.12);
+  --ig-toolbar-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2));
+  --ig-avatar-inner-bg: #EEF4FA;
+  --ig-btn-glass-bg: rgba(255, 255, 255, 0.6);
+  --ig-btn-glass-border: rgba(13, 50, 80, 0.12);
+  --ig-btn-glass-text: #3A5A70;
+  --ig-btn-glass-shadow: 0 1px 3px rgba(13, 40, 70, 0.06);
+}
+
+:is(.dark *).ice-glass,
+.dark .ice-glass {
+  --ig-bg: linear-gradient(150deg, rgba(8, 25, 50, 0.97), rgba(15, 35, 55, 0.92), rgba(8, 20, 40, 0.97));
+  --ig-surface: rgba(10, 25, 42, 0.8);
+  --ig-surface-hover: rgba(100, 180, 255, 0.06);
+  --ig-border-outer: rgba(100, 180, 255, 0.12);
+  --ig-border-inset: rgba(100, 180, 255, 0.04);
+  --ig-border-subtle: rgba(100, 180, 255, 0.06);
+  --ig-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.3);
+  --ig-shadow-ambient: 0 0 80px rgba(13, 79, 79, 0.08);
+  --ig-text-primary: #D0E4F2;
+  --ig-text-secondary: #6B8DA8;
+  --ig-text-muted: #4A7A98;
+  --ig-text-faint: #3A6A88;
+  --ig-row-border: transparent;
+  --ig-row-hover-bg: rgba(100, 180, 255, 0.05);
+  --ig-row-hover-border: rgba(100, 180, 255, 0.08);
+  --ig-row-hover-shadow: none;
+  --ig-input-bg: rgba(255, 255, 255, 0.04);
+  --ig-input-border: rgba(255, 255, 255, 0.1);
+  --ig-toolbar-gradient: linear-gradient(180deg, rgba(100, 180, 255, 0.04), transparent);
+  --ig-avatar-inner-bg: #0A1A30;
+  --ig-btn-glass-bg: rgba(255, 255, 255, 0.04);
+  --ig-btn-glass-border: rgba(255, 255, 255, 0.1);
+  --ig-btn-glass-text: #8AB0CC;
+  --ig-btn-glass-shadow: none;
+}
+
+/* Main container */
+.ig-container {
+  background: var(--ig-bg);
+  border: 1px solid var(--ig-border-outer);
+  box-shadow:
+    inset 0 0 0 4px var(--ig-border-inset),
+    inset 0 1px 0 var(--ig-border-outer),
+    var(--ig-shadow),
+    var(--ig-shadow-ambient);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* Toolbar */
+.ig-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--ig-border-subtle);
+  background: var(--ig-toolbar-gradient);
+}
+
+/* Search bar */
+.ig-search {
+  padding: 10px 16px 10px 40px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--ig-input-border);
+  background: var(--ig-input-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--ig-text-primary);
+  font-size: 13px;
+  font-family: var(--font-body), system-ui, sans-serif;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.ig-search::placeholder { color: var(--ig-text-muted); }
+.ig-search:focus {
+  border-color: var(--teal, #0D4F4F);
+  background: var(--ig-surface-hover);
+}
+
+/* Table head */
+.ig-table-head {
+  display: grid;
+  grid-template-columns: 2.4fr 1.4fr 0.8fr 1fr;
+  gap: 8px;
+  padding: 10px 24px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ig-text-muted);
+  border-bottom: 1px solid var(--ig-border-subtle);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.ig-table-head-cell {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+.ig-table-head-cell:hover { color: var(--ig-text-primary); }
+
+/* Row */
+.ig-row {
+  display: grid;
+  grid-template-columns: 2.4fr 1.4fr 0.8fr 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 13px 24px;
+  margin: 3px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--ig-row-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.ig-row:hover {
+  background: var(--ig-row-hover-bg);
+  border-color: var(--ig-row-hover-border);
+  box-shadow: var(--ig-row-hover-shadow);
+}
+
+/* Avatar ring */
+.ig-avatar-ring {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal, #0D4F4F), var(--teal-dark, #3DD9D9));
+  padding: 2px;
+  flex-shrink: 0;
+}
+.ig-avatar-ring-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--ig-avatar-inner-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ig-text-secondary);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* Score dots */
+.ig-score-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ig-score-hot { background: #E85670; }
+.ig-score-warm { background: #F0A040; }
+.ig-score-cold { background: #38B0E8; }
+
+/* Glass button (for Actions dropdown trigger) */
+.ig-btn-glass {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--ig-btn-glass-border);
+  background: var(--ig-btn-glass-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--ig-btn-glass-text);
+  box-shadow: var(--ig-btn-glass-shadow);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+.ig-btn-glass:hover {
+  background: var(--ig-surface-hover);
+}
+
+/* Empty state */
+.ig-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--ig-text-muted);
+  font-size: 14px;
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* List padding bottom */
+.ig-list {
+  padding: 4px 0 12px;
+}
