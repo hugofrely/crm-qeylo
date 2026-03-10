@@ -38,9 +38,11 @@ import {
   Trash2,
   Zap,
   Calendar,
+  Lock,
 } from "lucide-react"
 import { CreateOrgDialog } from "@/components/organizations/CreateOrgDialog"
 import { useOverdueCount } from "@/hooks/useOverdueCount"
+import { usePlanGate, type QuotaKey } from "@/contexts/PlanContext"
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -49,6 +51,7 @@ export function Sidebar() {
   const { organizations, currentOrganization, switchOrganization } = useOrganization()
   const [showCreateOrg, setShowCreateOrg] = useState(false)
   const overdueCount = useOverdueCount()
+  const { isFeatureLocked, getQuotaStatus, getQuotaInfo, openUpgradeModal } = usePlanGate()
   const t = useTranslations('sidebar')
 
   const navigationGroups = [
@@ -57,20 +60,20 @@ export function Sidebar() {
       items: [
         { name: t('items.chat'), href: "/chat", icon: MessageSquare, key: "chat" },
         { name: t('items.inbox'), href: "/inbox", icon: Mail, key: "inbox" },
-        { name: t('items.contacts'), href: "/contacts", icon: Users, key: "contacts" },
+        { name: t('items.contacts'), href: "/contacts", icon: Users, key: "contacts", quota: "contacts" as QuotaKey },
         { name: t('items.companies'), href: "/companies", icon: Building2, key: "companies" },
-        { name: t('items.segments'), href: "/segments", icon: ListFilter, key: "segments" },
-        { name: t('items.pipeline'), href: "/deals", icon: Kanban, key: "pipeline" },
-        { name: t('items.funnel'), href: "/pipeline/funnel", icon: Filter, key: "funnel" },
+        { name: t('items.segments'), href: "/segments", icon: ListFilter, key: "segments", feature: "dynamic_segments" },
+        { name: t('items.pipeline'), href: "/deals", icon: Kanban, key: "pipeline", quota: "pipelines" as QuotaKey },
+        { name: t('items.funnel'), href: "/pipeline/funnel", icon: Filter, key: "funnel", feature: "conversion_funnel" },
       ],
     },
     {
       label: t('groups.management'),
       items: [
-        { name: t('items.products'), href: "/products", icon: Package, key: "products" },
+        { name: t('items.products'), href: "/products", icon: Package, key: "products", feature: "products_catalog" },
         { name: t('items.tasks'), href: "/tasks", icon: CheckSquare, key: "tasks" },
-        { name: t('items.workflows'), href: "/workflows", icon: Workflow, key: "workflows" },
-        { name: t('items.sequences'), href: "/sequences", icon: Zap, key: "sequences" },
+        { name: t('items.workflows'), href: "/workflows", icon: Workflow, key: "workflows", feature: "workflows" },
+        { name: t('items.sequences'), href: "/sequences", icon: Zap, key: "sequences", feature: "workflows" },
         { name: t('items.calendar'), href: "/calendar", icon: Calendar, key: "calendar" },
       ],
     },
@@ -78,7 +81,7 @@ export function Sidebar() {
       label: t('groups.analytics'),
       items: [
         { name: t('items.dashboard'), href: "/dashboard", icon: BarChart3, key: "dashboard" },
-        { name: t('items.reports'), href: "/reports", icon: FileBarChart, key: "reports" },
+        { name: t('items.reports'), href: "/reports", icon: FileBarChart, key: "reports", feature: "custom_reports" },
       ],
     },
   ]
@@ -188,6 +191,34 @@ export function Sidebar() {
               </span>
               {group.items.map((item) => {
                 const isActive = pathname.startsWith(item.href)
+                const locked = item.feature ? isFeatureLocked(item.feature) : false
+                const quotaStatus = item.quota ? getQuotaStatus(item.quota) : null
+                const quotaInfo = item.quota ? getQuotaInfo(item.quota) : null
+                const requiredPlan = item.feature === "api_access" || item.feature === "team_assignment" ? "team" as const : "pro" as const
+
+                if (locked) {
+                  return (
+                    <button
+                      key={item.key}
+                      onClick={() => {
+                        openUpgradeModal({
+                          type: "feature",
+                          feature: item.feature!,
+                          requiredPlan,
+                        })
+                      }}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-200 font-[family-name:var(--font-body)]",
+                        "text-[var(--sidebar-foreground)]/40 hover:text-[var(--sidebar-foreground)]/60 hover:bg-[var(--sidebar-accent)]/30"
+                      )}
+                    >
+                      <item.icon className="h-[18px] w-[18px] shrink-0 opacity-50" />
+                      <span className="opacity-50">{item.name}</span>
+                      <Lock className="ml-auto h-3.5 w-3.5 shrink-0 opacity-50" />
+                    </button>
+                  )
+                }
+
                 return (
                   <Link
                     key={item.href}
@@ -205,6 +236,18 @@ export function Sidebar() {
                     {item.key === "tasks" && overdueCount > 0 && (
                       <span className="ml-auto inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold">
                         {overdueCount}
+                      </span>
+                    )}
+                    {quotaStatus && quotaStatus !== "ok" && quotaInfo && (
+                      <span
+                        className={cn(
+                          "ml-auto inline-flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full text-[10px] font-semibold",
+                          quotaStatus === "limit"
+                            ? "bg-red-500 text-white"
+                            : "bg-amber-500 text-white"
+                        )}
+                      >
+                        {quotaInfo.current}/{quotaInfo.limit}
                       </span>
                     )}
                   </Link>
