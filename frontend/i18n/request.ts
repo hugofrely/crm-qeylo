@@ -27,6 +27,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   const sequences = (await import(`@/messages/${locale}/sequences.json`)).default;
   const notifications = (await import(`@/messages/${locale}/notifications.json`)).default;
   const seo = (await import(`@/messages/${locale}/seo.json`)).default;
+  const plan = (await import(`@/messages/${locale}/plan.json`)).default;
 
   return {
     locale,
@@ -50,6 +51,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       sequences,
       notifications,
       seo,
+      plan,
     },
   };
 });

@@ -1,0 +1,111 @@
+{
+  "upgrade": {
+    "featureTitle": "Fonctionnalité Pro",
+    "quotaTitle": "Limite atteinte",
+    "cta": "Passer au {plan} →",
+    "compareLink": "Comparer tous les plans",
+    "loading": "Redirection..."
+  },
+  "quota": {
+    "warning": "Vous approchez de la limite — {current}/{limit} {label}",
+    "warningSubtext": "Passez au Pro pour un nombre illimité.",
+    "limit": "Limite atteinte — {current}/{limit} {label}",
+    "limitSubtext": "Vous ne pouvez plus ajouter de {label}. Passez au Pro pour continuer.",
+    "ctaWarning": "Passer au Pro",
+    "ctaLimit": "Passer au Pro"
+  },
+  "plans": {
+    "pro": {
+      "name": "Plan Pro",
+      "price": "19€",
+      "period": "/mois",
+      "benefits": {
+        "contacts": "Contacts illimités",
+        "pipelines": "Pipelines illimités",
+        "ai": "Messages IA illimités",
+        "products": "Catalogue produits",
+        "workflows": "Workflows & séquences",
+        "csv": "Import/export CSV",
+        "reports": "Rapports avancés",
+        "all": "Toutes les fonctionnalités Pro"
+      }
+    },
+    "team": {
+      "name": "Plan Team",
+      "price": "49€",
+      "period": "/mois",
+      "benefits": {
+        "users": "Utilisateurs illimités",
+        "api": "Accès API",
+        "assignment": "Attribution d'équipe",
+        "onboarding": "Onboarding dédié",
+        "all": "Toutes les fonctionnalités Team"
+      }
+    }
+  },
+  "features": {
+    "products_catalog": {
+      "label": "Catalogue Produits",
+      "description": "Gérez vos produits, catégories et tarifs pour vos devis et factures."
+    },
+    "workflows": {
+      "label": "Workflows",
+      "description": "Automatisez vos processus métier avec des workflows personnalisés."
+    },
+    "dynamic_segments": {
+      "label": "Segments dynamiques",
+      "description": "Créez des segments avancés pour cibler vos contacts."
+    },
+    "conversion_funnel": {
+      "label": "Tunnel de conversion",
+      "description": "Analysez votre pipeline avec un tunnel de conversion visuel."
+    },
+    "custom_reports": {
+      "label": "Rapports personnalisés",
+      "description": "Créez des rapports avancés adaptés à vos besoins."
+    },
+    "custom_stages": {
+      "label": "Étapes personnalisées",
+      "description": "Personnalisez les étapes de votre pipeline."
+    },
+    "duplicate_detection": {
+      "label": "Détection de doublons",
+      "description": "Identifiez et fusionnez automatiquement les contacts en double."
+    },
+    "email_templates": {
+      "label": "Modèles d'email",
+      "description": "Créez des modèles d'email réutilisables."
+    },
+    "email_integration": {
+      "label": "Intégration email",
+      "description": "Connectez votre boîte mail à votre CRM."
+    },
+    "csv_import_export": {
+      "label": "Import/Export CSV",
+      "description": "Importez et exportez vos données en CSV."
+    },
+    "advanced_dashboard": {
+      "label": "Tableau de bord avancé",
+      "description": "Accédez à des métriques détaillées et personnalisables."
+    },
+    "api_access": {
+      "label": "Accès API",
+      "description": "Intégrez Qeylo avec vos outils via l'API REST."
+    },
+    "team_assignment": {
+      "label": "Attribution d'équipe",
+      "description": "Assignez des contacts et tâches à vos membres d'équipe."
+    },
+    "priority_support": {
+      "label": "Support prioritaire",
+      "description": "Bénéficiez d'un support client prioritaire."
+    },
+    "dedicated_onboarding": {
+      "label": "Onboarding dédié",
+      "description": "Un accompagnement personnalisé pour démarrer."
+    }
+  },
+  "sidebar": {
+    "locked": "Disponible avec le plan {plan}"
+  }
+}

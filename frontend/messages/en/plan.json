@@ -1,0 +1,111 @@
+{
+  "upgrade": {
+    "featureTitle": "Pro Feature",
+    "quotaTitle": "Limit Reached",
+    "cta": "Upgrade to {plan} →",
+    "compareLink": "Compare all plans",
+    "loading": "Redirecting..."
+  },
+  "quota": {
+    "warning": "Approaching limit — {current}/{limit} {label}",
+    "warningSubtext": "Upgrade to Pro for unlimited.",
+    "limit": "Limit reached — {current}/{limit} {label}",
+    "limitSubtext": "You can no longer add {label}. Upgrade to Pro to continue.",
+    "ctaWarning": "Upgrade to Pro",
+    "ctaLimit": "Upgrade to Pro"
+  },
+  "plans": {
+    "pro": {
+      "name": "Pro Plan",
+      "price": "€19",
+      "period": "/month",
+      "benefits": {
+        "contacts": "Unlimited contacts",
+        "pipelines": "Unlimited pipelines",
+        "ai": "Unlimited AI messages",
+        "products": "Product catalog",
+        "workflows": "Workflows & sequences",
+        "csv": "CSV import/export",
+        "reports": "Advanced reports",
+        "all": "All Pro features"
+      }
+    },
+    "team": {
+      "name": "Team Plan",
+      "price": "€49",
+      "period": "/month",
+      "benefits": {
+        "users": "Unlimited users",
+        "api": "API access",
+        "assignment": "Team assignment",
+        "onboarding": "Dedicated onboarding",
+        "all": "All Team features"
+      }
+    }
+  },
+  "features": {
+    "products_catalog": {
+      "label": "Product Catalog",
+      "description": "Manage your products, categories and pricing for quotes and invoices."
+    },
+    "workflows": {
+      "label": "Workflows",
+      "description": "Automate your business processes with custom workflows."
+    },
+    "dynamic_segments": {
+      "label": "Dynamic Segments",
+      "description": "Create advanced segments to target your contacts."
+    },
+    "conversion_funnel": {
+      "label": "Conversion Funnel",
+      "description": "Analyze your pipeline with a visual conversion funnel."
+    },
+    "custom_reports": {
+      "label": "Custom Reports",
+      "description": "Create advanced reports tailored to your needs."
+    },
+    "custom_stages": {
+      "label": "Custom Stages",
+      "description": "Customize your pipeline stages."
+    },
+    "duplicate_detection": {
+      "label": "Duplicate Detection",
+      "description": "Automatically identify and merge duplicate contacts."
+    },
+    "email_templates": {
+      "label": "Email Templates",
+      "description": "Create reusable email templates."
+    },
+    "email_integration": {
+      "label": "Email Integration",
+      "description": "Connect your mailbox to your CRM."
+    },
+    "csv_import_export": {
+      "label": "CSV Import/Export",
+      "description": "Import and export your data as CSV."
+    },
+    "advanced_dashboard": {
+      "label": "Advanced Dashboard",
+      "description": "Access detailed and customizable metrics."
+    },
+    "api_access": {
+      "label": "API Access",
+      "description": "Integrate Qeylo with your tools via the REST API."
+    },
+    "team_assignment": {
+      "label": "Team Assignment",
+      "description": "Assign contacts and tasks to your team members."
+    },
+    "priority_support": {
+      "label": "Priority Support",
+      "description": "Get priority customer support."
+    },
+    "dedicated_onboarding": {
+      "label": "Dedicated Onboarding",
+      "description": "Personalized assistance to get started."
+    }
+  },
+  "sidebar": {
+    "locked": "Available with {plan} plan"
+  }
+}
