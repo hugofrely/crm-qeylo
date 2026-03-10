@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog"
 import { useRouter } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
+import { QuotaBanner } from "@/components/plan/QuotaBanner"
 import type { Member } from "@/types/organizations"
 
 export default function DealsPage() {
@@ -193,6 +194,7 @@ export default function DealsPage() {
     <div className="flex flex-col h-full animate-fade-in-up">
       {/* Header */}
       <div className="p-4 sm:p-8 lg:px-12 lg:pt-12 lg:pb-0 space-y-6 shrink-0">
+        <QuotaBanner quota="pipelines" label="pipelines" />
         <PageHeader title={t("pageTitle")} subtitle={t("pageSubtitle")}>
           <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
           <Button onClick={() => setDialogOpen(true)} className="gap-2">
