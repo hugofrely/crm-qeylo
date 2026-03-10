@@ -6,6 +6,8 @@ import { useEffect } from "react"
 import { Sidebar } from "@/components/Sidebar"
 import { SearchHeader } from "@/components/SearchHeader"
 import { OrganizationProvider } from "@/lib/organization"
+import { PlanProvider } from "@/contexts/PlanContext"
+import { UpgradeModalWrapper } from "@/components/plan/UpgradeModalWrapper"
 import { QuickCreateFAB } from "@/components/shared/QuickCreateFAB"
 import { useTranslations } from "next-intl"
 
@@ -35,14 +37,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <OrganizationProvider>
-      <div className="h-dvh flex overflow-hidden bg-background">
-        <Sidebar />
-        <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
-          <SearchHeader />
-          <main className="flex-1 min-h-0 overflow-auto bg-background [&>*]:min-h-full">{children}</main>
+      <PlanProvider>
+        <div className="h-dvh flex overflow-hidden bg-background">
+          <Sidebar />
+          <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
+            <SearchHeader />
+            <main className="flex-1 min-h-0 overflow-auto bg-background [&>*]:min-h-full">{children}</main>
+          </div>
+          {!isChatPage && <QuickCreateFAB />}
         </div>
-        {!isChatPage && <QuickCreateFAB />}
-      </div>
+        <UpgradeModalWrapper />
+      </PlanProvider>
     </OrganizationProvider>
   )
 }
