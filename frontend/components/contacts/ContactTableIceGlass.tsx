@@ -3,10 +3,14 @@
 import { useRouter } from "@/i18n/navigation"
 import { useTranslations } from "next-intl"
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
 import type { Contact } from "@/types"
 
 interface ContactTableIceGlassProps {
   contacts: Contact[]
+  selectedIds?: Set<string>
+  onToggleSelect?: (id: string) => void
+  onToggleAll?: () => void
   ordering?: string
   onOrderingChange?: (ordering: string) => void
 }
@@ -36,11 +40,15 @@ function getInitials(first: string, last: string): string {
 
 export function ContactTableIceGlass({
   contacts,
+  selectedIds,
+  onToggleSelect,
+  onToggleAll,
   ordering = "-created_at",
   onOrderingChange,
 }: ContactTableIceGlassProps) {
   const router = useRouter()
   const t = useTranslations("contacts")
+  const hasSelection = !!onToggleSelect
 
   const handleSort = (field: SortField) => {
     if (!onOrderingChange) return
@@ -62,17 +70,25 @@ export function ContactTableIceGlass({
   return (
     <>
       {/* Column headers */}
-      <div className="ig-table-head">
-        <span className="ig-table-head-cell" onClick={() => handleSort("last_name")}>
+      <div className={hasSelection ? "ig-table-head ig-table-head--selectable" : "ig-table-head"}>
+        {hasSelection && (
+          <span className="flex items-center">
+            <Checkbox
+              checked={contacts.length > 0 && selectedIds?.size === contacts.length}
+              onCheckedChange={() => onToggleAll?.()}
+            />
+          </span>
+        )}
+        <span className="ig-table-head-cell ig-col-name" onClick={() => handleSort("last_name")}>
           {t("table.name")}
           <SortIcon field="last_name" ordering={ordering} />
         </span>
-        <span className="ig-table-head-cell" onClick={() => handleSort("company")}>
+        <span className="ig-table-head-cell ig-col-company" onClick={() => handleSort("company")}>
           {t("table.company")}
           <SortIcon field="company" ordering={ordering} />
         </span>
-        <span>{t("filter.score")}</span>
-        <span className="ig-table-head-cell" onClick={() => handleSort("created_at")}>
+        <span className="ig-col-score">{t("filter.score")}</span>
+        <span className="ig-table-head-cell ig-col-date" onClick={() => handleSort("created_at")}>
           {t("table.createdAt")}
           <SortIcon field="created_at" ordering={ordering} />
         </span>
@@ -83,11 +99,20 @@ export function ContactTableIceGlass({
         {contacts.map((contact) => (
           <div
             key={contact.id}
-            className="ig-row"
+            className={hasSelection ? "ig-row ig-row--selectable" : "ig-row"}
             onClick={() => router.push(`/contacts/${contact.id}`)}
           >
+            {hasSelection && (
+              <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedIds?.has(contact.id) ?? false}
+                  onCheckedChange={() => onToggleSelect?.(contact.id)}
+                />
+              </div>
+            )}
+
             {/* Name cell */}
-            <div className="flex items-center gap-3">
+            <div className="ig-col-name flex items-center gap-3">
               <div className="ig-avatar-ring">
                 <div className="ig-avatar-ring-inner">
                   {getInitials(contact.first_name, contact.last_name)}
@@ -106,12 +131,12 @@ export function ContactTableIceGlass({
             </div>
 
             {/* Company cell */}
-            <div className="text-xs font-[family-name:var(--font-body)]" style={{ color: "var(--ig-text-secondary)" }}>
+            <div className="ig-col-company text-xs font-[family-name:var(--font-body)]" style={{ color: "var(--ig-text-secondary)" }}>
               {contact.company || "\u2014"}
             </div>
 
             {/* Score cell */}
-            <div className="flex items-center gap-1.5">
+            <div className="ig-col-score flex items-center gap-1.5">
               {contact.lead_score && (
                 <>
                   <span className={`ig-score-dot ${
@@ -129,7 +154,7 @@ export function ContactTableIceGlass({
             </div>
 
             {/* Date cell */}
-            <div className="text-xs font-[family-name:var(--font-body)]" style={{ color: "var(--ig-text-faint)" }}>
+            <div className="ig-col-date text-xs font-[family-name:var(--font-body)]" style={{ color: "var(--ig-text-faint)" }}>
               {formatDate(contact.created_at)}
             </div>
           </div>

@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { useTranslations } from "next-intl"
 import { apiFetch } from "@/lib/api"
-import { checkDuplicates, exportContactsCSV } from "@/services/contacts"
+import { checkDuplicates, exportContactsCSV, fetchContactCategories, fetchContactTags, fetchContactSources, bulkContactAction } from "@/services/contacts"
 import { DuplicateDetectionDialog } from "@/components/contacts/DuplicateDetectionDialog"
 import type { DuplicateMatch } from "@/types"
+import type { Contact, ContactCategory } from "@/types"
 import { ContactTableIceGlass } from "@/components/contacts/ContactTableIceGlass"
-import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -22,13 +22,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Plus, Search, Loader2, Download, ChevronDown, Building2, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  Plus, Search, Loader2, Download, ChevronDown, Building2, X, Upload,
+  Filter, ChevronLeft, ChevronRight, Trash2, Tag, FolderOpen,
+} from "lucide-react"
 import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog"
-import { Pagination } from "@/components/shared/Pagination"
 import { useCompanyAutocomplete } from "@/hooks/useCompanyAutocomplete"
 import posthog from "posthog-js"
 import { handleQuotaError } from "@/lib/quota-error"
-import type { Contact } from "@/types"
 import "./ice-glass.css"
 
 interface ContactsResponse {
@@ -60,9 +62,27 @@ export default function ContactsPrototypePage() {
   const [createdAfter, setCreatedAfter] = useState("")
   const [createdBefore, setCreatedBefore] = useState("")
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [filterOpen, setFilterOpen] = useState(false)
+
+  // Filter data
+  const [categories, setCategories] = useState<ContactCategory[]>([])
+  const [availableTags, setAvailableTags] = useState<string[]>([])
+  const [availableSources, setAvailableSources] = useState<string[]>([])
+
+  // Selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  // Bulk action dialogs
+  const [bulkCategorizeOpen, setBulkCategorizeOpen] = useState(false)
+  const [bulkCategorizeIds, setBulkCategorizeIds] = useState<string[]>([])
+  const [bulkAssignCompanyOpen, setBulkAssignCompanyOpen] = useState(false)
+  const [bulkCompanyId, setBulkCompanyId] = useState<string | null>(null)
+  const [bulkCompanyLabel, setBulkCompanyLabel] = useState<string | null>(null)
+  const bulkCompanyAutocomplete = useCompanyAutocomplete()
 
   const companyAutocomplete = useCompanyAutocomplete()
   const [companyEntityLabel, setCompanyEntityLabel] = useState("")
+  const importCsvRef = useRef<HTMLDivElement>(null)
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -80,6 +100,59 @@ export default function ContactsPrototypePage() {
     category_ids: [] as string[],
   })
 
+  const activeFilterCount = [selectedCategory, leadScore, source, createdAfter, createdBefore, selectedTags.length > 0].filter(Boolean).length
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === contacts.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(contacts.map((c) => c.id)))
+    }
+  }
+
+  const resetFilters = () => {
+    setSelectedCategory(null)
+    setLeadScore(null)
+    setSource("")
+    setCreatedAfter("")
+    setCreatedBefore("")
+    setSelectedTags([])
+  }
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    )
+  }
+
+  // Load filter data
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [cats, tags, sources] = await Promise.all([
+          fetchContactCategories(),
+          fetchContactTags(),
+          fetchContactSources(),
+        ])
+        setCategories(cats)
+        setAvailableTags(tags)
+        setAvailableSources(sources)
+      } catch (err) {
+        console.error("Failed to fetch filter data:", err)
+      }
+    }
+    loadData()
+  }, [])
+
   const fetchContacts = useCallback(async () => {
     setLoading(true)
     try {
@@ -88,6 +161,7 @@ export default function ContactsPrototypePage() {
           `/contacts/search/?q=${encodeURIComponent(search.trim())}`
         )
         setContacts(results)
+        setSelectedIds(new Set())
         setTotalCount(results.length)
       } else {
         const params = new URLSearchParams()
@@ -104,6 +178,7 @@ export default function ContactsPrototypePage() {
           `/contacts/?${params.toString()}`
         )
         setContacts(data.results)
+        setSelectedIds(new Set())
         setTotalCount(data.count)
       }
     } catch (err) {
@@ -198,130 +273,515 @@ export default function ContactsPrototypePage() {
     }
   }
 
+  // Bulk actions
+  const handleBulkDelete = async () => {
+    try {
+      await bulkContactAction({ action: "delete", ids: Array.from(selectedIds) })
+      setSelectedIds(new Set())
+      fetchContacts()
+    } catch (err) {
+      console.error("Bulk delete failed:", err)
+    }
+  }
+
+  const handleBulkExport = async () => {
+    try {
+      await bulkContactAction({ action: "export", ids: Array.from(selectedIds) })
+      setSelectedIds(new Set())
+    } catch (err) {
+      console.error("Bulk export failed:", err)
+    }
+  }
+
+  const handleBulkCategorize = async () => {
+    if (bulkCategorizeIds.length === 0) return
+    try {
+      await bulkContactAction({
+        action: "categorize",
+        ids: Array.from(selectedIds),
+        params: { category_ids: bulkCategorizeIds },
+      })
+      setSelectedIds(new Set())
+      setBulkCategorizeOpen(false)
+      setBulkCategorizeIds([])
+      fetchContacts()
+    } catch (err) {
+      console.error("Bulk categorize failed:", err)
+    }
+  }
+
+  const handleBulkAssignCompany = async () => {
+    if (!bulkCompanyId) return
+    try {
+      await bulkContactAction({
+        action: "assign_company",
+        ids: Array.from(selectedIds),
+        params: { company_entity_id: bulkCompanyId },
+      })
+      setSelectedIds(new Set())
+      setBulkAssignCompanyOpen(false)
+      setBulkCompanyId(null)
+      setBulkCompanyLabel(null)
+      fetchContacts()
+    } catch (err) {
+      console.error("Bulk assign company failed:", err)
+    }
+  }
+
+  // Pagination helpers
+  const getPageNumbers = () => {
+    const pages: (number | "ellipsis")[] = []
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i)
+    } else {
+      pages.push(1)
+      if (page > 3) pages.push("ellipsis")
+      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+        pages.push(i)
+      }
+      if (page < totalPages - 2) pages.push("ellipsis")
+      pages.push(totalPages)
+    }
+    return pages
+  }
+
   return (
-    <div className="ice-glass p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto space-y-8 animate-fade-in-up">
-      {/* Main ice-glass container */}
-      <div className="ig-container">
-        {/* Toolbar */}
-        <div className="ig-toolbar">
-          <div>
-            <h1 className="text-xl tracking-tight font-[family-name:var(--font-display)]"
-                style={{ color: "var(--ig-text-primary)" }}>
-              {t("title")}
-              <span className="text-sm font-normal ml-2 font-[family-name:var(--font-body)]"
-                    style={{ color: "var(--ig-text-muted)" }}>
-                {totalCount}
-              </span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <ImportCSVDialog onImported={fetchContacts} />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="ig-btn-glass">
-                  Actions
-                  <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+    <div className="ice-glass ig-page">
+      <div className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto space-y-5 animate-fade-in-up relative" style={{ zIndex: 1 }}>
+
+        {/* Main ice-glass container */}
+        <div className="ig-container">
+          {/* Toolbar */}
+          <div className="ig-toolbar">
+            <div>
+              <h1 className="text-xl tracking-tight font-[family-name:var(--font-display)]"
+                  style={{ color: "var(--ig-text-primary)" }}>
+                {t("title")}
+                <span className="text-sm font-normal ml-2 font-[family-name:var(--font-body)]"
+                      style={{ color: "var(--ig-text-muted)" }}>
+                  {totalCount}
+                </span>
+              </h1>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Filter toggle */}
+              <div className="ig-filter-toggle">
+                <button
+                  className="ig-btn-glass"
+                  onClick={() => setFilterOpen(!filterOpen)}
+                >
+                  <Filter className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Filtres</span>
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleExport} disabled={exporting}>
-                  {exporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
-                  {t("export")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button className="gap-2" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4" />
-              {t("add")}
-            </Button>
+                {activeFilterCount > 0 && (
+                  <span className="ig-filter-badge">{activeFilterCount}</span>
+                )}
+              </div>
+
+              {/* Hidden ImportCSVDialog trigger — opened from Actions dropdown */}
+              <div ref={importCsvRef} className="[&>button]:hidden">
+                <ImportCSVDialog onImported={fetchContacts} />
+              </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="ig-btn-glass">
+                    <span className="hidden sm:inline">Actions</span>
+                    <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => {
+                    importCsvRef.current?.querySelector("button")?.click()
+                  }}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    {t("import.button")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExport} disabled={exporting}>
+                    {exporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+                    {t("export")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <button className="ig-btn-primary" onClick={() => setDialogOpen(true)}>
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">{t("add")}</span>
+              </button>
+            </div>
           </div>
+
+          {/* Bulk action bar — inside container, unfolds between toolbar and search */}
+          {selectedIds.size > 0 && (
+            <div className="ig-inner-panel">
+              <div className="ig-bulk-bar">
+                <div className="ig-bulk-bar-count">
+                  {t("bulk.selected", { count: selectedIds.size })}
+                </div>
+                <div className="ig-bulk-bar-actions">
+                  <button className="ig-btn-glass" onClick={handleBulkExport}>
+                    <Download className="h-3.5 w-3.5" />
+                    {t("bulk.export")}
+                  </button>
+                  <button className="ig-btn-glass" onClick={() => setBulkCategorizeOpen(true)}>
+                    <FolderOpen className="h-3.5 w-3.5" />
+                    {t("bulk.categorize")}
+                  </button>
+                  <button className="ig-btn-glass" onClick={() => setBulkAssignCompanyOpen(true)}>
+                    <Building2 className="h-3.5 w-3.5" />
+                    {t("bulk.company")}
+                  </button>
+                  <button className="ig-btn-danger" onClick={handleBulkDelete}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {t("bulk.delete", { count: selectedIds.size })}
+                  </button>
+                  <button className="ig-btn-glass" onClick={() => setSelectedIds(new Set())}>
+                    <X className="h-3.5 w-3.5" />
+                    {t("bulk.cancel")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Filter bar — inside container, unfolds between toolbar and search */}
+          {filterOpen && (
+            <div className="ig-inner-panel">
+              <div className="ig-filter-bar">
+                {/* Categories */}
+                {categories.length > 0 && (
+                  <div className="ig-filter-section">
+                    <span className="ig-filter-label">{t("filter.category")}</span>
+                    <div className="ig-pills">
+                      {categories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          className="ig-pill"
+                          data-active={selectedCategory === cat.id}
+                          onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
+                        >
+                          {cat.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Score */}
+                <div className="ig-filter-section">
+                  <span className="ig-filter-label">{t("filter.score")}</span>
+                  <div className="ig-pills">
+                    {(["hot", "warm", "cold"] as const).map((score) => (
+                      <button
+                        key={score}
+                        className="ig-pill"
+                        data-active={leadScore === score}
+                        onClick={() => setLeadScore(leadScore === score ? null : score)}
+                      >
+                        <span className={`ig-score-dot ${score === "hot" ? "ig-score-hot" : score === "warm" ? "ig-score-warm" : "ig-score-cold"}`} />
+                        {t(`leadScore.${score}`)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Source */}
+                {availableSources.length > 0 && (
+                  <div className="ig-filter-section">
+                    <span className="ig-filter-label">{t("filter.source")}</span>
+                    <select
+                      className="ig-filter-select"
+                      value={source}
+                      onChange={(e) => setSource(e.target.value)}
+                    >
+                      <option value="">{t("filter.allSources")}</option>
+                      {availableSources.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Tags */}
+                {availableTags.length > 0 && (
+                  <div className="ig-filter-section">
+                    <span className="ig-filter-label">{t("filter.tags")}</span>
+                    <div className="ig-pills">
+                      {availableTags.map((tag) => (
+                        <button
+                          key={tag}
+                          className="ig-pill"
+                          data-active={selectedTags.includes(tag)}
+                          onClick={() => toggleTag(tag)}
+                        >
+                          <Tag className="h-3 w-3" />
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Date range */}
+                <div className="ig-filter-section">
+                  <span className="ig-filter-label">{t("filter.createdDate")}</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      className="ig-filter-input"
+                      value={createdAfter}
+                      onChange={(e) => setCreatedAfter(e.target.value)}
+                    />
+                    <span style={{ color: "var(--ig-text-faint)", fontSize: 12 }}>→</span>
+                    <input
+                      type="date"
+                      className="ig-filter-input"
+                      value={createdBefore}
+                      onChange={(e) => setCreatedBefore(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Reset */}
+                {activeFilterCount > 0 && (
+                  <button className="ig-filter-reset" onClick={resetFilters}>
+                    Réinitialiser
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Search bar */}
+          <div className="ig-search-wrapper relative">
+            <Search className="ig-search-icon absolute top-1/2 -translate-y-1/2 h-4 w-4"
+                    style={{ color: "var(--ig-text-muted)" }} />
+            <input
+              type="text"
+              className="ig-search"
+              placeholder={t("searchPlaceholder")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          {/* Loading / Table */}
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--ig-text-muted)" }} />
+            </div>
+          ) : (
+            <ContactTableIceGlass
+              contacts={contacts}
+              ordering={ordering}
+              onOrderingChange={setOrdering}
+              selectedIds={selectedIds}
+              onToggleSelect={toggleSelect}
+              onToggleAll={toggleSelectAll}
+            />
+          )}
         </div>
 
-        {/* Search bar */}
-        <div className="relative px-6 py-3">
-          <Search className="absolute left-9 top-1/2 -translate-y-1/2 h-4 w-4"
-                  style={{ color: "var(--ig-text-muted)" }} />
-          <input
-            type="text"
-            className="ig-search"
-            placeholder={t("searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        {/* Loading / Table */}
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--ig-text-muted)" }} />
+        {/* Custom Ice-Glass Pagination */}
+        {!search && totalPages > 1 && (
+          <div className="ig-pagination">
+            <span className="ig-pagination-info">
+              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, totalCount)} / {totalCount}
+            </span>
+            <div className="ig-pagination-buttons">
+              <button
+                className="ig-page-btn"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              {getPageNumbers().map((p, i) =>
+                p === "ellipsis" ? (
+                  <span key={`e${i}`} className="ig-page-ellipsis">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    className="ig-page-btn"
+                    data-active={p === page}
+                    onClick={() => setPage(p)}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+              <button
+                className="ig-page-btn"
+                disabled={page >= totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-        ) : (
-          <ContactTableIceGlass
-            contacts={contacts}
-            ordering={ordering}
-            onOrderingChange={setOrdering}
-          />
         )}
-      </div>
 
-      {/* Pagination */}
-      {!search && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
-
-      {/* Create contact dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("form.newContact")}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.firstName")}</Label>
-                <Input id="first_name" value={formData.first_name} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} required className="h-11 bg-secondary/30 border-border/60" />
+        {/* Create contact dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("form.newContact")}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="first_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.firstName")}</Label>
+                  <Input id="first_name" value={formData.first_name} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} required className="h-11 bg-secondary/30 border-border/60" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="last_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.lastName")}</Label>
+                  <Input id="last_name" value={formData.last_name} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} required className="h-11 bg-secondary/30 border-border/60" />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="last_name" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.lastName")}</Label>
-                <Input id="last_name" value={formData.last_name} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} required className="h-11 bg-secondary/30 border-border/60" />
+                <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.email")}</Label>
+                <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.phone")}</Label>
+                <Input id="phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="company_proto" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.company")}</Label>
+                {formData.company_entity && companyEntityLabel ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 flex items-center gap-2 h-11 bg-secondary/30 border border-border/60 rounded-md px-3">
+                      <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-sm truncate">{companyEntityLabel}</span>
+                    </div>
+                    <button type="button" onClick={() => { setFormData({ ...formData, company_entity: null, company: "" }); setCompanyEntityLabel(""); companyAutocomplete.reset() }} className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div ref={companyAutocomplete.wrapperRef} className="relative">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        id="company_proto"
+                        value={companyAutocomplete.query || formData.company}
+                        onChange={(e) => { setFormData({ ...formData, company: e.target.value }); companyAutocomplete.search(e.target.value) }}
+                        onFocus={() => { if (formData.company && !companyAutocomplete.query) companyAutocomplete.search(formData.company); if (companyAutocomplete.results.length > 0) companyAutocomplete.setOpen(true) }}
+                        placeholder={t("form.companySearchPlaceholder")}
+                        className="h-11 bg-secondary/30 border-border/60 pl-8"
+                      />
+                      {companyAutocomplete.searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                    </div>
+                    {companyAutocomplete.open && companyAutocomplete.results.length > 0 && (
+                      <div className="absolute z-50 mt-1 w-full bg-popover border rounded-md shadow-md max-h-48 overflow-y-auto">
+                        {companyAutocomplete.results.map((c) => (
+                          <button key={c.id} type="button" className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors" onClick={() => { setFormData({ ...formData, company: c.name, company_entity: c.id }); setCompanyEntityLabel(c.name); companyAutocomplete.reset() }}>
+                            <span className="font-medium">{c.name}</span>
+                            {c.industry && <span className="text-muted-foreground ml-1">({c.industry})</span>}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="job_title_proto" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.jobTitle")}</Label>
+                <Input id="job_title_proto" value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lead_score_proto" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.score")}</Label>
+                <select id="lead_score_proto" value={formData.lead_score} onChange={(e) => setFormData({ ...formData, lead_score: e.target.value })} className="flex h-11 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  <option value="">{t("form.scoreNone")}</option>
+                  <option value="hot">{t("leadScore.hot")}</option>
+                  <option value="warm">{t("leadScore.warm")}</option>
+                  <option value="cold">{t("leadScore.cold")}</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{t("form.cancel")}</Button>
+                <Button type="submit" disabled={creating}>
+                  {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {t("form.create")}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Bulk categorize dialog */}
+        <Dialog open={bulkCategorizeOpen} onOpenChange={setBulkCategorizeOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("bulk.categorizeTitle", { count: selectedIds.size })}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {t("bulk.selected", { count: selectedIds.size })}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
+                      bulkCategorizeIds.includes(cat.id)
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary/30 border-border/60 hover:bg-secondary/50"
+                    }`}
+                    onClick={() => setBulkCategorizeIds(
+                      bulkCategorizeIds.includes(cat.id)
+                        ? bulkCategorizeIds.filter((id) => id !== cat.id)
+                        : [...bulkCategorizeIds, cat.id]
+                    )}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => { setBulkCategorizeOpen(false); setBulkCategorizeIds([]) }}>{t("form.cancel")}</Button>
+                <Button onClick={handleBulkCategorize} disabled={bulkCategorizeIds.length === 0}>{t("form.apply")}</Button>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.email")}</Label>
-              <Input id="email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.phone")}</Label>
-              <Input id="phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="company_proto" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.company")}</Label>
-              {formData.company_entity && companyEntityLabel ? (
+          </DialogContent>
+        </Dialog>
+
+        {/* Bulk assign company dialog */}
+        <Dialog open={bulkAssignCompanyOpen} onOpenChange={setBulkAssignCompanyOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("bulk.assignCompanyTitle", { count: selectedIds.size })}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {t("bulk.selected", { count: selectedIds.size })}
+              </p>
+              {bulkCompanyLabel ? (
                 <div className="flex items-center gap-2">
                   <div className="flex-1 flex items-center gap-2 h-11 bg-secondary/30 border border-border/60 rounded-md px-3">
                     <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <span className="text-sm truncate">{companyEntityLabel}</span>
+                    <span className="text-sm truncate">{bulkCompanyLabel}</span>
                   </div>
-                  <button type="button" onClick={() => { setFormData({ ...formData, company_entity: null, company: "" }); setCompanyEntityLabel(""); companyAutocomplete.reset() }} className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                  <button type="button" onClick={() => { setBulkCompanyId(null); setBulkCompanyLabel(null); bulkCompanyAutocomplete.reset() }} className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ) : (
-                <div ref={companyAutocomplete.wrapperRef} className="relative">
+                <div ref={bulkCompanyAutocomplete.wrapperRef} className="relative">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                     <Input
-                      id="company_proto"
-                      value={companyAutocomplete.query || formData.company}
-                      onChange={(e) => { setFormData({ ...formData, company: e.target.value }); companyAutocomplete.search(e.target.value) }}
-                      onFocus={() => { if (formData.company && !companyAutocomplete.query) companyAutocomplete.search(formData.company); if (companyAutocomplete.results.length > 0) companyAutocomplete.setOpen(true) }}
+                      value={bulkCompanyAutocomplete.query}
+                      onChange={(e) => bulkCompanyAutocomplete.search(e.target.value)}
                       placeholder={t("form.companySearchPlaceholder")}
                       className="h-11 bg-secondary/30 border-border/60 pl-8"
                     />
-                    {companyAutocomplete.searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                    {bulkCompanyAutocomplete.searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
                   </div>
-                  {companyAutocomplete.open && companyAutocomplete.results.length > 0 && (
+                  {bulkCompanyAutocomplete.open && bulkCompanyAutocomplete.results.length > 0 && (
                     <div className="absolute z-50 mt-1 w-full bg-popover border rounded-md shadow-md max-h-48 overflow-y-auto">
-                      {companyAutocomplete.results.map((c) => (
-                        <button key={c.id} type="button" className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors" onClick={() => { setFormData({ ...formData, company: c.name, company_entity: c.id }); setCompanyEntityLabel(c.name); companyAutocomplete.reset() }}>
+                      {bulkCompanyAutocomplete.results.map((c) => (
+                        <button key={c.id} type="button" className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors" onClick={() => { setBulkCompanyId(c.id); setBulkCompanyLabel(c.name); bulkCompanyAutocomplete.reset() }}>
                           <span className="font-medium">{c.name}</span>
                           {c.industry && <span className="text-muted-foreground ml-1">({c.industry})</span>}
                         </button>
@@ -330,40 +790,24 @@ export default function ContactsPrototypePage() {
                   )}
                 </div>
               )}
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => { setBulkAssignCompanyOpen(false); setBulkCompanyId(null); setBulkCompanyLabel(null) }}>{t("form.cancel")}</Button>
+                <Button onClick={handleBulkAssignCompany} disabled={!bulkCompanyId}>{t("form.apply")}</Button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="job_title_proto" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.jobTitle")}</Label>
-              <Input id="job_title_proto" value={formData.job_title} onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} className="h-11 bg-secondary/30 border-border/60" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lead_score_proto" className="text-xs font-medium uppercase tracking-wider text-muted-foreground font-[family-name:var(--font-body)]">{t("form.score")}</Label>
-              <select id="lead_score_proto" value={formData.lead_score} onChange={(e) => setFormData({ ...formData, lead_score: e.target.value })} className="flex h-11 w-full rounded-md border border-border/60 bg-secondary/30 px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                <option value="">{t("form.scoreNone")}</option>
-                <option value="hot">{t("leadScore.hot")}</option>
-                <option value="warm">{t("leadScore.warm")}</option>
-                <option value="cold">{t("leadScore.cold")}</option>
-              </select>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>{t("form.cancel")}</Button>
-              <Button type="submit" disabled={creating}>
-                {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {t("form.create")}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
 
-      <DuplicateDetectionDialog
-        open={showDuplicateDialog}
-        onOpenChange={setShowDuplicateDialog}
-        duplicates={duplicates}
-        newContactData={formData}
-        onCreateAnyway={handleCreateAnyway}
-        onMerge={handleMerge}
-        onCancel={() => { setShowDuplicateDialog(false); setDuplicates([]) }}
-      />
+        <DuplicateDetectionDialog
+          open={showDuplicateDialog}
+          onOpenChange={setShowDuplicateDialog}
+          duplicates={duplicates}
+          newContactData={formData}
+          onCreateAnyway={handleCreateAnyway}
+          onMerge={handleMerge}
+          onCancel={() => { setShowDuplicateDialog(false); setDuplicates([]) }}
+        />
+      </div>
     </div>
   )
 }
