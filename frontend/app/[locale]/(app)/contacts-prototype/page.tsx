@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { useTranslations } from "next-intl"
 import { apiFetch } from "@/lib/api"
-import { fetchContactCategories, checkDuplicates, exportContactsCSV, fetchContactTags, fetchContactSources, bulkContactAction } from "@/services/contacts"
+import { checkDuplicates, exportContactsCSV } from "@/services/contacts"
 import { DuplicateDetectionDialog } from "@/components/contacts/DuplicateDetectionDialog"
 import type { DuplicateMatch } from "@/types"
 import { ContactTableIceGlass } from "@/components/contacts/ContactTableIceGlass"
@@ -22,13 +22,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Plus, Search, Loader2, Download, Upload, ChevronDown, Building2, X } from "lucide-react"
+import { Plus, Search, Loader2, Download, ChevronDown, Building2, X } from "lucide-react"
 import { ImportCSVDialog } from "@/components/contacts/ImportCSVDialog"
 import { Pagination } from "@/components/shared/Pagination"
 import { useCompanyAutocomplete } from "@/hooks/useCompanyAutocomplete"
 import posthog from "posthog-js"
 import { handleQuotaError } from "@/lib/quota-error"
-import type { Contact, ContactCategory } from "@/types"
+import type { Contact } from "@/types"
 import "./ice-glass.css"
 
 interface ContactsResponse {
@@ -50,7 +50,6 @@ export default function ContactsPrototypePage() {
   const [totalCount, setTotalCount] = useState(0)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [categories, setCategories] = useState<ContactCategory[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [duplicates, setDuplicates] = useState<DuplicateMatch[]>([])
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
@@ -124,17 +123,6 @@ export default function ContactsPrototypePage() {
   useEffect(() => { setPage(1) }, [search])
   useEffect(() => { setPage(1) }, [selectedCategory])
   useEffect(() => { setPage(1) }, [leadScore, source, createdAfter, createdBefore, selectedTags])
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        await fetchContactCategories()
-      } catch (err) {
-        console.error("Failed to fetch filter data:", err)
-      }
-    }
-    loadData()
-  }, [])
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE)
 
