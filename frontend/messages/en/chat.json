@@ -5,6 +5,7 @@
   "sendLabel": "Send message",
   "inputHint": "Enter to send · Shift+Enter for a new line",
   "errorMessage": "Sorry, an error occurred. Please try again.",
+  "aiMessages": "AI messages",
   "conversations": "Conversations",
   "newConversation": "New conversation",
   "noConversations": "No conversations",

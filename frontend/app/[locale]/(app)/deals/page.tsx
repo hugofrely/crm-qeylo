@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef, useMemo } from "react"
-import { Plus, Loader2, MoreHorizontal, Pencil, Star, Trash2, Settings, Search, X } from "lucide-react"
+import { Plus, Loader2, MoreHorizontal, Pencil, Star, Trash2, Settings, Search, X, Lock } from "lucide-react"
+import { usePlanGate } from "@/contexts/PlanContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -39,6 +40,8 @@ import type { Member } from "@/types/organizations"
 export default function DealsPage() {
   const router = useRouter()
   const t = useTranslations("deals")
+  const { getQuotaStatus, openUpgradeModal } = usePlanGate()
+  const pipelinesAtLimit = getQuotaStatus("pipelines") === "limit"
   const { currentOrganization } = useOrganization()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [createPipelineOpen, setCreatePipelineOpen] = useState(false)
@@ -197,10 +200,21 @@ export default function DealsPage() {
         <QuotaBanner quota="pipelines" label="pipelines" />
         <PageHeader title={t("pageTitle")} subtitle={t("pageSubtitle")}>
           <FilterTriggerButton open={filterOpen} onOpenChange={setFilterOpen} activeFilterCount={activeFilterCount} />
-          <Button onClick={() => setDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            {t("newDeal")}
-          </Button>
+          {pipelinesAtLimit ? (
+            <Button
+              onClick={() => openUpgradeModal({ type: "quota", quota: "pipelines", requiredPlan: "pro" })}
+              variant="outline"
+              className="opacity-60 gap-2"
+            >
+              <Lock className="h-4 w-4" />
+              {t("newDeal")}
+            </Button>
+          ) : (
+            <Button onClick={() => setDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              {t("newDeal")}
+            </Button>
+          )}
         </PageHeader>
 
         {/* Desktop filter bar */}

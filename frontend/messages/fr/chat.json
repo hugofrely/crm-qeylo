@@ -5,6 +5,7 @@
   "sendLabel": "Envoyer le message",
   "inputHint": "Entrée pour envoyer · Maj+Entrée pour un retour à la ligne",
   "errorMessage": "Désolé, une erreur est survenue. Veuillez réessayer.",
+  "aiMessages": "messages IA",
   "conversations": "Conversations",
   "newConversation": "Nouvelle conversation",
   "noConversations": "Aucune conversation",
