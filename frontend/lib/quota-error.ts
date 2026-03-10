@@ -1,4 +1,13 @@
-import { toast } from "sonner"
+export type QuotaKey = "contacts" | "pipelines" | "users" | "ai_messages"
+
+export interface UpgradeModalContext {
+  type: "feature" | "quota"
+  feature?: string
+  quota?: QuotaKey
+  current?: number
+  limit?: number
+  requiredPlan: "pro" | "team"
+}
 
 interface QuotaError {
   error: string
@@ -7,6 +16,25 @@ interface QuotaError {
   current?: number
   feature?: string
   upgrade_required?: string
+}
+
+let _openUpgradeModal: ((ctx: UpgradeModalContext) => void) | null = null
+let _refreshUsage: (() => Promise<void>) | null = null
+
+export function registerUpgradeModal(fn: ((ctx: UpgradeModalContext) => void) | null) {
+  _openUpgradeModal = fn
+}
+
+export function registerRefreshUsage(fn: (() => Promise<void>) | null) {
+  _refreshUsage = fn
+}
+
+function inferQuotaFromDetail(detail: string): QuotaKey {
+  if (detail.includes("contact")) return "contacts"
+  if (detail.includes("pipeline")) return "pipelines"
+  if (detail.includes("utilisateur") || detail.includes("member") || detail.includes("user")) return "users"
+  if (detail.includes("IA") || detail.includes("AI") || detail.includes("message")) return "ai_messages"
+  return "contacts"
 }
 
 export function handleQuotaError(error: unknown): boolean {
@@ -19,17 +47,31 @@ export function handleQuotaError(error: unknown): boolean {
     return false
   }
 
-  if (parsed?.error === "quota_exceeded" || parsed?.error === "feature_not_available") {
-    toast.error(parsed.detail, {
-      duration: 6000,
-      action: {
-        label: "Voir les plans",
-        onClick: () => {
-          window.location.href = "/settings/organization"
-        },
-      },
-    })
+  if (parsed?.error === "quota_exceeded") {
+    const quota = inferQuotaFromDetail(parsed.detail)
+    if (_openUpgradeModal) {
+      _openUpgradeModal({
+        type: "quota",
+        quota,
+        current: parsed.current,
+        limit: parsed.limit,
+        requiredPlan: (parsed.upgrade_required as "pro" | "team") ?? "pro",
+      })
+      _refreshUsage?.()
+    }
     return true
   }
+
+  if (parsed?.error === "feature_not_available") {
+    if (_openUpgradeModal) {
+      _openUpgradeModal({
+        type: "feature",
+        feature: parsed.feature,
+        requiredPlan: (parsed.upgrade_required as "pro" | "team") ?? "pro",
+      })
+    }
+    return true
+  }
+
   return false
 }
